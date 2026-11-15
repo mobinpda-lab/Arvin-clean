@@ -25,7 +25,7 @@ class TaskProjectAssignmentService {
       title: title.trim(),
     );
     final next = lifecycle.add(current, project);
-    await store.save(next);
+    await store.upsert(next);
     return project;
   }
 
@@ -47,7 +47,7 @@ class TaskProjectAssignmentService {
       taskId: taskId,
       projectId: projectId,
     );
-    await store.save(next);
+    await store.upsert(next);
     return next;
   }
 }

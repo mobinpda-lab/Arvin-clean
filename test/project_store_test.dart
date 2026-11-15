@@ -1,4 +1,6 @@
 // G1 current-main validation checkpoint: this test must run against the live main base before merge.
+import 'dart:convert';
+
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -51,6 +53,106 @@ void main() {
 
     await store.clear();
     expect(await store.load(), isEmpty);
+  });
+
+
+  test('upsert preserves omitted Projects and existing membership when itemIds is absent', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final taskStore = TaskStore(executor: database);
+    await taskStore.save([Task(id: 'task-keep', title: 'کار')]);
+    final store = ProjectStore(executor: database);
+    await store.save([
+      ProjectPlan(id: 'keep', title: 'پروژه باقی', itemIds: const ['task-keep']),
+      ProjectPlan(id: 'untouched', title: 'پروژه دیگر'),
+    ]);
+
+    await store.upsert([ProjectPlan(id: 'keep', title: 'عنوان تازه')]);
+
+    final loaded = await store.load();
+    expect(loaded.map((project) => project.id).toSet(), {'keep', 'untouched'});
+    final kept = loaded.singleWhere((project) => project.id == 'keep');
+    expect(kept.title, 'عنوان تازه');
+    expect(kept.itemIds, ['task-keep']);
+  });
+
+  test('explicit empty membership removes only that Project relationship', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final taskStore = TaskStore(executor: database);
+    await taskStore.save([
+      Task(id: 'task-a', title: 'الف'),
+      Task(id: 'task-b', title: 'ب'),
+    ]);
+    final store = ProjectStore(executor: database);
+    await store.save([
+      ProjectPlan(id: 'a', title: 'الف', itemIds: const ['task-a']),
+      ProjectPlan(id: 'b', title: 'ب', itemIds: const ['task-b']),
+    ]);
+
+    await store.upsert([
+      ProjectPlan(id: 'a', title: 'الف', itemIds: const []),
+    ]);
+
+    final loaded = await store.load();
+    expect(loaded.singleWhere((project) => project.id == 'a').itemIds, isEmpty);
+    expect(loaded.singleWhere((project) => project.id == 'b').itemIds, ['task-b']);
+  });
+
+  test('unknown Project metadata survives load and transactional upsert', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final store = ProjectStore(executor: database);
+    await store.save([ProjectPlan(id: 'metadata', title: 'پروژه')]);
+    await database.runUpdate(
+      'UPDATE projects SET legacy_payload_json = ? WHERE id = ?',
+      [jsonEncode({
+        'id': 'metadata',
+        'title': 'پروژه',
+        'colorValue': 0xFF4A4CAB,
+        'isArchived': false,
+        'itemIds': [],
+        'historicalMarker': {'source': 'legacy', 'revision': 3},
+      }), 'metadata'],
+    );
+
+    final loaded = (await store.load()).single;
+    expect(loaded.legacyFields['historicalMarker'], {
+      'source': 'legacy',
+      'revision': 3,
+    });
+
+    await store.upsert([loaded.copyWith(title: 'پروژه ویرایش‌شده')]);
+    final stored = await database.runSelect(
+      'SELECT legacy_payload_json FROM projects WHERE id = ?',
+      const ['metadata'],
+    );
+    final envelope = jsonDecode(stored.single['legacy_payload_json'] as String) as Map;
+    expect(envelope['historicalMarker'], {
+      'source': 'legacy',
+      'revision': 3,
+    });
+  });
+
+  test('explicit deletion is transactional and blocks Projects with Task links', () async {
+    final database = NativeDatabase.memory();
+    addTearDown(database.close);
+    final taskStore = TaskStore(executor: database);
+    await taskStore.save([Task(id: 'linked-task', title: 'کار')]);
+    final store = ProjectStore(executor: database);
+    await store.save([
+      ProjectPlan(id: 'linked', title: 'دارای کار', itemIds: const ['linked-task']),
+      ProjectPlan(id: 'empty', title: 'خالی'),
+    ]);
+
+    await expectLater(
+      store.upsert(const [], deleteProjectIds: const ['linked']),
+      throwsA(isA<ProjectDeleteBlocked>()),
+    );
+    expect((await store.load()).map((project) => project.id).toSet(), {'linked', 'empty'});
+
+    await store.upsert(const [], deleteProjectIds: const ['empty']);
+    expect((await store.load()).map((project) => project.id).toSet(), {'linked'});
   });
 
   test('legacy project membership migrates after canonical task migration', () async {

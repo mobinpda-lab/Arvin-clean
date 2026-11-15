@@ -93,7 +93,17 @@ class ProjectStore {
         'SELECT task_id FROM project_items WHERE project_id = ? ORDER BY ordinal',
         <Object?>[row['id']],
       );
+      final rawEnvelope = row['legacy_payload_json'];
+      Map<String, dynamic> envelope = <String, dynamic>{};
+      if (rawEnvelope is String && rawEnvelope.trim().isNotEmpty) {
+        final decoded = jsonDecode(rawEnvelope);
+        if (decoded is! Map) {
+          throw FormatException('Project metadata is invalid for ${row['id']}');
+        }
+        envelope = Map<String, dynamic>.from(decoded);
+      }
       result.add(codec.decode({
+        ...envelope,
         'id': row['id'],
         'title': row['name'],
         'colorValue': row['color_value'],
@@ -104,10 +114,66 @@ class ProjectStore {
     return List<ProjectPlan>.unmodifiable(result);
   }
 
-  Future<void> save(Iterable<ProjectPlan> projects) async {
+  /// Backward-compatible entry point; saves are additive upserts, never a
+  /// collection-wide delete/recreate operation.
+  Future<void> save(Iterable<ProjectPlan> projects) => upsert(projects);
+
+  /// Transactionally upserts only the supplied Project identities. Existing
+  /// membership is changed only when itemIds was explicitly supplied. Deletes
+  /// are explicit and blocked while a Project still references Tasks.
+  Future<void> upsert(
+    Iterable<ProjectPlan> projects, {
+    Iterable<String> deleteProjectIds = const <String>[],
+  }) async {
     final executor = _database;
     await _ensureReady();
     final values = List<ProjectPlan>.of(projects);
+    final ids = values.map((project) => project.id).toSet();
+    if (ids.length != values.length) {
+      throw ArgumentError('Duplicate Project id in upsert batch.');
+    }
+    final deletes = deleteProjectIds.toSet();
+    if (deletes.length != deleteProjectIds.length) {
+      throw ArgumentError('Duplicate Project id in delete batch.');
+    }
+    if (deletes.any(ids.contains)) {
+      throw ArgumentError('A Project cannot be upserted and deleted in one batch.');
+    }
+
+    await executor.runCustom('BEGIN');
+    try {
+      for (final project in values) {
+        await _upsertProject(executor, project);
+      }
+      for (final projectId in deletes) {
+        final references = await executor.runSelect(
+          'SELECT task_id FROM project_items WHERE project_id = ? LIMIT 1',
+          <Object?>[projectId],
+        );
+        if (references.isNotEmpty) throw ProjectDeleteBlocked(projectId);
+        final deleted = await executor.runDelete(
+          'DELETE FROM projects WHERE id = ?',
+          <Object?>[projectId],
+        );
+        if (deleted != 1) throw StateError('Unknown Project: $projectId');
+      }
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+  }
+
+  /// Explicit full-snapshot replacement, reserved for restore/clear flows.
+  /// Ordinary editing and assignment must use [upsert].
+  Future<void> replaceAll(Iterable<ProjectPlan> projects) async {
+    final executor = _database;
+    await _ensureReady();
+    final values = List<ProjectPlan>.of(projects);
+    final ids = values.map((project) => project.id).toSet();
+    if (ids.length != values.length) {
+      throw ArgumentError('Duplicate Project id in replacement snapshot.');
+    }
     await executor.runCustom('BEGIN');
     try {
       await executor.runCustom('DELETE FROM project_items');
@@ -122,7 +188,64 @@ class ProjectStore {
     }
   }
 
-  Future<void> clear() => save(const <ProjectPlan>[]);
+  Future<void> clear() => replaceAll(const <ProjectPlan>[]);
+
+  Future<void> _upsertProject(QueryExecutor executor, ProjectPlan project) async {
+    final existing = await executor.runSelect(
+      'SELECT legacy_payload_json FROM projects WHERE id = ?',
+      <Object?>[project.id],
+    );
+    Map<String, dynamic> previousEnvelope = <String, dynamic>{};
+    if (existing.isNotEmpty) {
+      final raw = existing.single['legacy_payload_json'];
+      if (raw is String && raw.trim().isNotEmpty) {
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) {
+          throw FormatException('Project metadata is invalid for ${project.id}');
+        }
+        previousEnvelope = Map<String, dynamic>.from(decoded);
+      }
+    }
+    final envelope = <String, dynamic>{
+      ...previousEnvelope,
+      ...codec.encode(project),
+    };
+    await executor.runInsert(
+      '''INSERT INTO projects
+         (id, name, color_value, is_archived, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?)
+         ON CONFLICT(id) DO UPDATE SET
+           name = excluded.name,
+           color_value = excluded.color_value,
+           is_archived = excluded.is_archived,
+           legacy_payload_json = excluded.legacy_payload_json''',
+      <Object?>[
+        project.id,
+        project.title,
+        project.colorValue,
+        project.isArchived ? 1 : 0,
+        jsonEncode(envelope),
+      ],
+    );
+    if (project.itemIdsSpecified) {
+      await executor.runDelete(
+        'DELETE FROM project_items WHERE project_id = ?',
+        <Object?>[project.id],
+      );
+      final seenTaskIds = <String>{};
+      for (var ordinal = 0; ordinal < project.itemIds.length; ordinal++) {
+        final taskId = project.itemIds[ordinal];
+        if (!seenTaskIds.add(taskId)) {
+          throw ArgumentError('Duplicate Task id $taskId in Project ${project.id}.');
+        }
+        await executor.runInsert(
+          '''INSERT INTO project_items (project_id, task_id, ordinal)
+             VALUES (?, ?, ?)''',
+          <Object?>[project.id, taskId, ordinal],
+        );
+      }
+    }
+  }
 
   Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
     await executor.runInsert(

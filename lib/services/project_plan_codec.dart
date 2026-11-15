@@ -11,13 +11,17 @@ class ProjectPlanCodec {
   static const int defaultColorValue = 0xFF4A4CAB;
 
   Map<String, dynamic> encode(ProjectPlan project) {
-    return <String, dynamic>{
+    final result = <String, dynamic>{
+      ...project.legacyFields,
       'id': project.id,
       'title': project.title,
       'colorValue': project.colorValue,
       'isArchived': project.isArchived,
-      'itemIds': List<String>.of(project.itemIds),
     };
+    if (project.itemIdsSpecified) {
+      result['itemIds'] = List<String>.of(project.itemIds);
+    }
+    return result;
   }
 
   ProjectPlan decode(Object? raw) {
@@ -44,10 +48,15 @@ class ProjectPlanCodec {
     }
     final isArchived = rawArchived is bool ? rawArchived : false;
 
+    final hasItemIds = map.containsKey('itemIds');
     final rawItemIds = map['itemIds'];
-    final itemIds = rawItemIds == null
+    final itemIds = !hasItemIds || rawItemIds == null
         ? const <String>[]
         : _decodeItemIds(rawItemIds);
+    final legacyFields = Map<String, dynamic>.from(map)
+      ..removeWhere((key, _) => const {
+        'id', 'title', 'colorValue', 'isArchived', 'itemIds',
+      }.contains(key));
 
     return ProjectPlan(
       id: id,
@@ -55,6 +64,8 @@ class ProjectPlanCodec {
       colorValue: colorValue,
       isArchived: isArchived,
       itemIds: itemIds,
+      itemIdsSpecified: hasItemIds,
+      legacyFields: legacyFields,
     );
   }
 
