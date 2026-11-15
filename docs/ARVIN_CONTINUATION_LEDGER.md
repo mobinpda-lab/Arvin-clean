@@ -156,3 +156,51 @@ Do not report a feature as completed without a GitHub artifact (commit/PR/test/b
 - Full relational Backup/Restore, metadata parity and rollback across all entities: NOT ACCEPTED.
 - Full page integration, typography audit, regression and device smoke on one final SHA: NOT ACCEPTED.
 - Final acceptance remains NO-GO. Main, merge, release, deployment and production user data remain protected.
+
+
+## COMMAND 03 — SQLite migration chain investigation (2026-11-15)
+
+### Live refs
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Canonical: `b7e7f7440fc9feab788ba4fec57e2afb80684c38` at investigation start.
+- PR #3495: OPEN / DRAFT, base Main, head Canonical.
+- No Main write, merge, release, deployment, or production database operation performed.
+
+### Exact schema sources
+- Main v7: `lib/services/g1_drift_schema.dart`, blob `cd065ff25c680ed064e89068b3d063e737091025`.
+- PR #3384 v19: same path, blob `9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21`, source head `310c0e20e3447c488c1e1c102c38bea5040708ca`.
+- PR #3463 v20: same path, blob `b03b90efac9f3c5cbef3b1b649385cdf6369ca62`, source head `812082964c649be7660c41213209ec34aea7167b`.
+- PR #3463 v19→v20 migration: `lib/services/g1_many_to_many_hierarchy_migration.dart`, blob `a2c768da3c90d2610ea2285ddd248e8fbbc27489`.
+
+### What the source actually does
+- Main v7 installer creates the older Task, Follow-up, Project, project_items, taxonomy_categories, Tag and Person tables.
+- PR #3384 v19 is an idempotent SQL installer, not a sequential Drift MigrationStrategy. It creates additional Reminder, Follow-up Record, Person, Center, Template, Occurrence and Recurrence structures; conditionally adds columns; copies Task/Follow-up/Person data; migrates recurrence and occurrence envelopes; and attempts guarded retirement/rebuild of legacy Task/Reminder structures.
+- The v19 source calls `OccurrenceSqlCodec` and `RecurrenceSqlCodec`; those source files are absent from Main.
+- PR #3463 v20 lifecycle first executes the v19-style schema installer, then invokes the v19→v20 M2M migration, verifies the migration marker and new Task columns, and relies on Drift/user_version lifecycle handling. This is not yet a proven sequential v7→v19→v20 upgrade on Main-derived file databases.
+- The v19→v20 migration creates `center_projects`, `categories`, and `project_categories`; adds nullable `tasks.center_id`, `tasks.project_id`, and `tasks.category_id`; maps only unambiguous legacy relationships; records unresolved legacy evidence; and leaves `project_items` intact.
+- The current migration test `test/services/g1_many_to_many_hierarchy_migration_test.dart` uses `NativeDatabase.memory()`, not a file-backed SQLite fixture. It does include injected rollback coverage, but that does not satisfy the requested file-backed migration acceptance.
+- Schema history contains explicit version-bump commits for v9, v10, v11 and v15; the inspected v19 source itself does not provide a version-by-version migration ledger for every intermediate version. Missing intermediate steps must not be fabricated as successful no-op migrations.
+
+### Blocking dependency closure on Main
+- PR #3384 is based on `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`, which is 2,200 commits ahead of current Main `45e4202...`.
+- PR #3463 is based on PR #3384 head, not on Main.
+- Main Task model is 492 lines (blob `3c791211f6343465cc7a03c834b449dcaf333fb0`) versus 906 lines on PR #3384 (blob `328c402318878717d9165bccf8303fa6674321bf`).
+- Main TaskStore is 665 lines (blob `e65afaf905310b5ab19bf627c03aa21a2651c856`) versus 1,315 lines on PR #3384 (blob `625f7b24523e621adba7ae7a59e4c3e13c272a09`).
+- Main does not contain these migration/runtime dependencies present on the PR #3384 base: `occurrence_sql_codec.dart`, `recurrence_sql_codec.dart`, `center_store.dart`, `arvin_center.dart`, `project_template_service.dart`, `project_template_store.dart`, `task_template_store.dart`, and related models/projections.
+- The v19 TaskStore also depends on the longer Task model, ProjectPlan and taxonomy/recurrence services. Replacing only the schema would leave current Main readers/writers incompatible with the new tables and retired columns.
+- The PR #3384 diff has 120 changed files, but the required dependency closure includes files inherited from its 2,200-commit-ahead base and therefore not represented in that PR's changed-file list.
+
+### Safety decision for this execution
+No schema or migration code was copied into Canonical in this pass. Doing so before transferring and reconciling the Task model, TaskStore, recurrence/occurrence codecs, migration writers and their consumers would risk opening a v19/v20 schema with v7 readers/writers. That is specifically unsafe for existing user data.
+The migration implementation remains blocked on a complete, reviewed dependency closure and executable file-backed acceptance. This is a concrete integration blocker, not a claim that migration is complete.
+
+### Required next implementation slice
+1. Reconcile and port the v19 Task model/TaskStore and the recurrence/occurrence codecs plus their direct migration dependencies onto Main-based Canonical without replacing current behavior blindly.
+2. Add an explicit, auditable v7→v19 migration runner with source-shape preconditions, ordered migration phases, idempotency markers, row/identity/payload parity checks, and fail-closed behavior. Do not invent missing historical version steps.
+3. Add file-backed v7 fixture tests covering Task, Project, Center, Category, Tag, Follow-up, Reminder and metadata, including reopen/retry/rollback.
+4. Integrate the v19→v20 M2M migration only after the v19 fixture and store consumers pass, then add file-backed v19→v20 tests and owner-approved relationship edge cases.
+5. Run all gates on one exact Canonical SHA before reporting any migration PASS.
+
+### CI boundary
+- At the time of this investigation, all 14 check-runs associated with Canonical SHA `b7e7f7440fc9feab788ba4fec57e2afb80684c38` were still QUEUED, including Analyze, six test shards, APK builds, Follow-up Persistence, Device Smoke and orchestration checks.
+- No migration test or Build result is claimed PASS on Canonical.
