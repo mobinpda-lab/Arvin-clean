@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -137,4 +139,112 @@ void main() {
     // A pre-timestamp completed task stays unknown; migration must not invent a time.
     expect(migratedTask.single['completed_at'], isNull);
   });
+
+  test('file-backed v7 database preserves legacy identities and payloads after reopen', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-v7-file-');
+    final file = File('${directory.path}/arvin-v7.sqlite');
+    NativeDatabase? fileDatabase;
+    try {
+      fileDatabase = NativeDatabase(file);
+      await G1DriftSchema.install(fileDatabase);
+      await fileDatabase.runCustom(
+        '''INSERT INTO tasks (
+          id, storage_ordinal, title, description, follow_up_enabled,
+          priority, archived, trashed, completed, legacy_payload_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          'task-v7-001', 7, 'کار تاریخی', 'شرح تاریخی', 1,
+          'high', 0, 0, 1,
+          '{"unknownTaskField":{"source":"v7","revision":4}}',
+        ],
+      );
+      await fileDatabase.runCustom(
+        '''INSERT INTO projects (id, name, legacy_payload_json)
+           VALUES (?, ?, ?)''',
+        <Object?>[
+          'project-v7-001', 'پروژه تاریخی',
+          '{"unknownProjectField":"preserve-me"}',
+        ],
+      );
+      await fileDatabase.runCustom(
+        '''INSERT INTO project_items (project_id, task_id, ordinal)
+           VALUES (?, ?, ?)''',
+        <Object?>['project-v7-001', 'task-v7-001', 3],
+      );
+      await fileDatabase.runCustom(
+        '''INSERT INTO follow_ups (
+          id, task_id, date_time, note, completed, ordinal
+        ) VALUES (?, ?, ?, ?, ?, ?)''',
+        <Object?>[
+          'follow-up-v7-001', 'task-v7-001',
+          '2026-10-01T09:30:00.000Z', 'پیگیری تاریخی', 0, 2,
+        ],
+      );
+      await fileDatabase.runCustom(
+        'INSERT INTO tags (id, name) VALUES (?, ?)',
+        <Object?>['tag-v7-001', 'برچسب تاریخی'],
+      );
+      await fileDatabase.runCustom(
+        'INSERT INTO task_tags (task_id, tag_id, ordinal) VALUES (?, ?, ?)',
+        <Object?>['task-v7-001', 'tag-v7-001', 1],
+      );
+      await fileDatabase.close();
+      fileDatabase = null;
+
+      fileDatabase = NativeDatabase(file);
+      await G1DriftSchema.install(fileDatabase);
+      await G1DriftSchema.install(fileDatabase);
+
+      final taskRows = await fileDatabase.runSelect(
+        'SELECT id, title, storage_ordinal, legacy_payload_json FROM tasks WHERE id = ?',
+        const <Object?>['task-v7-001'],
+      );
+      expect(taskRows, hasLength(1));
+      expect(taskRows.single['title'], 'کار تاریخی');
+      expect(taskRows.single['storage_ordinal'], 7);
+      expect(
+        taskRows.single['legacy_payload_json'],
+        '{"unknownTaskField":{"source":"v7","revision":4}}',
+      );
+
+      final projectRows = await fileDatabase.runSelect(
+        'SELECT id, legacy_payload_json FROM projects WHERE id = ?',
+        const <Object?>['project-v7-001'],
+      );
+      expect(projectRows, hasLength(1));
+      expect(projectRows.single['legacy_payload_json'],
+          '{"unknownProjectField":"preserve-me"}');
+
+      final membershipRows = await fileDatabase.runSelect(
+        'SELECT ordinal FROM project_items WHERE project_id = ? AND task_id = ?',
+        const <Object?>['project-v7-001', 'task-v7-001'],
+      );
+      expect(membershipRows, hasLength(1));
+      expect(membershipRows.single['ordinal'], 3);
+
+      final followUpRows = await fileDatabase.runSelect(
+        'SELECT id, note, ordinal FROM follow_ups WHERE task_id = ?',
+        const <Object?>['task-v7-001'],
+      );
+      expect(followUpRows, hasLength(1));
+      expect(followUpRows.single['id'], 'follow-up-v7-001');
+      expect(followUpRows.single['note'], 'پیگیری تاریخی');
+      expect(followUpRows.single['ordinal'], 2);
+
+      final tagRows = await fileDatabase.runSelect(
+        '''SELECT tags.id, tags.name, task_tags.ordinal
+           FROM tags JOIN task_tags ON task_tags.tag_id = tags.id
+           WHERE task_tags.task_id = ?''',
+        const <Object?>['task-v7-001'],
+      );
+      expect(tagRows, hasLength(1));
+      expect(tagRows.single['id'], 'tag-v7-001');
+      expect(tagRows.single['name'], 'برچسب تاریخی');
+      expect(tagRows.single['ordinal'], 1);
+    } finally {
+      await fileDatabase?.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
 }
