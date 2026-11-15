@@ -188,7 +188,15 @@ class ProjectStore {
     }
   }
 
-  Future<void> clear() => replaceAll(const <ProjectPlan>[]);
+  /// Explicitly removes only unreferenced Projects. If any Project still owns
+  /// Task links, the whole clear is rejected and all records remain intact.
+  Future<void> clear() async {
+    final current = await load();
+    await upsert(
+      const <ProjectPlan>[],
+      deleteProjectIds: current.map((project) => project.id),
+    );
+  }
 
   Future<void> _upsertProject(QueryExecutor executor, ProjectPlan project) async {
     final existing = await executor.runSelect(

@@ -145,6 +145,9 @@ void main() {
       ProjectPlan(id: 'empty', title: 'خالی'),
     ]);
 
+    await expectLater(store.clear(), throwsA(isA<ProjectDeleteBlocked>()));
+    expect((await store.load()).map((project) => project.id).toSet(), {'linked', 'empty'});
+
     await expectLater(
       store.upsert(const [], deleteProjectIds: const ['linked']),
       throwsA(isA<ProjectDeleteBlocked>()),
