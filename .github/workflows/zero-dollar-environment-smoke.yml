@@ -1,0 +1,243 @@
+name: Zero Dollar Environment Smoke
+
+on:
+  pull_request:
+    types: [labeled]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zero-dollar-environment-smoke-pr-\${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  environment-smoke:
+    if: >-
+      \${{ github.event.pull_request.number == 3495 &&
+          github.event.pull_request.base.ref == 'main' &&
+          github.event.pull_request.head.ref == 'recovery-02/main-based-integration' &&
+          contains(github.event.pull_request.labels.*.name, 'zero-dollar-environment-smoke') }}
+    name: Zero-dollar Android environment diagnostic
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      EXPECTED_PARENT_SHA: b041a84519a03e1f21ea4825ed40e913727a6e7b
+      EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
+      TARGET_SHA: \${{ github.event.pull_request.head.sha }}
+      EVENT_BASE_SHA: \${{ github.event.pull_request.base.sha }}
+      EVENT_HEAD_REF: \${{ github.event.pull_request.head.ref }}
+      EVENT_BASE_REF: \${{ github.event.pull_request.base.ref }}
+      RUNNER_ENVIRONMENT_VALUE: \${{ runner.environment }}
+      ANDROID_USER_HOME: \${{ runner.temp }}/android-user
+    steps:
+      - name: Verify immutable refs and runner class
+        shell: bash
+        env:
+          GH_TOKEN: \${{ github.token }}
+          REPOSITORY: \${{ github.repository }}
+          PR_NUMBER: \${{ github.event.pull_request.number }}
+        run: |
+          set -Eeuo pipefail
+          {
+            echo "## Zero-dollar environment diagnostic"
+            echo
+            echo "- Repository: $REPOSITORY"
+            echo "- Pull request: #$PR_NUMBER"
+            echo "- Event: $GITHUB_EVENT_NAME / labeled"
+            echo "- Runner environment: $RUNNER_ENVIRONMENT_VALUE"
+            echo "- Runner image: $ImageOS / $ImageVersion"
+            echo "- Expected Canonical parent: $EXPECTED_PARENT_SHA"
+            echo "- PR head SHA: $TARGET_SHA"
+            echo "- Expected Main SHA: $EXPECTED_MAIN_SHA"
+            echo "- PR base SHA: $EVENT_BASE_SHA"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]
+          [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
+          [[ "$EVENT_BASE_REF" == "main" ]]
+          [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
+          [[ "$EVENT_BASE_SHA" == "$EXPECTED_MAIN_SHA" ]]
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+          [[ "$(uname -m)" == "x86_64" ]]
+
+          commit_json="$RUNNER_TEMP/target-commit.json"
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/commits/$TARGET_SHA" \
+            -o "$commit_json"
+
+          parent_sha="$(jq -r '.parents[0].sha // empty' "$commit_json")"
+          parent_count="$(jq '.parents | length' "$commit_json")"
+          [[ "$parent_count" == "1" ]]
+          [[ "$parent_sha" == "$EXPECTED_PARENT_SHA" ]]
+
+          {
+            echo "- Parent count: $parent_count"
+            echo "- Verified direct parent: $parent_sha"
+            echo "- Architecture: $(uname -m)"
+            echo "- Runner image: $ImageOS / $ImageVersion"
+            echo
+            echo "REF_GUARD=PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          stage="initialization"
+          emulator_pid=""
+          emulator_log="$RUNNER_TEMP/arvin-emulator.log"
+          flutter_archive="$RUNNER_TEMP/flutter_linux_3.47.0-stable.tar.xz"
+          flutter_manifest="$RUNNER_TEMP/flutter-releases-linux.json"
+          flutter_root="$RUNNER_TEMP/flutter-sdk"
+          avd_name="arvin-zero-dollar-api35"
+
+          finish() {
+            rc=$?
+            trap - EXIT
+            if [[ -n "$emulator_pid" ]]; then
+              kill "$emulator_pid" 2>/dev/null || true
+              wait "$emulator_pid" 2>/dev/null || true
+            fi
+            if (( rc != 0 )); then
+              {
+                echo
+                echo "Failure diagnostics"
+                echo "Failed stage: $stage"
+                echo "Exit code: $rc"
+                if [[ -f "$emulator_log" ]]; then
+                  echo "Emulator log (last 80 lines):"
+                  tail -n 80 "$emulator_log" || true
+                fi
+                if command -v adb >/dev/null 2>&1; then
+                  echo "ADB devices:"
+                  adb devices -l 2>&1 || true
+                fi
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit "$rc"
+          }
+          trap finish EXIT
+
+          mkdir -p "$ANDROID_USER_HOME" "$flutter_root"
+          {
+            echo "Runtime environment"
+            echo "OS: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "Architecture: $(uname -m)"
+            echo "Runner: $RUNNER_ENVIRONMENT_VALUE"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Java 17"
+          java -version 2>&1 | tee "$RUNNER_TEMP/java-version.txt"
+          java_major="$(java -XshowSettings:properties -version 2>&1 | awk -F'= ' '/java.specification.version/ {print $2; exit}')"
+          [[ "$java_major" == "17" ]]
+          echo "Java major: $java_major — PASS" >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Flutter 3.47.0 download and checksum verification"
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 60 \
+            "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json" \
+            -o "$flutter_manifest"
+          release="$(jq -cer '[.releases[] | select(.version == "3.47.0" and .channel == "stable" and .dart_sdk_arch == "x64")][0]' "$flutter_manifest")"
+          archive_path="$(jq -r '.archive' <<< "$release")"
+          archive_sha="$(jq -r '.sha256' <<< "$release")"
+          [[ -n "$archive_path" && "$archive_path" != "null" ]]
+          [[ "$archive_sha" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 300 \
+            "https://storage.googleapis.com/flutter_infra_release/releases/$archive_path" \
+            -o "$flutter_archive"
+          echo "$archive_sha  $flutter_archive" | sha256sum --check --status
+          tar -xf "$flutter_archive" -C "$flutter_root"
+          flutter_bin="$flutter_root/flutter/bin/flutter"
+          [[ -x "$flutter_bin" ]]
+          export PATH="$flutter_root/flutter/bin:$flutter_root/flutter/bin/cache/dart-sdk/bin:$PATH"
+          flutter --version 2>&1 | tee "$RUNNER_TEMP/flutter-version.txt"
+          flutter_version="$(flutter --version --machine | jq -r '.frameworkVersion')"
+          dart_version="$(dart --version 2>&1 | awk '{print $4}')"
+          [[ "$flutter_version" == "3.47.0" ]]
+          [[ "$dart_version" == "3.13.0" ]]
+          {
+            echo "Flutter: $flutter_version — PASS"
+            echo "Dart: $dart_version — PASS"
+            echo "Flutter archive SHA-256: $archive_sha — PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Android SDK API 35 and emulator packages"
+          sdk_root="\${ANDROID_SDK_ROOT:-\${ANDROID_HOME:-}}"
+          [[ -n "$sdk_root" && -d "$sdk_root" ]]
+          sdkmanager="$sdk_root/cmdline-tools/latest/bin/sdkmanager"
+          avdmanager="$sdk_root/cmdline-tools/latest/bin/avdmanager"
+          [[ -x "$sdkmanager" ]]
+          [[ -x "$avdmanager" ]]
+          yes | "$sdkmanager" --licenses >/dev/null
+          "$sdkmanager" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "emulator" \
+            "system-images;android-35;google_apis;x86_64" \
+            2>&1 | tee "$RUNNER_TEMP/android-sdk-install.txt"
+          test -d "$sdk_root/platforms/android-35"
+          test -d "$sdk_root/system-images/android-35/google_apis/x86_64"
+          "$sdkmanager" --list_installed 2>&1 | tee "$RUNNER_TEMP/android-sdk-installed.txt"
+          {
+            echo "Android SDK root: $sdk_root"
+            echo "Android platform: android-35 — PASS"
+            echo "Emulator system image: android-35;google_apis;x86_64 — PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="KVM availability and emulator acceleration"
+          [[ -c /dev/kvm ]]
+          sudo chmod 0666 /dev/kvm
+          [[ -r /dev/kvm && -w /dev/kvm ]]
+          "$sdk_root/emulator/emulator" -accel-check 2>&1 | tee "$RUNNER_TEMP/kvm-check.txt"
+          {
+            echo "/dev/kvm: present and readable/writable — PASS"
+            echo "Emulator acceleration check: PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="AVD creation and emulator boot"
+          printf 'no\n' | "$avdmanager" create avd \
+            --force --name "$avd_name" \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --device pixel_2
+          "$sdk_root/platform-tools/adb" start-server
+          "$sdk_root/emulator/emulator" -avd "$avd_name" \
+            -no-window -no-audio -no-boot-anim -no-snapshot \
+            -gpu swiftshader_indirect > "$emulator_log" 2>&1 &
+          emulator_pid=$!
+          export PATH="$sdk_root/platform-tools:$PATH"
+          timeout 60 adb wait-for-device
+          booted=""
+          device=""
+          for _ in $(seq 1 180); do
+            device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')"
+            if [[ -n "$device" ]]; then
+              booted="$(adb -s "$device" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')"
+              if [[ "$booted" == "1" ]]; then
+                break
+              fi
+            fi
+            sleep 1
+          done
+          [[ "$booted" == "1" ]]
+          sdk_api="$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d '\r')"
+          [[ "$sdk_api" == "35" ]]
+          {
+            echo "AVD: $avd_name — PASS"
+            echo "ADB device: $device — PASS"
+            echo "sys.boot_completed: $booted — PASS"
+            echo "Android API level: $sdk_api — PASS"
+            echo
+            echo "ENVIRONMENT_SMOKE=PASS"
+            echo "No product tests or Calendar restart tests were run."
+            echo "No GitHub Actions cache or artifact upload was configured."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="completed"
