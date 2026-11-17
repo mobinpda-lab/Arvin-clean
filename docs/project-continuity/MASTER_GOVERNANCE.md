@@ -1,3 +1,42 @@
+# REV10 — ONE PATH CONSOLIDATION ADDENDUM
+**Effective:** 2026-11-17  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Canonical development PR:** #3495  
+**Canonical branch:** `recovery-02/main-based-integration`
+
+This addendum supersedes earlier execution checkpoints that named PR #3052 or #3463 as the active development route, and supersedes older restrictions that did not permit cleanup of obsolete development refs.
+
+## Binding rules
+- PR #3495 is the only active development path. Do not create parallel feature PRs or revive historical branches as active paths.
+- Main is read-only for development. All product changes remain on the canonical PR branch.
+- Merge, release, deployment, and production-user-database operations require explicit Product Owner approval.
+- No automated merge engine or autonomous PR-generating worker is part of the approved factory.
+- Release creation is manual and owner-gated. Historical releases and tags must be preserved; cleanup must not destroy valid evidence.
+- PRs and branches may be closed/deleted only after their unique commits, tests, docs, and product decisions have been audited and useful contributions recovered. Preserve Git history; never rewrite shared history.
+- Never weaken valid tests, silently discard migration evidence, or report PASS without exact-SHA evidence.
+- NIRA remains independent and must not be modified as part of Arvin consolidation.
+
+## Canonical documentation
+Only these eight files are active project authority:
+1. README.md
+2. MASTER_GOVERNANCE.md
+3. PRODUCT_DECISIONS.md
+4. CURRENT_STATE.md
+5. ROADMAP.md
+6. OPEN_ISSUES.md
+7. IMPLEMENTATION_LOG.md
+8. HANDOFF.md
+
+All other documents, ADRs, specifications, ledgers, and audit records are supporting evidence or historical references. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
+
+## Factory boundary
+The canonical PR branch reduces the workflow set from 23 to 9, removes automated merge and PR-generation paths, limits CI recovery to PR #3495, and keeps release closure manual. Main still contains the old workflows until the Product Owner approves the canonical PR merge; do not claim the cleanup is active on Main before that merge.
+
+## Current evidence boundary
+The pre-documentation checkpoint was branch SHA `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`, with 72 commits ahead of Main and 0 behind. Documentation updates advance HEAD; always re-fetch the live PR head and exact workflow runs before reporting status.
+
+---
+
 ## COMMAND 07-A.2.81 — execution evidence and safety checkpoint — 2026-11-14
 
 This section supplements REV10 and does not change product decisions or execution authority.
