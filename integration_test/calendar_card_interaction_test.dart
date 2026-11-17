@@ -23,6 +23,7 @@ void main() {
 
       final now = IranClock.now();
       final reminderAt = now.add(const Duration(minutes: 10));
+      final followUpReminderAt = now.add(const Duration(minutes: 15));
       const taskId = 'calendar-smoke-task';
       const reminderId = 'calendar-smoke-reminder';
       const secondReminderId = 'calendar-smoke-reminder-2';
@@ -44,7 +45,7 @@ void main() {
             id: followUpId,
             dateTime: now,
             title: 'پیگیری دارای یادآور',
-            reminderDate: reminderAt,
+            reminderDate: followUpReminderAt,
           ),
         ],
         taskReminders: [
@@ -74,7 +75,7 @@ void main() {
       final persistedFollowUp = reloadedTasks.single.followUps.singleWhere(
         (item) => item.id == followUpId,
       );
-      expect(persistedFollowUp.reminderDate, reminderAt);
+      expect(persistedFollowUp.reminderDate, followUpReminderAt);
       debugPrint(
         'CALENDAR_DIAG_A: followUpReminderPresent=${persistedFollowUp.reminderDate == reminderAt}',
       );
@@ -212,7 +213,7 @@ void main() {
       expect(historicalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
       expect(
         afterCancel.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
-        reminderAt,
+        followUpReminderAt,
       );
 
       // Change the date through the actual Jalali date picker.
@@ -286,7 +287,7 @@ void main() {
       expect(savedHistoricalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
       expect(
         savedTask.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
-        reminderAt,
+        followUpReminderAt,
       );
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
