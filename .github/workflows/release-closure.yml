@@ -65,7 +65,8 @@ jobs:
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              const approved = (rel.data.body || '').includes('ARVIN_RELEASE_GATE=PASS');
+              complete = approved && [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
             core.setOutput('app_version', version);
@@ -230,6 +231,38 @@ jobs:
             core.info('RELEASE_GATE_ISSUE=2102:closed');
             core.info('REGRESSION_LANE_PR=1901:closed');
 
+      - name: Remove stale Arvin prereleases
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function hideUnapprovedPrereleases() {
+              const { owner, repo } = context.repo;
+              const releases = await github.paginate(
+                github.rest.repos.listReleases,
+                { owner, repo, per_page: 100 }
+              );
+              for (const release of releases) {
+                if (!release.prerelease || release.draft ||
+                    !release.tag_name?.includes('-arvin-')) continue;
+                const assets = await github.rest.repos.listReleaseAssets({
+                  owner, repo, release_id: release.id
+                });
+                const names = new Set(assets.data.map(asset => asset.name));
+                const approved = (release.body || '').includes('ARVIN_RELEASE_GATE=PASS') &&
+                  names.has('artifact.sha256') && names.has('release-evidence.txt');
+                if (approved) {
+                  core.info('PRESERVED_APPROVED_PRERELEASE=' + release.tag_name);
+                  continue;
+                }
+                await github.rest.repos.updateRelease({
+                  owner, repo, release_id: release.id, draft: true
+                });
+                core.info('HIDDEN_UNAPPROVED_PRERELEASE=' + release.tag_name);
+              }
+            }
+            await hideUnapprovedPrereleases();
+
       - name: Create exact-head tag and prerelease
         if: steps.release_state.outputs.already_released != 'true'
         id: release
@@ -250,8 +283,23 @@ jobs:
             try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
-            try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
-            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
+            catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
+            const releaseBody = `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.\\nARVIN_RELEASE_GATE=PASS`;
+            try {
+              rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
+              rel = await github.rest.repos.updateRelease({
+                owner, repo, release_id: rel.data.id,
+                name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`,
+                body: releaseBody, draft: true, prerelease: true
+              });
+            } catch (_) {
+              rel = await github.rest.repos.createRelease({
+                owner, repo, tag_name: tag, target_commitish: sha,
+                name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`,
+                body: releaseBody, draft: true, prerelease: true
+              });
+            }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
@@ -295,25 +343,6 @@ jobs:
           test "$(git rev-list -n 1 '${{ steps.release.outputs.tag }}')" = "${{ steps.verify.outputs.main_sha }}"
           echo "RECOVERY_RESULT=success"
           echo "RESUME_VALIDATION=success"
-
-      - name: Preserve historical Arvin prereleases
-        if: steps.release_state.outputs.already_released != 'true'
-        uses: actions/github-script@v7
-        env:
-          KEEP_TAG: ${{ steps.release.outputs.tag }}
-        with:
-          script: |
-            const { owner, repo } = context.repo;
-            const keepTag = process.env.KEEP_TAG;
-            const releases = await github.paginate(
-              github.rest.repos.listReleases,
-              { owner, repo, per_page: 100 }
-            );
-            for (const release of releases) {
-              if (!release.prerelease || !release.tag_name?.includes('-arvin-')) continue;
-              if (release.tag_name === keepTag) continue;
-              core.info('PRESERVED_HISTORICAL_PRERELEASE=' + release.tag_name);
-            }
 
       - name: Publish final evidence
         if: steps.release_state.outputs.already_released != 'true'
