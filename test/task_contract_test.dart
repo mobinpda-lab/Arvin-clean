@@ -63,6 +63,8 @@ void main() {
     expect(restored.createdAt, original.createdAt);
     expect(restored.updatedAt, original.updatedAt);
     expect(restored.dueDate, original.dueDate);
+    expect(restored.allDay, isFalse);
+    expect(original.toJson().containsKey('allDay'), isTrue);
     expect(restored.followUpEnabled, original.followUpEnabled);
     expect(restored.followUpDate, original.followUpDate);
     expect(restored.tags, original.tags);
