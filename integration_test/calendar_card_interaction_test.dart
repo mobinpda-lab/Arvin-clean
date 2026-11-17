@@ -205,8 +205,15 @@ void main() {
       expect(afterCancel.taskReminders.singleWhere((item) => item.id == reminderId).date, reminderAt);
       expect(afterCancel.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
       expect(afterCancel.dueDate, now.add(const Duration(hours: 2)));
-      expect(afterCancel.followUps.single.dateTime, now);
-      expect(afterCancel.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      final historicalFollowUp = afterCancel.followUps.singleWhere(
+        (item) => item.id == 'calendar-smoke-history',
+      );
+      expect(historicalFollowUp.dateTime, now);
+      expect(historicalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      expect(
+        afterCancel.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
+        reminderAt,
+      );
 
       // Change the date through the actual Jalali date picker.
       final dateButton = find.byKey(const ValueKey('task-editor-reminder-date-calendar-smoke-reminder'));
@@ -272,8 +279,15 @@ void main() {
       expect(savedReminder.date.minute, 47);
       expect(savedTask.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
       expect(savedTask.dueDate, now.add(const Duration(hours: 2)));
-      expect(savedTask.followUps.single.dateTime, now);
-      expect(savedTask.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      final savedHistoricalFollowUp = savedTask.followUps.singleWhere(
+        (item) => item.id == 'calendar-smoke-history',
+      );
+      expect(savedHistoricalFollowUp.dateTime, now);
+      expect(savedHistoricalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      expect(
+        savedTask.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
+        reminderAt,
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-card-independent-reminder-edit');
