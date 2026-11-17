@@ -1,33 +1,36 @@
 name: Zero Dollar Environment Smoke
 
 on:
+  push:
+    branches: [recovery-02/main-based-integration]
   pull_request:
     types: [labeled]
     branches: [main]
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
-  group: zero-dollar-environment-smoke-pr-${{ github.event.pull_request.number }}
+  group: zero-dollar-environment-smoke-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
   environment-smoke:
     if: >-
-      ${{ github.event.pull_request.number == 3495 &&
-          github.event.pull_request.base.ref == 'main' &&
-          github.event.pull_request.head.ref == 'recovery-02/main-based-integration' &&
-          contains(github.event.pull_request.labels.*.name, 'zero-dollar-environment-smoke') }}
+      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/recovery-02/main-based-integration') ||
+          (github.event_name == 'pull_request' &&
+           github.event.pull_request.number == 3495 &&
+           github.event.pull_request.base.ref == 'main' &&
+           github.event.pull_request.head.ref == 'recovery-02/main-based-integration' &&
+           contains(github.event.pull_request.labels.*.name, 'zero-dollar-environment-smoke')) }}
     name: Zero-dollar Android environment diagnostic
     runs-on: ubuntu-24.04
     timeout-minutes: 25
     env:
       EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
-      TARGET_SHA: ${{ github.event.pull_request.head.sha }}
-      EVENT_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-      EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref }}
-      EVENT_BASE_REF: ${{ github.event.pull_request.base.ref }}
+      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+      EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
       RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
       ANDROID_USER_HOME: ${{ runner.temp }}/android-user
     steps:
@@ -44,7 +47,7 @@ jobs:
             echo
             echo "- Repository: $REPOSITORY"
             echo "- Pull request: #$PR_NUMBER"
-            echo "- Event: $GITHUB_EVENT_NAME / labeled"
+            echo "- Event: $GITHUB_EVENT_NAME / verified canonical PR metadata"
             echo "- Runner environment: $RUNNER_ENVIRONMENT_VALUE"
             echo "- Runner image: $ImageOS / $ImageVersion"
             echo "- PR head SHA: $TARGET_SHA"
@@ -53,11 +56,34 @@ jobs:
             echo
           } >> "$GITHUB_STEP_SUMMARY"
 
-          [[ "$GITHUB_EVENT_NAME" == "pull_request" ]]
+          [[ "$GITHUB_EVENT_NAME" == "push" || "$GITHUB_EVENT_NAME" == "pull_request" ]]
           [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
+          [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
+
+          pr_json="$RUNNER_TEMP/canonical-pr.json"
+          repository_owner="${REPOSITORY%%/*}"
+          curl --fail --silent --show-error --location --get \
+            --retry 2 --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            --data-urlencode "head=$repository_owner:$EVENT_HEAD_REF" \
+            --data-urlencode "state=open" \
+            "https://api.github.com/repos/$REPOSITORY/pulls" \
+            -o "$pr_json"
+          pr_count="$(jq '[.[] | select(.number == 3495)] | length' "$pr_json")"
+          [[ "$pr_count" == "1" ]]
+          PR_NUMBER="$(jq -r '.[] | select(.number == 3495) | .number' "$pr_json")"
+          EVENT_BASE_REF="$(jq -r '.[] | select(.number == 3495) | .base.ref' "$pr_json")"
+          EVENT_BASE_SHA="$(jq -r '.[] | select(.number == 3495) | .base.sha' "$pr_json")"
+          EVENT_HEAD_REF="$(jq -r '.[] | select(.number == 3495) | .head.ref' "$pr_json")"
+          PR_HEAD_SHA="$(jq -r '.[] | select(.number == 3495) | .head.sha' "$pr_json")"
+          label_present="$(jq '[.[] | select(.number == 3495) | .labels[].name | select(. == "zero-dollar-environment-smoke")] | length' "$pr_json")"
           [[ "$EVENT_BASE_REF" == "main" ]]
           [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
           [[ "$EVENT_BASE_SHA" == "$EXPECTED_MAIN_SHA" ]]
+          [[ "$PR_HEAD_SHA" == "$TARGET_SHA" ]]
+          [[ "$label_present" == "1" ]]
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
           [[ "$(uname -m)" == "x86_64" ]]
 
