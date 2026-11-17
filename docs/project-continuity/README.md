@@ -1,43 +1,60 @@
-> **Root continuity protocol is mandatory:** before continuing, read [../../AGENTS.md](../../AGENTS.md), [../../AI_CONTINUITY_PROTOCOL.md](../../AI_CONTINUITY_PROTOCOL.md), and [../../PROJECT_STATE.md](../../PROJECT_STATE.md), then re-fetch live GitHub. This directory remains the canonical home for detailed product decisions, governance, roadmap, issues, implementation evidence, and handoff history. If an older checkpoint here conflicts with live GitHub or the root current checkpoint, reconcile it; do not silently rewrite history.
+# Arvin Project Continuity — REV10 / ONE PATH
 
----
+**Last consolidation review:** 2026-11-17  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Product Owner:** Mobin  
+**Only active development PR:** #3495  
+**Canonical branch:** `recovery-02/main-based-integration`
 
-## REV8 current snapshot refresh — 2026-11-10
+This README is the navigation index. Live GitHub state is authoritative for branch heads, PR status, workflow runs and test evidence. Never reuse a stale SHA or report a PASS from another commit.
 
-Active branch: `fix/recovery-calendar-device-smoke-2026-10-31`  
-Current branch / PR #3052 HEAD: `a934cabebc814aea13c1800ab151821d12714226`  
-Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`  
-PR #3052: OPEN / DRAFT / UNMERGED · 2,131 ahead · 380 changed files  
-Current Build: FAILURE · 1,296 passed / 78 failed · Device Smoke PENDING  
-Release: BLOCKED — RELEASE: NO-GO
+## The eight authoritative documents
 
-The REV8 audit index below remains canonical. Earlier 9846-based snapshots are historical.
+Only these eight files are active project authority:
 
----
+1. [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — governance, permissions and safety.
+2. [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) — current approved product and architecture decisions.
+3. [CURRENT_STATE.md](CURRENT_STATE.md) — live repository and exact-SHA status.
+4. [ROADMAP.md](ROADMAP.md) — unified delivery sequence.
+5. [OPEN_ISSUES.md](OPEN_ISSUES.md) — verified blockers and unresolved work.
+6. [IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md) — dated implementation and evidence record.
+7. [HANDOFF.md](HANDOFF.md) — next safe actions.
+8. [README.md](README.md) — this navigation index.
 
-# Arvin Project Continuity — REV8
-Last reviewed: 2026-11-10 (REV8 live GitHub audit)
-Repository: mobinpda-lab/Arvin-clean
-Active branch: fix/recovery-calendar-device-smoke-2026-10-31
-Related PR: #3052
+All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
 
-## Current source of truth
-The live GitHub repository, exact branch HEAD, code/schema/migrations/tests/workflows, and exact-SHA Actions evidence are operational truth. Main is READ-ONLY. PR #3052 remains OPEN / DRAFT / UNMERGED. Release remains BLOCKED — RELEASE: NO-GO.
+## Current governance boundary
+
+- Main remains read-only for development.
+- All new development belongs in PR #3495; no parallel feature PRs or revived historical branches.
+- Merge, release, deployment and production-user-database operations require explicit Product Owner approval.
+- Preserve valid history, IDs, relationships, backups and user data.
+- Never weaken tests or report PASS without exact-SHA evidence.
+- NIRA remains an independent repository and is not modified by this Arvin mission.
+
+## Live consolidation checkpoint
+
+- Main SHA at the last verified comparison: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR #3495 was Draft, 72 commits ahead and 0 behind at pre-documentation checkpoint `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`. The documentation updates below advance the branch; fetch the live PR head before acting.
+- The canonical branch contains 9 workflows, compared with 23 on Main. The cleanup removes parallel PR-generating workers, automated merge, duplicate orchestrators and the release bypass. Main still has its old workflows until the owner-approved merge.
+- The branch inventory returned 1,439 branch names. No branch deletion has been performed; every branch still requires PR association and unique-commit review.
+- At the pre-documentation checkpoint, Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence were queued on the exact head. The prior Follow-up File Persistence PASS on `2256ba8f7da806249fa6516c7afcca386430308b` is historical and does not transfer to a newer SHA.
 
 ## Start here
-1. MASTER_GOVERNANCE.md — single current governance authority.
-2. CURRENT_STATE.md — latest exact-SHA state.
-3. HANDOFF.md — next safe actions.
-4. OPEN_ISSUES.md — verified blockers.
-5. PRODUCT_DECISIONS.md — active product decision ledger.
-6. ROADMAP.md — Wave 0–5 execution plan.
-7. IMPLEMENTATION_LOG.md — dated evidence and implementation record.
-8. TASK_TEMPLATE_DATA_CONTRACT.md — template data contract.
-9. task_home_screen_spec.md — current approved Home contract.
-10. task_detail_ui_ux_spec.md — Task Details reference; REV7.2 Auto-Save supersedes older independent Edit Mode direction.
-11. calendar_ui_ux_spec.md — dated owner-approved Calendar UI/UX reference.
 
-## REV8 forensic audit index
+1. Read MASTER_GOVERNANCE.md.
+2. Read PRODUCT_DECISIONS.md.
+3. Read CURRENT_STATE.md and verify its SHA against live GitHub.
+4. Read OPEN_ISSUES.md and ROADMAP.md.
+5. Read IMPLEMENTATION_LOG.md for evidence.
+6. Read HANDOFF.md before taking the next action.
+
+Do not treat historical REV8/REV9/REV10 checkpoints below as live status. They are retained for traceability only.
+
+---
+
+## Historical REV8 audit index (reference only)
+
 
 - [COMMIT_AUDIT.md](audit/COMMIT_AUDIT.md)
 - [BRANCH_AUDIT.md](audit/BRANCH_AUDIT.md)
