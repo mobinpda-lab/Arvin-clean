@@ -1,3 +1,45 @@
+# REV10 — ONE PATH DELIVERY ROADMAP
+**Effective:** 2026-11-17  
+**Only development route:** PR #3495 / `recovery-02/main-based-integration`
+
+## Wave 0 — Stabilize the canonical route
+1. Complete Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence on one exact PR #3495 SHA.
+2. Verify Device Smoke checks out the exact contributor head SHA.
+3. Reconcile the release workflow: canonical PR #3495 only, manual owner approval, open issue #2102 and regression PR #1901 gates, preserve historical releases.
+4. After exact-SHA acceptance, close fully transferred test PRs #3341, #3348 and #3365.
+5. Update PR #3495 description and the canonical continuity records.
+
+## Wave 1 — Finish the PR and branch audit
+1. Inventory every open/closed/Draft PR and map its head/base branch.
+2. Compare unique commits and file-level contributions; classify as transferred, adapted, superseded, incompatible, incomplete, or no-value.
+3. Audit all 1,439 discovered branches for PR association and unique commits.
+4. Close superseded PRs and delete only branches proven redundant after preserving their history and recovering useful work.
+5. Keep PR #3495 as the sole active development path.
+
+## Wave 2 — Complete SQL and relationship architecture
+1. Reconcile the approved Center↔Project and Project↔Category M2M design with the actual Main schema.
+2. Prove sequential v7→v20 migration using a genuine file-backed database and historical fixtures.
+3. Integrate CenterStore, ProjectStore, CategoryStore, TagStore and TaskStore transactionally with canonical join relations.
+4. Verify IDs, assignments, history, NULL/FALSE/TRUE, duplicate/orphan detection, rollback, retry and idempotency.
+5. Prove physical backup and independent restore of the complete migrated database, including both join relations.
+6. Keep production user data untouched until every migration and restore gate passes.
+
+## Wave 3 — Complete product UI and Design System
+1. Implement the REV10 five-dimension Home filters, including Center; do not revive the superseded four-mode Home grouping UI.
+2. Complete Person Directory management UI on the canonical PersonDirectory repository.
+3. Apply the approved Vazirmatn typography contract and shared Design System across all pages.
+4. Validate Persian RTL, Jalali calendar, navigation, selectors, task forms, reminder flows, and reports.
+5. Recover useful UI work from historical PRs only through targeted, tested adaptation.
+
+## Wave 4 — Product-wide regression and release readiness
+1. Run all valid unit, widget, integration, migration, backup/restore, and regression tests on one exact SHA.
+2. Run all seven Device Smoke scenarios on that same SHA.
+3. Verify CI and release artifacts; do not weaken tests or hide failures.
+4. Close issue #2102 and the historical regression lane only after their acceptance evidence is reconciled.
+5. Release only through the manual owner-approved Release Closure workflow after PR #3495 is merged by explicit owner action.
+
+---
+
 ## COMMAND 07-A.2.81 — current delivery status — 2026-11-14
 
 1. Complete exact-SHA rerun after the historical parity, FK assertion, Analyze and legacy fixture corrections.
