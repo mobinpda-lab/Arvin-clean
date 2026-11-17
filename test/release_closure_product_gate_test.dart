@@ -29,10 +29,11 @@ void main() {
     expect(workflow, contains('issue_number: 2102'));
     expect(workflow, contains('  issues: read'));
     expect(workflow, contains('  cancel-in-progress: false'));
-    expect(workflow, contains("workflows: ['Arvin Device Smoke']"));
-    expect(workflow, contains("github.event.workflow_run.conclusion == 'success'"));
-    expect(workflow, contains("github.event.workflow_run.event == 'push'"));
-    expect(workflow, contains("github.event.workflow_run.head_branch == 'main'"));
+    expect(workflow, contains('workflow_dispatch:'));
+    expect(workflow, contains("github.actor == 'mobinpda-lab'"));
+    expect(workflow, contains("inputs.owner_approval == 'APPROVE RELEASE'"));
+    expect(workflow, isNot(contains('workflow_run:')));
+    expect(workflow, isNot(contains('schedule:')));
     expect(workflow, contains("github.event_name == 'workflow_dispatch'"));
     expect(workflow, isNot(contains("workflows: ['Arvin Production Orchestrator']")));
     expect(
