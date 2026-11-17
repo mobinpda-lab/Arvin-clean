@@ -104,22 +104,19 @@ void main() {
       }
 
       expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
-      await tester.tap(find.text('تقویم').last);
-      await tester.pumpAndSettle();
-      // Opening Calendar awaits a fresh canonical Task/Project SQL read before
-      // pushing its route. pumpAndSettle can finish while that Future has no
-      // scheduled frame; wait boundedly for the actual Calendar page instead
-      // of asserting against the still-mounted Home route.
-      for (var attempt = 0; attempt < 50; attempt++) {
-        await tester.pump(const Duration(milliseconds: 100));
-        if (find.text('تقویم پیگیری').evaluate().isNotEmpty) break;
-      }
-      expect(
-        find.text('تقویم پیگیری'),
-        findsOneWidget,
-        reason: 'Calendar route must finish its canonical SQL reload before list assertions',
+      await tester.tap(
+        find.byKey(const ValueKey('primary-nav-calendar')),
       );
-      await tester.pumpAndSettle();
+      // Route replacement and the official-calendar FutureBuilder can settle
+      // after the first pump; wait for the actual selected-day list surface.
+      for (var attempt = 0; attempt < 40; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (find.byKey(const ValueKey('calendar-selected-day-list')).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+      expect(find.text('تقویم پیگیری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('calendar-selected-day-list')), findsOneWidget);
 
       final cardKey = const ValueKey(
         'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
