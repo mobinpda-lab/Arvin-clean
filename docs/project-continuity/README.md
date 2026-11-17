@@ -21,7 +21,7 @@ Only these eight files are active project authority:
 7. [HANDOFF.md](HANDOFF.md) — next safe actions.
 8. [README.md](README.md) — this navigation index.
 
-All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
+All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. Historical PR #3448 continuity documents are preserved under `archive/pr-3448-source-2026-11-13/`; the REV9 governance archive is under `archive/`. These copies preserve evidence and do not create additional active documents. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
 
 ## Current governance boundary
 
