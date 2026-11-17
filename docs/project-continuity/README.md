@@ -40,6 +40,9 @@ All other specifications, ADRs, audit files, ledgers, root agent files and histo
 - The branch inventory returned 1,439 branch names. No branch deletion has been performed; every branch still requires PR association and unique-commit review.
 - At the pre-documentation checkpoint, Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence were queued on the exact head. The prior Follow-up File Persistence PASS on `2256ba8f7da806249fa6516c7afcca386430308b` is historical and does not transfer to a newer SHA.
 
+
+Historical source material is retained under `archive/` and `reference/`, including selected PR #3340 REV9 product/governance contracts and PR #3448 REV10 source snapshots. These folders preserve evidence only; they do not add active authorities.
+
 ## Start here
 
 1. Read MASTER_GOVERNANCE.md.
