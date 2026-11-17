@@ -22,10 +22,14 @@ run_phase() {
   phase="$1"; log="$2"; require_pid="$3"; runner=""; app_pid=""; rc=0
   flutter test --dart-define="ARVIN_CALENDAR_LINK_PHASE=$phase" "$TEST_FILE" -d "$DEVICE" > "$log" 2>&1 &
   runner=$!
-  for attempt in $(seq 1 90); do
+  # Flutter may spend several minutes compiling/installing before the app
+  # process exists. Keep observing until the runner exits (or the workflow's
+  # job timeout is reached); a fixed 90-second window falsely rejects slow builds.
+  for attempt in $(seq 1 1800); do
     app_pid="$(adb -s "$DEVICE" shell pidof "$APP_ID" 2>/dev/null | tr -d '\r' | awk '{print $1}' || true)"
     [[ -n "$app_pid" ]] && break
-    kill -0 "$runner" 2>/dev/null || break
+    runner_state="$(ps -o stat= -p "$runner" 2>/dev/null | tr -d ' ' || true)"
+    [[ -z "$runner_state" || "$runner_state" == Z* ]] && break
     sleep 1
   done
   if [[ -n "$app_pid" ]]; then
