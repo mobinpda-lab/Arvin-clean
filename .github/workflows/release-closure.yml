@@ -256,15 +256,14 @@ jobs:
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
 
-      - name: Restore VazirHarf assets
+      - name: Verify approved Vazirmatn assets
         if: steps.release_state.outputs.already_released != 'true'
         run: |
           set -euo pipefail
-          mkdir -p assets/fonts
-          rm -rf assets/fonts/vazirharf
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
-          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
-          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
+          grep -q "family: Vazirmatn" pubspec.yaml
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
 
       - name: Android V2 audit
         if: steps.release_state.outputs.already_released != 'true'
