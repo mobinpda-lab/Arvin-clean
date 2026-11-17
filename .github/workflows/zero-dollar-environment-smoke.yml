@@ -17,13 +17,7 @@ concurrency:
 
 jobs:
   environment-smoke:
-    if: >-
-      ${{ (github.event_name == 'push' && github.ref == 'refs/heads/recovery-02/main-based-integration') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.number == 3495 &&
-           github.event.pull_request.base.ref == 'main' &&
-           github.event.pull_request.head.ref == 'recovery-02/main-based-integration' &&
-           contains(github.event.pull_request.labels.*.name, 'zero-dollar-environment-smoke')) }}
+    if: github.event_name == 'push' || github.event.pull_request.number == 3495
     name: Zero-dollar Android environment diagnostic
     runs-on: ubuntu-24.04
     timeout-minutes: 25
@@ -39,23 +33,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           set -Eeuo pipefail
-          {
-            echo "## Zero-dollar environment diagnostic"
-            echo
-            echo "- Repository: $REPOSITORY"
-            echo "- Pull request: #$PR_NUMBER"
-            echo "- Event: $GITHUB_EVENT_NAME / verified canonical PR metadata"
-            echo "- Runner environment: $RUNNER_ENVIRONMENT_VALUE"
-            echo "- Runner image: $ImageOS / $ImageVersion"
-            echo "- PR head SHA: $TARGET_SHA"
-            echo "- Expected Main SHA: $EXPECTED_MAIN_SHA"
-            echo "- PR base SHA: $EVENT_BASE_SHA"
-            echo
-          } >> "$GITHUB_STEP_SUMMARY"
-
           [[ "$GITHUB_EVENT_NAME" == "push" || "$GITHUB_EVENT_NAME" == "pull_request" ]]
           [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
           [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
@@ -85,6 +64,21 @@ jobs:
           [[ "$PR_HEAD_SHA" == "$TARGET_SHA" ]]
           [[ "$label_present" == "1" ]]
           [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+          {
+            echo "## Zero-dollar environment diagnostic"
+            echo
+            echo "- Repository: $REPOSITORY"
+            echo "- Pull request: #$PR_NUMBER"
+            echo "- Event: $GITHUB_EVENT_NAME / verified canonical PR metadata"
+            echo "- Runner environment: $RUNNER_ENVIRONMENT_VALUE"
+            echo "- Runner image: $ImageOS / $ImageVersion"
+            echo "- PR head SHA: $TARGET_SHA"
+            echo "- Expected Main SHA: $EXPECTED_MAIN_SHA"
+            echo "- PR base SHA: $EVENT_BASE_SHA"
+            echo "- Required PR label: zero-dollar-environment-smoke — PASS"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
           [[ "$(uname -m)" == "x86_64" ]]
 
           commit_json="$RUNNER_TEMP/target-commit.json"
