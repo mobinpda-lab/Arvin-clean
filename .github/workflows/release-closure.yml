@@ -285,7 +285,7 @@ jobs:
             let rel;
             try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
-            const releaseBody = `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.\\nARVIN_RELEASE_GATE=PASS`;
+            const releaseBody = `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.\nARVIN_RELEASE_GATE=PASS`;
             try {
               rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               rel = await github.rest.repos.updateRelease({
