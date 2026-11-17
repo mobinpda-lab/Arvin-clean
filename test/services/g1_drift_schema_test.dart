@@ -34,6 +34,9 @@ void main() {
       contains('legacy_payload_json'),
     );
 
+    final followUpColumns = await database.runSelect("PRAGMA table_info('follow_ups')", const []);
+    expect(followUpColumns.map((row) => row['name']), contains('extension_json'));
+
     final projectColumns = await database.runSelect(
       "PRAGMA table_info('projects')",
       const [],

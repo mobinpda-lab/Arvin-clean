@@ -154,6 +154,26 @@ void main() {
     expect(task.followUpEnabled, isFalse);
   });
 
+  test('unknown Follow-up metadata survives JSON serialization', () {
+    final original = FollowUp(
+      id: 'future-field-followup',
+      dateTime: DateTime(2026, 11, 18, 10),
+      note: 'سابقه',
+      extensionData: const <String, dynamic>{
+        'futureFollowUpField': {'retained': true, 'revision': 3},
+      },
+    );
+    final decoded = FollowUp.fromJson(original.toJson());
+    expect(decoded.extensionData['futureFollowUpField'], {
+      'retained': true,
+      'revision': 3,
+    });
+    expect(decoded.toJson()['futureFollowUpField'], {
+      'retained': true,
+      'revision': 3,
+    });
+  });
+
   test('multiple explicit followUps preserve identity and order', () {
     final task = Task.fromJson({
       'id': 'multi-followup-1',

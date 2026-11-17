@@ -16,6 +16,7 @@ class FollowUp {
   final bool completed;
   final bool waitingForResponse;
   final List<String> personIds;
+  final Map<String, dynamic> extensionData;
 
   const FollowUp({
     required this.id,
@@ -28,9 +29,11 @@ class FollowUp {
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
+    this.extensionData = const <String, dynamic>{},
   });
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'dateTime': dateTime.toIso8601String(),
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
@@ -66,6 +69,14 @@ class FollowUp {
           .where((id) => id.isNotEmpty)
           .toSet()
           .toList(growable: false),
+      extensionData: <String, dynamic>{
+        for (final entry in json.entries)
+          if (!const <String>{
+            'id', 'dateTime', 'title', 'note', 'result', 'reminderDate',
+            'nextFollowUp', 'completed', 'waitingForResponse', 'personIds',
+          }.contains(entry.key))
+            entry.key: entry.value,
+      },
     );
   }
 }

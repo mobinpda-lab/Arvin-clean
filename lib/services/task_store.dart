@@ -474,6 +474,7 @@ class TaskStore {
 
   Map<String, dynamic> _followUpJson(Map<String, Object?> row) =>
       <String, dynamic>{
+        ..._decodeEnvelope(row['extension_json']),
         'id': row['id'],
         'dateTime': row['date_time'],
         'title': row['title'],
@@ -616,13 +617,15 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, extension_json, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
           followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
           followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
-          followUp.waitingForResponse ? 1 : 0, ordinal,
+          followUp.waitingForResponse ? 1 : 0,
+          followUp.extensionData.isEmpty ? null : jsonEncode(followUp.extensionData),
+          ordinal,
         ],
       );
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {

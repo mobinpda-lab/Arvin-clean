@@ -4,7 +4,7 @@ import 'package:drift/drift.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 7;
+  static const int version = 8;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -19,6 +19,7 @@ class G1DriftSchema implements QueryExecutorUser {
   date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
   reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
   waiting_for_response INTEGER NOT NULL DEFAULT 0,
+  extension_json TEXT NULL,
   ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
     '''CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
@@ -85,6 +86,9 @@ class G1DriftSchema implements QueryExecutorUser {
         await executor.runCustom(
           'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
         );
+      }
+      if (!followUpColumns.any((row) => row['name'] == 'extension_json')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN extension_json TEXT NULL');
       }
       final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
