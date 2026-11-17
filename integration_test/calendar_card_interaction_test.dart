@@ -154,11 +154,11 @@ void main() {
       );
       expect(legacyFollowUpCard, findsNothing);
       expect(find.text('پیگیری دارای یادآور'), findsNothing);
-      await tester.scrollUntilVisible(
-        card,
-        200,
-        scrollable: calendarScrollable,
-      );
+      // The selected-day list contains the canonical reminder directly; assert
+      // its presence before scrolling, then reveal it without repeatedly
+      // advancing a one-item list past the target.
+      expect(card, findsOneWidget);
+      await tester.ensureVisible(card);
       await tester.pumpAndSettle();
       expect(card, findsOneWidget);
       expect(find.text('یادآور آزمایشی'), findsOneWidget);
