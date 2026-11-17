@@ -1,3 +1,11 @@
+## REV10 — Home filter semantics clarified
+
+- The five Home filter dimensions are Time, Center, Project, Category and Tag.
+- Taxonomy hierarchy is Center → Project → Category → Task.
+- Multi-select values within one dimension combine with OR; selections across different dimensions combine with AND.
+- Time filtering prioritizes overdue work before the other due-date groups.
+- The approved Home model retains five due-date groups. The historical four-mode grouping UI from PR #1901 is superseded.
+
 # REV10 — 2026-11-17 CONSOLIDATION CLARIFICATIONS
 
 - The current Home contract is the REV10 five-dimension filter model, including Center. The older four-mode Home grouping proposal from PR #1901 is SUPERSEDED and must not be reintroduced.
