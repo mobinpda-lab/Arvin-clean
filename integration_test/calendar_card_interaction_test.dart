@@ -26,6 +26,7 @@ void main() {
       const taskId = 'calendar-smoke-task';
       const reminderId = 'calendar-smoke-reminder';
       const secondReminderId = 'calendar-smoke-reminder-2';
+      const followUpId = 'calendar-smoke-follow-up';
       final seed = Task(
         id: taskId,
         title: 'کار آزمون تعامل تقویم',
@@ -38,6 +39,12 @@ void main() {
             dateTime: now,
             title: 'سابقه تاریخی',
             note: 'این سابقه نباید با ویرایش یادآور تغییر کند',
+          ),
+          FollowUp(
+            id: followUpId,
+            dateTime: now,
+            title: 'پیگیری دارای یادآور',
+            reminderDate: reminderAt,
           ),
         ],
         taskReminders: [
@@ -64,6 +71,13 @@ void main() {
       expect(reloadedTasks, hasLength(1));
       expect(reloadedTasks.single.id, taskId);
       expect(reloadedTasks.single.taskReminders, hasLength(2));
+      final persistedFollowUp = reloadedTasks.single.followUps.singleWhere(
+        (item) => item.id == followUpId,
+      );
+      expect(persistedFollowUp.reminderDate, reminderAt);
+      debugPrint(
+        'CALENDAR_DIAG_A: followUpReminderPresent=${persistedFollowUp.reminderDate == reminderAt}',
+      );
       expect(
         reloadedTasks.single.taskReminders.every(
           (item) => !item.isLegacyTaskReminder,
@@ -131,6 +145,17 @@ void main() {
       );
       expect(calendarList, findsOneWidget);
       expect(calendarScrollable, findsOneWidget);
+      final followUpCard = find.byKey(
+        ValueKey('reminder-card-followup:$taskId:$followUpId'),
+      );
+      await tester.scrollUntilVisible(
+        followUpCard,
+        200,
+        scrollable: calendarScrollable,
+      );
+      await tester.pumpAndSettle();
+      expect(followUpCard, findsOneWidget);
+      expect(find.text('پیگیری دارای یادآور'), findsOneWidget);
       await tester.scrollUntilVisible(
         card,
         200,
