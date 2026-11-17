@@ -1,3 +1,67 @@
+# REV10 — LIVE GITHUB STATE / ONE PATH CONSOLIDATION
+**Checkpoint date:** 2026-11-17  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Main SHA:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged/read-only.  
+**Canonical PR:** #3495 — OPEN / DRAFT / UNMERGED.  
+**Canonical branch:** `recovery-02/main-based-integration`.
+
+## Exact pre-checkpoint state
+- Live PR #3495 HEAD before this CURRENT_STATE update: `1200a7d1642915a0e7e043fecb2b7c84e75bb9e2`.
+- 81 commits ahead of Main; 0 behind; 65 changed files.
+- This documentation commit advances the branch HEAD. Re-fetch PR #3495 after this commit; do not treat the pre-checkpoint SHA above as the new live HEAD.
+- No direct Main write, merge, release, deployment, production database mutation, NIRA change, or history rewrite occurred.
+
+## Workflow state
+- Main contains 23 workflows at the last inventory.
+- Canonical PR branch contains 9 workflows.
+- 16 obsolete/parallel workflows were removed from the canonical branch, including autonomous PR generators, automated merge, release bypass, duplicate orchestrators, old parallel-wave and branch-specific factory jobs.
+- The canonical branch has no automated merge engine. Release Closure is manual and owner-gated; it validates merged PR #3495, issue #2102 and historical regression PR #1901, and preserves historical releases.
+- Main still has the old workflows until the Product Owner approves the PR merge.
+
+## Branch inventory
+- Branch search returned 1,439 branch names across the repository.
+- No branch has been deleted in this audit pass. Per-branch PR association and unique-commit review is still required before cleanup.
+
+## Exact-SHA workflow evidence
+### Current pre-CURRENT_STATE SHA: `1200a7d1642915a0e7e043fecb2b7c84e75bb9e2`
+- Build run `44136170993`: QUEUED.
+- Follow-up File Persistence run `44136171025`: QUEUED.
+- Device Smoke and COMMAND 20-E did not trigger on this docs-only checkpoint.
+
+### Previous code checkpoint: `2256ba8f7da806249fa6516c7afcca386430308b`
+- Follow-up File Persistence run `44134171041`: SUCCESS.
+- Build run `44134171256`: CANCELLED.
+- Device Smoke run `44134171297`: CANCELLED.
+- COMMAND 20-E run `44134171029`: IN PROGRESS at last poll.
+
+### Earlier governance checkpoint: `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`
+- Build run `44135739800`: CANCELLED.
+- Device Smoke run `44135739922`: CANCELLED.
+- Follow-up File Persistence run `44135739825`: CANCELLED.
+- COMMAND 20-E run `44135739896`: IN PROGRESS at last poll.
+
+**Acceptance status:** NOT ACCEPTED. No Build, Device Smoke or COMMAND 20-E PASS is claimed for the current live PR head. Queued, cancelled, in-progress and stale-SHA results are not PASS.
+
+## Contribution recovery and PR triage
+- Contributions from PRs #3341, #3348 and #3365 have been represented in PR #3495: file-backed SQL persistence coverage, TaskReminder persistence coverage, Calendar interaction tests, stable navigation keys and exact-head Device Smoke checkout. Close those source PRs only after canonical exact-SHA Build and Device Smoke pass.
+- PR #1901 remains an historical regression source. Its unique Task checklist model test was recovered; its four-mode Home grouping proposal is superseded by the REV10 five-filter contract. Issue #2102 remains an open release-acceptance gate.
+- PR #2570 is merged; PR #2574 is superseded by the merged Calendar/Backup path; PR #2902 behavior is present and its reminder-only contract test was recovered.
+- PR #3052 is a 2,192-commit / 395-file Draft branch with Build failures. PRs #3384 and #3463 are stacked on non-Main branches in that chain and are not safe direct-merge candidates.
+- PRs #3356, #3364 and #3366 contain diagnostic or compatibility proposals from the #3052 chain. Current Product Decisions retain legacy Follow-up fields; no semantic retirement was ported.
+- PR #3470 contains a broad UI/typography proposal with multiple failing test shards; no wholesale port occurred.
+- PR #2693 has partial PersonDirectory persistence/backup/report support in Main; standalone management UI remains open work.
+- PR #2778's multi-font picker conflicts with the current Vazirmatn-only decision and was not ported.
+
+## Active blockers
+1. Complete exact-SHA Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence on one canonical candidate SHA.
+2. Complete full sequential v7→v20 M2M migration, real repository integration, parity, rollback/retry and independent backup/restore.
+3. Complete REV10 five-filter Home UI, including Center; complete Person Directory management UI.
+4. Complete approved Vazirmatn typography and shared Design System validation.
+5. Finish the 1,439-branch and full PR inventory before closing/deleting any historical refs.
+6. Reconcile issue #2102 and PR #1901 regression acceptance before release.
+
+---
+
 ## COMMAND 07-A.2.81 — live evidence checkpoint — 2026-11-14
 
 **Repository:** mobinpda-lab/Arvin-clean  
