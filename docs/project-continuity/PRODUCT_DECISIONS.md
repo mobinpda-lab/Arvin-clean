@@ -1,3 +1,11 @@
+# REV10 — 2026-11-17 CONSOLIDATION CLARIFICATIONS
+
+- The current Home contract is the REV10 five-dimension filter model, including Center. The older four-mode Home grouping proposal from PR #1901 is SUPERSEDED and must not be reintroduced.
+- Legacy Task Follow-up fields remain preserved for compatibility under the current approved decision. Retirement or conversion to inert metadata requires a separate explicit decision and a verified migration plan.
+- No new product semantics are introduced by this consolidation addendum. Approved M2M relationship decisions remain separate from implementation acceptance; no migration is accepted until exact-SHA evidence proves the complete path.
+
+---
+
 ## 2026-11-14 — implementation status for approved M2M decision
 
 The approved relationship contract remains unchanged: Center↔Project and Project↔Category are Many-to-Many; Task→Center/Project/Category are independently optional 0..1; Task↔Tag is Many-to-Many.
