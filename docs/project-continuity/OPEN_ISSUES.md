@@ -1,3 +1,54 @@
+# REV10 — LIVE CONSOLIDATION BLOCKERS
+**Checkpoint:** 2026-11-17  
+**Canonical PR:** #3495 / `recovery-02/main-based-integration`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`
+
+## P0 — Exact-SHA acceptance
+- The latest pre-documentation candidate SHA was `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`.
+- Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence were queued on that SHA at the last poll. A prior Follow-up File Persistence PASS on `2256ba8f7da806249fa6516c7afcca386430308b` does not transfer to the newer SHA.
+- No final acceptance, merge, or release is authorized until the required checks complete on one exact candidate SHA.
+
+## P0 — M2M migration and repository integration
+- The approved Center↔Project and Project↔Category M2M design remains a product decision, not an accepted implementation.
+- PR #3384 and #3463 are stacked on non-Main branches ultimately rooted in the very large PR #3052 chain. Their Build failures and incomplete exact-SHA acceptance prohibit direct merge.
+- Full sequential Main-schema v7→v20 migration, real Store integration, relationship parity, failure recovery, and production Backup/Restore are not proven.
+- Do not enable destructive migration or modify real user databases.
+
+## P1 — Complete PR and branch inventory
+- Live branch inventory returned 1,439 branch names. No branch was deleted in this audit pass.
+- Full per-branch unique-commit and PR-association review remains incomplete. Do not infer that an old branch is empty or useless from its age or name.
+- PR inventory and state reconciliation remain in progress; only PR #3495 is the approved development route.
+
+## P1 — REV10 UI/UX implementation
+- Current approved Home contract uses five quick-filter dimensions, including Center. The four-mode Home grouping proposal in PR #1901 is superseded and must not be copied back.
+- PR #3470 contains a broad typography/UI pass but its Build has multiple failing test shards, including interaction and data assertions. Do not merge wholesale.
+- Complete the five-filter Home implementation, Center-aware selectors, RTL validation, and the approved Vazirmatn weight contract through targeted changes on PR #3495.
+
+## P1 — Person Directory
+- PersonDirectory persistence, backup, and report filtering have partial Main implementation.
+- A complete standalone Person Directory management UI and its acceptance tests remain unverified.
+
+## P1 — Legacy Follow-up compatibility
+- Current approved Product Decisions retain legacy Task fields such as followUpEnabled, followUpDate, and reminderDate for compatibility; retirement is not approved.
+- PRs #3356, #3364 and #3366 contain diagnostics/proposals from the #3052 dependency chain. Do not port their semantic changes without an explicit decision and Main-based migration proof.
+- Preserve explicit values and key-presence semantics; do not synthesize or discard historical metadata without a tested compatibility contract.
+
+## P1 — Historical regression lane
+- PR #1901 remains open as a historical regression source and is still referenced by release acceptance.
+- Its checklist model test has been recovered into PR #3495. Its four-mode Home proposal is superseded by REV10; most model/store/UI code is older than Main. Close only after exact canonical regression evidence and release-gate reconciliation.
+- Issue #2102 remains an open release-acceptance gate.
+
+## P2 — Fully transferred test PRs
+- Contributions from PRs #3341, #3348 and #3365 are represented in PR #3495, including file-backed SQL tests, Calendar interaction coverage, stable navigation keys, and exact-head Device Smoke checkout.
+- Close these source PRs only after Build and Device Smoke pass on the final canonical SHA.
+
+## P2 — Documentation and automation
+- Root AI-agent files and CODEOWNERS are now thin adapters/protections; the eight continuity documents remain the only active authority.
+- The canonical branch has 9 workflows versus 23 on Main. Until PR #3495 is merged with owner approval, Main still has the old automation enabled.
+- Historical release artifacts are preserved; no stale-release deletion is authorized.
+
+---
+
 ## COMMAND 07-A.2.81 — active blocker reconciliation — 2026-11-14
 
 - **P0 — Exact-SHA acceptance pending:** source SHA before this documentation sync was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit changes HEAD. Poll the new live branch SHA and rerun all required workflows. Prior results are not transferable.
