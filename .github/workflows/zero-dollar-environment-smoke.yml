@@ -17,7 +17,6 @@ concurrency:
 
 jobs:
   environment-smoke:
-    if: github.event_name == 'push' || github.event.pull_request.number == 3495
     name: Zero-dollar Android environment diagnostic
     runs-on: ubuntu-24.04
     timeout-minutes: 25
