@@ -146,17 +146,14 @@ void main() {
       );
       expect(calendarList, findsOneWidget);
       expect(calendarScrollable, findsOneWidget);
-      final followUpCard = find.byKey(
+      // Legacy FollowUp.reminderDate is preserved as historical metadata,
+      // but it is not an independent TaskReminder and must not create a
+      // Calendar event. The canonical independent TaskReminder is the target.
+      final legacyFollowUpCard = find.byKey(
         ValueKey('reminder-card-followup:$taskId:$followUpId'),
       );
-      await tester.scrollUntilVisible(
-        followUpCard,
-        200,
-        scrollable: calendarScrollable,
-      );
-      await tester.pumpAndSettle();
-      expect(followUpCard, findsOneWidget);
-      expect(find.text('پیگیری دارای یادآور'), findsOneWidget);
+      expect(legacyFollowUpCard, findsNothing);
+      expect(find.text('پیگیری دارای یادآور'), findsNothing);
       await tester.scrollUntilVisible(
         card,
         200,
