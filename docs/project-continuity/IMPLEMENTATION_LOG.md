@@ -1,3 +1,51 @@
+# 2026-11-17 — ONE PATH CONSOLIDATION EXECUTION LOG
+
+## Canonical route
+- Main remained unchanged at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Canonical PR #3495 uses `recovery-02/main-based-integration`.
+- Pre-documentation checkpoint: `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`, 72 commits ahead, 0 behind, 64 changed files; PR remained Draft.
+- No merge, release, deployment, production database mutation, NIRA change, or history rewrite occurred.
+
+## Workflow consolidation
+- Removed 16 obsolete or conflicting workflow files from the canonical branch: autonomous agent worker, autonomous queue, production loop, orchestrator, recovery-wave controller, test worker, factory-wave, task dispatcher, factory worker engine, PR wakeup, REST promotion bridge, release bypass, parallel-wave, G1 lock sync, progress score, and automated production merge engine.
+- Canonical branch retains 9 workflows. Main still has 23 until the Product Owner approves the PR merge.
+- Recovery dispatcher now targets only PR #3495.
+- Device Smoke now checks out the exact PR head SHA rather than the synthetic merge ref.
+- Release Closure is manual and owner-gated, validates merged canonical PR #3495, keeps issue #2102 and PR #1901 as acceptance gates, and preserves historical prereleases.
+- Legacy external VazirHarf fetch/restore steps were removed; workflows verify repository-owned Vazirmatn assets.
+- No automated merge or PR-generating workflow remains in the canonical branch.
+
+## Recovered contributions
+- Added Task checklist model regression coverage from PR #1901.
+- Consolidated file-backed ProjectStore/TaskStore persistence coverage from PRs #3341/#3348; the subset duplicate test was removed.
+- Retained the more complete TaskReminder file-backed SQLite test, covering the equivalent #3341/#3348 contribution.
+- Recovered Calendar navigation and interaction coverage from PRs #3348/#3365; extended the Calendar test to prove that a Follow-up without an explicit reminder does not appear as a calendar reminder, while a Follow-up with an explicit reminder persists and appears.
+- Recovered stable Calendar navigation destination keys.
+- Added exact-head checkout validation to Device Smoke from PR #3348.
+- ProjectStore persistence and backup restore paths were adapted on the canonical branch; backup restore replaces the reconciled snapshot rather than retaining stale rows.
+
+## Governance adapters
+- Added root AGENTS.md, AI_CONTINUITY_PROTOCOL.md, CLAUDE.md, GEMINI.md, PROJECT_STATE.md, Copilot, Cursor and Windsurf pointers.
+- Added CODEOWNERS for governance, SQL persistence, backup, typography and release-sensitive paths.
+- The adapters point to the eight canonical continuity documents; they do not create new policy sources.
+
+## Exact-SHA evidence
+- Follow-up File Persistence passed on SHA `2256ba8f7da806249fa6516c7afcca386430308b`.
+- On the later pre-documentation SHA `e0cf66d68776e913ab7e9c5236e2b184a5fbb70c`, Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence were queued at the last poll. No PASS is claimed for those runs.
+- Documentation updates change the branch SHA; re-fetch live HEAD and rerun/verify exact-SHA workflows before acceptance.
+
+## Historical PR triage
+- #2570 is merged; its Calendar/Backup contribution is already in Main.
+- #2574 is superseded by the merged Calendar/Backup path.
+- #2902 behavior is present in Main; its reminder-only Calendar contract test was recovered.
+- #3341, #3348 and #3365 contributions are represented in PR #3495; close only after exact canonical CI passes.
+- #1901 remains a historical regression source; its four-mode Home design is superseded by the REV10 five-filter contract.
+- #3052 and the #3356→#3364 / #3366→#3384→#3463 dependency chains are not safe merge candidates: non-Main bases, large inherited diffs and failing Build evidence. Their useful design and diagnostic evidence remains under review; no blind cherry-pick occurred.
+- #3470 is a broad UI/typography proposal with multiple failing test shards; no wholesale port occurred.
+- The branch inventory returned 1,439 branch names. No branch deletion has yet been performed.
+
+---
+
 ## COMMAND 07-A.2.81 — production fix verification and historical parity remediation — 2026-11-14
 
 ### Verified historical evidence on SHA b3d6fc4283632d5f7dd5f4954ab7c32cd90850a5
