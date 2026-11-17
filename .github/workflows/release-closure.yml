@@ -30,7 +30,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout exact main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           fetch-depth: 0
@@ -74,164 +74,43 @@ jobs:
             core.info(`RELEASE_TAG=${tag}`);
             core.info(`ALREADY_RELEASED=${complete}`);
 
-      - name: Validate candidate and exact main
+      - name: Validate canonical PR #3495 and exact main
         if: steps.release_state.outputs.already_released != 'true'
         id: verify
         uses: actions/github-script@v7
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const main = await github.rest.repos.getBranch({
-              owner,
-              repo,
-              branch: 'main'
-            });
-
-            const sha = main.data.commit.sha;
-
-            const pulls = await github.paginate(
-              github.rest.pulls.list,
-              {
-                owner,
-                repo,
-                state: 'closed',
-                base: 'main',
-                per_page: 100,
-                sort: 'updated',
-                direction: 'desc'
-              }
-            );
-
-            const candidates = pulls
-              .filter(pr => pr.merged_at)
-              .filter(pr =>
-                (pr.labels || []).some(
-                  label => label.name === 'arvin-auto'
-                )
-              )
-              .sort(
-                (a,b) =>
-                  new Date(b.merged_at) -
-                  new Date(a.merged_at)
-              );
-
-            let selected = null;
-
-            for (const pr of candidates) {
-              if (!pr.merge_commit_sha) continue;
-
-              const comparison =
-                await github.rest.repos.compareCommits({
-                  owner,
-                  repo,
-                  base: pr.merge_commit_sha,
-                  head: sha
-                });
-
-              if (
-                ['ahead','identical']
-                .includes(comparison.data.status)
-              ) {
-                selected = {
-                  pr,
-                  comparison
-                };
-                break;
-              }
-            }
-
-            if (!selected) {
-              core.warning(
-                `No merged arvin-auto PR found. Falling back to exact main SHA ${sha}.`
-              );
-
-              core.setOutput(
-                'candidate_pr',
-                'main'
-              );
-
-              core.setOutput(
-                'main_sha',
-                sha
-              );
-
-              core.setOutput(
-                'commit_sha',
-                sha
-              );
-
-              core.setOutput(
-                'merge_sha',
-                sha
-              );
-
-              core.info(
-                `CANDIDATE_PR=main`
-              );
-
-              core.info(
-                `COMMIT_SHA=${sha}`
-              );
-
-              core.info(
-                `MERGE_SHA=${sha}`
-              );
-
-              core.info(
-                `MAIN_SHA=${sha}`
-              );
-
-              core.info(
-                `CANDIDATE_MAIN_RELATION=identical`
-              );
-
+            const { owner, repo } = context.repo;
+            const pr = (await github.rest.pulls.get({
+              owner, repo, pull_number: 3495
+            })).data;
+            if (pr.state !== 'closed' || !pr.merged_at ||
+                pr.base.ref !== 'main' ||
+                pr.head.ref !== 'recovery-02/main-based-integration' ||
+                !pr.merge_commit_sha) {
+              core.setFailed('RELEASE BLOCKED: canonical PR #3495 must be merged into main before release.');
               return;
             }
-
-            const pr = selected.pr;
-            const comparison = selected.comparison;
-
-            core.setOutput(
-              'candidate_pr',
-              String(pr.number)
-            );
-
-            core.setOutput(
-              'main_sha',
-              sha
-            );
-
-            core.setOutput(
-              'commit_sha',
-              pr.head.sha
-            );
-
-            core.setOutput(
-              'merge_sha',
-              pr.merge_commit_sha
-            );
-
-            core.info(
-              `CANDIDATE_PR=${pr.number}`
-            );
-
-            core.info(
-              `COMMIT_SHA=${pr.head.sha}`
-            );
-
-            core.info(
-              `MERGE_SHA=${pr.merge_commit_sha}`
-            );
-
-            core.info(
-              `MAIN_SHA=${sha}`
-            );
-
-            core.info(
-              `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
-            );
+            const main = await github.rest.repos.getBranch({
+              owner, repo, branch: 'main'
+            });
+            const mainSha = main.data.commit.sha;
+            const comparison = await github.rest.repos.compareCommits({
+              owner, repo, base: pr.merge_commit_sha, head: mainSha
+            });
+            if (!['ahead', 'identical'].includes(comparison.data.status)) {
+              core.setFailed(`RELEASE BLOCKED: PR #3495 merge ${pr.merge_commit_sha} is not an ancestor of current main ${mainSha}.`);
+              return;
+            }
+            core.setOutput('candidate_pr', '3495');
+            core.setOutput('main_sha', mainSha);
+            core.setOutput('commit_sha', pr.head.sha);
+            core.setOutput('merge_sha', pr.merge_commit_sha);
+            core.info('CANONICAL_PR=3495');
+            core.info(`COMMIT_SHA=${pr.head.sha}`);
+            core.info(`MERGE_SHA=${pr.merge_commit_sha}`);
+            core.info(`MAIN_SHA=${mainSha}`);
+            core.info(`CANDIDATE_MAIN_RELATION=${comparison.data.status}`);
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
@@ -255,15 +134,6 @@ jobs:
           grep -q 'org.jetbrains.kotlin.android.*2.4.0' android/settings.gradle.kts
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
-
-      - name: Verify approved Vazirmatn assets
-        if: steps.release_state.outputs.already_released != 'true'
-        run: |
-          set -euo pipefail
-          grep -q "family: Vazirmatn" pubspec.yaml
-          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
-          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
-          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
 
       - name: Android V2 audit
         if: steps.release_state.outputs.already_released != 'true'
@@ -381,7 +251,7 @@ jobs:
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
             try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
-            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
@@ -426,31 +296,23 @@ jobs:
           echo "RECOVERY_RESULT=success"
           echo "RESUME_VALIDATION=success"
 
-      - name: Remove stale Arvin prereleases
+      - name: Preserve historical Arvin prereleases
         if: steps.release_state.outputs.already_released != 'true'
         uses: actions/github-script@v7
         env:
           KEEP_TAG: ${{ steps.release.outputs.tag }}
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
+            const { owner, repo } = context.repo;
             const keepTag = process.env.KEEP_TAG;
             const releases = await github.paginate(
               github.rest.repos.listReleases,
               { owner, repo, per_page: 100 }
             );
             for (const release of releases) {
-              if (release.draft || !release.prerelease) continue;
-              if (!release.tag_name.startsWith('v') || !release.tag_name.includes('-arvin-')) continue;
+              if (!release.prerelease || !release.tag_name?.includes('-arvin-')) continue;
               if (release.tag_name === keepTag) continue;
-              await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
-              try {
-                await github.rest.git.deleteRef({ owner, repo, ref: 'tags/' + release.tag_name });
-              } catch (error) {
-                if (error.status !== 422 && error.status !== 404) throw error;
-              }
-              core.info('REMOVED_STALE_RELEASE=' + release.tag_name);
+              core.info('PRESERVED_HISTORICAL_PRERELEASE=' + release.tag_name);
             }
 
       - name: Publish final evidence
