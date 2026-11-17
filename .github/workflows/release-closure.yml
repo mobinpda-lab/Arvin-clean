@@ -1,10 +1,12 @@
 name: Arvin Release Closure
 
 on:
-  workflow_run:
-    workflows: ['Arvin Device Smoke']
-    types: [completed]
   workflow_dispatch:
+    inputs:
+      owner_approval:
+        description: Type exactly APPROVE RELEASE to authorize a prerelease
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -22,9 +24,8 @@ env:
 
 jobs:
   release-closure:
-    # Only successful Device Smoke for pushed main may auto-start release closure.
-    # PR smoke and PR workflow_run chains must not create duplicate main release builds.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    # Release creation is manual and owner-approved only. A green CI run never publishes by itself.
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mobinpda-lab' && inputs.owner_approval == 'APPROVE RELEASE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -34,16 +35,13 @@ jobs:
           ref: main
           fetch-depth: 0
 
-      - name: Fetch pinned VazirHarf
+      - name: Verify approved Vazirmatn assets
         run: |
           set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
+          grep -q "family: Vazirmatn" pubspec.yaml
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
 
       - name: Detect pending release
         id: release_state
@@ -341,7 +339,7 @@ jobs:
             .github/release-evidence/release-evidence.txt
           if-no-files-found: error
 
-      - name: Require explicit product release approval
+      - name: Verify product release gates
         if: steps.release_state.outputs.already_released != 'true'
         id: product_gate
         uses: actions/github-script@v7
@@ -349,59 +347,17 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            // A green build is not product acceptance. Publication stays blocked
-            // until the existing release gate and the known regression lane are closed.
-            // Hide already-published Arvin prereleases while blocked; preserve their
-            // tags/assets so this containment is reversible rather than destructive.
-            async function hideUnapprovedPrereleases() {
-              const releases = await github.paginate(github.rest.repos.listReleases, {
-                owner,
-                repo,
-                per_page: 100
-              });
-              for (const release of releases) {
-                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
-                  continue;
-                }
-                try {
-                  await github.rest.repos.updateRelease({
-                    owner,
-                    repo,
-                    release_id: release.id,
-                    draft: true,
-                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
-                  });
-                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
-                } catch (error) {
-                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
-                }
-              }
-            }
-
-            const gate = await github.rest.issues.get({
-              owner,
-              repo,
-              issue_number: 2102
-            });
+            const gate = await github.rest.issues.get({ owner, repo, issue_number: 2102 });
             if (gate.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
               return;
             }
-
-            const regression = await github.rest.pulls.get({
-              owner,
-              repo,
-              pull_number: 1901
-            });
+            const regression = await github.rest.pulls.get({ owner, repo, pull_number: 1901 });
             if (regression.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
-              core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
+              core.setFailed('RELEASE BLOCKED: P0/P1 regression PR #1901 must be resolved before publishing.');
               return;
             }
-
-            core.info('PRODUCT_RELEASE_GATE=approved');
+            core.info('EXPLICIT_OWNER_RELEASE_APPROVAL=PASS');
             core.info('RELEASE_GATE_ISSUE=2102:closed');
             core.info('REGRESSION_LANE_PR=1901:closed');
 
