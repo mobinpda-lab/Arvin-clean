@@ -1,3 +1,35 @@
+# 2026-11-17 — CURRENT HANDOFF
+
+## First: verify the live canonical SHA
+1. Fetch PR #3495 and confirm its current head, base, Draft status, changed-file count and ahead/behind relation.
+2. Fetch workflow runs for that exact head.
+3. A queued, in-progress, skipped, cancelled or stale-SHA result is not PASS.
+4. Verify Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence. Device Smoke must report the exact PR head SHA as its checkout SHA.
+
+## Then: close only fully reconciled source PRs
+- PRs #3341, #3348 and #3365 have their useful tests/workflow changes represented in PR #3495. Close them only after canonical exact-SHA Build and Device Smoke pass.
+- Keep PR #1901 and issue #2102 open until regression acceptance and release-gate evidence are reconciled.
+- Do not directly merge #3052, #3384 or #3463. They are large/stacked non-Main branches with failing Build evidence.
+- Do not port the #3364/#3366 legacy Follow-up semantic changes without a new owner-approved decision; current Product Decisions retain the legacy fields for compatibility.
+- PR #3470 requires targeted review and repair; its broad UI/typography diff is not accepted while its test shards fail.
+
+## Remaining product work
+1. Complete the 1,439-branch inventory: map branches to PRs, compare unique commits, recover valuable work, then delete only proven redundant refs.
+2. Complete the PR inventory and reconcile all open/closed/Draft PRs.
+3. Prove the complete Main-schema v7→v20 migration and M2M repository integration with file-backed tests, historical parity, rollback/retry and independent backup/restore.
+4. Complete the REV10 five-filter Home UI, including Center; do not revive PR #1901's superseded four-mode grouping.
+5. Complete Person Directory management UI.
+6. Complete Vazirmatn typography and shared Design System validation across all pages.
+7. Reconcile issue #2102 and all P0/P1 acceptance evidence before any release.
+
+## Safety
+- Main remains read-only.
+- PR #3495 remains Draft until explicitly authorized.
+- No merge, release, deployment, production database operation, NIRA change, destructive cleanup, or Git history rewrite without the required owner authorization.
+- Keep valid historical branches/PRs until their unique contributions are reviewed and preserved.
+
+---
+
 ## COMMAND 07-A.2.81 — next execution handoff — 2026-11-14
 
 1. Fetch live Main, PR #3463 and `rev10-m2m-v19-test-expansion` HEAD. The pre-documentation source SHA was `444c8ae6dfe640ee47d254ccc08990fac47b5e5e`; this documentation commit advances it. Do not assume either is current without reading the branch ref.
