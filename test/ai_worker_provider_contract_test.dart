@@ -23,7 +23,8 @@ void main() {
 
     expect(dispatcher, contains('pull_number: 3495'));
     expect(dispatcher, contains('const pulls = [canonical];'));
-    expect(dispatcher, contains("workflow_id: 'build.yml'"));
+    expect(dispatcher, contains("const workflowId = 'build.yml';"));
+    expect(dispatcher, contains('workflow_id: workflowId'));
     expect(dispatcher, contains('inputs: { target_sha: sha }'));
     expect(dispatcher, isNot(contains('createPullRequest')));
     expect(dispatcher, isNot(contains('gh pr create')));
