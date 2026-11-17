@@ -3,46 +3,39 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('guarded AI worker closes narrow source issues but not Recovery Wave parents', () {
-    final worker =
-        File('.github/workflows/arvin-agent-worker.yml').readAsStringSync();
-
-    expect(worker, contains('ISSUE_BODY=\$(gh issue view'));
-    expect(worker, contains('arvin-recovery-wave:'));
-    expect(worker, contains('arvin-recovery-wave-source'));
-    expect(worker, contains('Closes #\$ARVIN_ISSUE_NUMBER'));
-    expect(worker, contains('Refs #\$ARVIN_ISSUE_NUMBER'));
+  test('legacy recovery-wave auto-advance controller is retired', () {
     expect(
-      worker,
-      contains('gh pr edit "\$PR_NUMBER" --repo "\$GITHUB_REPOSITORY" --body "\$PR_BODY" --add-label arvin-auto'),
+      File('.github/workflows/arvin-recovery-wave-controller.yml').existsSync(),
+      isFalse,
     );
-    expect(worker, contains('Production Orchestrator is the single promotion/merge authority'));
-    expect(worker, isNot(contains('gh issue close')));
-    expect(worker, isNot(contains('gh pr merge')));
+    expect(
+      File('.github/workflows/arvin-agent-worker.yml').existsSync(),
+      isFalse,
+    );
+    expect(
+      File('.github/workflows/arvin-autonomous-queue.yml').existsSync(),
+      isFalse,
+    );
   });
 
-  test('recovery controller remains ordered and five-minute scheduled', () {
-    final controller = File(
-      '.github/workflows/arvin-recovery-wave-controller.yml',
-    ).readAsStringSync();
+  test('only canonical PR 3495 receives CI recovery dispatch', () {
+    final dispatcher = File('.github/workflows/pr-ci-recovery-dispatcher.yml').readAsStringSync();
 
-    expect(controller, contains("cron: '*/5 * * * *'"));
-    expect(controller, contains('const waves = [846, 847, 848, 849, 850, 851, 852, 853]'));
-    expect(controller, contains("const firstOpenIndex = state.findIndex(x => x.issue.state === 'open')"));
-    expect(controller, contains("labels: ['factory:ready']"));
-    expect(controller, contains("workflow_id: 'arvin-autonomous-queue.yml'"));
+    expect(dispatcher, contains('pull_number: 3495'));
+    expect(dispatcher, contains('const pulls = [canonical];'));
+    expect(dispatcher, contains('maxDispatchesPerRun = 1'));
+    expect(dispatcher, contains('inputs: { target_sha: sha }'));
+    expect(dispatcher, isNot(contains('createPullRequest')));
+    expect(dispatcher, isNot(contains('gh issue close')));
+    expect(dispatcher, isNot(contains('gh pr merge')));
   });
 
-  test('bootstrap hold releases only after auto-close contract reaches main', () {
-    final controller = File(
-      '.github/workflows/arvin-recovery-wave-controller.yml',
-    ).readAsStringSync();
+  test('release and promotion remain explicit owner actions', () {
+    final release = File('.github/workflows/release-closure.yml').readAsStringSync();
 
-    expect(controller, contains('arvin-auto-advance-bootstrap-hold'));
-    expect(controller, contains("workerAutoCloseToken = 'Closes #\$ARVIN_ISSUE_NUMBER'"));
-    expect(controller, contains("path: '.github/workflows/arvin-agent-worker.yml'"));
-    expect(controller, contains("name: 'orchestrator:hold'"));
-    expect(controller, contains('arvin-auto-advance-bootstrap-released'));
-    expect(controller, contains('Manual owner'));
+    expect(release, contains("inputs.owner_approval == 'APPROVE RELEASE'"));
+    expect(release, contains("github.actor == 'mobinpda-lab'"));
+    expect(release, contains("pr.head.ref !== 'recovery-02/main-based-integration'"));
+    expect(release, contains('RELEASE BLOCKED'));
   });
 }
