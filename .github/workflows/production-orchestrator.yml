@@ -1,16 +1,15 @@
 name: Arvin Production Orchestrator
 
 on:
-  workflow_run:
-    workflows: ['Arvin Parallel Wave', 'Arvin Build', 'Arvin Device Smoke']
-    types: [completed]
-  schedule:
-    - cron: '*/5 * * * *'
   workflow_dispatch:
     inputs:
       pr_number:
-        description: Optional arvin-auto PR to process end-to-end
-        required: false
+        description: Canonical PR number (must be 3495)
+        required: true
+        type: string
+      owner_approval:
+        description: Type exactly APPROVE MERGE to authorize this single merge
+        required: true
         type: string
 
 permissions:
@@ -25,6 +24,7 @@ concurrency:
 
 jobs:
   orchestrate:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mobinpda-lab' && inputs.pr_number == '3495' && inputs.owner_approval == 'APPROVE MERGE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
@@ -34,9 +34,14 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-            const AUTO_LABEL = 'arvin-auto';
             const directWake = context.eventName === 'workflow_dispatch';
             const requestedPr = Number(context.payload.inputs?.pr_number || 0);
+            if (context.actor !== 'mobinpda-lab' || !directWake ||
+                String(context.payload.inputs?.owner_approval || '') !== 'APPROVE MERGE' ||
+                requestedPr !== 3495) {
+              core.setFailed('Explicit owner approval is required; only canonical PR #3495 may be merged.');
+              return;
+            }
             const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
             const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
@@ -205,8 +210,7 @@ jobs:
             }
 
             for (const pr of pulls) {
-              const labels = new Set((pr.labels || []).map(l => l.name));
-              if (!labels.has(AUTO_LABEL)) continue;
+              if (pr.number !== 3495) continue;
 
               const fresh = await github.rest.pulls.get({ owner, repo, pull_number: pr.number });
               const item = fresh.data;
@@ -220,22 +224,8 @@ jobs:
               }
 
               if (item.draft) {
-                // Fast, Build and Android Smoke are independent gates. Heavy lanes may
-                // progress concurrently; promotion still requires every exact-head gate.
-                let fast = await latestFastRun(headSha);
-                if (await fastGreenForCurrentMain(fast, item, headSha)) {
-                  core.info(`#${item.number}: Fast green on current main; marking ready.`);
-                  await github.graphql(`
-                    mutation($id: ID!) {
-                      markPullRequestReadyForReview(input: {pullRequestId: $id}) {
-                        pullRequest { number isDraft }
-                      }
-                    }
-                  `, { id: item.node_id });
-                } else {
-                  await reportFailure(fast);
-                  core.info(`#${item.number}: draft remains draft until exact-head Fast is green; heavy gates continue independently.`);
-                }
+                core.info(`#${item.number}: remains Draft; only the product owner may mark it ready for review.`);
+                continue;
               }
 
               let [build, device] = await Promise.all([
@@ -307,12 +297,6 @@ jobs:
                 return;
               }
 
-              // Immediate self-wake removes the normal 5-minute polling gap after
-              // a successful merge. The scheduled trigger remains as a recovery
-              // watchdog; this explicit dispatch is the fast path for the queue.
-              core.info(`#${item.number}: merged as ${mergedMain}; immediately waking orchestrator for the next queued PR.`);
-              await github.rest.actions.createWorkflowDispatch({
-                owner, repo, workflow_id: 'production-orchestrator.yml', ref: 'main',
-              });
+              core.info(`#${item.number}: merged as ${mergedMain}. No automatic follow-up merge is permitted; every later merge requires a new owner dispatch.`);
               return;
             }
