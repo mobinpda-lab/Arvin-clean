@@ -79,6 +79,16 @@ run_phase write "$EVIDENCE/calendar_restart_stage_a.log" true
 echo CALENDAR_STAGE_A_WRITE=PASS | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 test -n "$PHASE_APP_PID"
 echo "PROCESS_PID_BEFORE_STOP=$PHASE_APP_PID" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
+# SharedPreferences.apply() persists asynchronously. Allow the platform write
+# to settle, then capture the app-private XML before stopping the process.
+sleep 3
+adb -s "$DEVICE" shell run-as "$APP_ID" sh -c 'ls -la shared_prefs' \
+  > "$EVIDENCE/shared-preferences-directory.txt"
+adb -s "$DEVICE" shell run-as "$APP_ID" cat shared_prefs/FlutterSharedPreferences.xml \
+  > "$EVIDENCE/shared-preferences-before-stop.xml"
+grep -F 'flutter.arvin.calendar.externalLinks.command20e' \
+  "$EVIDENCE/shared-preferences-before-stop.xml" >/dev/null
+echo SHARED_PREFERENCES_DISK_WRITE=PASS | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 adb -s "$DEVICE" shell am force-stop "$APP_ID"
 remaining=""
 for attempt in $(seq 1 20); do
