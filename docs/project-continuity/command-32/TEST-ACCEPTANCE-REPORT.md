@@ -1,30 +1,39 @@
 # COMMAND 32 — Test Acceptance Report
-Checkpoint SHA: `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`
+Code SHA: `687341469152035053f6325b671c4bad9dab8c96`
 
-## Exact-SHA workflow evidence
-| Workflow | Run | Last observed state | Acceptance |
-|---|---:|---|---|
-| COMMAND 20-E | 44191698513 | IN PROGRESS | NOT ACCEPTED |
-| Device Smoke | 44191698618 | Preparation SUCCESS; Home and Quick Capture IN PROGRESS; other lanes QUEUED | NOT ACCEPTED |
-| Build / Analyze / full test shards | No run returned for this SHA at last query | NOT OBSERVED | NOT TESTED |
+## Exact-SHA CI
+| Workflow / job | Run | Result at last observation |
+|---|---:|---|
+| Flutter Analyze | 44192597572 | SUCCESS |
+| Debug APK | 44192597572 | SUCCESS |
+| Release APK | 44192597572 | SUCCESS |
+| Unit/Widget shard 0 | 44192597572 | SUCCESS |
+| Unit/Widget shard 1 | 44192597572 | SUCCESS |
+| Unit/Widget shard 2 | 44192597572 | FAILURE — 259 passed, 1 failed |
+| Unit/Widget shard 3 | 44192597572 | SUCCESS |
+| Unit/Widget shard 4 | 44192597572 | SUCCESS |
+| Unit/Widget shard 5 | 44192597572 | SUCCESS |
+| Follow-up File Persistence | 44192597315 | SUCCESS |
+| Device Smoke | 44192597544 | Home + Quick Capture SUCCESS; SQL Migration + SQL Persistence IN PROGRESS; Backup/Restore, Calendar, People QUEUED |
+| COMMAND 20-E / H01 | 44192597243 | Analyze + ProjectStore file-backed test SUCCESS; real SharedPreferences restart / Stage B IN PROGRESS |
 
-## Added test coverage
-- All-Day false serialization assertion in Task contract tests.
-- All-Day on/off widget regression restoring selected hour/minute.
-- Follow-up unknown-field JSON round-trip.
-- Follow-up extension payload file-backed SQLite close/reopen.
-- Schema assertion for follow_ups.extension_json.
-- Backup candidate restore of a historical Person ID absent from active directory while retaining unknown Follow-up metadata.
+## New tests verified PASS
+- `task_editor_full_entry_test.dart`: All-Day off restores previously selected due time.
+- `task_contract_test.dart`: unknown Follow-up metadata survives JSON serialization.
+- `task_store_followup_test.dart`: unknown Follow-up metadata survives file-backed SQL close/reopen.
+- `canonical_backup_manager_test.dart`: restore retains historical Follow-up Person IDs absent from active directory.
 
-## Remaining validation
-1. Flutter Analyze.
-2. Full Unit and Widget test shards.
-3. Debug and Release APK builds.
-4. Device Smoke: Calendar, Backup/Restore, SQL Migration, SQL Persistence, Home, People, Quick Capture.
-5. File-backed v7→v8 migration from actual v7 fixture, repeated open/save, idempotency and rollback.
-6. Backup/Restore round trip with unknown Follow-up metadata, orphan Person IDs, active directory entries and Calendar links.
-7. H01 Stage A write, verified force-stop, Stage B fresh process read, eight-value comparison and cleanup.
-8. W01 authorized label event, PR/base/branch/SHA checks, KVM access check without chmod.
-9. RTL, small-screen, keyboard, PDF font embedding and visual regression checks.
+## Single failing regression
+`test/release_closure_product_gate_test.dart` fails because `.github/workflows/release-closure.yml` does not contain the expected `await hideUnapprovedPrereleases();` call, `HIDDEN_UNAPPROVED_PRERELEASE=` evidence, and Draft-only publication contract. The workflow currently creates a non-draft prerelease. The test was not weakened and the release workflow was not executed or changed in this checkpoint. This remains a release-security blocker.
 
-No assertion was weakened. No PASS is inferred from queued or in-progress runs.
+## W01
+Zero-Dollar expressions and KVM chmod corrected, but workflow run 44192076499 on the prior documentation SHA ended FAILURE with no executable jobs. The workflow file is absent from Main and its PR-label trigger has not been proven operational. W01 is NOT ACCEPTED.
+
+## Remaining
+- Complete all in-progress Device Smoke and H01 Stage B jobs.
+- Fix release-closure gate implementation without weakening tests, then rerun all shards.
+- Execute authorized W01 diagnostic on a supported trigger.
+- Run actual v7→v8 migration fixture and Backup/Restore round trip.
+- Complete full RTL/PDF/visual regression.
+
+No PASS inferred from queued or in-progress jobs.

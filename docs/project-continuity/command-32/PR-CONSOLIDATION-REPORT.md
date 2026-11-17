@@ -1,41 +1,43 @@
 # COMMAND 32 — PR Consolidation Report
-Checkpoint: 2026-11-18
-Canonical PR: #3495
-Canonical HEAD: `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`
+Code checkpoint: `687341469152035053f6325b671c4bad9dab8c96`
 Main: `45e4202b03a434459e4c021a04efa7e8396359db`
 
 ## Canonical state
-- PR #3495: OPEN / DRAFT / UNMERGED.
-- Base: main. Head: recovery-02/main-based-integration.
-- 143 commits; 143 ahead / 0 behind; 127 changed files.
-- Main was not changed.
+- PR #3495 — OPEN / DRAFT / UNMERGED.
+- Branch: recovery-02/main-based-integration.
+- HEAD: `687341469152035053f6325b671c4bad9dab8c96`.
+- Compare: 149 commits ahead, 0 behind; 134 changed files.
+- Main unchanged.
+- Current canonical is the only approved development destination.
 
-## Commits added by COMMAND 32
-- `8dee3947939b941a48be4a5882b10fcf3ec20ab4` — preserve All-Day due time and harden Zero-Dollar workflow.
-- `ed93d6ad30bfe4e75199f297efda0a2b8099ce49` — preserve Follow-up extensions and historical Person IDs.
+## Consolidated implementation
+### A01
+Task JSON explicitly serializes allDay true and false. The editor caches the selected hour/minute before All-Day and restores it when toggled off. Model and widget tests passed on this checkpoint.
 
-## Consolidated code changes
-### A01 — All-Day
-Task JSON serializes allDay explicitly, including false. Task editor caches the selected time before switching to All-Day and restores it when switching back. Model and widget regression assertions were added.
+### A02
+FollowUp preserves unknown fields in extensionData. Schema v8 adds nullable follow_ups.extension_json additively; TaskStore reads and writes it on the same row. JSON round-trip and file-backed close/reopen tests passed on this checkpoint.
 
-### A02 — Follow-up Metadata
-FollowUp carries opaque extensionData. Unknown JSON fields are decoded/serialized without overriding canonical fields. SQLite schema v8 adds nullable follow_ups.extension_json additively. TaskStore reads/writes the payload in the same row. File-backed close/reopen and JSON round-trip tests were added.
+### A03
+Restore accepts stable historical Follow-up Person IDs absent from active peopleDirectory. Existing history projection displays a deleted-person placeholder. No same-name merge or ID rewrite introduced. Historical orphan restore test passed.
 
-### A03 — Person Identity
-Restore no longer rejects a historical Follow-up person ID merely because its person is absent from the active directory. Follow-up IDs remain stable; report projection already renders a missing directory person as a placeholder. No same-name merge or destructive ID rewrite was introduced.
+### W01
+Escaped GitHub expressions removed, KVM chmod removed, fixed direct-parent assumption replaced with Main merge-base check. However the Zero-Dollar workflow did not obtain a successful executable run; see TEST-ACCEPTANCE. Trigger/branch-base mechanics remain a blocker.
 
-### W01 — Zero-Dollar Workflow
-GitHub expression escapes removed. KVM permission mutation removed. Fixed direct-parent SHA equality replaced with an immutable Main merge-base check, permitting ordinary subsequent commits while proving expected base ancestry. PR #3495, canonical branch, label, Main SHA and read-only permissions remain guarded.
+### H01
+Commit `6873414` adds a three-second SharedPreferences disk-flush wait and captures app-private XML before force-stop. COMMAND 20-E reached the real SharedPreferences restart stage after Analyze and ProjectStore file-backed test passed. Stage B result is pending.
 
-## Not yet consolidated
-- M2M v19/v20 from #3463: not copied; depends on #3384 dependency closure and lacks accepted sequential file-backed v7→v20 proof.
-- Typography #3470: not copied wholesale pending visual/RTL review.
-- #3346/#3366 editor patches: not copied wholesale because some referenced fields are absent from canonical Task.
-- #3376/#3380/#3382: evidence sources, not production code.
-- Full unique-commit transfer audit across all PRs remains incomplete.
+## PRs closed after source comparison
+- #3365
+- #3348
+- #3341
+All branches retained.
 
-## Current CI
-For exact SHA `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`:
-- COMMAND 20-E run 44191698513: IN PROGRESS at last check.
-- Device Smoke run 44191698618: preparation SUCCESS; selected lanes queued or in progress.
-- No Build / full test / Analyze PASS is claimed.
+## Not consolidated
+- #3463 M2M v19/v20 dependency stack.
+- #3470 typography contract.
+- #3366/#3346 editor changes with incompatible fields.
+- #3364/#3356 SQL envelope / migration-writer residuals.
+- #3376/#3380/#3382 diagnostic evidence.
+- Full 113-open / 521-closed-unmerged PR audit.
+
+NO-GO for final repository consolidation or release.

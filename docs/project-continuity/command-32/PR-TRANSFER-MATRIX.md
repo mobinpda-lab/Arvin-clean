@@ -1,43 +1,42 @@
 # COMMAND 32 — PR Transfer Matrix
-Checkpoint: 2026-11-18
-Canonical PR: #3495
-Canonical branch: recovery-02/main-based-integration
-Canonical HEAD: `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`
+Live checkpoint: 2026-11-18
+Code SHA audited: `687341469152035053f6325b671c4bad9dab8c96`
+Canonical PR #3495 — OPEN / DRAFT / UNMERGED
 Main: `45e4202b03a434459e4c021a04efa7e8396359db`
 
-Status: IN PROGRESS. This is a source-backed decision matrix for the high-risk/currently relevant PR chain, not a claim that all historical PRs have been exhaustively classified. No PR or branch was closed or deleted.
+Status: PARTIAL. GitHub search reports 113 open PRs, 521 closed-unmerged PRs, and 629 merged PRs (1,150 closed total). The repository's previous canonical checkpoint records 1,439 branch refs. The complete 1,263-PR unique-commit audit and fresh 16-page branch SHA audit are not complete. No claim of full historical reconciliation is made.
 
-| PR | Scope / source facts | Transfer decision | Reason / remaining proof |
-|---|---|---|---|
-| #3495 | REV10 canonical route; 143 commits, 127 changed files; OPEN / DRAFT / UNMERGED | KEEP — sole destination | Current HEAD verified; Main unchanged. |
-| #3470 | Vazirmatn weight contract; 24 commits, 21 files | SELECTIVE REVIEW | 21 UI files change weights and add a static test. Requires screenshot/accessibility review against REV10 before port. |
-| #3463 | M2M v19/v20 migration; 139 commits, 42 files; based on feature/command-07-a-sqlite-contract-remediation | DEFERRED — no direct merge | Depends on #3384 and v19 schema/stores/codecs. Canonical is schema v7; sequential file-backed v7→v20 proof is not accepted. ADR/design is retained in REV10 docs. |
-| #3384 | Legacy field presence, unknown metadata, SQL/Person/Follow-up refactor; 218 commits, 120 files | SELECTIVE ADAPTATION | Stacked on older product-repair branch; broad Task/FollowUp model and schema v19 refactor. Narrow Follow-up unknown-field preservation independently implemented using extensionData + extension_json. No bulk cherry-pick. |
-| #3382 | Independent raw SQL diagnostic evidence; 3 commits, 2 files | PRESERVE AS EVIDENCE | Diagnostic harness/source evidence, not a product feature. |
-| #3380 | Diagnostic executor lifecycle recovery; 8 commits, 2 files | PRESERVE AS EVIDENCE | Stacked diagnostic PR; keep until SQL migration root cause is closed. |
-| #3376 | Persist-task envelope capture; 7 commits, 2 files | PRESERVE AS EVIDENCE | Forensic evidence, not production code. |
-| #3366 | Task editor metadata / due-reminder preservation; 8 commits, 6 files | SELECTIVE REVIEW | Patch references fields absent from current canonical model (e.g. isFavorite/focusDate/legacyFollowUpMetadata). Do not port incompatible constructor fields. |
-| #3365 | Device Smoke exact-ref checkout and Calendar navigation test; 4 commits, 3 files | LIKELY REPRESENTED; verify exact diff | Canonical branch already contains modified device-smoke and Calendar interaction/navigation files. Exact equivalence still needs proof. |
-| #3364 | SQL envelope parity and legacy field-presence correction; 10 commits, 6 files | PARTIALLY SUPERSEDED BY A02; residual review | Canonical now stores opaque Follow-up extension data in SQL. Task-level missing/null/false semantics and migration-writer conflict detection still require comparison. |
-| #3356 | SQL envelope mismatch diagnostic/fix; 1 commit, 1 file | DEFERRED | Stacked on #3052; preserve as root-cause source until exact migration-writer tests pass. |
-| #3348 | File-backed Project and multiple-reminder lifecycle tests; 8 commits, 5 files | SELECTIVE TRANSFER / EQUIVALENCE CHECK | Canonical already has file-backed Project and reminder persistence tests plus Calendar/device-smoke paths. Compare test semantics and checkout changes before closing. |
-| #3346 | Task editor preserves canonical fields and legacy metadata; 3 commits, 3 files | NOT PORTED | Candidate patch relies on fields absent from current canonical Task model. Re-evaluate against actual REV10 model and targeted preservation tests. |
-| #3341 | File-backed SQLite persistence tests; 3 commits, 2 files | DUPLICATE CANDIDATE; NOT CLOSED | Overlaps #3348. Exact assertions and unique commits must be compared. |
-| #3052 | Large Main-based Calendar/device-smoke recovery stack; 2,192 commits, 395 files | DO NOT DIRECT-MERGE | Extensive unique history and unrelated/legacy changes. Requires commit-level and file-level selective classification. |
-| #3340 | REV9 governance package; closed-unmerged | SUPERSEDED BY REV10 | Preserve source/history; REV9 is not active authority. |
-| #3388 | Wave 0 continuity/governance package; closed-unmerged | ARCHIVE / REFERENCE | Retain non-conflicting historical evidence; REV10 remains authority. |
-| #3448 | REV10 master charter proposal; closed-unmerged | AUTHORITY ALREADY REPRESENTED | Canonical branch has active REV10 governance and supersession mapping; compare source docs before archival cleanup. |
+## Verified focused transfer decisions
+| PR | Scope | Decision / evidence |
+|---|---|---|
+| #3495 | REV10 canonical route | KEEP — sole destination. Current head `687341469152035053f6325b671c4bad9dab8c96`, 149 commits ahead / 0 behind Main, 134 changed files. |
+| #3470 | Vazirmatn weight contract; 24 commits / 21 files | REVIEW — no bulk transfer. Requires visual/RTL review of all affected UI files. |
+| #3463 | M2M v19/v20; 139 commits / 42 files | DEFER — no direct merge. Depends on #3384 and a v19 schema/store dependency closure; canonical v7→v8 changes must be proven before sequential v7→v20 acceptance. |
+| #3384 | Legacy field presence / unknown metadata / SQL / Person refactor; 218 commits / 120 files | SELECTIVELY ADAPTED. Follow-up opaque metadata contract implemented in canonical via extensionData + extension_json; broad schema-v19 refactor not cherry-picked. |
+| #3382 | Raw SQL diagnostics; 3 commits / 2 files | KEEP AS EVIDENCE until SQL root-cause closure. |
+| #3380 | Diagnostic executor lifecycle; 8 commits / 2 files | KEEP AS EVIDENCE. |
+| #3376 | Persist-task envelope capture; 7 commits / 2 files | KEEP AS EVIDENCE. |
+| #3366 | Task editor metadata preservation; 8 commits / 6 files | REVIEW — some patch fields are absent from canonical Task; no incompatible bulk port. |
+| #3365 | Device Smoke / Calendar navigation; 4 commits / 3 files | CLOSED as represented. Device Smoke file was byte-identical; navigation file byte-identical; Calendar test in canonical is a stronger/superseding variant. Branch retained. |
+| #3364 | SQL Follow-up envelope; 10 commits / 6 files | PARTIAL — A02 addresses opaque Follow-up metadata; task-level null/false semantics and migration-writer conflict detection still need audit. |
+| #3356 | SQL envelope diagnostic; 1 commit / 1 file | KEEP AS EVIDENCE pending exact migration-writer test. |
+| #3348 | File-backed Project / multi-reminder tests; 8 commits / 5 files | CLOSED as represented. Workflow, navigation and reminder test were byte-identical; canonical ProjectStore and Calendar tests are stronger/superseding. Branch retained because #3365 used it as base. |
+| #3346 | Task editor canonical-field preservation; 3 commits / 3 files | NOT PORTED — patch references fields absent from canonical model. |
+| #3341 | File-backed SQLite tests; 3 commits / 2 files | CLOSED as represented. Canonical file-backed reminder lifecycle test covers legacy migration, reopen, CRUD and tombstone; canonical ProjectStore test is stronger. Branch retained. |
+| #3052 | Main-based Calendar/device-smoke recovery stack; 2,192 commits / 395 files | DO NOT DIRECT-MERGE; unique history needs granular review. |
+| #3340 | REV9 governance | Superseded by REV10; preserve history. |
+| #3388 | Wave 0 continuity docs | Archive/reference; REV10 remains authority. |
+| #3448 | REV10 master charter proposal | Authority represented in canonical governance; archive source after doc-link audit. |
 
-## Verified transfer already present
-- PR #3495 is 143 ahead / 0 behind Main.
-- A01 and W01 are committed in `8dee3947939b941a48be4a5882b10fcf3ec20ab4`.
-- A02 and A03 are committed in `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`.
-- Existing branch includes file-backed Project/Reminder tests, Calendar navigation tests, Backup/Restore improvements and REV10 governance docs.
-- No bulk merge/cherry-pick was used.
+## COMMAND 32 commits
+- `8dee3947939b941a48be4a5882b10fcf3ec20ab4`: A01 All-Day + W01 expression/KVM/merge-base corrections.
+- `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`: A02 Follow-up extension metadata + A03 historical Person ID restore.
+- `ebaf71bd2330914b4e3ece6cbadaa94b7a71fc2e`: seven initial COMMAND 32 reports.
+- `76cbf11146ccf0f7eb3d7e4ae394f6c7e3deef1a`: Calendar card visibility test stabilization.
+- `687341469152035053f6325b671c4bad9dab8c96`: H01 SharedPreferences disk-flush evidence before force-stop.
 
-## Outstanding transfer work
-1. Enumerate every open and closed PR beyond the focused list.
-2. Compare unique commit SHAs for every PR, including stacked chains.
-3. Compare all changed-file patches against canonical HEAD.
-4. Check exact-SHA CI for every proposed port.
-5. Only then close superseded PRs or delete refs.
+## Outstanding transfer
+- Audit all remaining 113 open PRs and 521 closed-unmerged PRs by unique commit and file/blob equivalence.
+- Audit 629 merged PRs only for documentation/authority conflicts; their merged code is already on Main.
+- Review typography, Task editor, SQL envelope, M2M, and older reminder/Calendar chains.
+- No additional PR should close until its complete changed-file set is represented.

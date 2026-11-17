@@ -1,29 +1,29 @@
 # COMMAND 32 — Branch Cleanup Report
-Checkpoint SHA: `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`
-Main SHA: `45e4202b03a434459e4c021a04efa7e8396359db`
+Code checkpoint: `687341469152035053f6325b671c4bad9dab8c96`
+Main: `45e4202b03a434459e4c021a04efa7e8396359db`
 
-Status: IN PROGRESS — NO DELETIONS.
+Status: PARTIAL — THREE PRs CLOSED; NO BRANCH DELETIONS.
 
-## Live observations
-- Repository is public; connected GitHub permissions report Admin / Maintain / Push / Pull.
-- Canonical branch: `recovery-02/main-based-integration`.
-- PR #3495 points to the canonical branch and remains OPEN / DRAFT / UNMERGED.
-- First two pages of branch-name search were retrieved (200 names). A previous canonical PR checkpoint recorded 1,439 refs across 16 pages, but a fresh complete 16-page recount and all-ref SHA audit were not completed in this command.
-- Search pages include historical automation, backup, audit, diagnostics, product and docs branches. Name similarity is not proof of redundancy.
+## Repository scale
+- Search API: 113 open PRs.
+- Closed PRs: 1,150 total; 629 merged and 521 closed-unmerged.
+- Prior repository checkpoint: 1,439 branch refs. A fresh complete page-by-page branch SHA audit is still outstanding.
+- Current canonical PR #3495 remains OPEN / DRAFT / UNMERGED.
 
-## Safety decisions
-- No branch deleted; no PR closed.
-- No ref force-updated or rewritten.
-- No branch assumed redundant from prefix, age, duplicate name pattern or lack of current PR.
-- Backup and diagnostic refs remain protected pending unique-commit and evidence mapping.
+## PR cleanup completed
+- #3365 closed after confirming its Device Smoke file and navigation file are byte-identical to canonical; its Calendar integration test is superseded by the canonical variant with additional historical Follow-up and reminder assertions.
+- #3348 closed after confirming byte-identical Device Smoke, navigation and reminder test files; canonical ProjectStore and Calendar tests are stronger/superseding.
+- #3341 closed after confirming its file-backed reminder lifecycle and ProjectStore cases are represented by canonical tests with broader reopen, CRUD, metadata and integrity assertions.
+- #3348 branch was a base of #3365; #3365 was closed first. No remaining open PR was found using either branch as base. No open PR was found using #3341 branch as base.
 
-## Required proof before cleanup
-For every candidate ref: resolve exact HEAD SHA; determine PR associations; compare against Main and canonical HEAD; enumerate unique commits not reachable from canonical; identify code/tests/workflows/docs/release evidence/tags; prove all useful changes are represented or archived; check workflow/issue/release references; only then close/delete while retaining history.
+## Branches
+- The three PRs' branches were not deleted. The connected GitHub actions available in this session do not expose a delete-ref operation.
+- No other branch deleted.
+- No force push or history rewrite.
+- Diagnostic branches #3376/#3380/#3382 and migration branches #3384/#3463 remain protected.
+- #3052 and its dependent recovery chain remain protected.
 
-## Current disposition
-- KEEP: canonical branch; diagnostic sources #3376/#3380/#3382; migration candidates #3384/#3463; #3052 and stacked recovery chain; backup refs.
-- REVIEW: typography #3470; editor #3346/#3366; file-backed tests #3341/#3348; Calendar/device smoke #3365.
-- DELETE: none approved.
-- PR closures: none performed.
+## Required before further branch deletion
+Resolve exact SHA for every ref; map all open/closed PRs; enumerate commits not reachable from canonical; compare changed files and workflows; verify no dependent PR, workflow, tag, release, issue, or evidence link; preserve archive refs where unique history is not in #3495.
 
-No cleanup in this checkpoint is deliberate: complete branch-to-PR-to-commit proof is not yet available.
+No branch deletion was attempted without this proof and an available delete-ref action.

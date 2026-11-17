@@ -1,26 +1,26 @@
 # COMMAND 32 — REV10 Compliance Report
-Checkpoint SHA: `ed93d6ad30bfe4e75199f297efda0a2b8099ce49`
+Code checkpoint: `687341469152035053f6325b671c4bad9dab8c96`
 
-REV10 is active authority in `docs/project-continuity/MASTER_GOVERNANCE.md`. Historical REV9 and earlier docs are subordinate where conflicting.
+REV10 remains the governing product and architecture authority in `docs/project-continuity/MASTER_GOVERNANCE.md`.
 
-## Compliance decisions applied
-- One canonical delivery path: PR #3495 only.
-- Main remains read-only.
-- Local-first data ownership remains in force; no sync or NIRA runtime dependency introduced.
-- Vazirmatn remains the sole official/default product font; System Default may remain optional. VazirHarf is not promoted to active branding.
-- Follow-up records remain historical; legacy Next Follow-up metadata is inert and is not reactivated as an independent scheduler.
-- Person IDs remain Arvin-owned stable identifiers. Same-name people are not merged automatically.
-- Historical person IDs may remain in Follow-up records when absent from active directory.
-- Center↔Project and Project↔Category M2M remains approved architecture; implementation acceptance is separate.
-- Schema changes must be additive, idempotent, transactional and file-backed tested.
-- Validation must not mutate production user data.
+## Applied
+- Single delivery route: PR #3495.
+- Main unchanged and protected.
+- Local-first ownership retained; no NIRA runtime dependency introduced.
+- Vazirmatn remains official/default; no typography PR was merged without visual review.
+- Follow-up history remains historical; legacy Next Follow-up is not reactivated as an independent scheduler.
+- Person identity uses stable Arvin-owned IDs; no same-name auto-merge.
+- Historical IDs remain valid in Follow-up even when the active directory entry is absent.
+- M2M remains an approved architecture target, but v19/v20 code is not accepted until sequential migration parity is proven.
+- Schema v8 Follow-up extension is additive and nullable.
+- No production data, release or deployment operation performed.
 
-## Open compliance gates
-- M2M migration and sequential v7→v20 parity.
-- Full Backup/Restore including Calendar links, unknown metadata and historical Person IDs.
-- Five-filter Home (Time / Center / Project / Category / Tag) and full RTL/UI acceptance.
-- Typography weight and PDF validation.
-- Workflow security review and exact-SHA evidence.
-- H01 real Android process-restart proof.
+## Open gates
+- M2M migration v7→v20 and file-backed parity.
+- Full Backup/Restore across unknown metadata, Calendar links and historical Person IDs.
+- Workflow security, including W01 executable trigger and release-closure gate contract.
+- H01 Android fresh-process restart.
+- Complete RTL/UI and Vazirmatn/PDF acceptance.
+- Complete all-PR/branch history reconciliation.
 
-Status: PARTIAL COMPLIANCE — NOT RELEASE ACCEPTED.
+Status: PARTIAL COMPLIANCE; NOT RELEASE ACCEPTED.
