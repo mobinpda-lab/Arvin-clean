@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 /// Shared non-color design tokens for the Arvin Material 3 interface.
 /// Color values remain owned by [ArvinColors] in arvin_colors.dart.
 abstract final class ArvinSpacing {
