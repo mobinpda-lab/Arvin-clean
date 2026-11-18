@@ -194,6 +194,8 @@ jobs:
                 ];
                 expect(tables, unorderedEquals(expectedTables));
 
+                // ignore: avoid_print
+                print('TASK_IDS_QUERY_BEGIN');
                 final taskIds = await executor.runSelect(
                   'SELECT id FROM tasks ORDER BY id',
                   const [],
@@ -203,23 +205,41 @@ jobs:
                   <String>['task-active-001', 'task-done-002'],
                 );
 
+                // ignore: avoid_print
+                print('TASK_IDS_QUERY_READY');
+                // ignore: avoid_print
+                print('SQLITE_VERSION_QUERY_BEGIN');
                 final sqliteVersion = (await executor.runSelect(
                   'SELECT sqlite_version() AS version',
                   const [],
                 )).single['version'];
+                // ignore: avoid_print
+                print('SQLITE_VERSION_QUERY_READY');
+                // ignore: avoid_print
+                print('USER_VERSION_QUERY_BEGIN');
                 final userVersion = (await executor.runSelect(
                   'PRAGMA user_version',
                   const [],
                 )).single.values.first;
+                // ignore: avoid_print
+                print('USER_VERSION_QUERY_READY');
+                // ignore: avoid_print
+                print('INTEGRITY_QUERY_BEGIN');
                 final integrityRows = await executor.runSelect(
                   'PRAGMA integrity_check',
                   const [],
                 );
                 final integrity = integrityRows.single.values.first;
+                // ignore: avoid_print
+                print('INTEGRITY_QUERY_READY');
+                // ignore: avoid_print
+                print('FOREIGN_KEY_QUERY_BEGIN');
                 final foreignKeyRows = await executor.runSelect(
                   'PRAGMA foreign_key_check',
                   const [],
                 );
+                // ignore: avoid_print
+                print('FOREIGN_KEY_QUERY_READY');
                 expect(integrity, 'ok');
                 expect(foreignKeyRows, isEmpty);
 
