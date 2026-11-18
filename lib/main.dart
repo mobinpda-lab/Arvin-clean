@@ -365,8 +365,8 @@ class _HomePageState extends State<HomePage> {
   TimeOfDay? _toTimeFilter;
   final Set<String> _collapsedGroups = <String>{};
   final Map<String, DateTime> _dismissedOverdueWarnings = <String, DateTime>{};
-  final TaskListSort _listSort = TaskListSort.date;
-  final bool _sortDescending = false;
+  TaskListSort _listSort = TaskListSort.lastFollowUp;
+  bool _sortDescending = false;
 
   String get _emptyVisibleLabel => filter == 'سطل زباله'
       ? 'سطل زباله خالی است'
@@ -704,17 +704,104 @@ class _HomePageState extends State<HomePage> {
     final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
-        ],
+      child: SingleChildScrollView(
+        key: const ValueKey('home-filter-sort-scroll'),
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه‌ها', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته‌ها', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+            const SizedBox(width: 4),
+            IconButton(
+              key: const ValueKey('home-sort'),
+              tooltip: 'مرتب‌سازی',
+              onPressed: _showHomeSortSheet,
+              icon: const Icon(Icons.sort_rounded),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _homeSortTitle(TaskListSort value) {
+    switch (value) {
+      case TaskListSort.lastFollowUp:
+        return 'تاریخ پیگیری';
+      case TaskListSort.date:
+        return 'موعد کار';
+      case TaskListSort.latest:
+        return 'آخرین تغییرات';
+      case TaskListSort.title:
+        return 'عنوان';
+    }
+  }
+
+  Future<void> _showHomeSortSheet() async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'مرتب‌سازی کارها',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 8),
+                for (final option in const <TaskListSort>[
+                  TaskListSort.lastFollowUp,
+                  TaskListSort.date,
+                  TaskListSort.latest,
+                  TaskListSort.title,
+                ])
+                  ListTile(
+                    key: ValueKey('home-sort-option-${option.name}'),
+                    title: Text(_homeSortTitle(option)),
+                    trailing: _listSort == option
+                        ? Icon(
+                            Icons.check_circle_rounded,
+                            key: ValueKey('home-sort-selected-${option.name}'),
+                            color: ArvinColors.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      setState(() => _listSort = option);
+                      setSheetState(() {});
+                    },
+                  ),
+                const Divider(),
+                SwitchListTile(
+                  key: const ValueKey('home-sort-descending'),
+                  title: const Text('نزولی'),
+                  value: _sortDescending,
+                  onChanged: (value) {
+                    setState(() => _sortDescending = value);
+                    setSheetState(() {});
+                  },
+                ),
+                Align(
+                  alignment: AlignmentDirectional.centerEnd,
+                  child: TextButton(
+                    onPressed: () => Navigator.of(sheetContext).pop(),
+                    child: const Text('بستن'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
