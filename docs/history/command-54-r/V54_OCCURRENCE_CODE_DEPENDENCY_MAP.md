@@ -13,6 +13,20 @@
 | `lib/services/recurrence_sql_codec.dart` | `29ee7c0c778d99135daf376ba19f7773e4760ce4` | Adjacent recurrence migration and normalized recurrence read/write |
 | `lib/models/recurrence.dart` | `470418b9d76f66117a9e6b3c9372a0856c01fd17` | Status enum, recurrence model |
 
+## Exact source locations (line numbers at the pinned V19 blob)
+
+- Schema version and `schemaVersion`: `g1_drift_schema.dart:11-16`.
+- Serialized installer and `ensureOpen` / transaction setup: `g1_drift_schema.dart:108-132` (installer body continues below).
+- Occurrence migration invocation: `g1_drift_schema.dart:242`.
+- Occurrence codec ID and writer: `occurrence_sql_codec.dart:15-86`.
+- Occurrence SQL readback: `occurrence_sql_codec.dart:88-115`.
+- Legacy-envelope migration: `occurrence_sql_codec.dart:118-190`.
+- Existing-row identity/content conflict check: `occurrence_sql_codec.dart:211-238`.
+- Task occurrence decoding: `task.dart:553-581`; JSON serialization: `task.dart:626-649`.
+- TaskStore install entry: `task_store.dart:796-816`.
+- TaskStore load/readback: `task_store.dart:867-918` and `1002-1008`.
+- TaskStore normalized write path: `task_store.dart:1304-1305`.
+
 ## Call graph
 
 ```text
