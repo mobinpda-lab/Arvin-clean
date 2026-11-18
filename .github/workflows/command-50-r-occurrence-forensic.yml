@@ -6,6 +6,7 @@ on:
       - recovery-02/main-based-integration
     paths:
       - '.github/workflows/command-50-r-occurrence-forensic.yml'
+      - '.github/workflows/build.yml'
       - 'test/command50_occurrence_forensic_test.dart'
   workflow_dispatch:
 

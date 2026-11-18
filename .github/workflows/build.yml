@@ -91,7 +91,18 @@ jobs:
         if: startsWith(matrix.lane, 'test-')
         env:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
-        run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
+        run: |
+          set -euo pipefail
+          # These harnesses require the pinned historical V19 checkout and dedicated SQLite fixtures.
+          mapfile -t test_files < <(
+            find test -type f -name '*_test.dart' \\
+              ! -path 'test/command49_v19_safety_test.dart' \\
+              ! -path 'test/command50_occurrence_forensic_test.dart' \\
+              | sort
+          )
+          test "${#test_files[@]}" -gt 0
+          echo "GENERAL_TEST_FILE_COUNT=${#test_files[@]}"
+          flutter test --total-shards 6 --shard-index "$SHARD_INDEX" "${test_files[@]}"
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:

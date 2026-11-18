@@ -6,6 +6,7 @@ on:
       - recovery-02/main-based-integration
     paths:
       - '.github/workflows/command-49-r-v19-safety.yml'
+      - '.github/workflows/build.yml'
       - 'test/command49_v19_safety_test.dart'
       - 'docs/history/command-49-r/**'
   workflow_dispatch:
