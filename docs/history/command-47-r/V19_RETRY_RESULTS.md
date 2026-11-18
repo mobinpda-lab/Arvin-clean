@@ -1,11 +1,12 @@
 # V19 Retry Results
 
-**Status: NOT RUN — FIRST EXECUTION NOT PERFORMED**
+**Status: NOT RUN — separate independent retry copy still required.**
 
-The original v19 installer has not been run once on a disposable fixture copy. Consequently:
-- First-run result: NOT AVAILABLE.
-- Second-run result: NOT RUN.
-- Duplicate-row analysis: NOT RUN.
+COMMAND 48 confirms one real invocation of the original v19 Installer on a separate copy of the approved v7 fixture. It does not execute the Installer a second time.
+
+- First execution: PASS, run `44308608481`.
+- Second execution: NOT RUN.
+- Duplicate-row analysis after a second invocation: NOT RUN.
 - Idempotency verdict: NOT ESTABLISHED.
 
-Do not infer idempotency from SQL `IF NOT EXISTS`, upsert statements, or source comments. Retry acceptance requires two real invocations on an independently copied database, followed by a complete normalized snapshot comparison and identifier/relation checks.
+Do not infer idempotency from DDL `IF NOT EXISTS`, upsert statements or comments. A separate physical copy must receive two real invocations, then a full normalized snapshot and ID/relation comparison.

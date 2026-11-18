@@ -1,19 +1,24 @@
-# V19 Relation Integrity Report
+# V19 Relation Integrity Report — Updated Evidence
 
-**Status: PRE-MIGRATION ONLY — POST-MIGRATION NOT TESTED**
+**Fixture-level post-migration integrity: PASS.**
 
-## Pre-migration evidence
+Authoritative run: `44308608481`; artifact: `14429935379`.
 
-- SQLite `integrity_check`: `ok`.
-- SQLite `foreign_key_check`: 0 violations.
-- Fixture `PRAGMA user_version`: 7.
-- The fixture was opened using the dedicated read-only v7 inspection user.
+## SQLite checks
 
-## Required post-migration checks — NOT RUN
+- Before: `integrity_check=ok`, FK violations 0, `user_version=7`.
+- After: `integrity_check=ok`, FK violations 0, `user_version=19`.
 
-- Full `integrity_check` and `foreign_key_check` on the migrated copy.
-- All source-to-destination relation mappings, including Task/Project, Task/Tag, Task/Person, Follow-up/Person and Checklist ownership.
-- Unique constraints and indexes in the actual v19 schema.
-- Close/reopen and full destination snapshot comparison.
+## Relationship verification
 
-The pre-migration checks do not establish the integrity of a database that has not been migrated.
+The corrected runner asserts:
+- Task-Person source rows equal the new `task_persons` projection.
+- Follow-up-Person source rows equal the new `follow_up_record_people` projection.
+- Person identities are preserved across legacy People and linked Person references.
+- Follow-up IDs are preserved in `follow_up_records`.
+- Checklist rows, Task-Tag rows and Project-Task rows are unchanged.
+- Project source fields and IDs remain unchanged.
+
+The fixture's legacy source relations remain available after the v19 Installer. No FK violation or integrity failure was observed.
+
+This is evidence for the approved fixture only. Custom production constraints/indexes/triggers and non-empty occurrence histories need their own coverage. Retry and recovery gates remain open.

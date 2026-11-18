@@ -1,27 +1,42 @@
-# V19 Data Preservation Report
+# V19 Data Preservation Report — Updated Evidence
 
-**Status: NOT TESTED — NO POST-MIGRATION DATABASE EXISTS**
+**Status: FIXTURE-LEVEL PRESERVATION ASSERTIONS PASS; FULL COMMAND 47 ACCEPTANCE PENDING RETRY/RECOVERY.**
 
-## Verified pre-migration source snapshot
+The original v19 Installer was run on an independent copy of the approved fixture. The tracked source fixture was not modified.
 
-The accepted read-only fixture snapshot contains 12 tables and 15 rows:
-- `tasks`: 2 rows — IDs `task-active-001`, `task-done-002`.
-- `projects`: 1 row — ID `project-001`.
-- `follow_ups`: 1 row — ID `followup-001`.
-- `people`: 1 row — ID `person-001`.
-- `tags`: 1 row — ID `tag-001`.
-- `checklist_items`: 2 rows.
-- `project_items`: 2 rows.
-- `task_people`: 1 row.
-- `follow_up_people`: 1 row.
-- `task_tags`: 1 row.
-- `taxonomy_categories`: 1 row.
-- `arvin_storage_meta`: 1 row.
+## Fixture-level identity and row preservation
 
-The source snapshot also contains NULL values, historical timestamps, waiting-for-response state, recurrence JSON with an unknown field, and unknown Task/Project/Person payload fields.
+| Entity / relation | Before | After / canonical target | Result |
+|---|---:|---:|---|
+| Task IDs | 2 | 2 | PASS |
+| Project IDs | 1 | 1 | PASS |
+| Follow-up IDs | 1 | 1 | PASS |
+| Person IDs | 1 | 1 | PASS |
+| Tag IDs | 1 | 1 | PASS |
+| Checklist rows | 2 | 2 | PASS |
+| Task-Person rows | 1 | 1 | PASS |
+| Follow-up-Person rows | 1 | 1 | PASS |
+| Task-Tag rows | 1 | 1 | PASS |
+| Project-Task rows | 2 | 2 | PASS |
 
-## Preservation verdict
+The corrected runner compares Task core SQL columns, retained source-table rows and canonical relation projections. It verifies the migrated Follow-up ID, Person identity set, Task-Person links, Follow-up-Person links, Checklist, tags and project membership.
 
-No v19 execution was performed. Therefore all destination identifiers, values, NULLs, history, reminder/recurrence data, unknown metadata and relation mappings are **UNVERIFIED**. No record-preservation PASS is claimed.
+## Migrated values
 
-A record-by-record comparison must map the historical source relations to the exact v19 destination tables and fields; equal row counts or equal source snapshots are insufficient.
+- Legacy Task reminder materialized as `legacy-task-reminder-task-active-001`.
+- Recurrence rule materialized for `task-active-001`.
+- Follow-up record retained ID `followup-001` and its historical timestamp.
+- Legacy next-follow-up value retained in compatibility metadata.
+- Task, Project, Person and Recurrence unknown fixture values remain in their raw/compatibility sources.
+- Task core SQL fields, including completed state, completion timestamp, priority, description and timestamps, compare equal before/after.
+- Source fixture SHA remains the approved value; only the separate working copy was mutated.
+
+## Important qualification
+
+The v19 installer generates some default values in the duplicated Task JSON envelope that differ from SQL-owned Task columns. The historical TaskStore read path overwrites those envelope keys from SQL before model decoding. This is recorded as E48-001 and is not counted as SQL-row data loss. Do not consume those duplicated envelope keys outside the canonical TaskStore read boundary.
+
+The fixture contains no occurrence-history rows; non-empty occurrence transfer is therefore not proven by this fixture.
+
+## Remaining work
+
+Retry/idempotency and controlled failure/backup recovery remain untested. No claim of complete COMMAND 47 acceptance is made.

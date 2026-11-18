@@ -1,15 +1,15 @@
 # V19 Failure Recovery
 
-**Status: NOT RUN — NO FAILURE INJECTION OR RESTORE EVIDENCE**
+**Status: NOT RUN — no controlled failure or restore evidence exists.**
 
-No controlled interruption or injected migration failure was performed. No backup was restored as part of COMMAND 47-R.
+COMMAND 48 successfully executed the original v19 Installer but did not inject a failure, interrupt a transaction, or restore a backup.
 
-Required evidence remains outstanding:
-1. Independent working copy and verified pre-migration backup.
-2. Controlled failure during the original installer transaction.
-3. Captured installer exception and complete logs.
-4. Recovery from the independent backup.
-5. Reopened restored database with `integrity_check=ok` and zero FK violations.
-6. Record-by-record comparison against the pre-migration snapshot.
+Required evidence remains:
+1. Independent fixture working copy and verified pre-migration backup.
+2. Controlled interruption/failure during original Installer execution.
+3. Captured exception and complete logs.
+4. Restore from independent backup.
+5. Reopen restored database; `integrity_check=ok` and zero FK violations.
+6. Full record/ID/relation comparison against pre-migration snapshot.
 
 The immutable source fixture was not modified. No recovery PASS is claimed.

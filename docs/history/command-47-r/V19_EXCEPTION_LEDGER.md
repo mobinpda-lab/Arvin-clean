@@ -1,14 +1,16 @@
-# V19 Exception Ledger
+# V19 Exception Ledger — Updated by COMMAND 48-R
 
-**Status: OPEN — MIGRATION NOT EXECUTED**
+**Migration runtime exceptions:** None observed in the approved fixture execution.  
+**Residual observations:**
 
-| ID | Area | Observation | Classification | Disposition |
-|---|---|---|---|---|
-| E47-001 | Execution | Existing COMMAND 44/45 runtime workflow only performs read-only fixture inspection | Execution gap | Blocks COMMAND 47 acceptance |
-| E47-002 | Fixture | Immutable fixture archive hash matches the approved SHA-256 | Verified precondition | Retain as baseline |
-| E47-003 | Data preservation | No post-migration database or destination snapshot exists | Not tested | No preservation claim |
-| E47-004 | Relations | No post-migration relation comparison exists | Not tested | No relation-integrity claim |
-| E47-005 | Retry | Original installer has not been run once | Not tested | Retry cannot start |
-| E47-006 | Recovery | No controlled failure or restore run exists | Not tested | Recovery cannot be accepted |
+| ID | Observation | Evidence | Disposition |
+|---|---|---|---|
+| E47-001 | Earlier COMMAND 45 workflow only opened fixture read-only | Run 44302817468 log | Superseded as the latest execution evidence by COMMAND 48 run 44308608481 |
+| E47-002 | Fixture source SHA matches approved value | Run 44308608481 artifact | PASS |
+| E47-003 | Installer execution and pre/post snapshots were missing | Corrected COMMAND 48 runner | Resolved for approved fixture |
+| E47-004 | Task envelope may contain defaults inconsistent with SQL-owned columns | Post-snapshot; TaskStore decoder source | Recorded as E48-001; SQL values preserved and TaskStore overrides envelope |
+| E47-005 | No non-empty occurrence history in fixture | Pre/post snapshots | Coverage limitation; not a migration failure |
+| E47-006 | Retry has not been performed | No retry artifact | OPEN |
+| E47-007 | Failure injection and backup restore have not been performed | No recovery artifact | OPEN |
 
-No data loss, installer exception, or migration failure is inferred from the absence of execution evidence. This ledger distinguishes missing tests from observed migration defects.
+No exception is invented from an unexecuted test. The remaining retry/recovery items are explicitly NOT RUN, not PASS or FAIL.
