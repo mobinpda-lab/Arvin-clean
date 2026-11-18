@@ -1,11 +1,13 @@
 # MIGRATION RUNNER VALIDATION — COMMAND 44-R
 
-**Status:** WORKFLOW REGISTERED / ACTIONS EXECUTION PENDING
+**Status:** WORKFLOW COMMITTED / ACTIONS EXECUTION NOT YET VERIFIED
 
 ## Runner
 
 Workflow: `.github/workflows/arvin-historical-migration.yml`  
+Workflow commit: `bfa7b46b3a2c4ed27657024217d3a0b329a73517`  
 Execution branch: `recovery-02/main-based-integration`  
+PR #3495 head at verification: `bfa7b46b3a2c4ed27657024217d3a0b329a73517`  
 Reference fixture source: `f211326e7615f1c907494232dd3aec8d4732c83c`  
 Fixture archive: `test/fixtures/database/historical/main_v7_fixture.sqlite.gz`  
 Expected uncompressed SHA-256: `68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0`
@@ -32,8 +34,9 @@ The workflow includes `workflow_dispatch` as requested and a branch-scoped push 
 
 ## Current validation
 
-- Workflow source committed: PENDING final commit SHA.
-- GitHub Actions run: PENDING.
+- Workflow file committed: PASS — blob `1e7fae8184cc71d4102b064537b858330db5eb1f`.
+- Workflow commit: `bfa7b46b3a2c4ed27657024217d3a0b329a73517`.
+- GitHub Actions runtime run and artifact: NOT VERIFIED by the available run-read result.
 - Flutter Doctor / Dart version: PENDING.
 - Dependency resolution: PENDING.
 - Fixture SHA verification and file open: PENDING.
