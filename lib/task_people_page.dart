@@ -84,9 +84,40 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
     );
   }
 
+  Future<bool> _confirmDuplicateName(String displayName) async {
+    final approved = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: const Text('نام تکراری'),
+          content: Text(
+            'شخصی با نام «$displayName» قبلاً ثبت شده است. اگر فرد دیگری است، می‌توانید او را با شناسه مستقل ثبت کنید.',
+          ),
+          actions: [
+            TextButton(
+              key: const ValueKey('people-duplicate-cancel'),
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('بازگشت'),
+            ),
+            FilledButton(
+              key: const ValueKey('people-duplicate-add-separate'),
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('ثبت به‌عنوان شخص جداگانه'),
+            ),
+          ],
+        ),
+      ),
+    );
+    return approved == true;
+  }
+
   Future<void> _addPerson() async {
     final name = await _askForName();
     if (name == null) return;
+    if (await widget.service.hasDuplicateDisplayName(name)) {
+      if (!mounted || !await _confirmDuplicateName(name)) return;
+    }
     try {
       final updated = await widget.service.addLocalPerson(
         taskId: widget.taskId,
