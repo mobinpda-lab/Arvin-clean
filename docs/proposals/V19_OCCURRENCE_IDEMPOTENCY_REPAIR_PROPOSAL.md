@@ -41,3 +41,19 @@ The first transfer of the simple pending test record succeeded. The failure is t
 - All tests run on disposable file-backed copies of the immutable V7 fixture.
 
 **Decision:** This proposal records a repair direction only. It does not authorize implementation, V20, merge, release or deployment.
+
+## Additional confirmed parity defects from COMMAND 50-R
+
+### Explicit NULL presence
+The historical source map can contain `completionDate: null` and `result: null`. SQL stores NULL correctly, but `readTask` omits those keys, so canonical JSON comparison fails. The final negative fixture proves rollback preserves both explicit-null keys in the source envelope.
+
+A repair must define whether absent and explicit NULL are equivalent. If not, it must preserve key-presence metadata. Do not normalize away explicit NULL without a documented compatibility decision.
+
+### Unknown Occurrence-state fields
+The destination table has no opaque payload column for unknown state keys. A state containing `futureField` fails parity because readback cannot reconstruct it. The final negative fixture proves the original unknown field remains intact after rollback.
+
+A repair must preserve unknown state fields losslessly, for example in a dedicated opaque JSON payload or a compatibility envelope retained until an explicitly accepted retirement gate. Never drop unknown fields silently.
+
+## Final evidence reference
+
+COMMAND 50 final preservation run: `44368276255`; job `135027809312`; artifact `14458356507`. This proposal remains NOT APPROVED / NOT IMPLEMENTED.
