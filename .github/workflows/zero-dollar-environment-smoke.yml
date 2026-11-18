@@ -202,7 +202,11 @@ jobs:
           avdmanager="$sdk_root/cmdline-tools/latest/bin/avdmanager"
           [[ -x "$sdkmanager" ]]
           [[ -x "$avdmanager" ]]
-          yes | "$sdkmanager" --licenses >/dev/null
+          set +o pipefail
+yes | "$sdkmanager" --licenses >/dev/null
+license_status="${PIPESTATUS[1]}"
+set -o pipefail
+[[ "$license_status" == "0" ]]
           "$sdkmanager" --install \
             "platform-tools" \
             "platforms;android-35" \
