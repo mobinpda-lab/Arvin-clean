@@ -23,3 +23,12 @@
 | Backup / Restore | BLOCKED | COMMAND 20-E final acceptance failed; independent physical restore not accepted |
 
 Acceptance requires create/view/edit/delete, close/reopen persistence, cross-entity relations, validation/empty/error states and regression tests per feature.
+
+
+
+## Source reconciliation — 2026-11-19
+- Home currently renders four filter dimensions, not five; Center is the missing REV10 filter. Five due-date groups are present. Classification: BLOCKED on Center store/model/UI integration.
+- Schema 9 migration creates Center and M2M tables, but no canonical CenterStore or Center management page was found at the expected source paths. ProjectStore remains on ProjectPlan/itemIds and project_items; complete M2M integration is not accepted.
+- Settings text-size slider is present (12–24); do not report it as absent. Font-family picker remains absent and font authority is unresolved.
+- PersonDirectoryPage is present with CRUD flows; its delete-dialog test expected only the second sentence while the actual dialog includes a person-specific introduction. PR #3547 corrects the assertion to the full rendered copy; pending CI.
+- Primary navigation shared design tokens are in PR #3548; this does not complete feature behavior or redesign all pages.
