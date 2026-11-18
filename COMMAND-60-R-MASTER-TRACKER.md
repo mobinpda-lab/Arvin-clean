@@ -78,3 +78,11 @@ Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75
 - Schema 9 creates Center/M2M tables, but canonical CenterStore and Center management page were not found; M2M Store/UI integration remains blocked.
 - Settings text-size slider exists; font-family picker does not. Font source conflict remains unresolved.
 - Main remained unchanged at `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+
+## Data-safety discovery and corrective lane update
+- PR #3547 Build run `44417802140`: test-1 passed after executor-open correction; test-2 failed because directory removal is undone by repeated `migrateTaskPeople` hydration. This is a product/storage defect.
+- Lane A PR #3549 current head: `ce9ce1d755ae994d1f2567285304dc23b07aa823`. Adds marker-versioned `person_directory_exclusions_v1`, tombstone-aware hydration, explicit re-add behavior, file-backed Person Directory lifecycle test, active Schema 9 Occurrence/Checklist envelope test, and the two test corrections. Build `44418907693`, Device Smoke `44418907517`, Follow-up Persistence `44418907531` pending at last poll.
+- Lane D PR #3547 remains open and unaccepted; its test-2 failure is addressed by lane A's fix pending CI.
+- Lane C blocker registered as Issue #3550: Center domain/store, M2M relations and missing Home Center filter. No Center persistence/UI implementation started.
+- Lane B PR #3548 head `d6c7ebe135e8422fea37a85cd22eb0927e129770`; shared design tokens and nav centralization implemented, CI pending.
