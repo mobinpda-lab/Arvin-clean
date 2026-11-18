@@ -21,3 +21,16 @@
 
 ## Required follow-up
 Preserve all six shards and fix the two actual failures. Re-run full Build, Device Smoke, COMMAND 20-E and persistence workflows on one exact new SHA.
+
+
+## Lane D first validation — PR #3547
+Head: `1c83db84145675aa31e67feef95c23ddd84c181c`; Build run `44417802140`.
+- Analyze: SUCCESS.
+- test-0, test-1, test-3, test-4, test-5: SUCCESS.
+- test-1 executor lifecycle correction: SUCCESS.
+- test-2: FAILURE — Person Directory removal test expected an empty directory but got one PersonReference. This is a real rehydration bug, not a text assertion issue.
+- Debug APK and Release APK: SUCCESS.
+- Device Smoke run `44417802091`: Home and Quick Capture were running at last poll; remaining scenarios queued.
+- Follow-up Persistence `44417801990`: SUCCESS.
+
+Lane A PR #3549 current head `ce9ce1d755ae994d1f2567285304dc23b07aa823` includes the additive tombstone fix, test-1 executor correction, full dialog-copy assertion and file-backed occurrence/person exclusion tests. Build `44418907693`, Device Smoke `44418907517`, Follow-up Persistence `44418907531` are queued/pending at last poll. No pass claimed.
