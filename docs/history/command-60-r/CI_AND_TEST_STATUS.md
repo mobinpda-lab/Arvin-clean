@@ -34,3 +34,13 @@ Head: `1c83db84145675aa31e67feef95c23ddd84c181c`; Build run `44417802140`.
 - Follow-up Persistence `44417801990`: SUCCESS.
 
 Lane A PR #3549 current head `ce9ce1d755ae994d1f2567285304dc23b07aa823` includes the additive tombstone fix, test-1 executor correction, full dialog-copy assertion and file-backed occurrence/person exclusion tests. Build `44418907693`, Device Smoke `44418907517`, Follow-up Persistence `44418907531` are queued/pending at last poll. No pass claimed.
+
+
+## Lane B validation — PR #3548
+Head: `d6c7ebe135e8422fea37a85cd22eb0927e129770`.
+- Follow-up File Persistence: SUCCESS.
+- Build test-4: SUCCESS.
+- Build test-1: FAILURE in the same pre-existing V8→V9 executor lifecycle fixture (`QueryExecutor.ensureOpen()` missing before setup SQL). This is addressed in lane A PR #3549; lane B must be re-run after integration.
+- Build test-5: IN PROGRESS at last poll; other jobs queued.
+- Device Smoke Quick Capture: IN PROGRESS at last poll; other scenarios queued.
+- UI lane remains NOT ACCEPTED.
