@@ -115,7 +115,7 @@ jobs:
               '2026-11-03T08:00:00.000Z': {
                   'scheduledDate': '2026-11-03T08:00:00.000Z', 'status': 'cancelled'
               }
-          }, extra={'legacyCustomField': 'preserve-me'})
+          }, extra={'legacyCustomField': 'preserve-me', 'checklistOccurrences': {'2026-11-01T08:00:00.000Z': ['pack', 'snack']}})
           add_task(base, 'c50-matrix-b', 991, 'Boundary and offset timestamps', {
               '0001-01-01T00:00:00.000Z': {
                   'scheduledDate': '0001-01-01T00:00:00.000Z', 'status': 'missed'
