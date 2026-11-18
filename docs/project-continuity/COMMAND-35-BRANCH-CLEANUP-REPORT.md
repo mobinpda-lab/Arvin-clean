@@ -15,11 +15,17 @@ Status: HOLD — cleanup is intentionally deferred.
 The named PRs contain distinct work and unresolved evidence:
 - #3052 contains 395 changed files and a 2,192-commit history.
 - #3384 and #3463 form a stacked SQL/M2M lineage.
+- #3460, #3461 and #3462 are earlier M2M candidate revisions with non-identical migration blobs.
+- #3356, #3364 and #3366 form a stacked migration/editor chain.
 - #3376, #3380 and #3382 contain diagnostic evidence and test harnesses.
 - #3470 contains typography corrections that may be selectively useful.
 - #1901 remains an active regression source with product requirements and tests.
+- #3341, #3348 and #3365 are closed but unmerged and contain file-backed persistence/Calendar test work not wholly represented by identical Canonical blobs.
 
 Closing or deleting any of these before exact transfer/retention decisions would violate COMMAND 35's preservation rule.
+
+## Repository inventory limitation
+The PR search endpoint returned 100 open and 100 closed results at the requested page size. These are capped result sets, not complete proof of total PR counts or all related PRs. Additional targeted searches and branch association checks remain required.
 
 ## Cleanup acceptance conditions
 A PR can be closed only after:
