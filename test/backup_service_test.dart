@@ -1,0 +1,213 @@
+import 'dart:convert';
+
+import 'package:flutter_test/flutter_test.dart';
+
+import 'package:arvin/backup_service.dart';
+
+void main() {
+  group('ArvinBackupService', () {
+    final service = ArvinBackupService();
+
+    test('creates a Persian-date backup filename', () {
+      final name = service.createBackupFileName(DateTime(2026, 8, 12, 9, 13));
+      expect(name, 'Arvin_Backup_1405-05-21_09-13.json');
+    });
+
+    test('creates zero-padded backup time', () {
+      final name = service.createBackupFileName(DateTime(2026, 1, 2, 3, 4));
+      expect(name, 'Arvin_Backup_1404-10-12_03-04.json');
+    });
+
+    test('accepts a valid backup document', () {
+      final document = ArvinBackupService.validateBackupDocument({
+        'type': 'arvin_backup',
+        'formatVersion': 1,
+        'createdAt': '2026-08-12T15:00:00Z',
+        'tasks': <dynamic>[],
+      });
+
+      expect(document['type'], 'arvin_backup');
+      expect(document['formatVersion'], 1);
+      expect(document['tasks'], isEmpty);
+      expect(document.containsKey('settings'), isFalse);
+    });
+
+    test('keeps existing task-only v1 backups backward compatible', () {
+      final document = ArvinBackupService.validateBackupDocument({
+        'type': 'arvin_backup',
+        'formatVersion': 1,
+        'createdAt': '2026-08-12T15:00:00Z',
+        'tasks': <dynamic>[
+          <String, dynamic>{'id': 'legacy', 'title': 'old backup'},
+        ],
+      });
+
+      expect(document['tasks'], hasLength(1));
+      expect(document.containsKey('settings'), isFalse);
+    });
+
+    test('encodes and validates optional settings in the same v1 document', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[],
+        'settings': <String, dynamic>{
+          'themeMode': 'dark',
+          'usePersianDate': true,
+          'fontFamily': 'VazirHarf',
+        },
+      });
+      final decoded = jsonDecode(utf8.decode(bytes));
+      final document = ArvinBackupService.validateBackupDocument(decoded);
+
+      expect(document['formatVersion'], 1);
+      expect(document['settings'], {
+        'themeMode': 'dark',
+        'usePersianDate': true,
+        'fontFamily': 'VazirHarf',
+      });
+    });
+
+    test('round-trips optional Calendar links and Category/Tag catalogs', () {
+      final bytes = ArvinBackupService.encodeBackupDocument({
+        'tasks': <dynamic>[
+          <String, dynamic>{'id': 'task-1', 'title': 'کار نمونه'},
+        ],
+        'calendarLinks': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'reminderId': 'task-due:task-1',
+            'calendarId': 'calendar-1',
+            'eventId': 'event-1',
+            'lastSyncedFingerprint': 'fingerprint-1',
+          },
+        ],
+        'categories': <String>['خانه', 'مالی'],
+        'tags': <String>['مهم', 'پیگیری'],
+      });
+      final document = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(bytes)),
+      );
+
+      expect(document['calendarLinks'], hasLength(1));
+      expect(
+        (document['calendarLinks'] as List).single['eventId'],
+        'event-1',
+      );
+      expect(document['categories'], <String>['خانه', 'مالی']);
+      expect(document['tags'], <String>['مهم', 'پیگیری']);
+    });
+
+    test('preserves unknown top-level metadata and people directory through codec round-trip', () {
+      final metadata = <String, dynamic>{
+        'futureFeature': <String, dynamic>{
+          'schema': 3,
+          'enabled': true,
+          'labels': <String>['alpha', 'بتا'],
+        },
+        'vendorExtension': <dynamic>[1, 'two', <String, dynamic>{'three': 3}],
+      };
+      final peopleDirectory = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'person-opaque-1',
+          'displayName': 'شخص آزمایشی',
+          'futurePersonField': <String, dynamic>{'preserve': true},
+        },
+      ];
+      final payload = <String, dynamic>{
+        'tasks': <dynamic>[],
+        ...metadata,
+        'peopleDirectory': peopleDirectory,
+      };
+
+      final encoded = ArvinBackupService.encodeBackupDocument(payload);
+      final decoded = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(encoded)),
+      );
+
+      expect(decoded['futureFeature'], metadata['futureFeature']);
+      expect(decoded['vendorExtension'], metadata['vendorExtension']);
+      expect(decoded['peopleDirectory'], peopleDirectory);
+      expect(decoded['type'], ArvinBackupService.backupType);
+      expect(decoded['formatVersion'], ArvinBackupService.backupFormatVersion);
+    });
+
+    test('rejects malformed optional Calendar link and taxonomy containers', () {
+      for (final key in ['calendarLinks', 'categories', 'tags']) {
+        expect(
+          () => ArvinBackupService.encodeBackupDocument({
+            'tasks': <dynamic>[],
+            key: 'not-a-list',
+          }),
+          throwsA(isA<FormatException>()),
+        );
+        expect(
+          () => ArvinBackupService.validateBackupDocument({
+            'type': 'arvin_backup',
+            'formatVersion': 1,
+            'tasks': <dynamic>[],
+            key: 'not-a-list',
+          }),
+          throwsA(isA<FormatException>()),
+        );
+      }
+    });
+
+    test('rejects invalid settings payload without creating a new format', () {
+      expect(
+        () => ArvinBackupService.encodeBackupDocument({
+          'tasks': <dynamic>[],
+          'settings': 'not-a-map',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+          'settings': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a non-map backup document', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument(<dynamic>[]),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects a backup with the wrong type', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'other_app',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects an unsupported backup version', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 2,
+          'tasks': <dynamic>[],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('rejects invalid tasks data', () {
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': 'not-a-list',
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+  });
+}

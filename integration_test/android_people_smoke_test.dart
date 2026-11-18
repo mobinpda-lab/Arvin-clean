@@ -1,0 +1,209 @@
+import 'package:arvin/main.dart' as app;
+import 'package:arvin/widgets/arvin_primary_navigation.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:arvin/task_timeline_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:integration_test/integration_test.dart';
+
+void main() {
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('Android completes canonical Task People add cancel remove flow',
+      (tester) async {
+    final taskTitle = 'تست افراد اندروید ${DateTime.now().microsecondsSinceEpoch}';
+    app.main();
+    await tester.pumpAndSettle();
+
+    final skipGuide = find.text('رد کردن');
+    if (skipGuide.evaluate().isNotEmpty) {
+      await tester.tap(skipGuide);
+      await tester.pumpAndSettle();
+    }
+
+    await tester.tap(find.byKey(const ValueKey('home-canonical-add')));
+    await tester.pumpAndSettle();
+
+    final quickCapture =
+        find.byKey(const ValueKey('quick-capture-dialog'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (quickCapture.evaluate().isNotEmpty) break;
+    }
+    expect(quickCapture, findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('quick-capture-input')),
+      taskTitle,
+    );
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('quick-capture-full-form')));
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (find.byKey(const ValueKey('arvin-task-editor-dialog')).evaluate().isNotEmpty) {
+        break;
+      }
+    }
+
+    final titleField = find.byKey(const ValueKey('task-editor-title'));
+    for (var attempt = 0; attempt < 30; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (titleField.evaluate().isNotEmpty) break;
+    }
+    final descriptionField =
+        find.byKey(const ValueKey('task-editor-description'));
+    final saveTask = find.byKey(const ValueKey('task-editor-header-save'));
+
+    expect(titleField, findsOneWidget);
+    expect(descriptionField, findsOneWidget);
+    expect(saveTask, findsOneWidget);
+
+    await tester.enterText(titleField, taskTitle);
+    await tester.enterText(descriptionField, 'توضیح باید محفوظ بماند');
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(saveTask);
+    await tester.pumpAndSettle();
+    await tester.tap(saveTask);
+    await tester.pumpAndSettle();
+
+    // Full-form editing returns to the Quick Capture sheet. Close every
+    // remaining visible capture sheet before exercising real navigation.
+    for (var attempt = 0; attempt < 10 && quickCapture.evaluate().isNotEmpty; attempt++) {
+      final cancel = find.byKey(const ValueKey('quick-capture-cancel'));
+      if (cancel.evaluate().isEmpty) break;
+      await tester.tap(cancel);
+      await tester.pumpAndSettle();
+    }
+    expect(quickCapture, findsNothing);
+
+    await tester.scrollUntilVisible(find.text(taskTitle), 400, scrollable: find.byType(Scrollable).last);
+    expect(find.text(taskTitle), findsOneWidget);
+
+    final homeBar = find.byType(ArvinPrimaryNavigation);
+    expect(homeBar, findsOneWidget);
+    await tester.tap(find.text('تقویم'));
+    await tester.pumpAndSettle();
+
+    final calendarBar = find.byType(ArvinPrimaryNavigation);
+    expect(calendarBar, findsOneWidget);
+    final moreButton = find.byKey(const ValueKey('primary-nav-more'));
+    expect(moreButton, findsOneWidget);
+    await tester.ensureVisible(moreButton);
+    await tester.pumpAndSettle();
+    await tester.tap(moreButton, warnIfMissed: false);
+    await tester.pump(const Duration(milliseconds: 300));
+    final timelineAction = find.byKey(const ValueKey('calendar-more-timeline'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (timelineAction.evaluate().isNotEmpty) break;
+    }
+    expect(timelineAction, findsOneWidget);
+    await tester.ensureVisible(timelineAction);
+    await tester.pumpAndSettle();
+    await tester.tap(timelineAction);
+    await tester.pumpAndSettle();
+
+    final timelineChooser = find.byType(SimpleDialog);
+    if (timelineChooser.evaluate().isNotEmpty) {
+      final selectedTask = find.descendant(
+        of: timelineChooser,
+        matching: find.text(taskTitle),
+      );
+      await tester.tap(selectedTask);
+      await tester.pumpAndSettle();
+    }
+
+    final timelinePage = find.byType(TaskTimelinePage);
+    // The timeline route may mount after the dialog/navigation transition on a
+    // slower Android emulator. Wait for the canonical destination itself first,
+    // then wait for its People action. Both waits are bounded to 10 seconds.
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (timelinePage.evaluate().isNotEmpty) break;
+    }
+    expect(timelinePage, findsOneWidget);
+
+    final peopleAction =
+        find.byKey(const ValueKey('timeline-open-people'));
+    for (var attempt = 0; attempt < 100; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+      if (peopleAction.evaluate().isNotEmpty) break;
+    }
+    expect(peopleAction, findsOneWidget);
+    await tester.tap(peopleAction);
+    await tester.pumpAndSettle();
+
+    expect(find.text('افراد مرتبط'), findsOneWidget);
+
+
+    final store = TaskStore();
+
+    await tester.tap(find.byKey(const ValueKey('people-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'نام لغوشده اندروید',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-add-cancel')));
+    await tester.pumpAndSettle();
+
+    var persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people, isEmpty);
+    expect(persisted.description, 'توضیح باید محفوظ بماند');
+
+    await tester.tap(find.byKey(const ValueKey('people-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی اندروید',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-add-save')));
+    await tester.pumpAndSettle();
+
+    persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+    final personRow =
+        find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
+    for (var attempt = 0; attempt < 20 && personRow.evaluate().isEmpty; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(personRow, findsOneWidget);
+    await tester.ensureVisible(personRow);
+    await tester.pumpAndSettle();
+
+    expect(persisted.description, 'توضیح باید محفوظ بماند');
+
+    await tester.tap(find.byTooltip('حذف ارتباط'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('people-remove-cancel')));
+    await tester.pumpAndSettle();
+
+    persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+
+    await tester.tap(find.byTooltip('حذف ارتباط'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('people-remove-confirm')));
+    await tester.pumpAndSettle();
+
+    for (var attempt = 0;
+        attempt < 20 &&
+            find.byKey(const ValueKey('people-empty')).evaluate().isEmpty;
+        attempt++) {
+      await tester.pump(const Duration(milliseconds: 150));
+    }
+    expect(find.byKey(const ValueKey('people-empty')), findsOneWidget);
+    persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people, isEmpty);
+    expect(persisted.description, 'توضیح باید محفوظ بماند');
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('people');
+  });
+}

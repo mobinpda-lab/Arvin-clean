@@ -1,0 +1,254 @@
+name: Arvin Device Smoke
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    # Validate PRs targeting integration branches too; product code can live there before main integration.
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact product commit SHA to validate'
+        required: true
+        type: string
+      run_home:
+        description: 'Run Home scenario'
+        required: true
+        default: true
+        type: boolean
+      run_quick_capture:
+        description: 'Run Quick Capture scenario'
+        required: true
+        default: true
+        type: boolean
+      run_backup_restore:
+        description: 'Run Backup/Restore scenario'
+        required: true
+        default: true
+        type: boolean
+      run_people:
+        description: 'Run People scenario'
+        required: true
+        default: true
+        type: boolean
+      run_calendar:
+        description: 'Run Calendar interaction scenario'
+        required: true
+        default: true
+        type: boolean
+      run_sql_persistence:
+        description: 'Run SQL persistence scenario'
+        required: true
+        default: true
+        type: boolean
+      run_sql_migration:
+        description: 'Run SQL legacy-storage migration scenario'
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-device-smoke-${{ github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  # One revision contract for PR, manual dispatch, and push events.
+  TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  prepare-matrix:
+    name: Prepare selected smoke scenarios
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Build scenario matrix
+        id: set-matrix
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          RUN_HOME: ${{ inputs.run_home }}
+          RUN_QUICK_CAPTURE: ${{ inputs.run_quick_capture }}
+          RUN_BACKUP_RESTORE: ${{ inputs.run_backup_restore }}
+          RUN_PEOPLE: ${{ inputs.run_people }}
+          RUN_CALENDAR: ${{ inputs.run_calendar }}
+          RUN_SQL_PERSISTENCE: ${{ inputs.run_sql_persistence }}
+          RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          scenarios='[]'
+          if [ "$EVENT_NAME" != "workflow_dispatch" ]; then
+            scenarios='[
+              {"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"},
+              {"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"},
+              {"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"},
+              {"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"},
+              {"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"},
+              {"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"},
+              {"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}
+            ]'
+          else
+            if [ "$RUN_HOME" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"home","test_file":"integration_test/android_home_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_QUICK_CAPTURE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"quick-capture","test_file":"integration_test/android_quick_capture_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_BACKUP_RESTORE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"backup-restore","test_file":"integration_test/android_backup_restore_sql_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_PEOPLE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"people","test_file":"integration_test/android_people_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_CALENDAR" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"calendar","test_file":"integration_test/calendar_card_interaction_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_SQL_PERSISTENCE" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"sql-persistence","test_file":"integration_test/android_sql_persistence_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$RUN_SQL_MIGRATION" = "true" ]; then
+              scenarios="$(jq -c '. + [{"scenario":"sql-migration","test_file":"integration_test/android_upgrade_migration_smoke_test.dart"}]' <<< "$scenarios")"
+            fi
+            if [ "$scenarios" = "[]" ]; then
+              echo "At least one smoke scenario must be selected for workflow_dispatch." >&2
+              exit 1
+            fi
+          fi
+          echo "Selected scenario matrix: $scenarios"
+          matrix="$(jq -cn --argjson scenarios "$scenarios" '{include:$scenarios}')"
+          echo "matrix=$matrix" >> "$GITHUB_OUTPUT"
+
+  device-smoke:
+    needs: prepare-matrix
+    # Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.
+    name: device-smoke (${{ matrix.scenario }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
+    steps:
+      # Pull requests must validate the exact contributor head, not the synthetic merge ref.
+      - uses: actions/checkout@v5
+        if: github.event_name == 'pull_request'
+        with:
+          ref: ${{ env.TARGET_SHA }}
+      # Keep the documented Fast Lane target contract for manual and push runs.
+      - uses: actions/checkout@v5
+        if: github.event_name != 'pull_request'
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+      - name: Record and verify checkout revision
+        env:
+          TARGET_SHA: ${{ env.TARGET_SHA }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Invalid TARGET_SHA: expected 40 lowercase hexadecimal characters" >&2
+            exit 1
+          fi
+          git cat-file -e "$TARGET_SHA^{commit}"
+          actual="$(git rev-parse HEAD)"
+          echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKOUT_SHA=$actual"
+          echo "CHECKED_OUT_SHA=$actual"
+          if [ "$actual" != "$TARGET_SHA" ]; then
+            echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2
+            exit 1
+          fi
+          echo "EXACT_TARGET_SHA=$actual"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Verify repository-owned Android inputs
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          test -s android/app/build.gradle.kts
+          test -s android/gradle/wrapper/gradle-wrapper.properties
+          test -s android/gradle/wrapper/gradle-wrapper.jar
+          test -s android/gradlew
+          grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
+      - name: Cache Gradle
+        uses: actions/cache@v5
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: arvin-gradle-${{ runner.os }}-${{ hashFiles('android/gradle/wrapper/gradle-wrapper.properties', 'pubspec.lock') }}
+          restore-keys: |
+            arvin-gradle-${{ runner.os }}-
+      - name: Cache Pub packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: arvin-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            arvin-pub-${{ runner.os }}-
+      - name: Cache Flutter SDK artifacts
+        uses: actions/cache@v5
+        with:
+          path: |
+            ${{ env.FLUTTER_ROOT }}/bin/cache
+            ${{ env.PUB_CACHE }}
+          key: arvin-flutter-artifacts-${{ runner.os }}-${{ env.FLUTTER_VERSION }}
+          restore-keys: |
+            arvin-flutter-artifacts-${{ runner.os }}-
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Verify Reminder legacy compatibility
+        if: matrix.scenario == 'calendar'
+        run: flutter test test/task_reminder_legacy_compatibility_test.dart test/follow_up_entry_page_test.dart
+
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Run selected canonical smoke on Android emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: default
+          disable-animations: true
+          script: |
+            # android-emulator-runner executes script lines in separate /usr/bin/sh processes.
+            # Discover the ready device instead of relying on EMULATOR_PORT being exported.
+            adb devices -l && device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')" && test -n "$device" && echo "ADB_DEVICE=$device" && adb -s "$device" shell getprop sys.boot_completed && adb -s "$device" shell getprop ro.build.version.sdk && flutter drive --driver=test_driver/integration_test.dart --target=${{ matrix.test_file }} -d "$device"
+
+      - name: Upload Android smoke screenshot evidence
+        if: always() && (matrix.scenario == 'home' || matrix.scenario == 'quick-capture' || matrix.scenario == 'people')
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-device-smoke-${{ matrix.scenario }}-${{ env.TARGET_SHA }}
+          path: artifacts/device-smoke/${{ matrix.scenario }}.png
+          if-no-files-found: warn
+
+      - name: Upload Persian time picker screenshot evidence
+        if: always() && matrix.scenario == 'quick-capture'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-persian-time-picker-${{ env.TARGET_SHA }}
+          path: artifacts/device-smoke/persian-time-picker.png
+          if-no-files-found: warn
+
+      - name: Upload calendar interaction and RTL evidence
+        if: always() && matrix.scenario == 'calendar'
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-device-smoke-calendar-${{ env.TARGET_SHA }}
+          path: artifacts/device-smoke/calendar-card-independent-reminder-edit.png
+          if-no-files-found: error

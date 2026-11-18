@@ -1,0 +1,242 @@
+import 'dart:convert';
+
+import 'package:cryptography/cryptography.dart';
+
+import '../calendar_page.dart';
+import 'system_calendar_bridge.dart';
+
+/// Resolves the canonical Task ID from an existing reminder projection ID.
+/// Kept shared so backup reconciliation and outbound sync use the same identity
+/// contract rather than maintaining separate parsers.
+String? calendarTaskIdForReminderId(String reminderId) {
+  for (final prefix in const <String>[
+    'task-reminder-item:',
+    'task-due:',
+    'task-reminder:',
+    'task-followup:',
+    'task-recurrence:',
+  ]) {
+    if (!reminderId.startsWith(prefix)) continue;
+    final value = reminderId.substring(prefix.length);
+    final separator = value.indexOf(':');
+    if (prefix == 'task-reminder-item:') {
+      if (separator <= 0) return null;
+      return Uri.decodeComponent(value.substring(0, separator));
+    }
+    return separator < 0 ? value : value.substring(0, separator);
+  }
+  if (reminderId.startsWith('followup:')) {
+    final value = reminderId.substring('followup:'.length);
+    final separator = value.indexOf(':');
+    if (separator > 0) return value.substring(0, separator);
+  }
+  return null;
+}
+
+class CalendarSyncRevision {
+  const CalendarSyncRevision({
+    required this.reminderId,
+    required this.fingerprint,
+    required this.title,
+    required this.start,
+    required this.end,
+    required this.allDay,
+    this.description,
+  });
+
+  final String reminderId;
+  final String fingerprint;
+  final String title;
+  final DateTime start;
+  final DateTime end;
+  final bool allDay;
+  final String? description;
+}
+
+/// Local metadata linking one canonical Arvin reminder to one external event.
+///
+/// This is not a second calendar source of truth. Provider adapters may persist
+/// these identifiers later so repeated sync can update the same external event
+/// instead of creating duplicates.
+class ExternalCalendarEventLink {
+  ExternalCalendarEventLink({
+    required this.reminderId,
+    required this.calendarId,
+    required this.eventId,
+    required this.lastSyncedFingerprint,
+  }) {
+    if (reminderId.trim().isEmpty ||
+        calendarId.trim().isEmpty ||
+        eventId.trim().isEmpty ||
+        lastSyncedFingerprint.trim().isEmpty) {
+      throw ArgumentError('External calendar link fields must not be empty.');
+    }
+  }
+
+  final String reminderId;
+  final String calendarId;
+  final String eventId;
+  final String lastSyncedFingerprint;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'reminderId': reminderId,
+        'calendarId': calendarId,
+        'eventId': eventId,
+        'lastSyncedFingerprint': lastSyncedFingerprint,
+      };
+}
+
+enum CalendarSyncAction { create, update, noOp, delete }
+
+class CalendarSyncPlanItem {
+  const CalendarSyncPlanItem({
+    required this.reminderId,
+    required this.action,
+    this.revision,
+    this.link,
+  });
+
+  final String reminderId;
+  final CalendarSyncAction action;
+  final CalendarSyncRevision? revision;
+  final ExternalCalendarEventLink? link;
+}
+
+class CalendarSyncPlan {
+  CalendarSyncPlan(Iterable<CalendarSyncPlanItem> items)
+      : items = List<CalendarSyncPlanItem>.unmodifiable(items);
+
+  final List<CalendarSyncPlanItem> items;
+
+  int count(CalendarSyncAction action) =>
+      items.where((item) => item.action == action).length;
+}
+
+/// Produces stable provider-neutral revision evidence from canonical FollowUps.
+class CalendarSyncRevisionService {
+  CalendarSyncRevisionService({HashAlgorithm? hashAlgorithm})
+      : _hashAlgorithm = hashAlgorithm ?? Sha256();
+
+  final HashAlgorithm _hashAlgorithm;
+
+  Future<CalendarSyncRevision> fromReminder(CalendarReminder reminder) async {
+    if (!SystemCalendarBridge.isEligible(reminder)) {
+      throw ArgumentError.value(
+        reminder.id,
+        'reminder.id',
+        'Only active canonical task/follow-up reminders are sync eligible.',
+      );
+    }
+    final title = reminder.title.trim();
+    if (title.isEmpty) {
+      throw ArgumentError.value(reminder.title, 'reminder.title', 'Title is empty.');
+    }
+
+    final start = reminder.date;
+    final end = reminder.end ?? (reminder.isAllDay
+        ? DateTime(start.year, start.month, start.day + 1)
+        : start.add(const Duration(minutes: 30)));
+    final canonical = jsonEncode(<String, Object>{
+      'id': reminder.id,
+      'title': title,
+      'startMillis': start.millisecondsSinceEpoch,
+      'endMillis': end.millisecondsSinceEpoch,
+      'allDay': reminder.isAllDay,
+      'description': reminder.description?.trim() ?? '',
+    });
+    final hash = await _hashAlgorithm.hash(utf8.encode(canonical));
+
+    return CalendarSyncRevision(
+      reminderId: reminder.id,
+      fingerprint: _toHex(hash.bytes),
+      title: title,
+      start: start,
+      end: end,
+      allDay: reminder.isAllDay,
+      description: reminder.description?.trim().isEmpty == true ? null : reminder.description?.trim(),
+    );
+  }
+
+  String _toHex(List<int> bytes) {
+    final buffer = StringBuffer();
+    for (final byte in bytes) {
+      buffer.write(byte.toRadixString(16).padLeft(2, '0'));
+    }
+    return buffer.toString();
+  }
+}
+
+/// Plans idempotent create/update/delete operations for an external calendar.
+///
+/// Provider writes and link persistence are intentionally outside this class.
+class CalendarSyncPlanService {
+  const CalendarSyncPlanService();
+
+  CalendarSyncPlan plan({
+    required Iterable<CalendarSyncRevision> revisions,
+    required Iterable<ExternalCalendarEventLink> links,
+    String? targetCalendarId,
+  }) {
+    final normalizedTarget = targetCalendarId?.trim();
+    final revisionById = _indexRevisions(revisions);
+    final linkById = _indexLinks(links);
+    final ids = <String>{...revisionById.keys, ...linkById.keys}.toList()..sort();
+    final items = <CalendarSyncPlanItem>[];
+
+    for (final id in ids) {
+      final revision = revisionById[id];
+      final link = linkById[id];
+      late final CalendarSyncAction action;
+      if (revision != null && link == null) {
+        action = CalendarSyncAction.create;
+      } else if (revision == null && link != null) {
+        action = CalendarSyncAction.delete;
+      } else if (normalizedTarget != null &&
+          normalizedTarget.isNotEmpty &&
+          link!.calendarId != normalizedTarget) {
+        action = CalendarSyncAction.update;
+      } else if (revision!.fingerprint == link!.lastSyncedFingerprint) {
+        action = CalendarSyncAction.noOp;
+      } else {
+        action = CalendarSyncAction.update;
+      }
+
+      items.add(
+        CalendarSyncPlanItem(
+          reminderId: id,
+          action: action,
+          revision: revision,
+          link: link,
+        ),
+      );
+    }
+
+    return CalendarSyncPlan(items);
+  }
+
+  Map<String, CalendarSyncRevision> _indexRevisions(
+    Iterable<CalendarSyncRevision> values,
+  ) {
+    final result = <String, CalendarSyncRevision>{};
+    for (final value in values) {
+      if (value.reminderId.isEmpty || result.containsKey(value.reminderId)) {
+        throw ArgumentError('Duplicate or empty calendar sync revision id.');
+      }
+      result[value.reminderId] = value;
+    }
+    return result;
+  }
+
+  Map<String, ExternalCalendarEventLink> _indexLinks(
+    Iterable<ExternalCalendarEventLink> values,
+  ) {
+    final result = <String, ExternalCalendarEventLink>{};
+    for (final value in values) {
+      if (result.containsKey(value.reminderId)) {
+        throw ArgumentError('Duplicate external calendar link id.');
+      }
+      result[value.reminderId] = value;
+    }
+    return result;
+  }
+}

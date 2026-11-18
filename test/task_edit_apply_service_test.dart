@@ -1,0 +1,235 @@
+import 'package:arvin/models/task.dart';
+import 'package:arvin/services/task_edit_apply_service.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  final appliedAt = DateTime(2026, 8, 28, 17);
+  final service = TaskEditApplyService(now: () => appliedAt);
+
+  test('applies due date and other editable fields to canonical Task', () {
+    final originalFollowUps = [
+      FollowUp(
+        id: 'fu-1',
+        dateTime: DateTime(2026, 8, 27, 10),
+        note: 'سابقه',
+      ),
+    ];
+    final target = Task(
+      id: 'task-1',
+      title: 'قدیمی',
+      description: 'قبل',
+      dueDate: DateTime(2026, 8, 29, 9),
+      followUpEnabled: true,
+      followUpDate: DateTime(2026, 8, 29, 10),
+      tags: ['قدیمی'],
+      category: 'فروش',
+      checklist: ['یک'],
+      reminderDate: DateTime(2026, 8, 29, 8),
+      priority: TaskPriority.low,
+      archived: true,
+      completed: true,
+      followUps: originalFollowUps,
+      createdAt: DateTime(2026, 8, 20),
+    );
+    final edited = Task(
+      id: 'task-1',
+      title: 'جدید',
+      description: 'بعد',
+      dueDate: DateTime(2026, 8, 30, 14),
+      allDay: true,
+      followUpEnabled: false,
+      tags: ['مهم', 'مشتری'],
+      category: 'مشتریان',
+      checklist: ['یک', 'دو'],
+      reminderDate: DateTime(2026, 8, 30, 12),
+      priority: TaskPriority.high,
+      archived: false,
+      completed: false,
+      followUps: const [],
+      createdAt: DateTime(2026, 8, 28),
+    );
+
+    service.apply(target, edited);
+
+    expect(target.title, 'جدید');
+    expect(target.description, 'بعد');
+    expect(target.dueDate, DateTime(2026, 8, 30, 14));
+    expect(target.allDay, isTrue);
+    expect(target.followUpEnabled, isTrue);
+    expect(target.followUpDate, DateTime(2026, 8, 29, 10));
+    expect(target.tags, ['مهم', 'مشتری']);
+    expect(target.category, 'مشتریان');
+    expect(target.checklist, ['یک', 'دو']);
+    expect(target.reminderDate, DateTime(2026, 8, 30, 12));
+    expect(target.taskReminders, isEmpty);
+    expect(target.nextReminderSequence, 1);
+    expect(target.priority, TaskPriority.high);
+    expect(target.completed, isFalse);
+    expect(target.updatedAt, appliedAt);
+  });
+
+  test('metadata edits preserve completion timestamp and legacy scheduled fields', () {
+    final completedAt = DateTime(2026, 10, 29, 9, 45);
+    final legacyDate = DateTime(2026, 10, 31, 11);
+    final target = Task(
+      id: 'metadata-only',
+      title: 'قبل',
+      completed: true,
+      completedAt: completedAt,
+      followUpEnabled: true,
+      followUpDate: legacyDate,
+    );
+    final edited = Task(
+      id: 'metadata-only',
+      title: 'بعد',
+      description: 'یادداشت تازه',
+      category: 'مشتری',
+      priority: TaskPriority.high,
+      completed: true,
+    );
+
+    service.apply(target, edited);
+
+    expect(target.completed, isTrue);
+    expect(target.completedAt, completedAt);
+    expect(target.description, 'یادداشت تازه');
+    expect(target.category, 'مشتری');
+    expect(target.priority, TaskPriority.high);
+    expect(target.updatedAt, isNotNull);
+    expect(target.followUpEnabled, isTrue);
+    expect(target.followUpDate, legacyDate);
+  });
+
+  test('explicit reopen in editor clears completedAt', () {
+    final target = Task(
+      id: 'explicit-reopen', title: 'انجام‌شده', completed: true,
+      completedAt: DateTime(2026, 10, 29, 9),
+    );
+    final edited = Task(id: 'explicit-reopen', title: 'باز', completed: false);
+
+    service.apply(target, edited);
+
+    expect(target.completed, isFalse);
+    expect(target.completedAt, isNull);
+  });
+
+  test('applies disabled checklist state while preserving checklist rows', () {
+    final target = Task(
+      id: 'checklist-apply',
+      title: 'کار',
+      checklist: const ['[ ] کیف', '[x] کتاب'],
+    );
+    final edited = Task(
+      id: 'checklist-apply',
+      title: 'کار',
+      checklist: const ['[ ] کیف', '[x] کتاب'],
+      checklistEnabled: false,
+    );
+
+    TaskEditApplyService(now: () => DateTime(2026, 10, 9)).apply(target, edited);
+
+    expect(target.checklistEnabled, isFalse);
+    expect(target.checklist, const ['[ ] کیف', '[x] کتاب']);
+  });
+
+  test('preserves recurring checklist occurrence state while editing template', () {
+    final occurrence = DateTime(2026, 10, 3, 6);
+    final target = Task(
+      id: 'recurring-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[ ] خوراکی'],
+      checklistOccurrences: {
+        occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+      },
+    );
+    final edited = Task(
+      id: 'recurring-task',
+      title: 'آماده‌سازی مدرسه',
+      checklist: const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس'],
+    );
+
+    service.apply(target, edited);
+
+    expect(target.checklist, const ['[ ] کیف', '[ ] خوراکی', '[ ] لباس']);
+    expect(target.checklistOccurrences, {
+      occurrence.toIso8601String(): const ['[x] کیف', '[ ] خوراکی'],
+    });
+  });
+
+  test('preserves identity history and non-editor lifecycle flags', () {
+    final history = FollowUp(
+      id: 'fu-history',
+      dateTime: DateTime(2026, 8, 27, 10),
+    );
+    final createdAt = DateTime(2026, 8, 20);
+    final target = Task(
+      id: 'canonical-id',
+      title: 'قبل',
+      archived: true,
+      trashed: true,
+      completed: true,
+      followUps: [history],
+      createdAt: createdAt,
+    );
+    final edited = Task(
+      id: 'different-editor-copy-id',
+      title: 'بعد',
+      archived: false,
+      trashed: false,
+      completed: false,
+      followUps: const [],
+      createdAt: DateTime(2026, 8, 28),
+    );
+
+    service.apply(target, edited);
+
+    expect(target.id, 'canonical-id');
+    expect(target.followUps, hasLength(1));
+    expect(identical(target.followUps.single, history), isTrue);
+    expect(target.createdAt, createdAt);
+    expect(target.archived, isTrue);
+    expect(target.trashed, isTrue);
+    expect(target.completed, isFalse);
+  });
+
+  test('copies mutable collections instead of aliasing editor lists', () {
+    final edited = Task(
+      id: 'task-1',
+      title: 'عنوان',
+      tags: ['الف'],
+      checklist: ['یک'],
+    );
+    final target = Task(id: 'task-1', title: 'قبل');
+
+    service.apply(target, edited);
+    edited.tags.add('ب');
+    edited.checklist.add('دو');
+
+    expect(target.tags, ['الف']);
+    expect(target.checklist, ['یک']);
+  });
+
+  test('copies independent reminders and their sequence without list aliasing', () {
+    final target = Task(id: 'reminders', title: 'کار');
+    final edited = Task(
+      id: 'reminders',
+      title: 'کار',
+      taskReminders: [
+        TaskReminder(
+          id: 'r1',
+          title: 'یادآور ۱',
+          date: DateTime(2026, 10, 20, 9),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
+    );
+
+    service.apply(target, edited);
+    edited.taskReminders.clear();
+
+    expect(target.taskReminders, hasLength(1));
+    expect(target.taskReminders.single.id, 'r1');
+    expect(target.nextReminderSequence, 2);
+  });
+}

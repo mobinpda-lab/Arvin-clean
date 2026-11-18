@@ -1,0 +1,34 @@
+name: ARVIN Task Router
+
+# ARVIN automation foundation
+# Detects task categories and routes them to workers.
+
+routing:
+  analyzer:
+    enabled: true
+    categories:
+      - core
+      - feature
+      - bugfix
+      - test
+      - documentation
+
+  workers:
+    code_worker:
+      enabled: true
+      responsibility: code_changes
+    test_worker:
+      enabled: true
+      responsibility: automated_tests
+    documentation_worker:
+      enabled: true
+      responsibility: important_changes_only
+
+  ci_feedback:
+    enabled: true
+    failure_action: create_fix_task
+    success_action: continue_pipeline
+
+  pull_request:
+    mode: draft_first
+    merge: controlled

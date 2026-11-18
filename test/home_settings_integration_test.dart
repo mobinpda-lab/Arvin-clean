@@ -1,0 +1,143 @@
+import 'package:arvin/main.dart';
+import 'package:arvin/services/app_settings_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  testWidgets('font size preference scales explicit text across the real app shell',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.fontSize': 20.0,
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final homeContext = tester.element(find.byKey(const ValueKey('home-bismillah')));
+    final homeScaler = MediaQuery.textScalerOf(homeContext);
+    expect(homeScaler.scale(16), closeTo(20, 0.01));
+    expect(homeScaler.scale(17), closeTo(21.25, 0.01));
+    expect((await AppSettingsService().load()).fontSize, 20.0);
+
+    // The same scaler must reach pushed routes, not only Home.
+    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('تنظیمات'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('تنظیمات'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('font-settings-entry')),
+      250,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+
+    final settingsContext = tester.element(
+      find.byKey(const ValueKey('font-settings-entry')),
+    );
+    final settingsScaler = MediaQuery.textScalerOf(settingsContext);
+    expect(settingsScaler.scale(16), closeTo(20, 0.01));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('saved dark theme is applied by the real app shell', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.themeMode': 'dark',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final homeContext = tester.element(find.byType(Scaffold).first);
+    expect(Theme.of(homeContext).brightness, Brightness.dark);
+  });
+
+  testWidgets('Home keeps legacy task actions out of the primary surface', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.tasks':
+          '[{"id":"home-canonical","title":"کار قابل نمایش"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('home-my-tasks')), findsNothing);
+    expect(find.text('کارهای من'), findsNothing);
+    expect(find.byKey(const ValueKey('home-view-all')), findsNothing);
+    expect(find.text('مشاهده همه'), findsNothing);
+    expect(find.text('کار قابل نمایش'), findsOneWidget);
+  });
+
+  testWidgets('Home More opens canonical Settings page', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byIcon(Icons.menu_rounded));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-more-task-filters')), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('تنظیمات'),
+      300,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('تنظیمات'), findsOneWidget);
+
+    await tester.tap(find.text('تنظیمات'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تنظیمات'), findsOneWidget);
+    expect(find.text('نمایش تاریخ فارسی'), findsOneWidget);
+    expect(find.text('کارها و حرکت کارت‌ها'), findsOneWidget);
+
+    await tester.scrollUntilVisible(
+      find.text('پشتیبان‌گیری و بازیابی'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('پشتیبان‌گیری و بازیابی'), findsOneWidget);
+  });
+
+  testWidgets('Home keeps user-visible dates Jalali when legacy preference is off',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.usePersianDate': false,
+      'arvin.tasks':
+          '[{"id":"dated-off","title":"کار شمسی اجباری","followUpEnabled":true,"followUpDate":"2026-08-26T10:00:00.000","dueDate":"2026-08-26T12:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار شمسی اجباری'), findsOneWidget);
+    expect(find.textContaining('۱۴۰۵/۰۶/۰۴'), findsWidgets);
+    expect(find.textContaining('2026/08/26'), findsNothing);
+  });
+
+  testWidgets('Persian date preference changes real Home follow-up rendering',
+      (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'arvin.settings.usePersianDate': true,
+      'arvin.tasks':
+          '[{"id":"dated","title":"کار تاریخ‌دار","followUpEnabled":true,"followUpDate":"2026-08-26T10:00:00.000"}]',
+    });
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار تاریخ‌دار'), findsOneWidget);
+    expect(find.textContaining('2026/08/26'), findsNothing);
+  });
+}

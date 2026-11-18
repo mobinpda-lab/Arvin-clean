@@ -1,0 +1,1 @@
+This lane is independent of the progress-score lane. Early Draft PR validation is used so CI can run while Home wiring continues. Merge is forbidden until the Home persistence path and focused regression tests are complete and exact-head checks are green.

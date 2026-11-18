@@ -1,0 +1,312 @@
+name: Zero Dollar Environment Smoke
+
+on:
+  push:
+    branches: [recovery-02/main-based-integration]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: zero-dollar-environment-smoke-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  environment-smoke:
+    name: Zero-dollar Android environment diagnostic
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    env:
+      EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
+      TARGET_SHA: ${{ github.sha }}
+      EVENT_HEAD_REF: ${{ github.ref_name }}
+    steps:
+      - name: Verify immutable refs and runner class
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          set -Eeuo pipefail
+          RUNNER_ENVIRONMENT_VALUE="${{ runner.environment }}"
+          echo "RUNNER_ENVIRONMENT_VALUE=$RUNNER_ENVIRONMENT_VALUE" >> "$GITHUB_ENV"
+          [[ "$GITHUB_EVENT_NAME" == "push" ]]
+          [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
+          [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
+
+          pr_json="$RUNNER_TEMP/canonical-pr.json"
+          repository_owner="${REPOSITORY%%/*}"
+          curl --fail --silent --show-error --location --get \
+            --retry 2 --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            --data-urlencode "head=$repository_owner:$EVENT_HEAD_REF" \
+            --data-urlencode "state=open" \
+            "https://api.github.com/repos/$REPOSITORY/pulls" \
+            -o "$pr_json"
+          pr_count="$(jq '[.[] | select(.number == 3495)] | length' "$pr_json")"
+          [[ "$pr_count" == "1" ]]
+          PR_NUMBER="$(jq -r '.[] | select(.number == 3495) | .number' "$pr_json")"
+          EVENT_BASE_REF="$(jq -r '.[] | select(.number == 3495) | .base.ref' "$pr_json")"
+          EVENT_BASE_SHA="$(jq -r '.[] | select(.number == 3495) | .base.sha' "$pr_json")"
+          EVENT_HEAD_REF="$(jq -r '.[] | select(.number == 3495) | .head.ref' "$pr_json")"
+          PR_HEAD_SHA="$(jq -r '.[] | select(.number == 3495) | .head.sha' "$pr_json")"
+          label_present="$(jq '[.[] | select(.number == 3495) | .labels[].name | select(. == "zero-dollar-environment-smoke")] | length' "$pr_json")"
+          [[ "$EVENT_BASE_REF" == "main" ]]
+          [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
+          [[ "$EVENT_BASE_SHA" == "$EXPECTED_MAIN_SHA" ]]
+          [[ "$PR_HEAD_SHA" == "$TARGET_SHA" ]]
+          [[ "$label_present" == "1" ]]
+          [[ "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]
+
+          {
+            echo "## Zero-dollar environment diagnostic"
+            echo
+            echo "- Repository: $REPOSITORY"
+            echo "- Pull request: #$PR_NUMBER"
+            echo "- Event: $GITHUB_EVENT_NAME / verified canonical PR metadata"
+            echo "- Runner environment: $RUNNER_ENVIRONMENT_VALUE"
+            echo "- Runner image: $ImageOS / $ImageVersion"
+            echo "- PR head SHA: $TARGET_SHA"
+            echo "- Expected Main SHA: $EXPECTED_MAIN_SHA"
+            echo "- PR base SHA: $EVENT_BASE_SHA"
+            echo "- Required PR label: zero-dollar-environment-smoke — PASS"
+            echo
+          } >> "$GITHUB_STEP_SUMMARY"
+          [[ "$(uname -m)" == "x86_64" ]]
+
+          commit_json="$RUNNER_TEMP/target-commit.json"
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/commits/$TARGET_SHA" \
+            -o "$commit_json"
+
+          parent_sha="$(jq -r '.parents[0].sha // empty' "$commit_json")"
+          parent_count="$(jq '.parents | length' "$commit_json")"
+          [[ "$parent_count" == "1" ]]
+          [[ "$parent_sha" =~ ^[0-9a-f]{40}$ ]]
+          compare_json="$RUNNER_TEMP/target-compare.json"
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 30 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$REPOSITORY/compare/$EXPECTED_MAIN_SHA...$TARGET_SHA" \
+            -o "$compare_json"
+          merge_base="$(jq -r '.merge_base_commit.sha // empty' "$compare_json")"
+          [[ "$merge_base" == "$EXPECTED_MAIN_SHA" ]]
+
+          {
+            echo "- Parent count: $parent_count"
+            echo "- Verified direct parent: $parent_sha"
+            echo "- Architecture: $(uname -m)"
+            echo "- Runner image: $ImageOS / $ImageVersion"
+            echo
+            echo "REF_GUARD=PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Checkout exact target SHA
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+      - name: Verify checked out target SHA
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$TARGET_SHA" ]]
+          echo "CHECKED_OUT_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          RUNNER_ENVIRONMENT_VALUE="${RUNNER_ENVIRONMENT_VALUE:-github-hosted}"
+          stage="initialization"
+          emulator_pid=""
+          emulator_log="$RUNNER_TEMP/arvin-emulator.log"
+          flutter_archive="$RUNNER_TEMP/flutter_linux_3.47.0-stable.tar.xz"
+          flutter_manifest="$RUNNER_TEMP/flutter-releases-linux.json"
+          flutter_root="$RUNNER_TEMP/flutter-sdk"
+          avd_name="arvin-zero-dollar-api35"
+
+          finish() {
+            rc=$?
+            trap - EXIT
+            if [[ -n "$emulator_pid" ]]; then
+              kill "$emulator_pid" 2>/dev/null || true
+              wait "$emulator_pid" 2>/dev/null || true
+            fi
+            if (( rc != 0 )); then
+              {
+                echo
+                echo "Failure diagnostics"
+                echo "Failed stage: $stage"
+                echo "Exit code: $rc"
+                if [[ -f "$emulator_log" ]]; then
+                  echo "Emulator log (last 80 lines):"
+                  tail -n 80 "$emulator_log" || true
+                fi
+                if command -v adb >/dev/null 2>&1; then
+                  echo "ADB devices:"
+                  adb devices -l 2>&1 || true
+                fi
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+            exit "$rc"
+          }
+          trap finish EXIT
+
+          ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          mkdir -p "$ANDROID_USER_HOME" "$flutter_root"
+          {
+            echo "Runtime environment"
+            echo "OS: $(. /etc/os-release && echo "$PRETTY_NAME")"
+            echo "Architecture: $(uname -m)"
+            echo "Runner: $RUNNER_ENVIRONMENT_VALUE"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Java 17"
+          java -version 2>&1 | tee "$RUNNER_TEMP/java-version.txt"
+          java_major="$(java -XshowSettings:properties -version 2>&1 | awk -F'= ' '/java.specification.version/ {print $2; exit}')"
+          [[ "$java_major" == "17" ]]
+          echo "Java major: $java_major — PASS" >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Flutter 3.47.0 download and checksum verification"
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 60 \
+            "https://storage.googleapis.com/flutter_infra_release/releases/releases_linux.json" \
+            -o "$flutter_manifest"
+          release="$(jq -cer '[.releases[] | select(.version == "3.47.0" and .channel == "stable" and .dart_sdk_arch == "x64")][0]' "$flutter_manifest")"
+          archive_path="$(jq -r '.archive' <<< "$release")"
+          archive_sha="$(jq -r '.sha256' <<< "$release")"
+          [[ -n "$archive_path" && "$archive_path" != "null" ]]
+          [[ "$archive_sha" =~ ^[0-9a-f]{64}$ ]]
+          curl --fail --silent --show-error --location \
+            --retry 2 --connect-timeout 10 --max-time 300 \
+            "https://storage.googleapis.com/flutter_infra_release/releases/$archive_path" \
+            -o "$flutter_archive"
+          echo "$archive_sha  $flutter_archive" | sha256sum --check --status
+          tar -xf "$flutter_archive" -C "$flutter_root"
+          flutter_bin="$flutter_root/flutter/bin/flutter"
+          [[ -x "$flutter_bin" ]]
+          export PATH="$flutter_root/flutter/bin:$flutter_root/flutter/bin/cache/dart-sdk/bin:$PATH"
+          flutter --version 2>&1 | tee "$RUNNER_TEMP/flutter-version.txt"
+          flutter_version="$(flutter --version --machine | jq -r '.frameworkVersion')"
+          dart_version="$(dart --version 2>&1 | awk '{print $4}')"
+          [[ "$flutter_version" == "3.47.0" ]]
+          [[ "$dart_version" == "3.13.0" ]]
+          {
+            echo "Flutter: $flutter_version — PASS"
+            echo "Dart: $dart_version — PASS"
+            echo "Flutter archive SHA-256: $archive_sha — PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="Android SDK API 35 and emulator packages"
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-}}"
+          [[ -n "$sdk_root" && -d "$sdk_root" ]]
+          sdkmanager="$sdk_root/cmdline-tools/latest/bin/sdkmanager"
+          avdmanager="$sdk_root/cmdline-tools/latest/bin/avdmanager"
+          [[ -x "$sdkmanager" ]]
+          [[ -x "$avdmanager" ]]
+          set +o pipefail
+          yes | "$sdkmanager" --licenses >/dev/null
+          license_status="${PIPESTATUS[1]}"
+          set -o pipefail
+          [[ "$license_status" == "0" ]]
+          "$sdkmanager" --install \
+            "platform-tools" \
+            "platforms;android-35" \
+            "emulator" \
+            "system-images;android-35;google_apis;x86_64" \
+            2>&1 | tee "$RUNNER_TEMP/android-sdk-install.txt"
+          test -d "$sdk_root/platforms/android-35"
+          test -d "$sdk_root/system-images/android-35/google_apis/x86_64"
+          "$sdkmanager" --list_installed 2>&1 | tee "$RUNNER_TEMP/android-sdk-installed.txt"
+          {
+            echo "Android SDK root: $sdk_root"
+            echo "Android platform: android-35 — PASS"
+            echo "Emulator system image: android-35;google_apis;x86_64 — PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="software emulator acceleration"
+          if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
+            echo "KVM is available; software fallback remains selected for deterministic zero-dollar execution."
+          else
+            echo "KVM unavailable on this hosted runner; using emulator software acceleration."
+          fi
+          {
+            echo "KVM: optional; software acceleration selected"
+            echo "Emulator acceleration mode: -accel off"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="AVD creation and emulator boot"
+          printf 'no\n' | "$avdmanager" create avd \
+            --force --name "$avd_name" \
+            --package "system-images;android-35;google_apis;x86_64" \
+            --device pixel_2
+          "$sdk_root/platform-tools/adb" start-server
+          "$sdk_root/emulator/emulator" -avd "$avd_name" \
+            -accel off -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics \
+            -gpu swiftshader_indirect > "$emulator_log" 2>&1 &
+          emulator_pid=$!
+          export PATH="$sdk_root/platform-tools:$PATH"
+          timeout 1800 adb wait-for-device
+          booted=""
+          device=""
+          for _ in $(seq 1 900); do
+            device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')"
+            if [[ -n "$device" ]]; then
+              booted="$(adb -s "$device" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')"
+              if [[ "$booted" == "1" ]]; then
+                break
+              fi
+            fi
+            sleep 1
+          done
+          [[ "$booted" == "1" ]]
+          sdk_api="$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d '\r')"
+          [[ "$sdk_api" == "35" ]]
+
+          stage="locked Flutter dependency resolution"
+          flutter pub get --enforce-lockfile 2>&1 | tee "$RUNNER_TEMP/flutter-pub-get.log"
+          git diff --exit-code -- pubspec.lock
+
+          stage="real Android product integration smoke without KVM"
+          flutter test integration_test/calendar_card_interaction_test.dart \
+            -d "$device" --reporter expanded 2>&1 | tee "$RUNNER_TEMP/zero-dollar-calendar-smoke.log"
+
+          {
+            echo "AVD: $avd_name — PASS"
+            echo "ADB device: $device — PASS"
+            echo "sys.boot_completed: $booted — PASS"
+            echo "Android API level: $sdk_api — PASS"
+            echo
+            echo "ENVIRONMENT_SMOKE=PASS"
+            echo "PRODUCT_INTEGRATION_SMOKE=PASS"
+            echo "Calendar Link process-restart acceptance remains a separate COMMAND 20-E gate."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          stage="completed"
+
+      - name: Upload zero-dollar emulator and product-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-dollar-android-smoke-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/java-version.txt
+            ${{ runner.temp }}/flutter-version.txt
+            ${{ runner.temp }}/android-sdk-install.txt
+            ${{ runner.temp }}/android-sdk-installed.txt
+            ${{ runner.temp }}/arvin-emulator.log
+            ${{ runner.temp }}/flutter-pub-get.log
+            ${{ runner.temp }}/zero-dollar-calendar-smoke.log
+          if-no-files-found: warn
+          retention-days: 30

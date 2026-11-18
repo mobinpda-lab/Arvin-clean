@@ -1,0 +1,14 @@
+# Product Owner review for governance, persistence, backup, and release-sensitive changes.
+/docs/project-continuity/MASTER_GOVERNANCE.md @mobinpda-lab
+/docs/project-continuity/PRODUCT_DECISIONS.md @mobinpda-lab
+/assets/fonts/ui/vazirmatn/ @mobinpda-lab
+/pubspec.yaml @mobinpda-lab
+/lib/theme/ @mobinpda-lab
+/lib/core/theme/ @mobinpda-lab
+/lib/services/g1_drift_schema.dart @mobinpda-lab
+/lib/services/task_store.dart @mobinpda-lab
+/lib/services/project_store.dart @mobinpda-lab
+/lib/backup_manager.dart @mobinpda-lab
+/lib/services/task_report_pdf_renderer.dart @mobinpda-lab
+/.github/workflows/release-closure.yml @mobinpda-lab
+/.github/CODEOWNERS @mobinpda-lab

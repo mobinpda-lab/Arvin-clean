@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<account-authenticator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:accountType="com.example.arvin.calendarprovisioner.account"
+    android:label="ARVIN CI Acceptance"
+    android:icon="@android:drawable/ic_menu_my_calendar"
+    android:smallIcon="@android:drawable/ic_menu_my_calendar" />

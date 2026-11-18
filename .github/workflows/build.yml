@@ -1,0 +1,167 @@
+name: Arvin Build
+run-name: Arvin Build (${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.head.sha || github.sha }})
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    types: [opened, synchronize, reopened]
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact commit SHA to validate (used by the recovery dispatcher)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-build-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event.pull_request.number || github.ref_name }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+
+jobs:
+  quality:
+    # Draft PRs are valid product work and must receive real quality/build evidence.
+    # Test execution is sharded across independent runners to reduce wall-clock time
+    # without reducing coverage: every test shard is required by the quality gate.
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Verify repository-owned release inputs
+        if: matrix.lane == 'analyze'
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          test -s android/app/build.gradle.kts
+          test -s android/settings.gradle.kts
+          test -s android/gradle/wrapper/gradle-wrapper.properties
+          test -s android/gradle/wrapper/gradle-wrapper.jar
+          test -s android/gradlew
+          grep -q 'gradle-9.3.1-all.zip' android/gradle/wrapper/gradle-wrapper.properties
+          grep -q 'com.android.application.*9.1.0' android/settings.gradle.kts
+          grep -q 'org.jetbrains.kotlin.android.*2.4.0' android/settings.gradle.kts
+          grep -q 'VERSION_17' android/app/build.gradle.kts
+          grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
+      - name: Android V2 audit
+        if: matrix.lane == 'analyze'
+        run: |
+          set -euo pipefail
+          test -f android/app/src/main/kotlin/com/example/arvin/MainActivity.kt
+          grep -q FlutterActivity android/app/src/main/kotlin/com/example/arvin/MainActivity.kt
+          ! grep -R -E 'io\.flutter\.app\.|PluginRegistry\.Registrar' android/app/src/main
+      - name: Cache Pub packages
+        uses: actions/cache@v5
+        with:
+          path: ~/.pub-cache
+          key: arvin-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          restore-keys: |
+            arvin-pub-${{ runner.os }}-
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Analyze
+        if: matrix.lane == 'analyze'
+        run: flutter analyze
+      - name: Test
+        if: startsWith(matrix.lane, 'test-')
+        env:
+          SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
+        run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
+
+  # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
+  apk:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [release, debug]
+    name: apk (${{ matrix.variant }})
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact requested revision
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Verify repository-owned release inputs
+        run: |
+          set -euo pipefail
+          test -s pubspec.lock
+          test -s android/app/build.gradle.kts
+          test -s android/gradle/wrapper/gradle-wrapper.properties
+          test -s android/gradle/wrapper/gradle-wrapper.jar
+          test -s android/gradlew
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Build APK
+        run: flutter build apk --${{ matrix.variant }} -t lib/main.dart
+      - name: Font packaging audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk="build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+          test -s "$apk"
+          for font in \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf \
+            assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf; do
+            if ! unzip -Z1 "$apk" | grep -Fxq "assets/flutter_assets/$font"; then
+              echo "FONT_ASSET_BUNDLED=FAIL missing=$font" >&2
+              exit 1
+            fi
+            echo "FONT_ASSET_BUNDLED=PASS $font"
+          done
+          if grep -R -n -E "VazirHarf|vazirharf|font-option-system|System Default|fontFamily:[[:space:]]*['\"]system['\"]" lib pubspec.yaml; then
+            echo "FONT_SOURCE_PURGE=FAIL legacy font or System Default reference remains" >&2
+            exit 1
+          fi
+          echo "FONT_SOURCE_PURGE=PASS"
+          echo "FONT_GATE=PASS_VAZIRMATN_BUNDLED_SYSTEM_DEFAULT_PURGED"
+
+      - name: Verify APK
+        run: test -s "build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk"
+      - name: Upload APK
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-${{ matrix.variant }}-apk
+          path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
+          if-no-files-found: error
