@@ -109,9 +109,7 @@ jobs:
               'occurrenceHistory': {
                   scheduled: {
                       'scheduledDate': scheduled,
-                      'status': 'completed',
-                      'completionDate': '2026-11-01T09:00:00.000Z',
-                      'result': 'done'
+                      'status': 'pending'
                   }
               }
           }
