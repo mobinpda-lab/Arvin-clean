@@ -1,25 +1,62 @@
-# DATABASE DATA PRESERVATION REPORT — COMMAND 40-R
+# DATABASE DATA PRESERVATION REPORT — COMMAND 41-R
 **Status:** NOT PROVEN — NO DATA-LOSS ACCEPTANCE  
-**Policy:** preserve all valuable records and IDs; no production migration was run.
+**Production data:** Not accessed or modified.
 
-## Evidence available
-- Main v7 schema defines text primary keys for Task, Follow-up, Project, Tag, Person and metadata records, with composite keys on relation tables.
-- Main v7 `project_items`, `task_tags`, `checklist_items`, `task_people` and `follow_up_people` have relational keys; exact cascade/delete semantics require complete PRAGMA/source extraction.
-- PR #3384 v19 code includes a `task_reminders` rebuild that snapshots selected columns, recreates the table without `is_legacy_task_reminder`, copies rows, compares row counts and selected values, then drops the temporary table.
-- PR #3384 v19 code includes a Task rebuild that copies a canonical projection to `tasks__canonical_v19`, compares row counts and values, then drops and renames tables. The implementation defers retirement if it detects unknown columns, custom indexes, triggers, constraints or outgoing foreign keys.
-- The same source preserves explicit JSON key presence for legacy reminder/follow-up fields and merges Follow-up metadata rather than blindly replacing an existing record.
-- PR #3463 description documents proposed D01–D05 tests including independent SQLite-file restore and injected failure points, but explicitly says those suites were not accepted until exact-SHA workflows complete.
+## Destructive operations and preservation controls found in source
+### v13 — legacy Follow-up and People retirement
+Source: `7bcd218254c7931a766bdd091bb3d39483c1888e`, `lib/services/g1_drift_schema.dart`, lines 218–367.
+- Copies legacy People into canonical `persons`.
+- Copies legacy Follow-up rows into `follow_up_records`.
+- Copies Follow-up/Person links into `follow_up_record_people`.
+- Converts old reminder schedules into `task_reminders`.
+- Drops `follow_up_people`, `follow_ups`, `people` at lines 361, 364, 367.
+- Potential risk: malformed legacy rows, duplicate IDs, missing Person references or failed/partial source mappings. The transaction and fixture must prove all source IDs and relation rows survive before table retirement.
+- Rollback/retry: source code has transactional installation; no independent v13 physical-file failure/retry proof retrieved in this run.
 
-## Not proven
-- No exact v7→v20 file-backed migration was executed in this COMMAND 40-R run.
-- No real source fixture with named test IDs was migrated and compared.
-- No complete before/after row-count or field-by-field preservation matrix exists for versions 7–20.
-- No full FK/orphan/unique validation across all historical edges was run.
-- No complete retry, rollback, interruption or crash-recovery proof was produced here.
-- No independent production backup/restore round trip was performed.
-- No claim is made that any historical destructive step is lossless.
+### v14 and v15 — Task and Task-person rebuilds
+Sources: v14 commit `102e7d4f...`, v15 commit `1313c3e5...`.
+- v14 builds `tasks_canonical_v14`, copies a selected Task projection, then drops/renames Tasks at lines 409–421.
+- v15 copies `task_people` into `task_persons`, drops `task_people` at line 266, and rebuilds Tasks again at lines 455–467.
+- Potential risk: fields omitted from the projection, unknown columns, custom indexes/triggers, outgoing/incoming FK behavior and unrecognized data shapes.
+- IDs are included in the canonical projection, but full ID/value preservation has not been tested from a Main v7 physical fixture.
 
-## Preservation gate
-Before destructive retirement, capture each source table's row count, primary-key set, complete field mapping, relation mapping, unresolved-exception inventory and recovery artifact. After migration compare all values and IDs, run `PRAGMA foreign_key_check` and `PRAGMA integrity_check`, then repeat after close/reopen and retry. Any mismatch is FAIL; missing evidence is BLOCKED.
+### v18 — Reminder table rebuild
+Source: `bceadc8f...`, lines 351–439.
+- Captures selected reminder columns before rebuild.
+- Renames old table, creates canonical table, copies id/task_id/title/remind_at/is_all_day/sequence/is_enabled.
+- Compares row counts and every selected canonical value.
+- Drops retired table.
+- Risk: noncanonical extra columns, indexes/triggers or unselected data are not represented in the copied projection; exact guard behavior and rollback need fixture tests.
 
-**Result: BLOCKED.** No valuable record is authorized for deletion.
+### v19 — canonical entity transfer and rebuild
+Source: `3bede0d3...`, blob `9f0243df...`.
+- Installer temporarily disables FK enforcement during the transaction and checks FK violations before commit.
+- Transfers legacy People, Task People, Follow-ups and Reminder information into canonical tables.
+- Preserves explicit JSON missing/NULL/FALSE/TRUE states in the Task envelope.
+- Reminder rebuild compares selected columns before/after.
+- Task rebuild preserves the declared canonical projection and fails closed on unknown columns, custom indexes, triggers or outgoing foreign keys; legacy scheduling fields are copied into JSON before retirement.
+- Risk: preservation is proven only for the selected projection and covered fixture cases, not all possible production shapes.
+
+### v20 — M2M hierarchy
+Source: `81208296...`, `lib/services/g1_many_to_many_hierarchy_migration.dart`.
+- Adds `center_projects`, `categories`, `project_categories`, three optional Task FK columns, indexes and compatibility triggers.
+- Uses stable generated IDs for legacy categories.
+- Copies only valid source relationships; ambiguous or missing links are written to an exception table.
+- Does not delete v19 source membership tables.
+- Risk: unresolved relationship exceptions remain intentionally unresolved; no claim of semantic relationship parity for every Task.
+
+## Existing test evidence (not Main v7 acceptance)
+- PR #3463 exact SHA `812082964c649be7660c41213209ec34aea7167b`: v20 lifecycle and historical parity workflow passed; tests include injected failure stages and independent physical SQLite backup/restore.
+- Same historical SHA: A-D SQLite snapshot workflow passed five real reopen cycles.
+- These results are not evidence for Main v7→v20 or current #3495 HEAD because the source branch is diverged and its base is not the same tested commit.
+
+## Current exact canonical SHA
+At `f5c64285687cd2665cc383e10277cb6e0266f4c2`:
+- Build failed: two test shards failed.
+- One failure is `g1_drift_schema_test.dart` v8→v9 test; test setup attempted an executor operation before `ensureOpen()`.
+- Another failure is a Person Directory UI assertion.
+- COMMAND 20-E storage-persistence phase passed, but final evidence acceptance failed and reported NO-GO.
+- Follow-up file persistence and Device Smoke passed.
+- No historical Main v7 fixture or v7→v20 migration test was run.
+
+**Result: BLOCKED.** No record or identifier is certified as preserved across the full historical path.
