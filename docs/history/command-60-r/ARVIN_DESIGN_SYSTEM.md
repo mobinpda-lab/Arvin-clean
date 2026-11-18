@@ -21,3 +21,13 @@ A prior approved product visual reference recorded: primary #4A4CAB, soft #E9EAF
 
 ## Gate
 No global redesign commit until page inventory, font-source reconciliation and shared-component ownership are documented. Each page requires before/after screenshot evidence and functional regression tests.
+
+
+
+## Implementation update — 2026-11-19
+- Existing palette authority is `lib/arvin_colors.dart`; key colors match the established brand reference.
+- Existing global Material theme is configured inline in `lib/main.dart`; it sets Vazirmatn family, base type themes, card/input shapes, light/dark palettes and app surfaces.
+- Existing typography currently registers Vazirmatn weights 400/500/700. Text theme uses 500/600/700 styles in several base slots; full role-by-role weight/line-height audit remains open.
+- Lane B added `lib/theme/arvin_design_tokens.dart` with spacing, radii, motion, touch target and typography scales, then refactored primary navigation to consume canonical colors and shared radius/motion values.
+- PR #3548 is Draft and its exact-head Build/Device Smoke are queued at last poll. Token foundation is IMPLEMENTED, NOT TESTED, NOT ACCEPTED.
+- Raw literals remain in multiple widgets; full centralization is not complete. The current design system is a working foundation, not a full redesign.
