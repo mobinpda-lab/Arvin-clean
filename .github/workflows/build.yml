@@ -95,10 +95,7 @@ jobs:
           set -euo pipefail
           # These harnesses require the pinned historical V19 checkout and dedicated SQLite fixtures.
           mapfile -t test_files < <(
-            find test -type f -name '*_test.dart' \\
-              ! -path 'test/command49_v19_safety_test.dart' \\
-              ! -path 'test/command50_occurrence_forensic_test.dart' \\
-              | sort
+            find test -type f -name '*_test.dart' ! -path 'test/command49_v19_safety_test.dart' ! -path 'test/command50_occurrence_forensic_test.dart' | sort
           )
           test "${#test_files[@]}" -gt 0
           echo "GENERAL_TEST_FILE_COUNT=${#test_files[@]}"
