@@ -320,7 +320,7 @@ jobs:
                     const JsonEncoder.withIndent('  ').convert(snapshot);
                 // ignore: avoid_print
                 print('SNAPSHOT_JSON_ENCODE_DONE;bytes=${encodedSnapshot.length}');
-                await snapshotFile.writeAsString(encodedSnapshot);
+                snapshotFile.writeAsStringSync(encodedSnapshot);
                 // ignore: avoid_print
                 print('SNAPSHOT_WRITE_DONE');
                 // ignore: avoid_print
