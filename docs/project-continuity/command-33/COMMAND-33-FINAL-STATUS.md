@@ -207,3 +207,11 @@ This is the only defensible final status under REV10 and the COMMAND 33 acceptan
 **No merge. No release. No deployment. No Main change. No production data migration. No PR or branch deletion.**
 
 **Continue only on PR #3495 / `recovery-02/main-based-integration`.**
+
+
+## Post-report live verification addendum — 2026-11-18
+
+- After the report file was committed, canonical branch HEAD was `8a8f6c06be8be76cfe45bde4f8e4756b5f29bfba`; Main remained `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3495 remained OPEN / DRAFT / UNMERGED.
+- No check runs were registered for that report commit at the time of verification.
+- Zero-Dollar workflow run `44239948148` was FAILURE; its Jobs API again returned `total_count: 0`.
+- The latest completed product-code test evidence therefore remains the exact code SHA `facef07ecf9db4cd627f7aaad6e123f2c6ad5023`. Documentation-only commits do not change product code, but the final latest branch head still lacks completed exact-SHA CI evidence. Overall status remains **BLOCKED**.
