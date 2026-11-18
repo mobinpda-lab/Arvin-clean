@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'theme/arvin_design_tokens.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
@@ -3030,16 +3031,33 @@ class _HomePageState extends State<HomePage> {
       body: SafeArea(
         child: Column(children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(16, compactHome ? 4 : 8, 16, 5),
-            child: Row(children: [
-              IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
-              Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w700)),
-                SizedBox(height: 2),
-                Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
-              ])),
-              IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
-            ]),
+            padding: EdgeInsets.fromLTRB(ArvinSpacing.x4, compactHome ? ArvinSpacing.x1 : ArvinSpacing.x2, ArvinSpacing.x4, 5),
+            child: Row(
+              // Keep physical control placement stable while the app remains RTL:
+              // notifications on the left, menu on the right.
+              textDirection: TextDirection.ltr,
+              children: [
+                IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
+                Expanded(child: Column(children: [
+                  Container(
+                    key: const ValueKey('home-bismillah-capsule'),
+                    padding: const EdgeInsets.symmetric(horizontal: ArvinSpacing.x2, vertical: ArvinSpacing.x1),
+                    decoration: BoxDecoration(
+                      color: ArvinColors.primarySoft,
+                      borderRadius: BorderRadius.circular(ArvinRadii.pill),
+                    ),
+                    child: const Text(
+                      'بسم الله الرحمن الرحیم',
+                      key: ValueKey('home-bismillah'),
+                      style: TextStyle(color: ArvinColors.primary, fontSize: ArvinTypography.label, fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  const Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
+                ])),
+                IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
+              ],
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),
