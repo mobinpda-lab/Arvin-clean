@@ -68,3 +68,7 @@ The documents define a proposed additive forward-repair step, an explicit source
 - V20: PROHIBITED until separately authorized after acceptance.
 - Main: PROTECTED.
 - Merge / Release / Deploy: PROHIBITED.
+
+
+## Deployment-lineage qualification
+A direct Main source read confirms Main schema v7 (blob `cd065ff25c680ed064e89068b3d063e737091025`). PR #3384 (V19) and PR #3463 (V20 candidate) are both OPEN / DRAFT / UNMERGED; #3463 is stacked on #3384, and #3384 is not based on Main. Consequently this command does not claim V19 is the deployed or universal user-database baseline. Any future migration must identify each database by structural fingerprint and provenance. Main-v7 requires its own approved sequential path.
