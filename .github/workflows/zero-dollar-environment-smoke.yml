@@ -204,10 +204,10 @@ jobs:
           [[ -x "$sdkmanager" ]]
           [[ -x "$avdmanager" ]]
           set +o pipefail
-yes | "$sdkmanager" --licenses >/dev/null
-license_status="${PIPESTATUS[1]}"
-set -o pipefail
-[[ "$license_status" == "0" ]]
+          yes | "$sdkmanager" --licenses >/dev/null
+          license_status="${PIPESTATUS[1]}"
+          set -o pipefail
+          [[ "$license_status" == "0" ]]
           "$sdkmanager" --install \
             "platform-tools" \
             "platforms;android-35" \
