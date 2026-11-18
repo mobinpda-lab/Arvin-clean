@@ -43,3 +43,16 @@ Historical source: `lib/services/recurrence_sql_codec.dart`, blob `29ee7c0c778d9
 - Unknown recurrence JSON keys are not represented in the normalized row. The legacy `recurrence_json` column is not removed by this codec, so source JSON remains available there as evidence.
 
 No timestamp, timezone, enum, NULL or unknown-field normalization was added by COMMAND 50. All statements above describe the unmodified historical code.
+
+## Timestamp, identity and relation limits
+
+The legacy Occurrence map has no independent `id`, `createdAt`, `executedAt` or `recurrenceId` field in the historical shape. Its identity is the owning Task ID plus the timestamp map key; `scheduledDate` is a redundant consistency check. Therefore no original per-Occurrence creation/execution timestamp or recurrence identifier exists to copy. The destination ID is synthesized deterministically; the destination row has `scheduled_at` and nullable `completed_at`, but no `created_at`, `executed_at` or `recurrence_id` column.
+
+Recurrence is linked at Task level: `task_recurrence_rules.task_id` references `tasks.id`, while `task_occurrences.task_id` also references `tasks.id`. There is no direct foreign key from an Occurrence to a recurrence rule. This is the complete relationship represented by V19, not an omitted value during the migration.
+
+## First-difference boundary
+
+- First installation: A (V7 extraction) reads the legacy map; B (Installer) calls `writeTask`; C (SQL) receives the expected rows; D (Codec readback) reconstructs the expected map and parity passes. Only then are the two legacy Occurrence keys removed.
+- Second installation: A now reads no legacy Occurrence keys; B still processes that Task and builds empty history/checklist maps; C leaves the existing destination rows intact; D reads those rows and compares a non-empty readback with the empty extracted maps. The mismatch is raised at D, after the first successful transfer. The transaction aborts the second installation.
+
+The V19 installer does not put an Occurrence migration marker or a per-Task completion marker around `migrateLegacyEnvelopes`, unlike the recurrence migration's `recurrence_rules_migrated_v1` marker.
