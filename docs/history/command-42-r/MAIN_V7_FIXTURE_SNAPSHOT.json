@@ -1,0 +1,17 @@
+{
+  "fixture": "main_v7_fixture.sqlite",
+  "schema_source_commit": "45e4202b03a434459e4c021a04efa7e8396359db",
+  "schema_source_blob": "cd065ff25c680ed064e89068b3d063e737091025",
+  "schema_version": 7,
+  "sqlite_runtime": "3.46.1 (Python sqlite3; not Android runtime)",
+  "tables": ["arvin_storage_meta","checklist_items","follow_up_people","follow_ups","people","project_items","projects","tags","task_people","task_tags","tasks","taxonomy_categories"],
+  "row_counts": {"arvin_storage_meta":1,"checklist_items":2,"follow_up_people":1,"follow_ups":1,"people":1,"project_items":2,"projects":1,"tags":1,"task_people":1,"task_tags":1,"tasks":2,"taxonomy_categories":1},
+  "ids": {"tasks":["task-active-001","task-done-002"],"projects":["project-001"],"tags":["tag-001"],"people":["person-001"],"follow_ups":["followup-001"]},
+  "relation_counts": {"project_items":2,"task_people":1,"task_tags":1,"follow_up_people":1,"follow_ups":1,"checklist_items":2},
+  "integrity_check": "ok",
+  "foreign_key_check_violations": 0,
+  "closed_and_reopened": true,
+  "file_size_bytes": 106496,
+  "sha256": "68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0",
+  "limitations": ["No templates table exists in Main v7 DDL","No normalized task_reminders table exists in Main v7 DDL","No historical migration was executed"]
+}
