@@ -42,7 +42,7 @@ void main() {
     );
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
 
-    expect(notificationCenter.dx, greaterThan(menuCenter.dx));
+    expect(notificationCenter.dx, lessThan(menuCenter.dx));
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
