@@ -34,3 +34,9 @@ The artifacts are real GitHub Actions uploads, but they contain diagnostic logs 
 ## Final disposition
 
 No content-equivalence claim can be made. Reproducibility acceptance requires a stable NativeDatabase smoke test, a complete snapshot, and two successful independent executions on the same SHA. Migration v19/v20, schema changes, Main changes, merge, release and deployment remain prohibited.
+
+## Addendum — latest diagnostic evidence
+
+Run 44295851388 (SHA 80ffa54ae9f2d5b2556eccb6dbfe697b6006fa88) produced matching toolchain, dependency and fixture evidence in v19/v20. Both lanes read all tables and completed integrity checks; both encoded a normalized 3,886-character snapshot JSON, then terminated with SIGBUS before asynchronous file write completion. This is not a successful snapshot and cannot be used for parity comparison.
+
+A follow-up commit 5646cfc06977e3d0b4999874b33aa8c0892c9296 changes the snapshot output to synchronous file writing. Run 44296037837 on that SHA was still in progress at the time of this update. No reproducibility pass is claimed. Acceptance still requires two successful independent runs on one identical SHA with matching normalized snapshot content.
