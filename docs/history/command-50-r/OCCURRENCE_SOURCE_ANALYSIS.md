@@ -44,3 +44,11 @@ Occurrence IDs are generated deterministically by `OccurrenceSqlCodec.occurrence
 ## Test evidence source
 
 The historical COMMAND 49 runner is `test/command49_v19_safety_test.dart` at canonical commit `1efd9b1fc41b15ac94dd67d8b128dc702ab7997c`. The new COMMAND 50 forensic harness is test-only and does not alter the historical migration source.
+
+## Final forensic harness and workflow identity
+
+- COMMAND 50 test harness at execution commit `5d5e63d9dbe95077a1e501e69576d299897cab11`: `test/command50_occurrence_forensic_test.dart`, blob `02ee6d0a20e688ca9220a74a0acc18ec06fc7e99`.
+- Workflow: `.github/workflows/command-50-r-occurrence-forensic.yml`; current workflow blob `82f0d4c53ba62506b50da074b72ae44da7d88d1b` (workflow logic was fixed before the final run).
+- Final physical run: `44367002583`; job `135024297667`; artifact `14456982207`.
+- Artifact SHA-256: `080d32fde09c0d2160ec121f1c3e5854606659ef8aa14e1ebd4f60c61f4f8260`.
+- The run verified the exact historical source blobs listed above and the immutable V7 fixture hash.
