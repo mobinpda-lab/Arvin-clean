@@ -4,6 +4,7 @@
 **Repository:** `mobinpda-lab/Arvin-clean`  
 **Branch:** `recovery-02/main-based-integration`  
 **Reference checkpoint:** `f211326e7615f1c907494232dd3aec8d4732c83c`  
+**Workflow commit:** `bfa7b46b3a2c4ed27657024217d3a0b329a73517`  
 **PR #3495:** OPEN / DRAFT / UNMERGED
 
 | Criterion | Status | Evidence |
@@ -13,8 +14,8 @@
 | Exact bundled Dart runtime recorded | PENDING | Requires Actions execution |
 | Historical v19/v20 lockfile and key package versions identified | PASS | Lockfile blob ceeb9f91e3dd7f6877b1a024c0903fc6ae9c44c4 |
 | Original installer/model/codec source anchors identified | PASS | Exact PR #3384 and #3463 source commits |
-| Independent reproducible workflow authored | PENDING | Workflow commit and syntax/runtime validation required |
-| GitHub Actions runner completed | BLOCKED | Not yet executed |
+| Independent reproducible workflow authored and committed | PASS | Workflow commit bfa7b46b3a2c4ed27657024217d3a0b329a73517 |
+| GitHub Actions runner completed | BLOCKED | No verified run result/artifact yet |
 | Dependency resolution completed | BLOCKED | Actions evidence pending |
 | Fixture checksum verified in runner | BLOCKED | Actions evidence pending |
 | Fixture opened without migration | BLOCKED | Actions evidence pending |
