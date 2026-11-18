@@ -112,9 +112,6 @@ jobs:
                   'result': 'done'
               }
           }
-          envelope['checklistOccurrences'] = {
-              scheduled: ['[x] مرحله اول']
-          }
           db.execute(
               'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
               (json.dumps(envelope, ensure_ascii=False, separators=(',', ':')), 'task-active-001')
