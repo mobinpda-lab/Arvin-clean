@@ -2,9 +2,11 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'g1_rev10_hierarchy_v9_migration.dart';
+
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 8;
+  static const int version = 9;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -57,7 +59,10 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
-  static Future<void> install(QueryExecutor executor) async {
+  static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
@@ -112,6 +117,8 @@ class G1DriftSchema implements QueryExecutorUser {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
     }
+    await G1Rev10HierarchyV9Migration(failureInjector: failureInjector)
+        .migrate(executor);
   }
 
   /// Copies historical task-person identities into the canonical directory.

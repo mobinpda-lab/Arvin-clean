@@ -71,6 +71,85 @@ void main() {
     expect(foreignKeys.single['foreign_keys'], 1);
   });
 
+
+  test('v8 to v9 hierarchy migration preserves legacy rows and classifies ambiguous links', () async {
+    await database.runCustom('PRAGMA foreign_keys = ON');
+    await database.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0,
+        title TEXT NOT NULL, description TEXT NOT NULL, created_at TEXT NULL,
+        updated_at TEXT NULL, due_date TEXT NULL, follow_up_enabled INTEGER NOT NULL,
+        follow_up_date TEXT NULL, category TEXT NULL, notebook_kind TEXT NULL,
+        reminder_date TEXT NULL, priority TEXT NOT NULL, archived INTEGER NOT NULL,
+        trashed INTEGER NOT NULL, completed INTEGER NOT NULL, recurrence_json TEXT NULL
+      )
+    ''');
+    await database.runCustom('CREATE TABLE projects (id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0, legacy_payload_json TEXT NULL)');
+    await database.runCustom('CREATE TABLE project_items (project_id TEXT NOT NULL, task_id TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY(project_id, task_id))');
+    await database.runCustom('CREATE TABLE taxonomy_categories (name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL)');
+    await database.runCustom('CREATE TABLE arvin_storage_meta (key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)');
+    await database.runCustom("INSERT INTO projects (id, name) VALUES ('project-a', 'پروژه الف'), ('project-b', 'پروژه ب')");
+    await database.runCustom("INSERT INTO tasks (id, title, description, follow_up_enabled, category, priority, archived, trashed, completed) VALUES ('task-single', 'تک‌پروژه', '', 0, NULL, 'none', 0, 0, 0), ('task-multi', 'چندپروژه', '', 0, NULL, 'none', 0, 0, 0), ('task-category', 'دسته مستقل', '', 0, 'شخصی', 'none', 0, 0, 0), ('task-ambiguous-category', 'دسته مبهم', '', 0, 'کاری', 'none', 0, 0, 0)");
+    await database.runCustom("INSERT INTO project_items (project_id, task_id, ordinal) VALUES ('project-a', 'task-single', 0), ('project-a', 'task-multi', 0), ('project-b', 'task-multi', 1), ('project-a', 'task-ambiguous-category', 0)");
+    await database.runCustom("INSERT INTO taxonomy_categories (name, created_at) VALUES ('قدیمی', '2026-01-01T00:00:00Z')");
+    await G1DriftSchema.install(database);
+
+    final schemaVersion = await database.runSelect('PRAGMA user_version', const []);
+    expect(schemaVersion.single.values.first, 9);
+    final single = await database.runSelect("SELECT project_id, category_id, category FROM tasks WHERE id = 'task-single'", const []);
+    expect(single.single['project_id'], 'project-a');
+    expect(single.single['category_id'], isNull);
+
+    final multi = await database.runSelect("SELECT project_id FROM tasks WHERE id = 'task-multi'", const []);
+    expect(multi.single['project_id'], isNull);
+    final ambiguousCategory = await database.runSelect("SELECT project_id, category_id, category FROM tasks WHERE id = 'task-ambiguous-category'", const []);
+    expect(ambiguousCategory.single['project_id'], 'project-a');
+    expect(ambiguousCategory.single['category_id'], isNull);
+    expect(ambiguousCategory.single['category'], 'کاری');
+
+    final standaloneCategory = await database.runSelect("SELECT category_id, category FROM tasks WHERE id = 'task-category'", const []);
+    expect(standaloneCategory.single['category_id'], isNotNull);
+    expect(standaloneCategory.single['category'], 'شخصی');
+
+    final exceptions = await database.runSelect('SELECT code FROM arvin_migration_exceptions ORDER BY code', const []);
+    expect(exceptions.map((row) => row['code']), containsAll([
+      'TASK_MULTIPLE_LEGACY_PROJECTS',
+      'TASK_PROJECT_CATEGORY_EDGE_UNRESOLVED',
+    ]));
+    final sourceMemberships = await database.runSelect('SELECT task_id FROM project_items ORDER BY task_id, project_id', const []);
+    expect(sourceMemberships, hasLength(4));
+    final categoryCatalog = await database.runSelect('SELECT name FROM taxonomy_categories WHERE name = ?', const ['قدیمی']);
+    expect(categoryCatalog, hasLength(1));
+  });
+
+  test('v8 to v9 migration rolls back atomically and can be retried', () async {
+    await G1DriftSchema.install(database, failureInjector: (stage) {
+      if (stage == 'after_legacy_relationship_transfer') {
+        throw StateError('injected v9 migration failure');
+      }
+    }).catchError((_) {});
+    final marker = await database.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      const ['rev10_hierarchy_schema_version'],
+    );
+    expect(marker, isEmpty);
+    final columns = await database.runSelect("PRAGMA table_info('tasks')", const []);
+    expect(columns.map((row) => row['name']), isNot(contains('project_id')));
+
+    await G1DriftSchema.install(database);
+    final installed = await database.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      const ['rev10_hierarchy_schema_version'],
+    );
+    expect(installed.single['value'], '9');
+    await G1DriftSchema.install(database);
+    final duplicate = await database.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      const ['rev10_hierarchy_schema_version'],
+    );
+    expect(duplicate, hasLength(1));
+  });
+
   test('schema installation is idempotent', () async {
     await G1DriftSchema.install(database);
     await G1DriftSchema.install(database);
