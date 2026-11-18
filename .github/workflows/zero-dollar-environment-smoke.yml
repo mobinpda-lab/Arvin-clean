@@ -19,17 +19,18 @@ jobs:
     timeout-minutes: 25
     env:
       EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
-      TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-      EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      TARGET_SHA: ${{ github.sha }}
+      EVENT_HEAD_REF: ${{ github.ref_name }}
     steps:
       - name: Verify immutable refs and runner class
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-          RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
         run: |
           set -Eeuo pipefail
+          RUNNER_ENVIRONMENT_VALUE="${{ runner.environment }}"
+          echo "RUNNER_ENVIRONMENT_VALUE=$RUNNER_ENVIRONMENT_VALUE" >> "$GITHUB_ENV"
           [[ "$GITHUB_EVENT_NAME" == "push" ]]
           [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
           [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
@@ -112,8 +113,6 @@ jobs:
       - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
         shell: bash
         env:
-          ANDROID_USER_HOME: ${{ runner.temp }}/android-user
-          RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
         run: |
           set -Eeuo pipefail
           stage="initialization"
@@ -151,6 +150,7 @@ jobs:
           }
           trap finish EXIT
 
+          ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
           mkdir -p "$ANDROID_USER_HOME" "$flutter_root"
           {
             echo "Runtime environment"
