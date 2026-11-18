@@ -3,9 +3,6 @@ name: Zero Dollar Environment Smoke
 on:
   push:
     branches: [recovery-02/main-based-integration]
-  pull_request:
-    types: [labeled]
-    branches: [main]
 
 permissions:
   contents: read
@@ -24,17 +21,17 @@ jobs:
       EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
       TARGET_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
       EVENT_HEAD_REF: ${{ github.event.pull_request.head.ref || github.ref_name }}
-      RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
-      ANDROID_USER_HOME: ${{ runner.temp }}/android-user
     steps:
       - name: Verify immutable refs and runner class
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
+        env:
+          RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
         run: |
           set -Eeuo pipefail
-          [[ "$GITHUB_EVENT_NAME" == "push" || "$GITHUB_EVENT_NAME" == "pull_request" ]]
+          [[ "$GITHUB_EVENT_NAME" == "push" ]]
           [[ "$RUNNER_ENVIRONMENT_VALUE" == "github-hosted" ]]
           [[ "$EVENT_HEAD_REF" == "recovery-02/main-based-integration" ]]
 
@@ -115,6 +112,8 @@ jobs:
 
       - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
         shell: bash
+        env:
+          ANDROID_USER_HOME: ${{ runner.temp }}/android-user
         run: |
           set -Eeuo pipefail
           stage="initialization"
