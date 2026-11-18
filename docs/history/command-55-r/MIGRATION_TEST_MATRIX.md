@@ -44,3 +44,8 @@ Each test uses a disposable file-backed SQLite fixture, a stable fixture ID, and
 
 ## Evidence package
 Every run must include exact source SHA, app/test commit SHA, fixture SHA-256, SQLite version, test command, exit code, logs, before/after snapshots, receipt, backup/restore evidence, integrity checks and artifact identifiers. A test not run is PENDING, never PASS.
+
+| T31 | Main-v7 database (current Main schema), not V19 | attempt Occurrence-only forward step | reject as wrong predecessor; require separately approved sequential v7 path | schema fingerprint and unchanged DB snapshot | direct v7→V20/Occurrence shortcut |
+| T32 | envelope has `occurrenceHistory:null` or `checklistOccurrences:null` | classify source | retain EXPLICIT_NULL; no fabricated empty Map | containsKey/value snapshot | collapse to ABSENT or PRESENT_EMPTY |
+| T33 | envelope has present empty occurrence Map | migrate | record PRESENT_EMPTY in receipt; no generated rows | source fingerprint + zero-row counts | classify as missing source |
+| T34 | envelope has source key absent | preflight without prior receipt | AMBIGUOUS; stop | unchanged DB snapshot | assume no Occurrence history |
