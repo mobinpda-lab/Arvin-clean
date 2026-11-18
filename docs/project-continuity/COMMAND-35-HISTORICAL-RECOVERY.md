@@ -12,7 +12,7 @@ IN PROGRESS — forensic inventory and first-pass source comparison performed. N
 ## Live canonical state
 - PR #3495: OPEN, DRAFT, UNMERGED; base `main`; head `recovery-02/main-based-integration`.
 - Live head at audit start: `ed4f1e0c0e01f186155b194b34212b7f2ffb584b`.
-- PR metadata: 175 commits, 141 changed files.
+- PR metadata at audit start: 175 commits, 141 changed files.
 - Repository permissions: pull, push, maintain and admin are true.
 - The historical SHA values supplied in the command are not used as current HEAD.
 
@@ -28,18 +28,31 @@ IN PROGRESS — forensic inventory and first-pass source comparison performed. N
 | #3470 | Open/Draft | `d7c9322afb9cb32e607f53e139f8bd82a984c805` | 24 | 21 | Vazirmatn weight normalization candidate |
 | #1901 | Open, not merged | `ba8e26c2388c4b74bc0ecc40cf50b0fd0b02960a` | 86 | 27 | Product regression work: Home, Checklist, Notebook, Quick Add, taxonomy |
 
+## Additional related PRs identified
+- #3356 (open): one-file SQL envelope parity change, stacked on #3052.
+- #3364 (open): Task model, schema, SQL writer and migration tests; stacked on #3356.
+- #3366 (open): Task editor and regression tests; based on #3052 recovery branch.
+- #3460, #3461 and #3462 (closed, unmerged): three earlier M2M migration candidates. Their migration blobs differ from #3463; #3461 and #3462 share a blob, while #3460 is a separate revision. These must remain part of M2M history review.
+- #3341 (closed, unmerged): file-backed Project and TaskReminder tests. The Project persistence test is absent from Canonical; TaskReminder test differs from Canonical.
+- #3348 (closed, unmerged): file-backed Project/multi-reminder lifecycle; its Project SQLite test is absent from Canonical; its TaskReminder test blob is identical to Canonical.
+- #3365 (closed, unmerged): Calendar/device-smoke navigation test changes; Calendar interaction test differs from Canonical.
+- #3340, #3388 and #3448 are already described in the #3495 continuity record as superseded governance/documentation PRs. Their closure is not re-certified by this COMMAND 35 first pass.
+
+## Repository-wide PR inventory limitation
+GitHub PR search returned 100 open and 100 closed results at the requested page size. This is a capped result set, not proof that the repository has only 100 in either state. The full related-PR inventory therefore remains incomplete and requires narrower topic/date/branch searches.
+
 ## Recovery rules applied
 1. PR title, filename equality and commit count are not proof of transfer.
-2. Blob SHA comparisons were made for the critical M2M files and selected #3052 architecture files.
+2. Blob SHA comparisons were made for critical M2M files and selected #3052 architecture files.
 3. The historical v20 M2M migration is not applied to the current v8 canonical schema.
-4. The test-only diagnostics are not promoted into duplicate production workflows.
+4. Test-only diagnostics are not promoted into duplicate production workflows.
 5. Typography is assessed against the owner-approved Vazirmatn family; VazirHarf is not adopted as a second UI family.
 6. CI outcomes are attached to their exact historical SHA only.
 
 ## Incomplete work / blockers
 - Full unique-commit and blob-by-blob comparison of all 395 #3052 files remains open.
 - Full file/commit dependency closure of #3384 and all stacked ancestors remains open.
-- Full PR inventory beyond the eight named sources is not yet certified complete.
+- Full PR inventory beyond the named and additionally identified sources is not yet certified complete.
 - #1901 has no workflow runs returned for its inspected head; its product requirements and patches require exact-current-state comparison.
 - Canonical M2M integration and sequential v8→v19→v20 migration are not accepted.
 
