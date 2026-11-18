@@ -34,3 +34,11 @@ Main: 45e4202b03a434459e4c021a04efa7e8396359db (unchanged)
 - COMMAND 45-R acceptance: NO-GO.
 
 No v19 or v20 migration was invoked. The workflow uses a temporary extracted copy of the fixture. No Main change, merge, release or deployment was performed.
+
+## Addendum — additional diagnostic run (18 Nov 2026)
+
+Run 44295851388 executed on SHA 80ffa54ae9f2d5b2556eccb6dbfe697b6006fa88 and failed in both matrix lanes. Detailed logs now prove that all 12 expected tables were read, the task IDs and SQLite metadata were queried, `integrity_check` and `foreign_key_check` completed, and the normalized snapshot JSON was encoded (3,886 characters). The process then crashed with SIGBUS during asynchronous `File.writeAsString`, before the write-complete marker and artifact snapshot could be confirmed. This narrows the current failure to the asynchronous snapshot output / Dart runner interaction, not fixture opening or table reads.
+
+A follow-up change switched the snapshot write to synchronous `writeAsStringSync` on SHA 5646cfc06977e3d0b4999874b33aa8c0892c9296. Run 44296037837 was started on that SHA and was still in progress at report refresh. Its outcome is not yet accepted. No snapshot success is claimed until the new logs and uploaded files confirm it.
+
+The two required independent successful runs on the exact same SHA remain outstanding.
