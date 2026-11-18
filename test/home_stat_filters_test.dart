@@ -12,7 +12,7 @@ void main() {
     });
   });
 
-  testWidgets('Home exposes the four final grouping controls', (tester) async {
+  testWidgets('Home exposes four implemented filters while the REV10 Center filter is pending', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -69,6 +69,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-global-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
