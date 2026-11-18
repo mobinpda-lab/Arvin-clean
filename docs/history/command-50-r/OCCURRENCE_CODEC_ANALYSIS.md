@@ -56,3 +56,7 @@ Recurrence is linked at Task level: `task_recurrence_rules.task_id` references `
 - Second installation: A now reads no legacy Occurrence keys; B still processes that Task and builds empty history/checklist maps; C leaves the existing destination rows intact; D reads those rows and compares a non-empty readback with the empty extracted maps. The mismatch is raised at D, after the first successful transfer. The transaction aborts the second installation.
 
 The V19 installer does not put an Occurrence migration marker or a per-Task completion marker around `migrateLegacyEnvelopes`, unlike the recurrence migration's `recurrence_rules_migrated_v1` marker.
+
+## Final physical verification
+
+Run `44367002583` completed successfully with the final diagnostic harness. The source snapshot was captured, expected rows were derived from that snapshot, and SQL output was compared by Task ID + scheduled timestamp. The offset-bearing Occurrence timestamp remained byte-for-byte text in SQL; recurrence start/end timestamps with +03:30 were normalized to UTC by the historical Recurrence Codec. Explicit-null and unknown-state negative fixtures raised the expected parity errors while preserving their source JSON and leaving no partial Occurrence rows; integrity and foreign-key checks remained clean.
