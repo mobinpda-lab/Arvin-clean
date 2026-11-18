@@ -66,4 +66,26 @@ void main() {
     expect(after.single.people.single.id, person.id);
     expect(after.single.followUps.single.personIds, [person.id]);
   });
+  test('renaming a Person keeps the stable ID and updates historical Task labels', () async {
+    final store = TaskStore();
+    final original = PersonReference(id: 'person-rename-stable', displayName: 'نام قبلی');
+    await store.savePeopleDirectory([original]);
+    await store.save([
+      Task(
+        id: 'task-person-rename',
+        title: 'کار مرتبط',
+        people: [original],
+      ),
+    ]);
+
+    await store.savePeopleDirectory([
+      PersonReference(id: original.id, displayName: 'نام جدید'),
+    ]);
+
+    final reloaded = await store.load();
+    expect(reloaded.single.people.single.id, original.id);
+    expect(reloaded.single.people.single.displayName, 'نام جدید');
+    expect((await store.loadPeopleDirectory()).single.id, original.id);
+  });
+
 }
