@@ -704,29 +704,23 @@ class _HomePageState extends State<HomePage> {
     final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: SingleChildScrollView(
-        key: const ValueKey('home-filter-sort-scroll'),
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          textDirection: TextDirection.rtl,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-            const SizedBox(width: 8),
-            HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه‌ها', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-            const SizedBox(width: 8),
-            HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته‌ها', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-            const SizedBox(width: 8),
-            HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
-            const SizedBox(width: 4),
-            IconButton(
-              key: const ValueKey('home-sort'),
-              tooltip: 'مرتب‌سازی',
-              onPressed: _showHomeSortSheet,
-              icon: const Icon(Icons.sort_rounded),
-            ),
-          ],
-        ),
+      child: Wrap(
+        key: const ValueKey('home-filter-sort-wrap'),
+        textDirection: TextDirection.rtl,
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه‌ها', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته‌ها', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
+          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+          IconButton(
+            key: const ValueKey('home-sort'),
+            tooltip: 'مرتب‌سازی',
+            onPressed: _showHomeSortSheet,
+            icon: const Icon(Icons.sort_rounded),
+          ),
+        ],
       ),
     );
   }
