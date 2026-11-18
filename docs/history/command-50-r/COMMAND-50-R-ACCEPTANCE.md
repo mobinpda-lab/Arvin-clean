@@ -11,7 +11,7 @@
 
 The COMMAND 49 error occurs on the second installer invocation after the first migration succeeded and removed the old Occurrence keys from `legacy_payload_json`. The next invocation compares an empty legacy history with the still-existing normalized SQL Occurrences and raises a false parity mismatch. The physical database artifact proves the destination row survived and the source JSON keys had already been retired.
 
-Two additional parity hazards are identified directly in the historical codec: explicit NULL optional keys are omitted by readback, and unknown per-occurrence state keys have no destination representation. Their physical negative-fixture runs remain pending.
+Two additional parity hazards were physically reproduced: explicit NULL optional keys are omitted by readback, and unknown per-occurrence state keys have no destination representation. Both failed closed, preserved the original JSON, left no partial SQL Occurrence rows, and passed integrity/FK checks.
 
 ## Acceptance matrix
 
