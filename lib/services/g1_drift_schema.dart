@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'g1_rev10_hierarchy_v9_migration.dart';
+import 'g1_person_directory_exclusion_v1_migration.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
@@ -119,6 +120,7 @@ class G1DriftSchema implements QueryExecutorUser {
     }
     await G1Rev10HierarchyV9Migration(failureInjector: failureInjector)
         .migrate(executor);
+    await const G1PersonDirectoryExclusionV1Migration().migrate(executor);
   }
 
   /// Copies historical task-person identities into the canonical directory.
