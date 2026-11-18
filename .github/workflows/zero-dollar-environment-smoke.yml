@@ -245,7 +245,7 @@ jobs:
             -gpu swiftshader_indirect > "$emulator_log" 2>&1 &
           emulator_pid=$!
           export PATH="$sdk_root/platform-tools:$PATH"
-          timeout 180 adb wait-for-device
+          timeout 600 adb wait-for-device
           booted=""
           device=""
           for _ in $(seq 1 300); do
