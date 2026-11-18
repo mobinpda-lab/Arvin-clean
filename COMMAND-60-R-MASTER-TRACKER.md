@@ -63,3 +63,18 @@
 NOT STARTED · IN PROGRESS · BLOCKED · IMPLEMENTED · TESTED · ACCEPTED
 
 A document or APK alone is not product acceptance.
+
+
+
+## Lane PRs and implementation checkpoints — 2026-11-19
+Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75a`.
+- Lane D PR #3547 — Draft, branch `command-60-r/path-d-quality`, head `1c83db84145675aa31e67feef95c23ddd84c181c`. Changes: open executor before fixture SQL; correct exact Person deletion-dialog string. Build `44417802140` and Device Smoke `44417802091` queued at last poll; Follow-up Persistence `44417801990` SUCCESS. No merge.
+- Lane B PR #3548 — Draft, branch `command-60-r/path-b-ui-ux`, head `d6c7ebe135e8422fea37a85cd22eb0927e129770`. Shared design-token foundation and primary-navigation color/radius/motion centralization. Build `44418093105`, Device Smoke `44418093228`, Follow-up Persistence `44418093199` queued at last poll. No merge.
+- Lane A PR #3549 — Draft, branch `command-60-r/path-a-data-safety`, head `f5f93018a3133a0604f66cc317dbf8d664b78e01`. Adds file-backed Schema 9 Occurrence/Checklist/NULL/unknown nested metadata persistence test across three installs and fresh file reopen. No exact-SHA workflow run was visible at last poll; validation pending.
+- Lane C and E branches exist; no code PRs yet.
+
+## New source-backed product findings
+- Home has four filter cards (Time, Project, Category, Tags); REV10 requires five including Center. Five due-date groups are present separately.
+- Schema 9 creates Center/M2M tables, but canonical CenterStore and Center management page were not found; M2M Store/UI integration remains blocked.
+- Settings text-size slider exists; font-family picker does not. Font source conflict remains unresolved.
+- Main remained unchanged at `45e4202b03a434459e4c021a04efa7e8396359db`.
