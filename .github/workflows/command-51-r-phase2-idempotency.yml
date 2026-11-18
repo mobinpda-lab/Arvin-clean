@@ -1,0 +1,193 @@
+name: COMMAND 51-R PHASE 2 — Independent V19 Idempotency
+
+on:
+  push:
+    branches:
+      - test/command-51-r-phase2-idempotency
+    paths:
+      - '.github/workflows/command-51-r-phase2-idempotency.yml'
+      - 'test/command51_r_phase2_idempotency_test.dart'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: command-51-r-phase2-idempotency
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  FIXTURE_SOURCE_SHA: 'f211326e7615f1c907494232dd3aec8d4732c83c'
+  FIXTURE_ARCHIVE: 'test/fixtures/database/historical/main_v7_fixture.sqlite.gz'
+  EXPECTED_FIXTURE_SHA256: '68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0'
+  V19_SOURCE_SHA: '310c0e20e3447c488c1e1c102c38bea5040708ca'
+  V19_SCHEMA_BLOB: '9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21'
+
+jobs:
+  occurrence-forensics:
+    name: Historical V19 source-to-SQL Occurrence forensic matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout exact historical V19 source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.V19_SOURCE_SHA }}
+          fetch-depth: 0
+
+      - name: Retrieve approved forensic harness and verify historical source
+        shell: bash
+        env:
+          CANONICAL_SHA: ${{ github.sha }}
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${V19_SOURCE_SHA}"
+          actual_blob="$(git rev-parse HEAD:lib/services/g1_drift_schema.dart)"
+          test "${actual_blob}" = "${V19_SCHEMA_BLOB}"
+          git fetch --no-tags origin "${CANONICAL_SHA}"
+          git show "${CANONICAL_SHA}:test/command51_r_phase2_idempotency_test.dart" > test/command51_r_phase2_idempotency_test.dart
+          test -s test/command51_r_phase2_idempotency_test.dart
+          {
+            echo "CANONICAL_TEST_COMMIT=${CANONICAL_SHA}"
+            echo "V19_SOURCE_SHA=${V19_SOURCE_SHA}"
+            echo "V19_SCHEMA_BLOB=${actual_blob}"
+            echo "OCCURRENCE_CODEC_BLOB=$(git rev-parse HEAD:lib/services/occurrence_sql_codec.dart)"
+            echo "RECURRENCE_CODEC_BLOB=$(git rev-parse HEAD:lib/services/recurrence_sql_codec.dart)"
+            echo "TASK_MODEL_BLOB=$(git rev-parse HEAD:lib/models/task.dart)"
+            echo "TASK_STORE_BLOB=$(git rev-parse HEAD:lib/services/task_store.dart)"
+          } | tee command51-source-identity.txt
+
+      - name: Install SQLite and Flutter runtime
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y libsqlite3-dev gzip python3
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Extract immutable V7 fixture and create independent forensic copies
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "${FIXTURE_SOURCE_SHA}"
+          mkdir -p build/command-51-r
+          git show "${FIXTURE_SOURCE_SHA}:${FIXTURE_ARCHIVE}" > build/command-51-r/main-v7-fixture.sqlite.gz
+          gzip -dc build/command-51-r/main-v7-fixture.sqlite.gz > build/command-51-r/main-v7-source.sqlite
+          source_sha="$(sha256sum build/command-51-r/main-v7-source.sqlite | awk '{print $1}')"
+          test "${source_sha}" = "${EXPECTED_FIXTURE_SHA256}"
+          cp build/command-51-r/main-v7-source.sqlite build/command-51-r/base-matrix.sqlite
+          cp build/command-51-r/main-v7-source.sqlite build/command-51-r/explicit-null.sqlite
+          cp build/command-51-r/main-v7-source.sqlite build/command-51-r/unknown-occurrence-field.sqlite
+          python3 - <<'PY'
+          import json, sqlite3
+          root = 'build/command-51-r/'
+          def add_task(path, task_id, ordinal, title, history, recurrence=None, extra=None):
+              db = sqlite3.connect(path)
+              envelope = {'id': task_id, 'title': title, 'occurrenceHistory': history}
+              if recurrence is not None:
+                  envelope['recurrence'] = recurrence
+              if extra:
+                  envelope.update(extra)
+              db.execute(
+                  '''INSERT INTO tasks (
+                       id, storage_ordinal, title, description, follow_up_enabled,
+                       priority, archived, trashed, completed, legacy_payload_json
+                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                  (task_id, ordinal, title, '', 0, 'none', 0, 0, 0,
+                   json.dumps(envelope, ensure_ascii=False, separators=(',', ':')))
+              )
+              db.commit()
+              db.close()
+          base = root + 'base-matrix.sqlite'
+          add_task(base, 'c50-matrix-a', 990, 'Multiple statuses', {
+              '2026-11-01T08:00:00.000Z': {
+                  'scheduledDate': '2026-11-01T08:00:00.000Z', 'status': 'pending'
+              },
+              '2026-11-02T08:00:00.000Z': {
+                  'scheduledDate': '2026-11-02T08:00:00.000Z', 'status': 'completed',
+                  'completionDate': '2026-11-02T08:10:00.000Z', 'result': 'done'
+              },
+              '2026-11-03T08:00:00.000Z': {
+                  'scheduledDate': '2026-11-03T08:00:00.000Z', 'status': 'cancelled'
+              }
+          }, extra={'legacyCustomField': 'preserve-me', 'checklistOccurrences': {'2026-11-01T08:00:00.000Z': ['pack', 'snack']}})
+          add_task(base, 'c50-matrix-b', 991, 'Boundary and offset timestamps', {
+              '0001-01-01T00:00:00.000Z': {
+                  'scheduledDate': '0001-01-01T00:00:00.000Z', 'status': 'missed'
+              },
+              '9999-12-31T23:59:59.999Z': {
+                  'scheduledDate': '9999-12-31T23:59:59.999Z', 'status': 'skipped'
+              },
+              '2026-11-05T10:00:00+03:30': {
+                  'scheduledDate': '2026-11-05T10:00:00+03:30', 'status': 'pending'
+              }
+          })
+          add_task(base, 'c50-recurring', 992, 'Occurrence with recurrence', {
+              '2026-12-01T09:00:00.000Z': {
+                  'scheduledDate': '2026-12-01T09:00:00.000Z', 'status': 'pending'
+              }
+          }, recurrence={'frequency':'daily','interval':2,'active':True,'startDate':'2026-12-01T09:00:00+03:30','endDate':'2026-12-08T09:00:00+03:30'})
+          add_task(base, 'c50-no-recurrence', 993, 'Occurrence without recurrence', {
+              '2026-12-02T09:00:00.000Z': {
+                  'scheduledDate': '2026-12-02T09:00:00.000Z', 'status': 'pending'
+              }
+          })
+          add_task(root + 'explicit-null.sqlite', 'c50-explicit-null', 990, 'Explicit nulls', {
+              '2026-12-03T09:00:00.000Z': {
+                  'scheduledDate': '2026-12-03T09:00:00.000Z', 'status': 'pending',
+                  'completionDate': None, 'result': None
+              }
+          })
+          add_task(root + 'unknown-occurrence-field.sqlite', 'c50-unknown-state', 990, 'Unknown occurrence field', {
+              '2026-12-04T09:00:00.000Z': {
+                  'scheduledDate': '2026-12-04T09:00:00.000Z', 'status': 'pending',
+                  'futureField': 'must-not-disappear'
+              }
+          })
+          PY
+          {
+            echo "FIXTURE_SOURCE_SHA=${FIXTURE_SOURCE_SHA}"
+            echo "SOURCE_FIXTURE_SHA256=${source_sha}"
+            sha256sum build/command-51-r/*.sqlite
+          } | tee build/command-51-r/fixture-verification.txt
+
+      - name: Resolve historical dependencies without lockfile changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Execute COMMAND 51-R PHASE 2 idempotency stop test
+        shell: bash
+        env:
+          ARVIN_COMMAND50_DIR: ${{ github.workspace }}/build/command-51-r
+          ARVIN_COMMAND50_BASE_FIXTURE: ${{ github.workspace }}/build/command-51-r/base-matrix.sqlite
+          ARVIN_COMMAND50_NULL_FIXTURE: ${{ github.workspace }}/build/command-51-r/explicit-null.sqlite
+          ARVIN_COMMAND50_UNKNOWN_FIXTURE: ${{ github.workspace }}/build/command-51-r/unknown-occurrence-field.sqlite
+        run: |
+          set -euo pipefail
+          set +e
+          flutter test --reporter expanded test/command51_r_phase2_idempotency_test.dart 2>&1 | tee build/command-51-r/flutter-test.log
+          test_status=${PIPESTATUS[0]}
+          echo "FLUTTER_TEST_EXIT_CODE=${test_status}" | tee build/command-51-r/exit-code.txt
+          find build/command-51-r -type f -print0 | sort -z | xargs -0 sha256sum > build/command-51-r/evidence-sha256.txt
+          exit "${test_status}"
+
+      - name: Upload forensic logs, snapshots and independent databases
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-51-r-phase2-idempotency-${{ github.run_id }}
+          path: |
+            build/command-51-r/
+            command51-source-identity.txt
+          if-no-files-found: warn
+          retention-days: 90
