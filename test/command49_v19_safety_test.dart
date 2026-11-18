@@ -145,7 +145,8 @@ void main() {
       final recurring = loaded.singleWhere((task) => task.id == 'task-active-001');
       expect(recurring.recurrence, isNotNull);
       expect(recurring.recurrence!.interval, greaterThan(0));
-      expect(recurring.occurrenceHistory, isNotEmpty);
+      final occurrenceTask = loaded.singleWhere((task) => task.id == 'command49-occurrence-task');
+      expect(occurrenceTask.occurrenceHistory, isNotEmpty);
       File('${root.path}/task-store-readback.json').writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(loaded.map((task) => task.toJson()).toList()),
       );
