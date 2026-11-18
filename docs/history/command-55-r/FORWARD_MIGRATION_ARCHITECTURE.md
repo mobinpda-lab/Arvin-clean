@@ -68,3 +68,47 @@ The adapter is read-only with respect to legacy source. It translates V19 JSON s
 
 ## 9. Compatibility with old app versions
 A new app may migrate a V19 database forward. An older app may not understand the new schema or normalized columns. Downgrade to an older binary is not considered safe merely because SQLite can open the file. Until a tested downgrade contract exists, restore a pre-migration backup to use the old app. Never downgrade by editing `user_version`.
+
+
+## 10. Entity and relationship preservation inventory
+The Occurrence repair owns only Task Occurrence and occurrence-checklist data. All other V19 entities are protected dependencies and must remain byte/semantically unchanged unless another separately approved migration step explicitly owns them.
+
+| Entity / table | Primary or natural key | V19 relationship / FK | Nullable or legacy payload notes | COMMAND 55-R policy |
+|---|---|---|---|---|
+| Tasks / `tasks` | `id` | Parent of reminders, follow-ups, occurrences, recurrence, checklist, people, tags, project membership | Nullable timestamps/due date/category/notebook/recurrence JSON/legacy payload; source envelope | Preserve Task IDs and every non-Occurrence field; never rewrite unrelated payload |
+| Occurrences / `task_occurrences` | `id`; unique `(task_id, scheduled_at)` | `task_id → tasks.id` | `completed_at`, `result` nullable; presence is lost by V19 projection | Primary migration target; add explicit presence and opaque payload |
+| Occurrence checklist / `occurrence_checklist_items` | `(occurrence_id, ordinal)` | `occurrence_id → task_occurrences.id` | Ordered string values; no nullable value column | Preserve order, exact text and parent occurrence ID |
+| Recurrence / `task_recurrence_rules` | `task_id` | `task_id → tasks.id` | Nullable start/end/count; separate V19 codec and marker | Read-only protected dependency; do not conflate recurrence definition with occurrence history |
+| Task checklist / `checklist_items` | `(task_id, ordinal)` | `task_id → tasks.id` | Ordered values | No mutation in this step |
+| Task reminders / `task_reminders` | `id`; unique `(task_id, sequence)` | `task_id → tasks.id` | Reminder values have their own date/all-day semantics | No mutation in this step |
+| Follow-ups / `follow_up_records` | `id`; unique `(task_id, ordinal)` | `task_id → tasks.id` | `title`, `result` nullable; legacy source metadata may exist | Preserve IDs, order, values and Task ownership |
+| Follow-up people / `follow_up_record_people` | `(follow_up_id, person_id)` | Both endpoints FK to Follow-up and Person | Ordinal preserves order | Preserve every edge and ordinal |
+| People / `persons` | `id` | Referenced by Task and Follow-up relation tables | Name/timestamps are canonical shared identity | Preserve IDs and display-name ownership |
+| Person directory / `person_directory` | `person_id` | `person_id → persons.id` | Active membership is separate from historical identity | Never seed, delete or reactivate in this step |
+| Task people / `task_persons` | `(task_id, person_id)` | Both endpoints FK to Task and Person | Ordinal | Preserve edges and order |
+| Projects / `projects` | `id` | Optional Center/Template references; Task membership through project_items | Legacy payload may be nullable | No mutation |
+| Project items / `project_items` | `(project_id, task_id)` | Both endpoints FK to Project and Task | Ordinal | Preserve membership and order |
+| Tags / `tags` | `id` | Referenced through task_tags | Name is user data | No mutation |
+| Task tags / `task_tags` | `(task_id, tag_id)` | Both endpoints FK to Task and Tag | Ordinal | Preserve all edges and order |
+| Centers / `centers` | `id` | Referenced by Project and other optional assignments | Names/archive state are user data | No mutation |
+| Categories / `taxonomy_categories` | `name` | Used by Task/template fields | Name is the natural key | Preserve exactly; do not infer or normalize |
+| Templates / `task_templates`, `project_templates`, `project_template_tasks`, `template_task_applications` | IDs and declared unique template ordinals | Template and Project/Task FKs | JSON list columns and nullable recurrence/snapshots | Outside migration ownership; snapshot and assert unchanged |
+
+For each table above, fixture snapshots must include every PK/natural key, FK edge, ordinal, nullable value, and legacy/opaque payload column. The migration is rejected if any protected table changes unexpectedly. The authoritative DDL and column definitions remain the pinned `g1_drift_schema.dart` blob; this table is a preservation inventory, not a replacement schema specification.
+
+## 11. Performance and compatibility budgets (proposed, not measured)
+These are acceptance targets for future physical testing, not observed performance claims. Record device/OS, SQLite version, storage type, data profile and p50/p95.
+
+| Profile | Fixture size | Added migration wall time target | Peak additional RSS target | Read/query strategy |
+|---|---|---:|---:|---|
+| Small | 1k Tasks / 5k Occurrences / 10k checklist rows | p95 ≤ 1 s | ≤ 32 MiB | bounded pages; no per-row TaskStore reload |
+| Medium | 10k / 100k / 250k | p95 ≤ 8 s | ≤ 96 MiB | streaming source scan and bounded insert/readback batches |
+| Large | 100k / 1m / 2.5m | p95 ≤ 60 s | ≤ 256 MiB | cursor/page iteration; no full-database object graph |
+
+Additional measurable constraints:
+- SQL statement count must grow linearly with rows only for necessary inserts; schema/preflight query count must remain bounded.
+- No N+1 TaskStore readback. Validate in batches and compute fingerprints incrementally.
+- Peak memory must not scale with the entire decoded database; process one Task or bounded page at a time.
+- Record database size before/after; report added bytes per occurrence and checklist row. No fixed growth threshold is asserted until measured baseline fixtures exist.
+- Program startup impact must be measured separately from the migration duration. If the migration cannot finish within the profile budget, show a recoverable blocking state and do not expose partially migrated data.
+- Downgrade compatibility is not promised. Older binaries must use a verified pre-migration backup.
