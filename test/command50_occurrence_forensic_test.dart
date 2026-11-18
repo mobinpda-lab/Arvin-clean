@@ -124,6 +124,9 @@ void main() {
         {'id': OccurrenceSqlCodec.occurrenceId('c50-matrix-b', '9999-12-31T23:59:59.999Z'),
          'task_id': 'c50-matrix-b', 'scheduled_at': '9999-12-31T23:59:59.999Z',
          'status': 'skipped', 'completed_at': null, 'result': null, 'ordinal': 1},
+        {'id': OccurrenceSqlCodec.occurrenceId('c50-matrix-b', '2026-11-05T10:00:00+03:30'),
+         'task_id': 'c50-matrix-b', 'scheduled_at': '2026-11-05T10:00:00+03:30',
+         'status': 'pending', 'completed_at': null, 'result': null, 'ordinal': 2},
         {'id': OccurrenceSqlCodec.occurrenceId('c50-no-recurrence', '2026-12-02T09:00:00.000Z'),
          'task_id': 'c50-no-recurrence', 'scheduled_at': '2026-12-02T09:00:00.000Z',
          'status': 'pending', 'completed_at': null, 'result': null, 'ordinal': 0},
@@ -155,12 +158,16 @@ void main() {
         expect(restored.checklists, isEmpty);
       }
       final recurrence = await db.runSelect(
-        "SELECT frequency, interval, active FROM task_recurrence_rules WHERE task_id='c50-recurring'",
+        "SELECT frequency, interval, active, start_date, end_date FROM task_recurrence_rules WHERE task_id='c50-recurring'",
         const [],
       );
       expect(recurrence, hasLength(1));
       expect(recurrence.single['frequency'], 'daily');
       expect(recurrence.single['interval'], 2);
+      expect(recurrence.single['start_date'], '2026-12-01T05:30:00.000Z');
+      expect(recurrence.single['end_date'], '2026-12-08T05:30:00.000Z');
+      expect(actualByIdentity['c50-matrix-b|2026-11-05T10:00:00+03:30']!['scheduled_at'],
+          '2026-11-05T10:00:00+03:30', reason: 'Occurrence scheduled timestamp is preserved as its original text.');
 
       final payload = await db.runSelect(
         "SELECT legacy_payload_json FROM tasks WHERE id='c50-matrix-a'",
@@ -176,7 +183,7 @@ void main() {
       final loaded = await TaskStore(executor: db).load();
       final byId = <String, Task>{for (final task in loaded) task.id: task};
       expect(byId['c50-matrix-a']!.occurrenceHistory, hasLength(3));
-      expect(byId['c50-matrix-b']!.occurrenceHistory, hasLength(2));
+      expect(byId['c50-matrix-b']!.occurrenceHistory, hasLength(3));
       expect(byId['c50-recurring']!.recurrence, isNotNull);
       expect(byId['c50-no-recurrence']!.recurrence, isNull);
       File(root.path + '/command50-taskstore-readback.json').writeAsStringSync(
