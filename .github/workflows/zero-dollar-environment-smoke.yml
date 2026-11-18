@@ -110,6 +110,18 @@ jobs:
             echo "REF_GUARD=PASS"
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Checkout exact target SHA
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.sha }}
+      - name: Verify checked out target SHA
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          actual="$(git rev-parse HEAD)"
+          [[ "$actual" == "$TARGET_SHA" ]]
+          echo "CHECKED_OUT_SHA=$actual" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
         shell: bash
         run: |
@@ -261,6 +273,15 @@ jobs:
           [[ "$booted" == "1" ]]
           sdk_api="$(adb -s "$device" shell getprop ro.build.version.sdk | tr -d '\r')"
           [[ "$sdk_api" == "35" ]]
+
+          stage="locked Flutter dependency resolution"
+          flutter pub get --enforce-lockfile 2>&1 | tee "$RUNNER_TEMP/flutter-pub-get.log"
+          git diff --exit-code -- pubspec.lock
+
+          stage="real Android product integration smoke without KVM"
+          flutter test integration_test/calendar_card_interaction_test.dart \
+            -d "$device" --reporter expanded 2>&1 | tee "$RUNNER_TEMP/zero-dollar-calendar-smoke.log"
+
           {
             echo "AVD: $avd_name — PASS"
             echo "ADB device: $device — PASS"
@@ -268,8 +289,8 @@ jobs:
             echo "Android API level: $sdk_api — PASS"
             echo
             echo "ENVIRONMENT_SMOKE=PASS"
-            echo "No product tests or Calendar restart tests were run."
-            echo "No GitHub Actions cache or artifact upload was configured."
+            echo "PRODUCT_INTEGRATION_SMOKE=PASS"
+            echo "Calendar Link process-restart acceptance remains a separate COMMAND 20-E gate."
           } >> "$GITHUB_STEP_SUMMARY"
 
           stage="completed"
