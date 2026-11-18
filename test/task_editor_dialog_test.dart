@@ -520,5 +520,80 @@ void main() {
     expect(result!.dueDate, DateTime(2026, 8, 27, 11));
     expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
   });
+  testWidgets('Task Reminder All-Day toggle preserves the original hour and minute',
+      (tester) async {
+    Task? result;
+    final scheduled = DateTime(2026, 11, 18, 14, 35);
+    final task = Task(
+      id: 'all-day-time-preservation',
+      title: 'یادآور زمان‌دار',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-clock-preserve',
+          title: 'یادآور',
+          date: scheduled,
+          sequence: 1,
+        ),
+      ],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-reminder-all-day-reminder-clock-preserve'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isTrue);
+
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders.single.isAllDay, isFalse);
+    expect(result!.taskReminders.single.date, scheduled);
+    expect(result!.taskReminders.single.date.hour, 14);
+    expect(result!.taskReminders.single.date.minute, 35);
+  });
+
+  testWidgets('All-Day Reminder to Timed preserves its stored date and clock',
+      (tester) async {
+    Task? result;
+    final scheduled = DateTime(2026, 11, 18, 7, 12);
+    final task = Task(
+      id: 'all-day-existing-clock',
+      title: 'یادآور تمام‌روز',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-existing-clock',
+          title: 'یادآور',
+          date: scheduled,
+          isAllDay: true,
+          sequence: 1,
+        ),
+      ],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-reminder-all-day-reminder-existing-clock'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders.single.isAllDay, isFalse);
+    expect(result!.taskReminders.single.date, scheduled);
+    expect(result!.taskReminders.single.date.hour, 7);
+    expect(result!.taskReminders.single.date.minute, 12);
+  });
+
 
 }

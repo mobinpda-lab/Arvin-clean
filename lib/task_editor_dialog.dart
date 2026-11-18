@@ -412,9 +412,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         final allDay = value ?? false;
                         _updateTaskReminder(index, reminder.copyWith(
                           isAllDay: allDay,
-                          date: allDay
-                              ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
-                              : reminder.date,
+                          // Keep the hidden clock components while the reminder is
+                          // All-Day. The UI suppresses clock display in that state;
+                          // toggling back to Timed restores the exact hour and minute.
+                          date: reminder.date,
                         ));
                       },
                       title: const Text('تمام‌روز (بدون ساعت)'),
