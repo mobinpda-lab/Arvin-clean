@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_store.dart';
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' show QueryExecutor, QueryExecutorUser, OpeningDetails;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
