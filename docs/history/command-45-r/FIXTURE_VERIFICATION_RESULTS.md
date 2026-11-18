@@ -22,3 +22,7 @@ Consequently:
 - Original fixture mutation: none reported; only a temporary extracted copy was targeted.
 
 No schema migration or write operation was invoked.
+
+## Addendum — full read evidence
+
+In run 44295851388, both matrix lanes passed fixture SHA-256 verification and read all 12 expected tables from the independent extracted copy. Both task-ID checks, SQLite version and user_version reads, `integrity_check`, and `foreign_key_check` reached their completion markers. All table rows were collected and normalized, and JSON encoding completed. The process crashed during the asynchronous snapshot file write. This confirms broader read access than the earlier report, but it does not yet establish a durable snapshot artifact. The original tracked fixture remains untouched; no migration or schema write was invoked.
