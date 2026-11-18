@@ -15,8 +15,8 @@
 
 ## Exact source locations (line numbers at the pinned V19 blob)
 
-- Schema version and `schemaVersion`: `g1_drift_schema.dart:11-16`.
-- Serialized installer and `ensureOpen` / transaction setup: `g1_drift_schema.dart:108-132` (installer body continues below).
+- Schema version and `schemaVersion`: `g1_drift_schema.dart:12 and 103`.
+- Serialized installer and `ensureOpen` / transaction setup: `g1_drift_schema.dart:114-145` (installer body continues below).
 - Occurrence migration invocation: `g1_drift_schema.dart:242`.
 - Occurrence codec ID and writer: `occurrence_sql_codec.dart:15-86`.
 - Occurrence SQL readback: `occurrence_sql_codec.dart:88-115`.
