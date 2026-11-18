@@ -33,3 +33,6 @@ The migration reader is blob `923b560aca647588c0e98e59b61ab224b50c5bb4`; the SQL
 - Do not treat SQLite `PRAGMA user_version` alone as proof of lineage; V19's source does not use it as the canonical marker.
 - Classify with schema fingerprint, table/column shape, `arvin_storage_meta`, migration markers, legacy JSON key presence and backup provenance.
 - Any unrecognized or mixed state is BLOCKED pending a read-only inventory; do not normalize or rewrite it.
+
+## Application version comparison
+Both the V19 candidate at `310c0e20e3447c488c1e1c102c38bea5040708ca` and the V20 candidate at `812082964c649be7660c41213209ec34aea7167b` declare `version: 1.0.1+2` in `pubspec.yaml`, blob `8c703b55a820a325a5d10d9ade1fd24dccf043f3`. Thus the schema change 7→19→20 is not accompanied by a distinct app-version/build-number change in those candidate snapshots. This further confirms that schema lineage cannot be inferred from the app version string alone.
