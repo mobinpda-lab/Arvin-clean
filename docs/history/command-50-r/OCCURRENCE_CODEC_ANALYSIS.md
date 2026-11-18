@@ -29,7 +29,7 @@ The parity check compares the full decoded source state map with the smaller sta
 - If source JSON explicitly contains `completionDate: null` or `result: null`, the SQL row stores NULL and `readTask` omits those keys. The maps are not equal even though the SQL values are semantically NULL.
 - If a source Occurrence state contains an unrecognized key, `writeTask` has no destination column for it and `readTask` cannot reconstruct it. The parity check fails before the legacy source keys are removed.
 
-These two hazards are supported by direct source comparison. The dedicated physical negative-fixture runs are still pending and are not represented as completed test results.
+These two hazards were confirmed by direct source comparison and physically reproduced in final run `44368276255`. The negative fixtures retained the original JSON fields after rollback.
 
 ## Recurrence conversion
 
