@@ -34,12 +34,12 @@ This is not evidence of initial loss for the simple pending record. It is eviden
 |---|---|
 | Simple pending first transfer | PASS, physically observed |
 | Same Task on second install after reopen | FAIL, physically observed |
-| Explicit NULL optional JSON keys | Source-level mismatch proven; physical test pending |
-| Unknown per-occurrence JSON keys | Source-level mismatch proven; physical test pending |
-| Completed / cancelled / missed / skipped matrix | Enum and codec support inspected; physical matrix pending |
-| Timestamp boundaries | Codec stores raw string; physical matrix pending |
-| TaskStore after first install on same executor | COMMAND 50 harness authored; run evidence pending |
-| TaskStore after process restart | Not yet physically tested independently of the retry failure |
+| Explicit NULL optional JSON keys | FAIL_CONFIRMED — physical fixture; original null keys retained after rollback |
+| Unknown per-occurrence JSON keys | FAIL_CONFIRMED — physical fixture; unknown key retained after rollback |
+| Completed / cancelled / missed / skipped matrix | PASS — physically migrated and read back |
+| Timestamp boundaries | PASS — year 0001, year 9999, offset Occurrence timestamp; recurrence offset normalized to UTC |
+| TaskStore after first install on same executor | PASS — physical TaskStore readback |
+| TaskStore after process restart | NOT TESTED — TaskStore readback was performed on the migrated executor; a separate process-restart readback is outside this command's required matrix |
 
 ## Important boundary
 
