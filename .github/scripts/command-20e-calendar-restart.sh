@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
-APP_ID=com.example.arvin
+GRADLE_APP_ID="$(sed -nE 's/^[[:space:]]*applicationId[[:space:]]*=[[:space:]]*"([^"]+)".*/\1/p' android/app/build.gradle.kts | head -n 1)"
+if [[ -z "$GRADLE_APP_ID" ]]; then
+  echo "ANDROID_APPLICATION_ID=NOT_FOUND_IN_GRADLE" >&2
+  exit 1
+fi
+APP_ID="$GRADLE_APP_ID"
 TEST_FILE=integration_test/calendar_link_shared_preferences_restart_test.dart
 EVIDENCE=.github/command-20e-evidence
 CLEANUP_DONE=0
@@ -82,7 +87,15 @@ echo "PROCESS_PID_BEFORE_STOP=$PHASE_APP_PID" | tee -a "$EVIDENCE/calendar_resta
 # SharedPreferences.apply() persists asynchronously. Allow the platform write
 # to settle, then capture the app-private XML before stopping the process.
 sleep 3
-adb -s "$DEVICE" shell run-as "$APP_ID" sh -c 'ls -la shared_prefs' \
+package_path="$(adb -s "$DEVICE" shell pm path "$APP_ID" 2>/dev/null | tr -d '\r' || true)"
+printf 'ANDROID_PACKAGE_PATH=%s\\n' "${package_path:-NOT_INSTALLED}" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
+if [[ -z "$package_path" ]]; then
+  adb -s "$DEVICE" shell pm list packages -3 > "$EVIDENCE/third-party-packages-after-write.txt" 2>&1 || true
+  adb -s "$DEVICE" shell dumpsys activity processes > "$EVIDENCE/processes-after-write.txt" 2>&1 || true
+  echo "ANDROID_PACKAGE_INSTALLATION=FAIL package manager cannot resolve $APP_ID after write phase" >&2
+  exit 1
+fi
+adb -s "$DEVICE" shell run-as "$APP_ID" ls -la shared_prefs \
   > "$EVIDENCE/shared-preferences-directory.txt"
 adb -s "$DEVICE" shell run-as "$APP_ID" cat shared_prefs/FlutterSharedPreferences.xml \
   > "$EVIDENCE/shared-preferences-before-stop.xml"
