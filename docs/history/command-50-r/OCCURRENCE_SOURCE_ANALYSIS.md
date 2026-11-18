@@ -1,6 +1,6 @@
 # COMMAND 50-R — Occurrence Source Analysis
 
-**Disposition:** Root cause identified for the COMMAND 49-R retry failure; full matrix remains pending.
+**Disposition:** COMPLETE — root cause and expanded physical matrix verified by COMMAND 50-R final run `44368276255`.
 **Historical source commit:** `310c0e20e3447c488c1e1c102c38bea5040708ca`
 **Immutable V7 fixture source commit:** `f211326e7615f1c907494232dd3aec8d4732c83c`
 **Fixture SHA-256:** `68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0`
