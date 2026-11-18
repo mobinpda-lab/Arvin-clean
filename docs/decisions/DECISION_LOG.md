@@ -30,3 +30,15 @@ Category cardinality per Task; exact canonical Task relation; existing membershi
 - Version 9's Task Template lineage and REV10 v8→v9 hierarchy migration are distinct; compatibility is not assumed.
 - Full DDL extraction, exact adjacent migration edges, independent file-backed SQLite tests and data-preservation proof remain BLOCKED.
 - Five COMMAND 40-R reports are evidence ledgers only; none represents P0 acceptance.
+
+
+## 2026-11-18 — COMMAND 41-R HISTORICAL DATABASE FORENSICS
+- Decision: NO-GO remains; no schema rollout, Main change, merge, release, deployment or production database operation is authorized.
+- Exact canonical HEAD audited: `f5c64285687cd2665cc383e10277cb6e0266f4c2`; Main SHA: `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3495 OPEN / DRAFT / UNMERGED.
+- Git source history identifies schema points 7, 8, 9-A, 10–19 and 20. v9-A Task Template and v9-B REV10 hierarchy are distinct sources.
+- Git ancestry confirms Main→v9-A→v19→v20 historical source lineage; current canonical #3495 HEAD is diverged from historical v20 line, with Main as merge base.
+- Historical v20 exact-SHA workflows passed selected lifecycle and SQLite snapshot suites; they do not prove Main v7→v20 and do not transfer to current canonical SHA.
+- Current canonical Build failed (runs 44273882049); COMMAND 20-E failed (44273881957); Follow-up File Persistence and Device Smoke passed (44273881944, 44273881994).
+- No end-to-end Main v7 physical SQLite fixture was executed. Full DDL transcription, source fixture and complete data/ID preservation proof remain BLOCKED.
+- Original COMMAND 37-R report remains unavailable in the retrievable context; no reconstruction was made.
+- Evidence recorded in DATABASE_SOURCE_EVIDENCE.md, updated history reports, sqlite-test-results/COMMAND-41-R.md and historical fixture README.
