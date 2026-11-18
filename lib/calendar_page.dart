@@ -419,7 +419,7 @@ class _CalendarPageState extends State<CalendarPage> {
           Text(
             _dateFormatter.toPersianDigits('${jalali.day}'),
             style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w800),
+                ?.copyWith(fontWeight: FontWeight.w700),
           ),
           const Spacer(),
           Container(
