@@ -159,13 +159,37 @@ jobs:
             final foreignKeys = await executor.runSelect('PRAGMA foreign_key_check', const []);
             final userVersion = await executor.runSelect('PRAGMA user_version', const []);
             return <String, Object?>{
-              'installer_schema_version': G1DriftSchema.version,
+              'installer_code_version': G1DriftSchema.version,
               'pragma_user_version': userVersion.single.values.first,
               'integrity_check': integrity.single.values.first,
               'foreign_key_violations': foreignKeys.length,
               'indexes': indexRows.map((row) => row.map((k,v)=>MapEntry(k,_normalize(v)))).toList(),
               'tables': tables,
             };
+          }
+
+
+          List<Map<String, Object?>> _rows(Map<String, Object?> snapshot, String table) {
+            final tables = snapshot['tables'] as Map<String, Object?>;
+            final value = tables[table] as Map<String, Object?>;
+            return (value['rows'] as List).cast<Map<String, Object?>>();
+          }
+
+          List<Object?> _columnValues(List<Map<String, Object?>> rows, String column) {
+            final values = rows.map((row) => row[column]).toList();
+            values.sort((a, b) => a.toString().compareTo(b.toString()));
+            return values;
+          }
+
+          List<Map<String, Object?>> _projection(
+            List<Map<String, Object?>> rows,
+            List<String> columns,
+          ) {
+            final values = rows.map((row) => <String, Object?>{
+              for (final column in columns) column: row[column],
+            }).toList();
+            values.sort((a, b) => jsonEncode(a).compareTo(jsonEncode(b)));
+            return values;
           }
 
           void main() {
@@ -215,7 +239,86 @@ jobs:
                 final afterTaskIds = (((after['tables'] as Map)['tasks'] as Map)['rows'] as List)
                     .map((row) => (row as Map)['id']).toList()..sort();
                 expect(afterTaskIds, beforeTaskIds);
-                expect(after['installer_schema_version'], 19);
+                expect(before['pragma_user_version'], 7);
+                expect(after['installer_code_version'], 19);
+                expect(after['pragma_user_version'], 19);
+
+                // Stable Task identity and all canonical SQL-owned Task values.
+                final taskColumns = <String>[
+                  'id','storage_ordinal','title','description','created_at',
+                  'updated_at','due_date','category','notebook_kind','priority',
+                  'archived','trashed','completed','completed_at','recurrence_json',
+                ];
+                expect(
+                  _projection(_rows(after, 'tasks'), taskColumns),
+                  _projection(_rows(before, 'tasks'), taskColumns),
+                );
+
+                // Legacy source tables that v19 deliberately retains must remain byte-value equivalent.
+                for (final table in <String>[
+                  'follow_ups','people','task_people','follow_up_people',
+                  'tags','checklist_items','task_tags','project_items',
+                  'taxonomy_categories',
+                ]) {
+                  expect(_rows(after, table), _rows(before, table), reason: 'legacy source table changed: $table');
+                }
+                expect(
+                  _projection(_rows(after, 'projects'), <String>[
+                    'id','name','color_value','is_archived','legacy_payload_json',
+                  ]),
+                  _projection(_rows(before, 'projects'), <String>[
+                    'id','name','color_value','is_archived','legacy_payload_json',
+                  ]),
+                );
+
+                // Stable canonical identities and migrated relation parity.
+                expect(
+                  _columnValues(_rows(after, 'follow_up_records'), 'id'),
+                  _columnValues(_rows(before, 'follow_ups'), 'id'),
+                );
+                final expectedPersonIds = <Object?>{
+                  ..._columnValues(_rows(before, 'people'), 'id'),
+                  ..._columnValues(_rows(before, 'task_people'), 'person_id'),
+                  ..._columnValues(_rows(before, 'follow_up_people'), 'person_id'),
+                }.toList()..sort((a,b)=>a.toString().compareTo(b.toString()));
+                expect(_columnValues(_rows(after, 'persons'), 'id'), expectedPersonIds);
+                expect(
+                  _projection(_rows(after, 'task_persons'), <String>['task_id','person_id','ordinal']),
+                  _projection(_rows(before, 'task_people'), <String>['task_id','person_id','ordinal']),
+                );
+                expect(
+                  _projection(_rows(after, 'follow_up_record_people'), <String>['follow_up_id','person_id','ordinal']),
+                  _projection(_rows(before, 'follow_up_people'), <String>['follow_up_id','person_id','ordinal']),
+                );
+                expect(_rows(after, 'checklist_items'), _rows(before, 'checklist_items'));
+                expect(_rows(after, 'task_tags'), _rows(before, 'task_tags'));
+                expect(_rows(after, 'project_items'), _rows(before, 'project_items'));
+
+                // Reminder and recurrence transformations must materialize their canonical records.
+                expect(_rows(after, 'task_reminders'), hasLength(1));
+                expect(_rows(after, 'task_reminders').single['id'], 'legacy-task-reminder-task-active-001');
+                expect(_rows(after, 'task_recurrence_rules'), hasLength(1));
+                expect(_rows(after, 'task_recurrence_rules').single['task_id'], 'task-active-001');
+
+                // Unknown development fields remain in their original or compatibility envelopes.
+                final migratedTask = _rows(after, 'tasks').singleWhere((row) => row['id'] == 'task-active-001');
+                final taskEnvelope = jsonDecode(migratedTask['legacy_payload_json'] as String) as Map<String, dynamic>;
+                expect(taskEnvelope['futureField'], 'preserve-42');
+                expect(taskEnvelope['legacyReminderPayload'], <String, dynamic>{'channel':'alarm','custom':7});
+                final migratedProject = _rows(after, 'projects').single;
+                expect(
+                  (jsonDecode(migratedProject['legacy_payload_json'] as String) as Map)['futureProjectField'],
+                  'retain',
+                );
+                expect(
+                  (_rows(after, 'task_people').single['person_json'] as String),
+                  contains('futurePersonField'),
+                );
+                expect(
+                  _rows(after, 'tasks').singleWhere((row) => row['id'] == 'task-active-001')['recurrence_json'],
+                  contains('unknownScheduleField'),
+                );
+
                 File('build/command-48-r/pre-migration-snapshot.json')
                     .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(before));
                 File('build/command-48-r/post-migration-snapshot.json')
