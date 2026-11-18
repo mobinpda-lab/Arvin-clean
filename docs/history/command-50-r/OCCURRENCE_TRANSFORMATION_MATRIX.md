@@ -1,6 +1,6 @@
 # COMMAND 50-R — Occurrence Transformation Matrix
 
-**Status:** PHYSICAL MATRIX EXECUTED — run `44367002583`, job `135024297667`, artifact `14456982207`. The forensic test job completed successfully; expected historical codec defects are recorded as FAIL_CONFIRMED, not treated as passing migration behavior.
+**Status:** PHYSICAL MATRIX EXECUTED — run `44368276255`, job `135027809312`, artifact `14458356507`. The forensic test job completed successfully; expected historical codec defects are recorded as FAIL_CONFIRMED, not treated as passing migration behavior.
 
 | Scenario | Historical source / target behavior | Evidence status |
 |---|---|---|
