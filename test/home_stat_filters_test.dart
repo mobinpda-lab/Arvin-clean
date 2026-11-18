@@ -62,10 +62,11 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final filterScroll = tester.widget<SingleChildScrollView>(
-      find.byKey(const ValueKey('home-filter-sort-scroll')),
+    final filterWrap = tester.widget<Wrap>(
+      find.byKey(const ValueKey('home-filter-sort-wrap')),
     );
-    expect(filterScroll.scrollDirection, Axis.horizontal);
+    expect(filterWrap.textDirection, TextDirection.rtl);
+    expect(find.byKey(const ValueKey('home-filter-sort-scroll')), findsNothing);
     expect(find.byKey(const ValueKey('home-sort')), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-sort')));
