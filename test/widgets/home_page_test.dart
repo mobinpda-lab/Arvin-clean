@@ -18,6 +18,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-capsule')), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
