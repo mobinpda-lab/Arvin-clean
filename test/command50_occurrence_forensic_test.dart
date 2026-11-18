@@ -178,7 +178,11 @@ void main() {
       for (final taskId in const ['c50-matrix-a','c50-matrix-b','c50-recurring','c50-no-recurrence']) {
         final restored = await OccurrenceSqlCodec.readTask(db, taskId);
         expect(restored.history, isNotEmpty);
-        expect(restored.checklists, isEmpty);
+        if (taskId == 'c50-matrix-a') {
+          expect(restored.checklists['2026-11-01T08:00:00.000Z'], ['pack', 'snack']);
+        } else {
+          expect(restored.checklists, isEmpty);
+        }
       }
       final recurrence = await db.runSelect(
         "SELECT frequency, interval, active, start_date, end_date FROM task_recurrence_rules WHERE task_id='c50-recurring'",
@@ -198,6 +202,7 @@ void main() {
       );
       final migratedEnvelope = jsonDecode(payload.single['legacy_payload_json'] as String) as Map;
       expect(migratedEnvelope.containsKey('occurrenceHistory'), isFalse);
+      expect(migratedEnvelope.containsKey('checklistOccurrences'), isFalse);
       expect(migratedEnvelope['legacyFollowUpMetadata']['unknownFields']['legacyCustomField'],
           'preserve-me');
 
@@ -206,6 +211,7 @@ void main() {
       final loaded = await TaskStore(executor: db).load();
       final byId = <String, Task>{for (final task in loaded) task.id: task};
       expect(byId['c50-matrix-a']!.occurrenceHistory, hasLength(3));
+      expect(byId['c50-matrix-a']!.checklistOccurrences['2026-11-01T08:00:00.000Z'], ['pack', 'snack']);
       expect(byId['c50-matrix-b']!.occurrenceHistory, hasLength(3));
       expect(byId['c50-recurring']!.recurrence, isNotNull);
       expect(byId['c50-no-recurrence']!.recurrence, isNull);
@@ -216,6 +222,17 @@ void main() {
       );
       File(root.path + '/command50-first-install-sql.json').writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(actual),
+      );
+      final checklistRows = await db.runSelect(
+        "SELECT o.task_id, o.scheduled_at, c.ordinal, c.value FROM task_occurrences o "
+        "JOIN occurrence_checklist_items c ON c.occurrence_id=o.id "
+        "WHERE o.task_id LIKE 'c50-%' ORDER BY o.task_id, o.ordinal, c.ordinal",
+        const [],
+      );
+      expect(checklistRows, hasLength(2));
+      expect(checklistRows.map((row) => row['value']).toList(), ['pack', 'snack']);
+      File(root.path + '/command50-checklist-sql.json').writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert(checklistRows),
       );
     } finally {
       await db.close();
