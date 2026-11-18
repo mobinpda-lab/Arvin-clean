@@ -33,25 +33,25 @@ jobs:
       - name: Checkout exact historical V19 source
         uses: actions/checkout@v5
         with:
-          ref: \${{ env.V19_SOURCE_SHA }}
+          ref: ${{ env.V19_SOURCE_SHA }}
           fetch-depth: 0
 
       - name: Retrieve approved forensic harness and verify historical source
         shell: bash
         env:
-          CANONICAL_SHA: \${{ github.sha }}
+          CANONICAL_SHA: ${{ github.sha }}
         run: |
           set -euo pipefail
-          test "$(git rev-parse HEAD)" = "\${V19_SOURCE_SHA}"
+          test "$(git rev-parse HEAD)" = "${V19_SOURCE_SHA}"
           actual_blob="$(git rev-parse HEAD:lib/services/g1_drift_schema.dart)"
-          test "\${actual_blob}" = "\${V19_SCHEMA_BLOB}"
-          git fetch --no-tags origin "\${CANONICAL_SHA}"
-          git show "\${CANONICAL_SHA}:test/command50_occurrence_forensic_test.dart" > test/command50_occurrence_forensic_test.dart
+          test "${actual_blob}" = "${V19_SCHEMA_BLOB}"
+          git fetch --no-tags origin "${CANONICAL_SHA}"
+          git show "${CANONICAL_SHA}:test/command50_occurrence_forensic_test.dart" > test/command50_occurrence_forensic_test.dart
           test -s test/command50_occurrence_forensic_test.dart
           {
-            echo "CANONICAL_TEST_COMMIT=\${CANONICAL_SHA}"
-            echo "V19_SOURCE_SHA=\${V19_SOURCE_SHA}"
-            echo "V19_SCHEMA_BLOB=\${actual_blob}"
+            echo "CANONICAL_TEST_COMMIT=${CANONICAL_SHA}"
+            echo "V19_SOURCE_SHA=${V19_SOURCE_SHA}"
+            echo "V19_SCHEMA_BLOB=${actual_blob}"
             echo "OCCURRENCE_CODEC_BLOB=$(git rev-parse HEAD:lib/services/occurrence_sql_codec.dart)"
             echo "RECURRENCE_CODEC_BLOB=$(git rev-parse HEAD:lib/services/recurrence_sql_codec.dart)"
             echo "TASK_MODEL_BLOB=$(git rev-parse HEAD:lib/models/task.dart)"
@@ -66,7 +66,7 @@ jobs:
           sudo apt-get install -y libsqlite3-dev gzip python3
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: \${{ env.FLUTTER_VERSION }}
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -74,12 +74,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch --no-tags origin "\${FIXTURE_SOURCE_SHA}"
+          git fetch --no-tags origin "${FIXTURE_SOURCE_SHA}"
           mkdir -p build/command-50-r
-          git show "\${FIXTURE_SOURCE_SHA}:\${FIXTURE_ARCHIVE}" > build/command-50-r/main-v7-fixture.sqlite.gz
+          git show "${FIXTURE_SOURCE_SHA}:${FIXTURE_ARCHIVE}" > build/command-50-r/main-v7-fixture.sqlite.gz
           gzip -dc build/command-50-r/main-v7-fixture.sqlite.gz > build/command-50-r/main-v7-source.sqlite
           source_sha="$(sha256sum build/command-50-r/main-v7-source.sqlite | awk '{print $1}')"
-          test "\${source_sha}" = "\${EXPECTED_FIXTURE_SHA256}"
+          test "${source_sha}" = "${EXPECTED_FIXTURE_SHA256}"
           cp build/command-50-r/main-v7-source.sqlite build/command-50-r/base-matrix.sqlite
           cp build/command-50-r/main-v7-source.sqlite build/command-50-r/explicit-null.sqlite
           cp build/command-50-r/main-v7-source.sqlite build/command-50-r/unknown-occurrence-field.sqlite
@@ -148,8 +148,8 @@ jobs:
           })
           PY
           {
-            echo "FIXTURE_SOURCE_SHA=\${FIXTURE_SOURCE_SHA}"
-            echo "SOURCE_FIXTURE_SHA256=\${source_sha}"
+            echo "FIXTURE_SOURCE_SHA=${FIXTURE_SOURCE_SHA}"
+            echo "SOURCE_FIXTURE_SHA256=${source_sha}"
             sha256sum build/command-50-r/*.sqlite
           } | tee build/command-50-r/fixture-verification.txt
 
@@ -165,10 +165,10 @@ jobs:
       - name: Execute COMMAND 50-R physical forensic matrix
         shell: bash
         env:
-          ARVIN_COMMAND50_DIR: \${{ github.workspace }}/build/command-50-r
-          ARVIN_COMMAND50_BASE_FIXTURE: \${{ github.workspace }}/build/command-50-r/base-matrix.sqlite
-          ARVIN_COMMAND50_NULL_FIXTURE: \${{ github.workspace }}/build/command-50-r/explicit-null.sqlite
-          ARVIN_COMMAND50_UNKNOWN_FIXTURE: \${{ github.workspace }}/build/command-50-r/unknown-occurrence-field.sqlite
+          ARVIN_COMMAND50_DIR: ${{ github.workspace }}/build/command-50-r
+          ARVIN_COMMAND50_BASE_FIXTURE: ${{ github.workspace }}/build/command-50-r/base-matrix.sqlite
+          ARVIN_COMMAND50_NULL_FIXTURE: ${{ github.workspace }}/build/command-50-r/explicit-null.sqlite
+          ARVIN_COMMAND50_UNKNOWN_FIXTURE: ${{ github.workspace }}/build/command-50-r/unknown-occurrence-field.sqlite
         run: |
           set -euo pipefail
           flutter test --reporter expanded test/command50_occurrence_forensic_test.dart 2>&1 | tee build/command-50-r/flutter-test.log
@@ -179,7 +179,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: command-50-r-occurrence-forensic-\${{ github.run_id }}
+          name: command-50-r-occurrence-forensic-${{ github.run_id }}
           path: |
             build/command-50-r/
             command50-source-identity.txt
