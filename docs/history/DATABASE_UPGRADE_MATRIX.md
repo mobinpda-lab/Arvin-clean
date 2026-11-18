@@ -1,20 +1,28 @@
-# DATABASE UPGRADE MATRIX — COMMAND 40-R
-**Status:** BLOCKED / NO SUPPORTED PATH ACCEPTED  
-**Canonical PR:** #3495 — OPEN / DRAFT / UNMERGED
+# DATABASE UPGRADE MATRIX — COMMAND 41-R
+**Status:** NO SUPPORTED UPGRADE PATH ACCEPTED
 
-| Source state | Target state | Source evidence | Edge proof | Disposition |
+| Path / edge | Git ancestry | Code evidence | File-backed historical execution | Status |
 |---|---|---|---|---|
-| Main v7 | v8 | Main schema v7; historical v8 SHA recorded in prior ledger | not run | BLOCKED |
-| v8 | legacy Template v9 | historical v9-A schema source | not established | BLOCKED; lineage A |
-| v8 | REV10 hierarchy v9 | `G1Rev10HierarchyV9Migration` source blob `f9569182a1d79a116e1e1f4c400e69f7c47863b4` | no independent file-backed fixture in this execution | BLOCKED; lineage B |
-| legacy Template v9 | v10–v18 | historical version SHAs listed in prior ledger | adjacency and data mapping not established | BLOCKED |
-| REV10 v9 | v19 | PR #3384 v19 schema is from a separate stacked PR lineage | no Main-based sequential edge proven | BLOCKED |
-| v19 | v20 | PR #3463 v20 schema/migration source | no exact current-SHA acceptance evidence re-run here | BLOCKED |
-| Main v7 | v20 | combination of the above | no end-to-end Main v7 fixture or supported path proven | BLOCKED |
+| Main v7→v8 | Main is merge base; v8 is 334 commits ahead | v8 schema/installer found | Not run from Main v7 fixture | BLOCKED |
+| v8→v9-A Task Template | v9-A descends from Main; schema 9-A found | Template DDL exists | Not proven | BLOCKED |
+| v8→v9-B REV10 hierarchy | separate canonical #3495 source; declared sourceSchemaVersion=8 | additive migration code exists | Current exact-head test fails before migration due QueryExecutor not opened | BLOCKED |
+| v9-A→v10→v11 | Git commits found | template context and checklist DDL | Not run | BLOCKED |
+| v11→v12 | Git commits found | Reminder/Follow-up/Person transfer DDL | Not run as independent fixture | BLOCKED |
+| v12→v13 | Git commits found | legacy tables dropped after copy | Not run | BLOCKED |
+| v13→v14→v15 | Git commits found | Task rebuilds and Task-person relation transfer | Not run | BLOCKED |
+| v15→v16→v17 | Git commits found | Occurrence/Recurrence tables and JSON conversion | Not run | BLOCKED |
+| v17→v18→v19 | Git commits found | Reminder and Task rebuilds, legacy entity transfer | Not run from Main v7 fixture | BLOCKED |
+| v19→v20 | v20 commit descends from v19; 340 commits ahead | M2M migration supports only source version 19 | Historical PR tests pass on exact v20 PR SHA, not canonical #3495 | BLOCKED for Main compatibility |
+| Main v7→v20 | Git ancestry exists through v9-A/v19/v20 historical branch | No accepted single sequential upgrade runner/fixture proof | No end-to-end Main v7 physical SQLite test | BLOCKED |
+| v20 historical line→current #3495 | Diverged; merge base is Main | current canonical branch uses v9-B and does not include v20 source | Not applicable | NOT A VALID DIRECT EDGE |
 
-For every edge, still required: exact source/destination commit and blob; schema fingerprint; DDL; row-transfer mapping; ID preservation; FK/unique/index changes; retired fields; rollback boundary; retry behavior; supported/unsupported cases; fixture path and exact test result.
+## Current canonical PR branch versus historical v20 line
+- Current #3495 HEAD: `f5c64285687cd2665cc383e10277cb6e0266f4c2`.
+- Historical v20 head: `812082964c649be7660c41213209ec34aea7167b`.
+- Git compare: diverged; Main is merge base; canonical branch is 212 commits ahead of Main while v20 line is 2,557 commits ahead of Main.
+- Therefore v20 test results must not be attributed to the current canonical branch.
 
-## Version 9 conflict
-Version 9-A (legacy Task Template lineage) and version 9-B (REV10 hierarchy migration) remain separate until schema fingerprints and preconditions prove a valid connection. A numeric `user_version = 9` alone is insufficient.
+## Version 9 rule
+v9-A and v9-B are separate schemas. Do not connect v9-B to v10/v19 merely because the version integer matches. A migration edge requires exact source fingerprint, preconditions, DDL and data fixture proof.
 
-**No upgrade edge is marked PASS.**
+**No edge is marked PASS for Main v7 upgrade compatibility.**
