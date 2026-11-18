@@ -7,16 +7,16 @@
 | One pending Occurrence | Timestamp key and status map to SQL row | First V19 install succeeded on COMMAND 49 fixture |
 | Completed Occurrence | `completionDate` → nullable `completed_at`; `result` → nullable `result` | PASS — final physical matrix run |
 | Cancelled | Enum `RecurrenceOccurrenceStatus.cancelled` exists | PASS — final physical matrix run |
-| Missed / skipped | Both enum values exist | Source support confirmed; expanded physical run pending |
+| Missed / skipped | Both enum values exist | PASS — final physical matrix run |
 | Multiple Occurrences per Task | Ordinal follows iteration order of history map | PASS — final physical matrix run |
 | Multiple Tasks | Each row retains its Task ID | PASS — final physical matrix run |
 | Recurrence linked | Recurrence definition stored in `task_recurrence_rules` | PASS — linked and unlinked Task recurrence physically checked |
-| No Recurrence | No normalized recurrence row expected | Expanded physical run pending |
-| Omitted optional NULL values | SQL NULL is read back with optional JSON keys omitted | Simple pending path passed |
+| No Recurrence | No normalized recurrence row expected | PASS — final physical matrix run |
+| Omitted optional NULL values | SQL NULL is read back with optional JSON keys omitted | PASS — omitted optional fields stored as SQL NULL and omitted on readback |
 | Explicit JSON NULL keys | Readback omits null-valued keys | FAIL_CONFIRMED — physical negative fixture; rollback and legacy source preservation verified |
-| Timestamp boundaries | Occurrence codec stores scheduled timestamp strings without parsing them | Physical boundary matrix pending |
+| Timestamp boundaries | Occurrence codec stores scheduled timestamp strings without parsing them | PASS — year 0001 and year 9999 boundaries; +03:30 Occurrence timestamp retained as raw text |
 | Unknown Task-level JSON field | Task model retains it under legacy metadata | PASS — physical TaskStore readback |
-| Unknown Occurrence-state field | Destination codec has no corresponding SQL field and readback omits it | Code-level mismatch identified; physical negative test pending |
+| Unknown Occurrence-state field | Destination codec has no corresponding SQL field and readback omits it | FAIL_CONFIRMED — physical negative fixture; rollback and source-field preservation verified |
 
 ## Confirmed single-row physical result
 
