@@ -81,6 +81,63 @@ void main() {
     expect(reloaded.people, isEmpty);
   });
 
+  testWidgets('duplicate name warns and preserves a separate stable identity',
+      (tester) async {
+    final store = await seedTask();
+    await store.save([
+      ...(await store.load()),
+      Task(
+        id: 'task-with-existing-person',
+        title: 'کار دیگر',
+        people: [
+          PersonReference(id: 'person-existing', displayName: 'علی رضایی'),
+        ],
+      ),
+    ]);
+    final service = TaskPeopleService(
+      store: store,
+      personIdFactory: () => 'person-distinct',
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(home: TaskPeoplePage(taskId: 'task-1', service: service)),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('people-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-add-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نام تکراری'), findsOneWidget);
+    expect(find.textContaining('با شناسه مستقل'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('people-duplicate-cancel')));
+    await tester.pumpAndSettle();
+    expect((await store.load()).first.people, isEmpty);
+
+    await tester.tap(find.byKey(const ValueKey('people-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-add-save')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('people-duplicate-add-separate')));
+    await tester.pumpAndSettle();
+
+    final currentTask = (await store.load()).first;
+    expect(currentTask.people.single.id, 'person-distinct');
+    expect(currentTask.people.single.displayName, 'علی رضایی');
+    final otherTask = (await store.load()).last;
+    expect(otherTask.people.single.id, 'person-existing');
+    expect(otherTask.people.single.id, isNot(currentTask.people.single.id));
+  });
+
   testWidgets('cancelling add performs no write', (tester) async {
     final store = await seedTask();
     final service = TaskPeopleService(
