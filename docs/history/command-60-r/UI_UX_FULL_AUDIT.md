@@ -52,3 +52,7 @@ Settings currently contains a text-size slider (12–24), so “font-size contro
 
 ### Shared visual implementation
 `lib/arvin_colors.dart` already centralizes primary/surface/text and semantic status colors. Some widgets still use raw color literals. Primary navigation duplicated three colors and radius/motion constants; lane B PR #3548 moves those to ArvinColors/shared tokens while preserving current values. Not yet tested or accepted.
+
+
+## Home header redesign — lane B PR #3548
+The baseline RTL header used a default RTL Row, placing the first child (notification control) physically on the right and the final child (menu) physically on the left. This contradicted the owner's explicit physical-side decision. Lane B now sets the header Row's layout direction to LTR while preserving RTL text direction inside children: notification physically left, menu physically right. The Bismillah label is wrapped in the approved soft-primary capsule. Widget tests assert both the capsule and physical control order. Status: IMPLEMENTED IN PR / exact-head CI pending; no visual acceptance yet.
