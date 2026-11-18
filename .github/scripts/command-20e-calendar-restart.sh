@@ -88,6 +88,8 @@ echo "CALENDAR_STAGE_B_BEGIN" | tee -a "$EVIDENCE/calendar_restart_stage_b.log"
 adb -s "$DEVICE" logcat -c
 adb -s "$DEVICE" shell monkey -p "$APP_ID" 1 >/dev/null
 wait_for_marker "CALENDAR_LINK_STAGE_B_READ=PASS" "$EVIDENCE/calendar_restart_stage_b.log"
+# The read marker is emitted before fixture-key cleanup; wait for the final marker too.
+wait_for_marker "CALENDAR_LINK_TEST_KEY_CLEANUP=PASS" "$EVIDENCE/calendar_restart_stage_b.log"
 pid_after_restart="$(adb -s "$DEVICE" shell pidof "$APP_ID" 2>/dev/null | tr -d '\r' | awk '{print $1}' || true)"
 test -n "$pid_after_restart"
 test "$pid_after_restart" != "$pid_before"
