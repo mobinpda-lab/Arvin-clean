@@ -78,6 +78,27 @@ void main() {
     );
     await db.close();
 
+    final expectedFromSource = <String, Map<String, Object?>>{};
+    for (final sourceEntry in sourceSnapshot.entries) {
+      final taskId = sourceEntry.key;
+      final envelope = sourceEntry.value as Map;
+      final history = envelope['occurrenceHistory'] as Map;
+      var sourceOrdinal = 0;
+      for (final occurrenceEntry in history.entries) {
+        final scheduledAt = occurrenceEntry.key as String;
+        final state = Map<String, dynamic>.from(occurrenceEntry.value as Map);
+        expectedFromSource['$taskId|$scheduledAt'] = <String, Object?>{
+          'id': OccurrenceSqlCodec.occurrenceId(taskId, scheduledAt),
+          'task_id': taskId,
+          'scheduled_at': scheduledAt,
+          'status': state['status'],
+          'completed_at': state['completionDate'],
+          'result': state['result'],
+          'ordinal': sourceOrdinal++,
+        };
+      }
+    }
+
     db = await _open(primary);
     try {
       await G1DriftSchema.install(db);
@@ -122,8 +143,10 @@ void main() {
         for (final row in actual)
           '${row['task_id']}|${row['scheduled_at']}': row,
       };
-      expect(actualByIdentity.length, expectedByIdentity.length);
-      expect(actualByIdentity, expectedByIdentity,
+      expect(expectedByIdentity, expectedFromSource,
+          reason: 'Fixture expectation must be derived from the captured V7 source JSON.');
+      expect(actualByIdentity.length, expectedFromSource.length);
+      expect(actualByIdentity, expectedFromSource,
           reason: 'Compare occurrence rows by Task ID + scheduled timestamp, not JSON array order.');
 
       for (final taskId in const ['c50-matrix-a','c50-matrix-b','c50-recurring','c50-no-recurrence']) {
