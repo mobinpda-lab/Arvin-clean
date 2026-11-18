@@ -310,21 +310,14 @@ jobs:
                   'integrity_check': integrity,
                   'foreign_key_check_violations': foreignKeyRows.length,
                 };
-                final snapshotFile = File(
-                  Platform.environment['SNAPSHOT_PATH']!,
-                );
-                await snapshotFile.parent.create(recursive: true);
-                // ignore: avoid_print
-                print('SNAPSHOT_WRITE_BEGIN');
                 final encodedSnapshot =
                     const JsonEncoder.withIndent('  ').convert(snapshot);
                 // ignore: avoid_print
                 print('SNAPSHOT_JSON_ENCODE_DONE;bytes=${encodedSnapshot.length}');
-                snapshotFile.writeAsStringSync(encodedSnapshot);
+                // The shell extracts this deterministic payload from the test log.
+                // Avoid Dart-side filesystem writes in this diagnostic runner.
                 // ignore: avoid_print
-                print('SNAPSHOT_WRITE_DONE');
-                // ignore: avoid_print
-                print('COMMAND44_READ_ONLY_SNAPSHOT=' + jsonEncode(snapshot));
+                print('COMMAND44_READ_ONLY_SNAPSHOT=' + encodedSnapshot);
               } finally {
                 // ignore: avoid_print
                 print('NATIVE_DATABASE_CLOSE_BEGIN');
@@ -347,6 +340,7 @@ jobs:
         run: |
           set -euo pipefail
           flutter test test/command44_historical_runtime_smoke_test.dart --reporter expanded 2>&1 | tee build/command44-runtime/flutter-test.log
+          sed -n 's/^COMMAND44_READ_ONLY_SNAPSHOT=//p' build/command44-runtime/flutter-test.log > build/command44-runtime/v7-fixture-snapshot.json
           test -s build/command44-runtime/v7-fixture-snapshot.json
 
       - name: Upload runtime bootstrap evidence
