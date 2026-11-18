@@ -32,3 +32,7 @@ Doctor therefore reported issues for Android licensing and Linux desktop develop
 ## Runtime acceptance
 
 Flutter and Dart toolchain identity and dependency installation are proven for the completed runs. NativeDatabase physical fixture inspection is not accepted because the Dart test process terminated with SIGBUS after opening the connection and completing its first query. No migration was run.
+
+## Addendum — runtime crash localization
+
+Run 44295851388 reconfirmed Flutter 3.47.0 and Dart 3.13.0 in both v19 and v20 lanes, with dependency resolution and fixture hash verification passing. The diagnostic markers confirm all expected table queries completed and the JSON snapshot encoded successfully. The SIGBUS occurred after `SNAPSHOT_JSON_ENCODE_DONE` and before `SNAPSHOT_WRITE_DONE`, during asynchronous snapshot file output. The next candidate SHA 5646cfc06977e3d0b4999874b33aa8c0892c9296 changes that operation to synchronous file output; run 44296037837 was in progress when this addendum was written.
