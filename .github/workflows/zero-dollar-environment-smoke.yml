@@ -112,9 +112,10 @@ jobs:
 
       - name: Verify Flutter, Dart, Java, Android SDK, KVM and booted emulator
         shell: bash
-        env:
         run: |
           set -Eeuo pipefail
+          ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          RUNNER_ENVIRONMENT_VALUE="${RUNNER_ENVIRONMENT_VALUE:-github-hosted}"
           stage="initialization"
           emulator_pid=""
           emulator_log="$RUNNER_TEMP/arvin-emulator.log"
