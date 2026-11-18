@@ -1,0 +1,274 @@
+name: Arvin Historical Migration Runtime
+
+on:
+  push:
+    branches:
+      - recovery-02/main-based-integration
+    paths:
+      - '.github/workflows/arvin-historical-migration.yml'
+      - 'docs/history/command-44-r/**'
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: 'Exact canonical commit containing the historical v7 fixture'
+        required: true
+        type: string
+        default: 'f211326e7615f1c907494232dd3aec8d4732c83c'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: arvin-historical-runtime-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  FIXTURE_SOURCE_SHA: 'f211326e7615f1c907494232dd3aec8d4732c83c'
+  FIXTURE_ARCHIVE: 'test/fixtures/database/historical/main_v7_fixture.sqlite.gz'
+  EXPECTED_FIXTURE_SHA256: '68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0'
+
+jobs:
+  bootstrap:
+    name: Historical runtime (${{ matrix.target.label }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - label: v19
+            source_sha: '310c0e20e3447c488c1e1c102c38bea5040708ca'
+            expected_schema_version: 19
+          - label: v20
+            source_sha: '812082964c649be7660c41213209ec34aea7167b'
+            expected_schema_version: 20
+
+    steps:
+      - name: Checkout exact historical source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ matrix.target.source_sha }}
+          fetch-depth: 0
+
+      - name: Install native SQLite build prerequisites
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y libsqlite3-dev gzip
+          mkdir -p build/command44-runtime
+
+      - name: Install historically evidenced Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Record exact source and runtime versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "LANE=${{ matrix.target.label }}"
+            echo "HISTORICAL_SOURCE_SHA=${{ matrix.target.source_sha }}"
+            echo "FLUTTER_VERSION_REQUESTED=${FLUTTER_VERSION}"
+            echo
+            echo "=== flutter --version --machine ==="
+            flutter --version --machine
+            echo
+            echo "=== dart --version ==="
+            dart --version 2>&1
+            echo
+            echo "=== flutter doctor -v ==="
+            flutter doctor -v
+          } 2>&1 | tee build/command44-runtime/toolchain.log
+          git rev-parse HEAD | tee build/command44-runtime/checked-out-source-sha.txt
+          sha256sum pubspec.lock | tee build/command44-runtime/pubspec-lock.sha256
+
+      - name: Resolve exact historical dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile 2>&1 | tee build/command44-runtime/pub-get.log
+          git diff --exit-code -- pubspec.lock
+          echo "DEPENDENCY_RESOLUTION=PASS" | tee build/command44-runtime/dependency-resolution.txt
+
+      - name: Extract and verify immutable v7 fixture copy
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "${FIXTURE_SOURCE_SHA}"
+          git show "${FIXTURE_SOURCE_SHA}:${FIXTURE_ARCHIVE}" > /tmp/arvin-main-v7-fixture.sqlite.gz
+          gzip -dc /tmp/arvin-main-v7-fixture.sqlite.gz > /tmp/arvin-main-v7-fixture.sqlite
+          actual="$(sha256sum /tmp/arvin-main-v7-fixture.sqlite | awk '{print $1}')"
+          test "${actual}" = "${EXPECTED_FIXTURE_SHA256}"
+          {
+            echo "FIXTURE_SOURCE_SHA=${FIXTURE_SOURCE_SHA}"
+            echo "TARGET_SHA=${TARGET_SHA}"
+            echo "FIXTURE_ARCHIVE=${FIXTURE_ARCHIVE}"
+            echo "FIXTURE_SHA256=${actual}"
+            stat -c 'FIXTURE_SIZE_BYTES=%s' /tmp/arvin-main-v7-fixture.sqlite
+          } | tee build/command44-runtime/fixture-verification.txt
+
+      - name: Generate read-only fixture bootstrap test
+        env:
+          EXPECTED_SCHEMA_VERSION: ${{ matrix.target.expected_schema_version }}
+          FIXTURE_PATH: /tmp/arvin-main-v7-fixture.sqlite
+          SNAPSHOT_PATH: build/command44-runtime/v7-fixture-snapshot.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > test/command44_historical_runtime_smoke_test.dart <<'DART'
+          import 'dart:convert';
+          import 'dart:io';
+
+          import 'package:arvin/services/g1_drift_schema.dart';
+          import 'package:drift/drift.dart';
+          import 'package:drift/native.dart';
+          import 'package:flutter_test/flutter_test.dart';
+
+          class _ReadOnlyV7FixtureUser implements QueryExecutorUser {
+            @override
+            int get schemaVersion => 7;
+
+            @override
+            Future<void> beforeOpen(
+              QueryExecutor executor,
+              OpeningDetails details,
+            ) async {}
+          }
+
+          void main() {
+            TestWidgetsFlutterBinding.ensureInitialized();
+
+            test('opens physical Main v7 fixture without invoking a migration', () async {
+              final expectedInstallerVersion =
+                  int.parse(Platform.environment['EXPECTED_SCHEMA_VERSION']!);
+              expect(G1DriftSchema.version, expectedInstallerVersion);
+
+              final fixture = File(Platform.environment['FIXTURE_PATH']!);
+              expect(await fixture.exists(), isTrue);
+              expect(await fixture.length(), greaterThan(0));
+
+              final executor = NativeDatabase(fixture);
+              try {
+                // Deliberately use the v7 inspection user, never the v19/v20
+                // schema user. This opens the file but cannot run either installer.
+                await executor.ensureOpen(_ReadOnlyV7FixtureUser());
+
+                final tableRows = await executor.runSelect(
+                  "SELECT name FROM sqlite_master WHERE type = 'table' "
+                  "AND name NOT LIKE 'sqlite_%' ORDER BY name",
+                  const [],
+                );
+                final tables = tableRows.map((row) => row['name'] as String).toList();
+                const expectedTables = <String>[
+                  'arvin_storage_meta',
+                  'checklist_items',
+                  'follow_up_people',
+                  'follow_ups',
+                  'people',
+                  'project_items',
+                  'projects',
+                  'tags',
+                  'task_people',
+                  'task_tags',
+                  'tasks',
+                  'taxonomy_categories',
+                ];
+                expect(tables, unorderedEquals(expectedTables));
+
+                final taskIds = await executor.runSelect(
+                  'SELECT id FROM tasks ORDER BY id',
+                  const [],
+                );
+                expect(
+                  taskIds.map((row) => row['id']).toList(),
+                  <String>['task-active-001', 'task-done-002'],
+                );
+
+                final sqliteVersion = (await executor.runSelect(
+                  'SELECT sqlite_version() AS version',
+                  const [],
+                )).single['version'];
+                final userVersion = (await executor.runSelect(
+                  'PRAGMA user_version',
+                  const [],
+                )).single.values.first;
+                final integrityRows = await executor.runSelect(
+                  'PRAGMA integrity_check',
+                  const [],
+                );
+                final integrity = integrityRows.single.values.first;
+                final foreignKeyRows = await executor.runSelect(
+                  'PRAGMA foreign_key_check',
+                  const [],
+                );
+                expect(integrity, 'ok');
+                expect(foreignKeyRows, isEmpty);
+
+                final tableSnapshots = <String, List<Map<String, Object?>>>{};
+                for (final table in tables) {
+                  final escaped = table.replaceAll('"', '""');
+                  final rows = await executor.runSelect(
+                    'SELECT * FROM "$escaped"',
+                    const [],
+                  );
+                  final values = rows
+                      .map((row) => Map<String, Object?>.from(row.data))
+                      .toList();
+                  values.sort(
+                    (a, b) => jsonEncode(a).compareTo(jsonEncode(b)),
+                  );
+                  tableSnapshots[table] = values;
+                }
+
+                final snapshot = <String, Object?>{
+                  'fixture_schema_version': 7,
+                  'historical_installer_schema_version': expectedInstallerVersion,
+                  'sqlite_runtime_version': sqliteVersion,
+                  'pragma_user_version': userVersion,
+                  'tables': tableSnapshots,
+                  'integrity_check': integrity,
+                  'foreign_key_check_violations': foreignKeyRows.length,
+                };
+                final snapshotFile = File(
+                  Platform.environment['SNAPSHOT_PATH']!,
+                );
+                await snapshotFile.parent.create(recursive: true);
+                await snapshotFile.writeAsString(
+                  const JsonEncoder.withIndent('  ').convert(snapshot),
+                );
+                // ignore: avoid_print
+                print('COMMAND44_READ_ONLY_SNAPSHOT=' + jsonEncode(snapshot));
+              } finally {
+                await executor.close();
+              }
+            });
+          }
+          DART
+          cp test/command44_historical_runtime_smoke_test.dart build/command44-runtime/
+          echo "TEST_MODE=READ_ONLY_FIXTURE_OPEN; NO_MIGRATION_INVOKED" | tee build/command44-runtime/test-mode.txt
+
+      - name: Run historical source compile and physical fixture smoke test
+        env:
+          EXPECTED_SCHEMA_VERSION: ${{ matrix.target.expected_schema_version }}
+          FIXTURE_PATH: /tmp/arvin-main-v7-fixture.sqlite
+          SNAPSHOT_PATH: build/command44-runtime/v7-fixture-snapshot.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter test test/command44_historical_runtime_smoke_test.dart --reporter expanded 2>&1 | tee build/command44-runtime/flutter-test.log
+          test -s build/command44-runtime/v7-fixture-snapshot.json
+
+      - name: Upload runtime bootstrap evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-44-r-${{ matrix.target.label }}-${{ github.run_id }}
+          path: build/command44-runtime/
+          if-no-files-found: warn
+          retention-days: 30
