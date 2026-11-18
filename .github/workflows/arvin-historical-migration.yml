@@ -218,7 +218,7 @@ jobs:
                     const [],
                   );
                   final values = rows
-                      .map((row) => Map<String, Object?>.from(row.data))
+                      .map((row) => Map<String, Object?>.from(row))
                       .toList();
                   values.sort(
                     (a, b) => jsonEncode(a).compareTo(jsonEncode(b)),
