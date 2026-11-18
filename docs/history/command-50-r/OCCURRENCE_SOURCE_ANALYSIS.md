@@ -47,10 +47,14 @@ The historical COMMAND 49 runner is `test/command49_v19_safety_test.dart` at can
 
 ## Final forensic harness and workflow identity
 
-- COMMAND 50 test harness at execution commit `9032256a9e569c1bf5d7290bcfc966b8c5660c5f`: `test/command50_occurrence_forensic_test.dart`, blob `f778d329f6f17c88174f82e9f53cd8cb977123f7`.
-- Workflow: `.github/workflows/command-50-r-occurrence-forensic.yml`; current workflow blob `9c7b0e2e1f6876cba8090d10995cbe045f954447` (workflow logic was fixed before the final run).
+- COMMAND 50 test harness at execution commit `9032256a9e569c1bf5d7290bcfc966b8c5660c5f`: `test/command50_occurrence_forensic_test.dart`, blob `9f65ca624cbbd911567e22812b16865c751f04a0`.
+- Workflow: `.github/workflows/command-50-r-occurrence-forensic.yml`; current workflow blob `7bb38b65d76418567e578ea9aaebd1961fed8ce5` (workflow logic was fixed before the final run).
 - Final physical run: `44368276255`; job `135027809312`; artifact `14458356507`.
 - Artifact SHA-256: `eecb19a699a224044e8a868e69e133ee2ecc5ad76660f93e0ee45730fd4071b8`.
 - The run verified the exact historical source blobs listed above and the immutable V7 fixture hash.
 
 Final rerun with explicit source-retention assertions: run `44368276255`, artifact `14458356507`, artifact SHA-256 `eecb19a699a224044e8a868e69e133ee2ecc5ad76660f93e0ee45730fd4071b8`. This final harness explicitly verifies that explicit-null keys and the unknown `futureField` remain in their original legacy JSON after rollback.
+
+## Supplementary checklist coverage
+
+The legacy envelope also supports `checklistOccurrences`. A supplemental same-Occurrence checklist fixture was added after the required matrix passed; its workflow run `44369147951` is pending and is not counted as a PASS in the completed required acceptance matrix. The required matrix and final evidence remain run `44368276255`.
