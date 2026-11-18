@@ -245,11 +245,15 @@ jobs:
 
                 final tableSnapshots = <String, List<Map<String, Object?>>>{};
                 for (final table in tables) {
+                  // ignore: avoid_print
+                  print('SNAPSHOT_TABLE_BEGIN=$table');
                   final escaped = table.replaceAll('"', '""');
                   final rows = await executor.runSelect(
                     'SELECT * FROM "$escaped"',
                     const [],
                   );
+                  // ignore: avoid_print
+                  print('SNAPSHOT_TABLE_QUERY_READY=$table;rows=${rows.length}');
                   final values = rows
                       .map((row) => Map<String, Object?>.from(row))
                       .toList();
@@ -257,7 +261,11 @@ jobs:
                     (a, b) => jsonEncode(a).compareTo(jsonEncode(b)),
                   );
                   tableSnapshots[table] = values;
+                  // ignore: avoid_print
+                  print('SNAPSHOT_TABLE_DONE=$table');
                 }
+                // ignore: avoid_print
+                print('SNAPSHOT_TABLES_ALL_DONE');
 
                 final snapshot = <String, Object?>{
                   'fixture_schema_version': 7,
@@ -272,13 +280,21 @@ jobs:
                   Platform.environment['SNAPSHOT_PATH']!,
                 );
                 await snapshotFile.parent.create(recursive: true);
+                // ignore: avoid_print
+                print('SNAPSHOT_WRITE_BEGIN');
                 await snapshotFile.writeAsString(
                   const JsonEncoder.withIndent('  ').convert(snapshot),
                 );
                 // ignore: avoid_print
+                print('SNAPSHOT_WRITE_DONE');
+                // ignore: avoid_print
                 print('COMMAND44_READ_ONLY_SNAPSHOT=' + jsonEncode(snapshot));
               } finally {
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_CLOSE_BEGIN');
                 await executor.close();
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_CLOSE_DONE');
               }
             });
           }
