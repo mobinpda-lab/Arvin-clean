@@ -1,6 +1,6 @@
 # COMMAND 50-R — Acceptance
 
-**Status: BLOCKED — ROOT CAUSE IDENTIFIED; FULL FORENSIC MATRIX NOT YET ACCEPTED**
+**Status: COMPLETE — ROOT CAUSE CONFIRMED; V19 MIGRATION REMAINS BLOCKED**
 
 **Repository:** `mobinpda-lab/Arvin-clean`
 **Branch:** `recovery-02/main-based-integration`
@@ -22,15 +22,15 @@ Two additional parity hazards are identified directly in the historical codec: e
 | Simple pending first migration | PASS — physical evidence from COMMAND 49 |
 | Exact root cause for COMMAND 49 failure | PASS — confirmed |
 | ID / Task ID / timestamp / status for simple pending row | PASS — artifact inspected |
-| Completed / cancelled / missed / skipped matrix | PENDING — diagnostic harness authored |
-| Multiple Occurrences and multiple Tasks | PENDING — diagnostic harness authored |
-| Recurrence-linked and unlinked cases | PENDING — diagnostic harness authored |
-| Explicit NULL physical negative case | PENDING |
-| Unknown Occurrence-state physical negative case | PENDING |
-| Timestamp boundary physical case | PENDING |
-| TaskStore readback | PENDING — harness authored |
-| Full diagnostic workflow log and artifact | PENDING — no COMMAND 50 run result verified |
-| Initial-failure rollback / retry behavior | NOT ACCEPTED |
+| Completed / cancelled / missed / skipped matrix | PASS — physical run `44367002583` |
+| Multiple Occurrences and multiple Tasks | PASS — physical run `44367002583` |
+| Recurrence-linked and unlinked cases | PASS — physical run `44367002583`; Task-level relation confirmed |
+| Explicit NULL physical negative case | FAIL_CONFIRMED — expected parity rejection; original JSON retained and transaction rolled back |
+| Unknown Occurrence-state physical negative case | FAIL_CONFIRMED — expected parity rejection; original JSON retained and transaction rolled back |
+| Timestamp boundary and offset physical case | PASS — boundaries preserved; Occurrence offset retained as text; Recurrence offset normalized to UTC |
+| TaskStore readback | PASS — physical readback on migrated database |
+| Full diagnostic workflow log and artifact | PASS — run `44367002583`, job `135024297667`, artifact `14456982207` |
+| Initial-failure rollback / retry behavior | PASS as forensic observation — initial negative cases roll back; second install still fails with existing rows preserved |
 
 ## Protection
 
@@ -44,4 +44,12 @@ Two additional parity hazards are identified directly in the historical codec: e
 
 ## Decision
 
-COMMAND 50-R is not COMPLETE. The root cause for the original retry failure is known, but the acceptance criteria require the expanded physical matrix and its actual logs/artifacts. Do not begin V20. Any proposed production correction must be a separate change and must not be applied to historical V19 source under this command.
+COMMAND 50-R forensic analysis is COMPLETE: the source-to-SQL matrix and the negative cases ran on isolated copies, the original retry mismatch has an exact root cause, and the two additional parity hazards are physically reproduced. This completion does **not** authorize V20. Historical V19 remains unsafe to accept until an independently approved repair handles retry, explicit NULL and unknown Occurrence fields. Any repair remains a separate proposal; historical V19 source stays immutable.
+
+## Final execution evidence
+
+- Run: `44367002583` — SUCCESS.
+- Job: `135024297667` — SUCCESS.
+- Artifact: `14456982207` — https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44367002583/artifacts/14456982207
+- Artifact SHA-256: `080d32fde09c0d2160ec121f1c3e5854606659ef8aa14e1ebd4f60c61f4f8260`.
+- Test harness commit: `5d5e63d9dbe95077a1e501e69576d299897cab11`.
