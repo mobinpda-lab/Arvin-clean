@@ -1,41 +1,43 @@
-# Database Migration History — Evidence Ledger (Preliminary)
-- Recorded: 2026-11-18 | Scope: Schema versions 7–20
-- Status: PRELIMINARY FORENSIC INVENTORY — NOT A PROVEN UPGRADE PATH
-- Main observed: `45e4202b03a434459e4c021a04efa7e8396359db`
-- Canonical audited SHA: `9d455fae7ae6fd3ba207709aa0348b3b48c66e97`
+# DATABASE MIGRATION HISTORY — COMMAND 40-R
+**Status:** PRELIMINARY SOURCE MAP — NOT A PROVEN UPGRADE PATH  
+**Repository:** mobinpda-lab/Arvin-clean  
+**Canonical PR:** #3495  
+**Canonical branch HEAD at start:** `6005fb58f6c40db404353cf695445726e933d5cd`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`
 
-## Provenance
-Historical commits and blobs for `lib/services/g1_drift_schema.dart` were inspected, including version snapshots from PR lineage #3384/#3463 and the canonical branch. This SHA index is not proof that every adjacent upgrade edge is executable. Full fixture-based validation remains outstanding.
+## Verified source map
+| Schema/source | Exact source | Observed status |
+|---|---|---|
+| Main v7 | Main `lib/services/g1_drift_schema.dart`, blob `cd065ff25c680ed064e89068b3d063e737091025` | Confirmed `version = 7`; installer uses `arvin_storage_meta`, not `PRAGMA user_version` |
+| Legacy v9 Task Template lineage | commit `708c112a82c753f1dcdb77f1cf9712a6336a725d`, schema blob `617c05e4416bede903e78b65bd32a839d2d7c65a` | A distinct v9 source |
+| Canonical REV10 v9 | branch schema blob `3bd140f9a07b54c1e4a1dff26d64f965b437ec52`; migration blob `f9569182a1d79a116e1e1f4c400e69f7c47863b4` | v9 with separate additive v8→v9 hierarchy migration |
+| PR #3384 v19 | head `310c0e20e3447c488c1e1c102c38bea5040708ca`; schema blob `9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21` | v19 source; not a Main-based sequential migration ledger |
+| PR #3463 v20 | head `812082964c649be7660c41213209ec34aea7167b`; schema blob `b03b90efac9f3c5cbef3b1b649385cdf6369ca62` | v20 candidate; M2M migration separate from v19 installer |
 
-| Version | Historical source commit SHA | Observed change (preliminary) | Risk |
-|---|---|---|---|
-| 7 | `5e974519087c14f07387e45a903cee3409cc68bf` | completed_at-era baseline | baseline fixture required |
-| 8 | `ed93d6ad30bfe4e75199f297efda0a2b8099ce49` | follow_ups.extension_json addition | additive |
-| 9 | `708c112a82c753f1dcdb77f1cf9712a6336a725d` | legacy Task Template schema lineage | branch ambiguity |
-| 10 | `00e3d8007798c5e29222faaa9c4738075c9d5a93` | template context fields | additive |
-| 11 | `96651f7690a1cd40f7fa087e12293bcf288bb667` | checklist template setting | additive |
-| 12 | `01238b00dd9e58cdc3987bf24b093a9d6c23f6ac` | relational Follow-up/Reminder/Person structures | data transfer |
-| 13 | `7bcd218254c7931a766bdd091bb3d39483c1888e` | old Follow-up and People structures retired after transfer | destructive |
-| 14 | `102e7d4fc00674524c50f577ce9f5b929d67349d` | Tasks table rebuild; legacy scheduling columns retired | destructive |
-| 15 | `1313c3e59a726126db06d22d5e63e4ff952b1e15` | subsequent Tasks rebuild/version transition | rebuild |
-| 16 | `633a0ac413a27a00be948947fa9047c316c10878` | reminder-source consolidation; legacy marker retired | rebuild/data transfer |
-| 17 | `e12d86c77aecebde94f2f386a3b6c5732d539ccd` | recurrence_json addition | additive |
-| 18 | `bceadc8f9bba6a9d7f0ba6756b7477f0cdb264b2` | task_reminders rebuild; legacy marker retired | destructive |
-| 19 | `cd2cec72fb4bad77d1ae116913f811abfd94ea07` | Tasks rebuild and legacy column retirement | destructive |
-| 20 | `9bd415ea7450d9863a1a72941e8f56701954d3a0` | Center/Project/Category many-to-many hierarchy work | architectural |
+## Preliminary version inventory
+The previously recorded SHA index for versions 7–20 is retained as preliminary evidence. It is not independently verified as a sequence of executable adjacent migrations. Versions 10–18 have not yet been fully reconstructed here from every source commit, file diff and merge boundary.
 
-## Critical lineage ambiguity
-Version 9 appears in two contexts: legacy v9 Task Template structure and current REV10 v8→v9 Center/Project/Category hierarchy migration. They are not automatically the same schema state or one linear history. Migration registry must establish actual source state by proven lineage/schema fingerprint; do not infer compatibility from integer version alone.
+| Version | Existing historical note | COMMAND 40-R disposition |
+|---:|---|---|
+| 7 | Main baseline | source confirmed; complete baseline fixture not run |
+| 8 | follow_ups.extension_json | source SHA noted; DDL/edge proof pending |
+| 9-A | Task Template lineage | distinct v9 lineage; source schema fetched |
+| 9-B | REV10 hierarchy v8→v9 | distinct migration file fetched; edge and fixture proof pending |
+| 10–11 | template context/checklist settings | preliminary only |
+| 12 | relational Follow-up/Reminder/Person structures | preliminary only |
+| 13 | Follow-up/People retirement after transfer | destructive proof pending |
+| 14–15 | Tasks table rebuilds | exact before/after proof pending |
+| 16 | reminder source consolidation | exact transfer proof pending |
+| 17 | recurrence_json | preliminary only |
+| 18 | task_reminders rebuild | destructive proof pending |
+| 19 | Task rebuild / legacy column retirement | source available in PR #3384; complete edge proof pending |
+| 20 | Center/Project/Category hierarchy M2M | source available in PR #3463; integration and file-backed proof pending |
 
-## Destructive/rebuild operations requiring proof
-v13: old Follow-up/People structures retired after transfer; v14: Tasks rebuilt and scheduling columns retired; v15: Tasks rebuilt again; v16: reminder source consolidated; v18: task_reminders rebuilt; v19: Tasks rebuilt and legacy columns retired.
-For each: before/after row counts, stable IDs, field mapping, relation checks, rollback/failure injection and exact-source SQLite fixture are required.
+## Required next evidence
+1. Fetch every exact schema and migration source at each historical commit.
+2. Record parent commits, merge boundaries and blob SHAs; distinguish authored code from later copied state.
+3. Extract every CREATE, ALTER, index, trigger, table rebuild, INSERT…SELECT, UPDATE, DELETE and DROP statement.
+4. Establish each adjacent upgrade edge and supported source fingerprint.
+5. Never infer a migration edge from version integers alone.
 
-## PR lineage
-- #3384: historical source for v19 implementation lineage.
-- #3463: historical v20 / many-to-many hierarchy lineage.
-- #3495: canonical integration PR audited at the SHA above.
-Re-fetch these when continuing; this record is a historical snapshot, not a claim about their current state.
-
-## Completion work
-Fetch full diffs and changed files for #3384/#3463; extract all DDL and data-copy/delete sequences; verify exact schema state at each transition and merge boundary; build exact historical SQLite fixtures; test every supported path including failure injection/retry; document unsupported paths; only then authorize destructive cleanup.
+**Result: BLOCKED.** This file is a source map, not a completed historical ledger.
