@@ -47,6 +47,18 @@
 5. Integrate lanes only into the authorized canonical branch after independent review and test evidence.
 6. Keep RELEASE NO-GO until all owner acceptance gates pass, including real phone tests.
 
+## COMMAND 60-R live documentation checkpoint
+- Documentation batch commit: `a86a7f1a002d3540846a27b7ed8ccaf4e26f62ba`; all 16 requested starter files were re-read successfully from GitHub.
+- Main SHA was re-fetched and remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Five lane branches were re-listed and all five exist.
+- Exact-SHA workflows triggered by documentation batch commit `a86a7f1a002d3540846a27b7ed8ccaf4e26f62ba`:
+  - Build `44417450117`: PENDING at last poll (no jobs exposed yet).
+  - Device Smoke `44417450005`: QUEUED/in progress; quick-capture and home running, other five scenario jobs queued at last poll.
+  - COMMAND 20-E `44417449926`: storage-persistence IN PROGRESS.
+  - Follow-up File Persistence `44417450260`: IN PROGRESS.
+- These are new documentation-SHA runs and do not repair or replace the earlier failing baseline evidence.
+- This tracker update itself creates a newer branch commit; re-fetch its SHA and exact-SHA workflows before the next status report.
+
 ## Acceptance vocabulary
 NOT STARTED · IN PROGRESS · BLOCKED · IMPLEMENTED · TESTED · ACCEPTED
 
