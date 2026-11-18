@@ -116,19 +116,22 @@ jobs:
                   'scheduledDate': '2026-11-03T08:00:00.000Z', 'status': 'cancelled'
               }
           }, extra={'legacyCustomField': 'preserve-me'})
-          add_task(base, 'c50-matrix-b', 991, 'Boundary timestamps', {
+          add_task(base, 'c50-matrix-b', 991, 'Boundary and offset timestamps', {
               '0001-01-01T00:00:00.000Z': {
                   'scheduledDate': '0001-01-01T00:00:00.000Z', 'status': 'missed'
               },
               '9999-12-31T23:59:59.999Z': {
                   'scheduledDate': '9999-12-31T23:59:59.999Z', 'status': 'skipped'
+              },
+              '2026-11-05T10:00:00+03:30': {
+                  'scheduledDate': '2026-11-05T10:00:00+03:30', 'status': 'pending'
               }
           })
           add_task(base, 'c50-recurring', 992, 'Occurrence with recurrence', {
               '2026-12-01T09:00:00.000Z': {
                   'scheduledDate': '2026-12-01T09:00:00.000Z', 'status': 'pending'
               }
-          }, recurrence={'frequency':'daily','interval':2,'active':True})
+          }, recurrence={'frequency':'daily','interval':2,'active':True,'startDate':'2026-12-01T09:00:00+03:30','endDate':'2026-12-08T09:00:00+03:30'})
           add_task(base, 'c50-no-recurrence', 993, 'Occurrence without recurrence', {
               '2026-12-02T09:00:00.000Z': {
                   'scheduledDate': '2026-12-02T09:00:00.000Z', 'status': 'pending'
