@@ -107,9 +107,7 @@ jobs:
           envelope['occurrenceHistory'] = {
               scheduled: {
                   'scheduledDate': scheduled,
-                  'status': 'completed',
-                  'completionDate': '2026-11-01T06:07:00.000',
-                  'result': 'extended-command49-fixture'
+                  'status': 'pending'
               }
           }
           envelope['checklistOccurrences'] = {
