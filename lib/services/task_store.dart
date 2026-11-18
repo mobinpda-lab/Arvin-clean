@@ -87,6 +87,13 @@ class TaskStore {
             'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
           );
+          // The Task relation is the historical identity snapshot. Keep its
+          // label synchronized with the canonical Person directory so the
+          // idempotent legacy hydrator cannot restore a stale display name.
+          await executor.runUpdate(
+            'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+            <Object?>[jsonEncode(person.toJson()), person.id],
+          );
         }
         await executor.runCustom('COMMIT');
       } catch (_) {
