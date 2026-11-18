@@ -35,3 +35,9 @@ The generated ID, Task ID, timestamp and status match the source probe. This con
 ## Interpretation
 
 Do not treat a successful first transfer as proof of idempotency. The historical codec removes the source history fields after its first successful parity check, but its next invocation compares an empty source map with the already-populated destination rows. See `OCCURRENCE_PARITY_RESULTS.md`.
+
+## Fields explicitly absent from the historical contract
+
+The old JSON Occurrence shape and V19 destination schema have no per-Occurrence `createdAt`, `executedAt` or `recurrenceId`. No such values can be compared or preserved because the source does not define them. Recurrence is owned by Task (`task_recurrence_rules.task_id`), not directly by an Occurrence. V19 synthesizes the destination Occurrence ID from Task ID + scheduled timestamp.
+
+The COMMAND 50 workflow has now been corrected to compare by the composite identity `task_id|scheduled_at` and derive its expected rows from the captured V7 source JSON snapshot. A later completed run is required before those strengthened assertions count as accepted evidence.
