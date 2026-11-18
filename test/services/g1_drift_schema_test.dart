@@ -73,6 +73,8 @@ void main() {
 
 
   test('v8 to v9 hierarchy migration preserves legacy rows and classifies ambiguous links', () async {
+    // Setup SQL runs before the migration installer; open the executor first.
+    await database.ensureOpen(G1DriftSchema());
     await database.runCustom('PRAGMA foreign_keys = ON');
     await database.runCustom('''
       CREATE TABLE tasks (
