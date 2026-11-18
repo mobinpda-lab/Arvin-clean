@@ -1,0 +1,53 @@
+# COMMAND 60-R — MASTER TRACKER
+**Updated:** 2026-11-19  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Canonical integration branch:** `recovery-02/main-based-integration`  
+**PR:** #3495 — OPEN / DRAFT / UNMERGED  
+**Baseline verified:** `871abadc158464b6059d88350b1cb6fb48def7df`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` (read-only; unchanged in this mission)
+
+## Current control state
+- Read access: VERIFIED.
+- Write access: VERIFIED by creation of five isolated work branches and this documentation update.
+- No Main write, merge, release, deployment, production database migration, V19 installer edit or V7 fixture edit.
+- Latest COMMAND 59 commits: `1dc43001e2572933d4cafd602641d46617f179cd`, `871abadc158464b6059d88350b1cb6fb48def7df`.
+- Canonical branch HEAD at mission start: `871abadc158464b6059d88350b1cb6fb48def7df`. This tracker commit advances the branch; re-read live branch/PR SHA after commit.
+
+## Work lanes
+| Lane | Branch | Status | Current blocker / next action |
+|---|---|---|---|
+| A — Data safety | `command-60-r/path-a-data-safety` | IN PROGRESS | Diagnose V8→V9 test executor lifecycle, COMMAND 49 parity, COMMAND 50 forensic failures; prove V7→V20 sequential path |
+| B — UI/UX | `command-60-r/path-b-ui-ux` | IN PROGRESS | Complete route/page inventory, font provenance reconciliation, design-system implementation plan |
+| C — Product features | `command-60-r/path-c-product-features` | IN PROGRESS | Map REV10 features against source and #1901; build CRUD/persistence acceptance matrix |
+| D — Quality | `command-60-r/path-d-quality` | IN PROGRESS | Repair test-1 Drift executor lifecycle and test-2 Person dialog contract without weakening assertions |
+| E — Delivery | `command-60-r/path-e-delivery` | IN PROGRESS | Prepare physical-device checklist and release evidence; physical device remains untested |
+
+## Exact-SHA baseline
+- Build `44408378276`: FAILURE. Analyze, Debug APK, Release APK and font package audit succeeded; test-1 and test-2 failed.
+- Device Smoke `44408378348`: SUCCESS on baseline SHA; seven emulator scenarios. Not physical-device acceptance.
+- COMMAND 20-E `44408378416`: FAILURE at final acceptance gate; ProjectStore file persistence and SharedPreferences fresh-process persistence phase passed.
+- Follow-up File Persistence `44408378334`: SUCCESS.
+- Test-1 root cause: `g1_drift_schema_test.dart`, V8→V9 migration test invokes an executor before `ensureOpen()`.
+- Test-2 root cause: `person_directory_page_test.dart`, expected delete-dialog text not found; 262 other tests passed.
+- COMMAND 49-R: occurrence parity mismatch remains unresolved.
+- COMMAND 50-R: forensic workflow success is not migration acceptance; second-install, explicit-NULL and unknown-state cases remain failing.
+
+## REV10 source contract found
+- Active canonical continuity set: `docs/project-continuity/{MASTER_GOVERNANCE,PRODUCT_DECISIONS,CURRENT_STATE,ROADMAP,OPEN_ISSUES,IMPLEMENTATION_LOG,HANDOFF}.md` plus README.
+- REV10 Home: five filters — Time, Center, Project, Category, Tag; multi-select OR within dimension, AND across dimensions; five due-date groups.
+- Relations: Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category each optional 0..1; Task↔Tag M2M.
+- Existing governance says one active development branch; COMMAND 60-R is the newer explicit owner instruction authorizing five independent work branches. This mission records that supersession without changing Main.
+- Font source conflict remains documented in PRODUCT_DECISIONS.md. Current code uses Vazirmatn v33.003. One library ZIP found: `vazirmatn-v33.003 (2).zip`; no VazirHarf v34.003 ZIP was found in Library/conversation ZIP inventory. Do not silently switch font.
+
+## Next actions
+1. Read this tracker and current live branch SHA before every continuation.
+2. Complete detailed page/file inventory on lane B and feature matrix on lane C.
+3. Diagnose lane A/D failures using exact test logs and preserve every assertion.
+4. Record each implementation commit and exact-SHA CI before claiming TESTED.
+5. Integrate lanes only into the authorized canonical branch after independent review and test evidence.
+6. Keep RELEASE NO-GO until all owner acceptance gates pass, including real phone tests.
+
+## Acceptance vocabulary
+NOT STARTED · IN PROGRESS · BLOCKED · IMPLEMENTED · TESTED · ACCEPTED
+
+A document or APK alone is not product acceptance.
