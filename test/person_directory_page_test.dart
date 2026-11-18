@@ -79,7 +79,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('حذف'));
     await tester.pumpAndSettle();
-    expect(find.text('حذف فقط این شخص را از دفترچه اشخاص خارج می‌کند؛ شناسه و ارتباط‌های تاریخی Task و Follow-up حفظ می‌شوند.'), findsOneWidget);
+    expect(find.text('«شخص تاریخی» در سوابق کار یا پیگیری استفاده شده است. حذف فقط این شخص را از دفترچه اشخاص خارج می‌کند؛ شناسه و ارتباط‌های تاریخی Task و Follow-up حفظ می‌شوند.'), findsOneWidget);
     await tester.tap(find.text('حذف از دفترچه'));
     await tester.pumpAndSettle();
 
