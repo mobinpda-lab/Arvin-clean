@@ -142,31 +142,17 @@ class _PersonDirectoryPageState extends State<PersonDirectoryPage> {
   }
 
   Future<void> _delete(PersonReference person) async {
-    if (_isReferenced(person.id)) {
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('حذف در این وضعیت ممکن نیست'),
-          content: Text(
-            '«${person.displayName}» در سابقه کار یا پیگیری استفاده شده است. '
-            'برای حفظ شناسه و ارتباط تاریخی، حذف تا زمانی که راهکار امن آرشیو فراهم شود غیرفعال است.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('متوجه شدم'),
-            ),
-          ],
-        ),
-      );
-      return;
-    }
-
+    final referenced = _isReferenced(person.id);
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('حذف شخص'),
-        content: Text('«${person.displayName}» از دفترچه حذف شود؟'),
+        title: const Text('حذف شخص از دفترچه'),
+        content: Text(
+          referenced
+              ? '«${person.displayName}» در سوابق کار یا پیگیری استفاده شده است. '
+                  'حذف فقط این شخص را از دفترچه اشخاص خارج می‌کند؛ شناسه و ارتباط‌های تاریخی Task و Follow-up حفظ می‌شوند.'
+              : '«${person.displayName}» از دفترچه اشخاص حذف شود؟',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -174,7 +160,7 @@ class _PersonDirectoryPageState extends State<PersonDirectoryPage> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('حذف'),
+            child: const Text('حذف از دفترچه'),
           ),
         ],
       ),

@@ -16,8 +16,7 @@ void main() {
     await TaskStore.resetTestDatabase();
   });
 
-  testWidgets('duplicate names warn without merging and linked Person deletion is blocked',
-      (tester) async {
+  testWidgets('duplicate names warn without merging', (tester) async {
     final store = TaskStore();
     final person = PersonReference(id: 'person-stable-1', displayName: 'علی رضایی');
     await store.savePeopleDirectory([person]);
@@ -39,16 +38,6 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: PersonDirectoryPage(store: store)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('حذف'));
-    await tester.pumpAndSettle();
-    expect(find.text('حذف در این وضعیت ممکن نیست'), findsOneWidget);
-    await tester.tap(find.text('متوجه شدم'));
-    await tester.pumpAndSettle();
-
-    final before = await store.load();
-    expect(before.single.people.single.id, person.id);
-    expect(before.single.followUps.single.personIds, [person.id]);
-
     await tester.tap(find.text('افزودن شخص'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'علي رضایی');
@@ -66,6 +55,41 @@ void main() {
     expect(after.single.people.single.id, person.id);
     expect(after.single.followUps.single.personIds, [person.id]);
   });
+  testWidgets('removing a referenced Person from directory preserves Task and Follow-up history',
+      (tester) async {
+    final store = TaskStore();
+    final person = PersonReference(id: 'person-history-retained', displayName: 'شخص تاریخی');
+    await store.savePeopleDirectory([person]);
+    await store.save([
+      Task(
+        id: 'task-person-history-retained',
+        title: 'کار با شخص',
+        people: [person],
+        followUps: [
+          FollowUp(
+            id: 'follow-up-person-history-retained',
+            dateTime: DateTime(2026, 11, 18, 9),
+            personIds: [person.id],
+          ),
+        ],
+      ),
+    ]);
+
+    await tester.pumpWidget(MaterialApp(home: PersonDirectoryPage(store: store)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('حذف'));
+    await tester.pumpAndSettle();
+    expect(find.text('حذف فقط این شخص را از دفترچه اشخاص خارج می‌کند؛ شناسه و ارتباط‌های تاریخی Task و Follow-up حفظ می‌شوند.'), findsOneWidget);
+    await tester.tap(find.text('حذف از دفترچه'));
+    await tester.pumpAndSettle();
+
+    expect(await store.loadPeopleDirectory(), isEmpty);
+    final restored = await store.load();
+    expect(restored.single.people.single.id, person.id);
+    expect(restored.single.people.single.displayName, person.displayName);
+    expect(restored.single.followUps.single.personIds, [person.id]);
+  });
+
   test('renaming a Person keeps the stable ID and updates historical Task labels', () async {
     final store = TaskStore();
     final original = PersonReference(id: 'person-rename-stable', displayName: 'نام قبلی');
