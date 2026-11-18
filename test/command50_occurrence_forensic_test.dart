@@ -235,9 +235,19 @@ void main() {
         const [],
       );
       expect(persisted, hasLength(expectedFromSource.length));
+      final retryIntegrity = await db.runSelect('PRAGMA integrity_check', const []);
+      final retryForeignKeys = await db.runSelect('PRAGMA foreign_key_check', const []);
+      expect(retryIntegrity.single['integrity_check'], 'ok');
+      expect(retryForeignKeys, isEmpty);
       File(root.path + '/command50-retry-error.txt').writeAsStringSync(retryError);
       File(root.path + '/command50-retry-sql.json').writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(persisted),
+      );
+      File(root.path + '/command50-retry-integrity.json').writeAsStringSync(
+        const JsonEncoder.withIndent('  ').convert({
+          'integrity_check': retryIntegrity,
+          'foreign_key_violations': retryForeignKeys.length,
+        }),
       );
     } finally {
       await db.close();
@@ -267,19 +277,25 @@ void main() {
     );
 
     File(root.path + '/command50-verdict.txt').writeAsStringSync(
-      'FIRST_INSTALL_BASE_MATRIX=PASS\n'
-      'STATUSES_PENDING_COMPLETED_CANCELLED_MISSED_SKIPPED=PASS\n'
-      'MULTIPLE_OCCURRENCES_PER_TASK=PASS\n'
-      'MULTIPLE_TASK_IDENTITIES=PASS\n'
-      'RECURRENCE_LINKED_AND_UNLINKED=PASS\n'
-      'NULL_STORAGE_FOR_OMITTED_OPTIONAL_FIELDS=PASS\n'
-      'TIMESTAMP_BOUNDARIES=PASS\n'
-      'UNKNOWN_TASK_LEVEL_FIELD_PRESERVED=PASS\n'
-      'TASK_STORE_READBACK_FIRST_CONNECTION=PASS\n'
-      'SECOND_INSTALL_AFTER_REOPEN=FAIL_CONFIRMED\n'
-      'EXPLICIT_NULL_OPTIONAL_KEYS=FAIL_CONFIRMED\n'
-      'UNKNOWN_OCCURRENCE_STATE_KEY=FAIL_CONFIRMED\n'
-      'OVERALL=BLOCKED_HISTORICAL_V19_OCCURRENCE_CODEC\n',
-    );
-  });
+      'SOURCE_SNAPSHOT_CAPTURED=PASS\\n'
+      'EXPECTED_ROWS_DERIVED_FROM_SOURCE_JSON=PASS\\n'
+      'IDENTITY_BASED_SQL_COMPARISON=PASS\\n'
+      'FIRST_INSTALL_BASE_MATRIX=PASS\\n'
+      'STATUSES_PENDING_COMPLETED_CANCELLED_MISSED_SKIPPED=PASS\\n'
+      'MULTIPLE_OCCURRENCES_PER_TASK=PASS\\n'
+      'MULTIPLE_TASK_IDENTITIES=PASS\\n'
+      'RECURRENCE_LINKED_AND_UNLINKED=PASS\\n'
+      'RECURRENCE_LINK_IS_TASK_LEVEL=PASS\\n'
+      'NULL_STORAGE_FOR_OMITTED_OPTIONAL_FIELDS=PASS\\n'
+      'TIMESTAMP_BOUNDARIES=PASS\\n'
+      'OCCURRENCE_OFFSET_PRESERVED_AS_TEXT=PASS\\n'
+      'RECURRENCE_OFFSET_NORMALIZED_TO_UTC=PASS\\n'
+      'UNKNOWN_TASK_LEVEL_FIELD_PRESERVED=PASS\\n'
+      'TASK_STORE_READBACK_FIRST_CONNECTION=PASS\\n'
+      'SECOND_INSTALL_AFTER_REOPEN=FAIL_CONFIRMED\\n'
+      'EXPLICIT_NULL_OPTIONAL_KEYS=FAIL_CONFIRMED\\n'
+      'UNKNOWN_OCCURRENCE_STATE_KEY=FAIL_CONFIRMED\\n'
+      'FAILED_FIRST_TRANSFER_ROLLBACK_AND_SOURCE_PRESERVATION=PASS\\n'
+      'OVERALL=BLOCKED_HISTORICAL_V19_OCCURRENCE_CODEC\\n',
+    );  });
 }
