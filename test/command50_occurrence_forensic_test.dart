@@ -33,15 +33,38 @@ Future<void> _markLegacySourcesMigrated(QueryExecutor db) async {
   }
 }
 
-Future<String> _installAndCapture(File file) async {
+Future<Map<String, Object?>> _installAndCapture(File file) async {
   final db = await _open(file);
   try {
+    String error = 'UNEXPECTED_PASS';
     try {
       await G1DriftSchema.install(db);
-      return 'UNEXPECTED_PASS';
-    } catch (error) {
-      return error.runtimeType.toString() + ': ' + error.toString();
+    } catch (caught) {
+      error = caught.runtimeType.toString() + ': ' + caught.toString();
     }
+    final occurrenceTable = await db.runSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='task_occurrences'",
+      const [],
+    );
+    final occurrenceRows = occurrenceTable.isEmpty
+        ? const <Map<String, Object?>>[]
+        : (await db.runSelect(
+            "SELECT id, task_id, scheduled_at, status FROM task_occurrences WHERE task_id LIKE 'c50-%' ORDER BY task_id, ordinal",
+            const [],
+          )).map((row) => Map<String, Object?>.from(row)).toList();
+    final sources = await db.runSelect(
+      "SELECT id, legacy_payload_json FROM tasks WHERE id LIKE 'c50-%' ORDER BY id",
+      const [],
+    );
+    final integrity = await db.runSelect('PRAGMA integrity_check', const []);
+    final foreignKeys = await db.runSelect('PRAGMA foreign_key_check', const []);
+    return <String, Object?>{
+      'error': error,
+      'sources_after_failure': sources,
+      'occurrences_after_failure': occurrenceRows,
+      'integrity_check': integrity,
+      'foreign_key_violations': foreignKeys.length,
+    };
   } finally {
     await db.close();
   }
@@ -211,7 +234,7 @@ void main() {
         "SELECT id, task_id, scheduled_at, status FROM task_occurrences WHERE task_id LIKE 'c50-%' ORDER BY task_id, ordinal",
         const [],
       );
-      expect(persisted, hasLength(7));
+      expect(persisted, hasLength(expectedFromSource.length));
       File(root.path + '/command50-retry-error.txt').writeAsStringSync(retryError);
       File(root.path + '/command50-retry-sql.json').writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(persisted),
@@ -224,12 +247,24 @@ void main() {
     final unknownDb = File(root.path + '/command50-unknown.sqlite');
     await nullFixture.copy(nullDb.path);
     await unknownFixture.copy(unknownDb.path);
-    final nullError = await _installAndCapture(nullDb);
-    final unknownError = await _installAndCapture(unknownDb);
-    expect(nullError, contains('Occurrence migration parity mismatch for Task c50-explicit-null'));
-    expect(unknownError, contains('Occurrence migration parity mismatch for Task c50-unknown-state'));
-    await File(root.path + '/command50-null-error.txt').writeAsString(nullError);
-    await File(root.path + '/command50-unknown-error.txt').writeAsString(unknownError);
+    final nullEvidence = await _installAndCapture(nullDb);
+    final unknownEvidence = await _installAndCapture(unknownDb);
+    expect(nullEvidence['error'], contains('Occurrence migration parity mismatch for Task c50-explicit-null'));
+    expect(unknownEvidence['error'], contains('Occurrence migration parity mismatch for Task c50-unknown-state'));
+    for (final evidence in [nullEvidence, unknownEvidence]) {
+      expect(evidence['sources_after_failure'], hasLength(1),
+          reason: 'The original legacy JSON record must remain after a rejected migration.');
+      expect(evidence['occurrences_after_failure'], isEmpty,
+          reason: 'A failed first transfer must not leave a partial destination row.');
+      expect((evidence['integrity_check'] as List).single['integrity_check'], 'ok');
+      expect(evidence['foreign_key_violations'], 0);
+    }
+    File(root.path + '/command50-null-failure.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(nullEvidence),
+    );
+    File(root.path + '/command50-unknown-failure.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(unknownEvidence),
+    );
 
     File(root.path + '/command50-verdict.txt').writeAsStringSync(
       'FIRST_INSTALL_BASE_MATRIX=PASS\n'
