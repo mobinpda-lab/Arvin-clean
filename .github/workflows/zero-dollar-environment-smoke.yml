@@ -16,7 +16,7 @@ jobs:
   environment-smoke:
     name: Zero-dollar Android environment diagnostic
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
+    timeout-minutes: 60
     env:
       EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db
       TARGET_SHA: ${{ github.sha }}
@@ -253,14 +253,14 @@ jobs:
             --device pixel_2
           "$sdk_root/platform-tools/adb" start-server
           "$sdk_root/emulator/emulator" -avd "$avd_name" \
-            -accel off -no-window -no-audio -no-boot-anim -no-snapshot \
+            -accel off -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics \
             -gpu swiftshader_indirect > "$emulator_log" 2>&1 &
           emulator_pid=$!
           export PATH="$sdk_root/platform-tools:$PATH"
-          timeout 600 adb wait-for-device
+          timeout 1800 adb wait-for-device
           booted=""
           device=""
-          for _ in $(seq 1 300); do
+          for _ in $(seq 1 900); do
             device="$(adb devices | awk '$1 ~ /^emulator-/ && $2 == "device" {print $1; exit}')"
             if [[ -n "$device" ]]; then
               booted="$(adb -s "$device" shell getprop sys.boot_completed 2>/dev/null | tr -d '\r')"

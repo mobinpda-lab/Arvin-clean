@@ -55,6 +55,7 @@ wait_for_marker() {
 }
 
 stage="launch fixture and persist two Calendar records"
+echo "CALENDAR_STAGE_A_BEGIN" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 adb -s "$DEVICE" logcat -c
 adb -s "$DEVICE" shell monkey -p "$APP_ID" 1 >/dev/null
 wait_for_marker "CALENDAR_LINK_STAGE_A_WRITE=PASS" "$EVIDENCE/calendar_restart_stage_a.log"
@@ -83,6 +84,7 @@ echo "ANDROID_PROCESS_STOP=PASS" | tee -a "$EVIDENCE/calendar_restart_stage_a.lo
 echo "ANDROID_PROCESS_ABSENT_AFTER_FORCE_STOP=PASS" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 
 stage="fresh launch and read from persisted SharedPreferences"
+echo "CALENDAR_STAGE_B_BEGIN" | tee -a "$EVIDENCE/calendar_restart_stage_b.log"
 adb -s "$DEVICE" logcat -c
 adb -s "$DEVICE" shell monkey -p "$APP_ID" 1 >/dev/null
 wait_for_marker "CALENDAR_LINK_STAGE_B_READ=PASS" "$EVIDENCE/calendar_restart_stage_b.log"
@@ -125,11 +127,21 @@ PY
 
 stage="cleanup disposable emulator app"
 adb -s "$DEVICE" shell am force-stop "$APP_ID" >/dev/null 2>&1 || true
-adb -s "$DEVICE" uninstall "$APP_ID" 2>&1 | tee "$EVIDENCE/cleanup_verification.log"
+pid_final=""
+for attempt in $(seq 1 30); do
+  pid_final="$(adb -s "$DEVICE" shell pidof "$APP_ID" 2>/dev/null | tr -d '\r' | awk '{print $1}' || true)"
+  [[ -z "$pid_final" ]] && break
+  sleep 1
+done
+test -z "$pid_final"
+echo "FINAL_APP_PROCESS_STOP=PASS" | tee "$EVIDENCE/cleanup_verification.log"
+echo "APP_DATA_CLEAR=NOT_PERFORMED" | tee -a "$EVIDENCE/cleanup_verification.log"
+grep -F 'CALENDAR_LINK_TEST_KEY_CLEANUP=PASS' "$EVIDENCE/calendar_restart_stage_b.log" >/dev/null
+adb -s "$DEVICE" uninstall "$APP_ID" 2>&1 | tee -a "$EVIDENCE/cleanup_verification.log"
 if adb -s "$DEVICE" shell pm path "$APP_ID" 2>/dev/null | grep -q "$APP_ID"; then
   echo "EMULATOR_FIXTURE_UNINSTALL=FAIL" | tee -a "$EVIDENCE/cleanup_verification.log"
   exit 1
 fi
 echo "EMULATOR_FIXTURE_UNINSTALL=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
-echo "APP_DATA_CLEAR=NOT_PERFORMED" | tee -a "$EVIDENCE/cleanup_verification.log"
+echo "CALENDAR_TEST_KEY_CLEANUP=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
 echo "CALENDAR_LINK_PROCESS_RESTART=PASS" | tee -a "$EVIDENCE/calendar_restart_stage_b.log"

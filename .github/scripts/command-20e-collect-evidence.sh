@@ -90,7 +90,7 @@ if grep -q 'PROJECT_STORE_FILE_PERSISTENCE=PASS' "$EVIDENCE/project_store_persis
 elif [[ -s "$EVIDENCE/project_store_persistence.log" ]]; then project=failure; fi
 calendar=NOT_TESTED
 if grep -q 'CALENDAR_LINK_PROCESS_RESTART=PASS' "$EVIDENCE/calendar_restart_stage_b.log" && jq -e '.status == "PASS" and .total_values_compared == 8' "$EVIDENCE/calendar_value_comparison.json" >/dev/null 2>&1; then calendar=success
-elif grep -q 'CALENDAR_STAGE_A_BEGIN' "$EVIDENCE/calendar_restart_stage_a.log"; then calendar=failure; fi
+elif grep -q 'CALENDAR_LINK_STAGE_A_WRITE=PASS' "$EVIDENCE/calendar_restart_stage_a.log" || grep -q 'CALENDAR_STAGE_A_BEGIN' "$EVIDENCE/calendar_restart_stage_a.log"; then calendar=failure; fi
 cleanup_status=NOT_TESTED
 if grep -q 'CALENDAR_TEST_KEY_CLEANUP=PASS' "$EVIDENCE/cleanup_verification.log" && grep -q 'FINAL_APP_PROCESS_STOP=PASS' "$EVIDENCE/cleanup_verification.log" && grep -q 'APP_DATA_CLEAR=NOT_PERFORMED' "$EVIDENCE/cleanup_verification.log"; then cleanup_status=success
 elif [[ -s "$EVIDENCE/cleanup_verification.log" ]]; then cleanup_status=failure; fi
