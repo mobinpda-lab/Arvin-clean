@@ -55,3 +55,7 @@ COMMAND 50-R forensic analysis is COMPLETE: the source-to-SQL matrix and the neg
 - Test harness commit: `9032256a9e569c1bf5d7290bcfc966b8c5660c5f`.
 
 The final preservation rerun is `44368276255` (job `135027809312`, artifact `14458356507`). It explicitly checks the retained `completionDate: null`, `result: null`, and unknown `futureField` values after rollback.
+
+## Supplementary scope note
+
+A separate checklist-occurrence fixture was added after the required forensic matrix completed. Its run `44369147951` is pending. This supplementary case is not part of the command's enumerated minimum acceptance scenarios and is not claimed as passed; the required forensic acceptance remains grounded in run `44368276255`. V19 migration acceptance remains blocked by the confirmed retry, explicit-NULL and unknown-state defects.
