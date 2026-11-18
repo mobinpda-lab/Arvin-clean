@@ -269,6 +269,20 @@ void main() {
       expect((evidence['integrity_check'] as List).single['integrity_check'], 'ok');
       expect(evidence['foreign_key_violations'], 0);
     }
+    final nullSourceRow = (nullEvidence['sources_after_failure'] as List).single as Map;
+    final nullEnvelope = jsonDecode(nullSourceRow['legacy_payload_json'] as String) as Map;
+    expect(nullEnvelope.containsKey('occurrenceHistory'), isTrue);
+    final nullState = (nullEnvelope['occurrenceHistory'] as Map).values.single as Map;
+    expect(nullState.containsKey('completionDate'), isTrue);
+    expect(nullState['completionDate'], isNull);
+    expect(nullState.containsKey('result'), isTrue);
+    expect(nullState['result'], isNull);
+
+    final unknownSourceRow = (unknownEvidence['sources_after_failure'] as List).single as Map;
+    final unknownEnvelope = jsonDecode(unknownSourceRow['legacy_payload_json'] as String) as Map;
+    expect(unknownEnvelope.containsKey('occurrenceHistory'), isTrue);
+    final unknownState = (unknownEnvelope['occurrenceHistory'] as Map).values.single as Map;
+    expect(unknownState['futureField'], 'must-not-disappear');
     File(root.path + '/command50-null-failure.json').writeAsStringSync(
       const JsonEncoder.withIndent('  ').convert(nullEvidence),
     );
