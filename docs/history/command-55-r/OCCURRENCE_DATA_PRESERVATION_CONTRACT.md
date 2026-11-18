@@ -42,3 +42,13 @@ The compatibility adapter reads V19 legacy envelope data and emits a strict immu
 
 ## No deletion rule
 The forward migration must not remove source occurrence keys or overwrite `legacy_payload_json`. Source retirement, if ever required, is a separate migration after backup/restore acceptance and an explicit approval. This avoids making a successful copy dependent on destructive source cleanup.
+
+## Outer legacy-key presence contract
+The adapter must test `envelope.containsKey('occurrenceHistory')` and `envelope.containsKey('checklistOccurrences')` before reading either value. The two source keys are independent:
+- key absent: ABSENT;
+- key present with null: EXPLICIT_NULL;
+- key present with an empty object: PRESENT_EMPTY;
+- key present with a non-empty object: PRESENT_DATA;
+- key present with any other type: INVALID_SOURCE and abort.
+
+ABSENT, EXPLICIT_NULL and PRESENT_EMPTY must not collapse into one empty Map. Explicit-null outer values remain represented in the retained source envelope/opaque metadata; they do not generate occurrence rows. An empty object is valid evidence that the corresponding source collection was present and empty. If the keys are absent because an earlier installer removed them and there is no receipt or independently verifiable snapshot, the state is ambiguous, even when the destination is empty.
