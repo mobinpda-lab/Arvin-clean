@@ -294,3 +294,19 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           stage="completed"
+
+      - name: Upload zero-dollar emulator and product-test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: zero-dollar-android-smoke-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/java-version.txt
+            ${{ runner.temp }}/flutter-version.txt
+            ${{ runner.temp }}/android-sdk-install.txt
+            ${{ runner.temp }}/android-sdk-installed.txt
+            ${{ runner.temp }}/arvin-emulator.log
+            ${{ runner.temp }}/flutter-pub-get.log
+            ${{ runner.temp }}/zero-dollar-calendar-smoke.log
+          if-no-files-found: warn
+          retention-days: 30
