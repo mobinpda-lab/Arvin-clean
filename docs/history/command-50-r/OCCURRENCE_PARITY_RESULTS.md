@@ -47,12 +47,14 @@ No historical Installer, Codec, Schema, user_version or immutable source fixture
 
 ## Final COMMAND 50 physical run
 
-- Run: `44367002583` — SUCCESS (the diagnostic test assertions all passed).
-- Job: `135024297667` — SUCCESS.
-- Artifact: `14456982207` — [download artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44367002583/artifacts/14456982207).
-- Artifact SHA-256: `080d32fde09c0d2160ec121f1c3e5854606659ef8aa14e1ebd4f60c61f4f8260`.
+- Run: `44368276255` — SUCCESS (the diagnostic test assertions all passed).
+- Job: `135027809312` — SUCCESS.
+- Artifact: `14458356507` — [download artifact](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44368276255/artifacts/14458356507).
+- Artifact SHA-256: `eecb19a699a224044e8a868e69e133ee2ecc5ad76660f93e0ee45730fd4071b8`.
 - Executed historical V19 source: `310c0e20e3447c488c1e1c102c38bea5040708ca`.
 - Immutable V7 fixture SHA-256: `68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0`.
-- Final test harness commit: `5d5e63d9dbe95077a1e501e69576d299897cab11`.
+- Final test harness commit: `9032256a9e569c1bf5d7290bcfc966b8c5660c5f`.
 
 The final log reports `All tests passed!` because the test expects and asserts the historical failures for retry, explicit NULL and unknown Occurrence fields. This does **not** mean the historical migration is safe to approve. The base transfer matrix, identity comparison, timezone behavior, TaskStore readback, rollback, preservation and integrity assertions passed; the three codec defects remain confirmed.
+
+The final rerun (run `44368276255`) additionally asserts that the explicit-null keys and unknown Occurrence-state field remain present in the original V7-derived JSON after the failed migration, with zero partial SQL rows, SQLite integrity `ok`, and zero FK violations. Its artifact is `14458356507`.
