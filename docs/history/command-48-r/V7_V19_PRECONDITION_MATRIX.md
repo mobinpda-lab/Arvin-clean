@@ -1,27 +1,28 @@
 # V7 → V19 Precondition Matrix
 
-**Evidence:** Main v7 DDL blob `cd065ff25c680ed064e89068b3d063e737091025`; v19 installer blob `9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21`; immutable fixture snapshot SHA `604b7e93ea6535d7ef176bb1503562b6f1aeed28`.
+**Main v7 DDL blob:** `cd065ff25c680ed064e89068b3d063e737091025`  
+**v19 Installer blob:** `9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21`  
+**Fixture SHA-256:** `68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0`
 
-| Topic | Main v7 actual source | v19 target / behavior | Assessment |
+| Topic | Main v7 actual source | v19 target / behavior | Result |
 |---|---|---|---|
-| Schema version | `G1DriftSchema.version=7`; fixture `user_version=7` | Installer class version 19; no explicit v7-only gate; does not write user_version | Compatible by source inspection; runtime pending |
-| Tasks | Legacy scheduling columns `follow_up_enabled`, `follow_up_date`, `reminder_date`; core fields and `legacy_payload_json` | Adds missing canonical fields, copies legacy values into envelope, then guarded rebuild retires three legacy columns | Compatible if exact fixture has no unrecognized task columns/indexes/triggers/FKs; verify in runner |
-| Projects | `id,name,color_value,is_archived,legacy_payload_json` | Adds storage ordinal, center/template fields; preserves existing fields | Compatible by DDL |
-| Follow-ups | `follow_ups` with id/task/date_time/title/note/result/reminder_date/next_follow_up/completed/waiting_for_response/ordinal | Copies to `follow_up_records`, preserves next-follow-up metadata in Task envelope, converts reminder dates | Compatible by field mapping; exact fixture rows need runtime proof |
-| People | `people` directory table | Copies to `persons`, seeds `person_directory` once | Compatible by DDL |
-| Task-person | `task_people(task_id,person_id,person_json,ordinal)` | Validates JSON identity/name, creates canonical Person and `task_persons` relation | Compatible only if every fixture payload meets strict validation |
-| Follow-up-person | `follow_up_people(follow_up_id,person_id,ordinal)` | Copies to `follow_up_record_people` and creates missing canonical persons | Compatible by field mapping |
-| Reminders | No normalized `task_reminders` table in v7; legacy Task/Follow-up reminder fields and JSON envelope | Creates `task_reminders`; derives Task and Follow-up reminders via historical Task model | Compatible by source path; invalid date values fail closed |
-| Recurrence | `tasks.recurrence_json` and legacy JSON envelope | `RecurrenceSqlCodec` strictly validates known recurrence fields and writes `task_recurrence_rules` | Compatible if actual recurrence payloads pass strict decoder |
-| Occurrence | `occurrenceHistory` and `checklistOccurrences` may reside in Task JSON | Codec moves them to `task_occurrences` and `occurrence_checklist_items`, with parity checks | Compatible if envelope shapes validate |
-| Checklist | `checklist_items(task_id,ordinal,value)` | Same table retained; recurring occurrence checklist gets normalized separately | Compatible by DDL |
-| Tags | `tags`, `task_tags` | Same table contracts retained | Compatible by DDL |
-| Project membership | `projects`, `project_items` | Retained; adds new center/template structures | Compatible by DDL |
-| Unknown Task payload keys | Stored in `legacy_payload_json` | Envelope is merged with Task serialization; top-level unknown keys survive; occurrence keys are deliberately moved | Mostly preserved; nested fields normalized by model require snapshot review |
-| Indexes / triggers / custom constraints | Fixture report records standard schema checks but not a complete custom-object inventory | Task/reminder rebuilds fail closed or defer on unrecognized objects | Exact object inventory required from fixture runner |
+| Schema version | Schema 7; fixture `user_version=7` | Historical Installer 19; Drift ensureOpen updates user_version | PASS — observed 7→19 |
+| Tasks | Legacy scheduling columns plus core Task fields and JSON envelope | Adds canonical fields, copies legacy scheduling values, guarded Task rebuild | PASS on fixture; core SQL values and IDs compared |
+| Projects | `projects(id,name,color_value,is_archived,legacy_payload_json)` | Adds storage ordinal and Center/template fields | PASS; original fields and ID preserved |
+| Follow-ups | `follow_ups` with date_time/title/note/result/reminder_date/next_follow_up/completed/waiting/ordinal | Copies to `follow_up_records`, stores next-follow-up metadata in Task envelope, converts reminder | PASS; ID and relation preserved |
+| People | `people` directory | Copies to `persons`, seeds `person_directory` | PASS; Person ID preserved |
+| Task-person | `task_people` with JSON payload | Strictly validates JSON and creates `task_persons` | PASS; relation and original raw JSON preserved |
+| Follow-up-person | `follow_up_people` | Copies to `follow_up_record_people` | PASS; relation preserved |
+| Reminders | No normalized reminder table in v7 | Creates `task_reminders` from legacy Task/Follow-up data | PASS; expected reminder row materialized |
+| Recurrence | `tasks.recurrence_json` | Strict codec creates `task_recurrence_rules` | PASS; rule materialized and unknown raw key retained |
+| Occurrence | JSON envelope fields if present | Codec creates occurrence/checklist occurrence rows with parity checks | Installer path executed; fixture had no occurrence rows to transfer |
+| Checklist | `checklist_items` | Existing table retained | PASS; both rows unchanged |
+| Tags | `tags`, `task_tags` | Existing tables retained | PASS; IDs and relations unchanged |
+| Project membership | `projects`, `project_items` | Existing relation retained | PASS; both rows unchanged |
+| Unknown Task/Project/Person/Recurrence data | Legacy JSON/raw source payloads | Compatibility envelope and source table preservation | PASS for fixture's seeded unknown values; see ledger |
 
-## Schema facts
+## Runtime evidence
 
-The accepted fixture inventory reports 12 tables and 15 rows, including 2 Tasks, 1 Project, 1 Follow-up, 1 Person, 1 Tag and 2 Checklist rows. The fixture has `integrity_check=ok`, zero foreign-key violations and the approved SHA-256.
+The corrected runner asserts Task core-column equality, all source-table row equality for retained legacy relations, canonical Person/Task-person/Follow-up-person mapping, reminder and recurrence creation, and selected unknown-field retention. Both pre/post SQLite integrity checks pass; post-install foreign-key violations are zero.
 
-The source-level table/column mapping is coherent. However, this is not a claim that the actual fixture has passed the Installer: runtime execution is separately recorded in the runner artifacts.
+The fixture is deliberately small (2 Tasks, 1 Project, 1 Follow-up, 1 Person, 1 Tag, 2 Checklist rows). Results establish compatibility for this exact historical fixture, not every possible production database variation or custom SQLite object.

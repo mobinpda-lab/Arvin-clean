@@ -1,14 +1,27 @@
 # Historical Migration Path Decision
 
-## Decision: Path A — Direct v19 installation on a disposable v7 fixture copy
+## Accepted path: A — Direct v7 → v19 Installer invocation on a disposable copy
 
-Source review establishes that v19 directly handles the v7 legacy structures:
-- Task legacy scheduling columns are copied into the compatibility envelope before guarded retirement.
-- Legacy Follow-up rows and person links are copied into canonical v19 tables.
-- Task-person JSON is validated and converted using the original historical method.
-- Legacy Task and Follow-up reminders are converted through the historical Task model.
-- Occurrence and recurrence JSON are migrated by their original codecs.
+The historical v19 source contains explicit compatibility logic for the Main v7 legacy structures. The original Installer was run against an independent physical copy of the approved v7 fixture and completed successfully.
 
-The Git history also contains a real sequential lineage v7 → v8 → v9-A → v10 … v19. This historical lineage is documented, but it is not required to justify the direct installer experiment because the v19 source itself includes legacy compatibility logic. No intermediate version will be fabricated or run as a substitute.
+Verified transformations include:
+- Task legacy scheduling columns into canonical compatibility/reminder structures;
+- legacy Follow-up rows into `follow_up_records`;
+- People and Task-person data into `persons`, `person_directory` and `task_persons`;
+- Follow-up-person links into `follow_up_record_people`;
+- Task Reminder and Recurrence rows into their canonical tables;
+- occurrence/checklist migration path through the historical codecs (no occurrence rows existed in this fixture).
 
-**Important:** Path A remains a controlled compatibility experiment until the Actions runner succeeds on the actual verified fixture copy. A source-code inspection is not a substitute for runtime evidence.
+The real Git history also contains the sequential v7 → v8 → v9-A → v10 … v19 lineage. That lineage is not needed as a fabricated pre-step for this fixture: direct execution of the actual v19 Installer has now been demonstrated.
+
+## Evidence and boundaries
+
+- Run `44308608481`, final conclusion SUCCESS.
+- Job `134816565546`, conclusion SUCCESS.
+- Artifact `14429935379`, SHA-256 of ZIP: `09e2bd12e09955e4ea69ad3c2c02193dd5a534912fe4ed4942c7ae83df8b2af9`.
+- Post `integrity_check=ok`; zero FK violations.
+- No v20 installer was executed.
+- No intermediate migration was fabricated.
+- The source fixture was not modified.
+
+This is a successful compatibility execution for the approved fixture. Retry, interruption and backup recovery remain separate COMMAND 47 acceptance work.

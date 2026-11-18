@@ -1,12 +1,40 @@
 # V7 → V19 Compatibility Report
 
-**Source-level decision: DIRECT INSTALLATION PATH IS SUPPORTED BY THE HISTORICAL CODE SHAPE.**  
-**Physical execution decision: PENDING RUNNER RESULT.**
+<pre>
+SOURCE_COMPATIBILITY: PASS
+DIRECT_INSTALLER_EXECUTION: PASS
+FIXTURE_SHA256: VERIFIED
+PRE_USER_VERSION: 7
+POST_USER_VERSION: 19
+POST_INTEGRITY_CHECK: ok
+POST_FOREIGN_KEY_VIOLATIONS: 0
+TASK_IDS: PRESERVED
+CANONICAL_RELATIONS: VERIFIED
+V20_EXECUTED: NO
+</pre>
 
-The v19 installer contains explicit compatibility logic for pre-canonical Task columns and pre-v12 Follow-up/People/Task-person tables. Its target DDL is additive for the legacy v7 tables, and its conversion methods query the exact legacy table and column names present in the v7 DDL. The historical v19 tests include legacy Task, Follow-up, Person, Task-person, reminder, recurrence and occurrence migration cases.
+## Decision
 
-The v7 fixture inventory confirms the required legacy tables and the expected schema-v7 baseline. Therefore Path A (direct invocation of the original v19 installer on an isolated physical v7 copy) is the valid next experiment. There is no source-level reason to invent or execute intermediate schema versions for this specific installer call.
+**Path A — direct invocation of the original v19 installer on a physically independent v7 fixture copy — is confirmed for the approved Main v7 fixture.**
 
-This is **not yet an INCOMPATIBLE result**, and it is not a completed migration proof. Preconditions that depend on actual fixture row values, custom SQLite objects, strict Task-person JSON validation, recurrence decoding, and real physical execution must be checked by the dedicated runner. Any thrown exception or FK/integrity failure changes the result to BLOCKED and must be preserved without patching the historical installer.
+The exact v19 source ref was checked out, the installer blob SHA was asserted, historical dependencies were resolved with the lockfile enforced, and the original `G1DriftSchema.install` entry point executed. The physical database changed from SQLite `user_version=7` to `user_version=19` through the historical Drift open/install path.
 
-No v20 execution is permitted.
+The corrected runner additionally verifies:
+- all Task IDs and core SQL-owned Task values;
+- retained legacy source rows and their IDs;
+- Project, Follow-up, Person and Tag identities;
+- Checklist, Task-Tag, Project-Task, Task-Person and Follow-up-Person relationships;
+- canonical Follow-up/Person relationship tables;
+- materialized Task Reminder and Recurrence rows;
+- selected unknown Task, Project, Person and Recurrence payload values;
+- post-install SQLite integrity and foreign-key checks.
+
+The fixture's source copy remains unchanged. Only the separately copied working database was migrated.
+
+## Scope limitation
+
+This establishes that the historical v19 installer can execute against this exact Main v7 fixture and that the asserted fixture data/relations survive. It does not certify every production database, custom index/trigger/constraint variation, or every possible unknown nested payload shape. Command 47's separate retry and failure-recovery acceptance gates remain outstanding.
+
+## Residual observation
+
+The installer-generated legacy JSON envelope can contain default values that differ from SQL-owned Task fields. The historical v19 TaskStore explicitly overwrites those fields from SQL before decoding. This is recorded as a compatibility contract in `V19_EXECUTION_EXCEPTION_LEDGER.md`, not misreported as a failed SQL-row preservation check.
