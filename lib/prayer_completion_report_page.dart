@@ -72,7 +72,7 @@ class _PrayerCompletionReportPageState extends State<PrayerCompletionReportPage>
     return 'نماز';
   }
 
-  Widget _summaryCard({required Key key, required String label, required int value, required IconData icon}) => Expanded(child: Card(key: key, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16), child: Column(children: [Icon(icon), const SizedBox(height: 8), Text(label), const SizedBox(height: 4), Text(_count(value), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800))]))));
+  Widget _summaryCard({required Key key, required String label, required int value, required IconData icon}) => Expanded(child: Card(key: key, child: Padding(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16), child: Column(children: [Icon(icon), const SizedBox(height: 8), Text(label), const SizedBox(height: 4), Text(_count(value), style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700))]))));
 
   @override
   Widget build(BuildContext context) => Directionality(textDirection: TextDirection.rtl, child: Scaffold(appBar: AppBar(title: const Text('گزارش نماز'), actions: [IconButton(key: const ValueKey('prayer-report-refresh'), tooltip: 'تازه‌سازی', onPressed: _reload, icon: const Icon(Icons.refresh))]), body: FutureBuilder<List<PrayerCompletionRecord>>(future: _recordsFuture, builder: (context, snapshot) {
@@ -85,7 +85,7 @@ class _PrayerCompletionReportPageState extends State<PrayerCompletionReportPage>
       if (_scope == PrayerReportScope.range) ...[const SizedBox(height: 12), Row(children: [Expanded(child: OutlinedButton.icon(key: const ValueKey('prayer-report-range-start'), onPressed: _pickStart, icon: const Icon(Icons.date_range_outlined), label: Text('از ${_date(_rangeStart)}'))), const SizedBox(width: 8), Expanded(child: OutlinedButton.icon(key: const ValueKey('prayer-report-range-end'), onPressed: _pickEnd, icon: const Icon(Icons.event_outlined), label: Text('تا ${_date(_rangeEnd)}')))] )],
       const SizedBox(height: 12), Text('${_date(summary.startDay)} تا ${_date(summary.endDay)}', textAlign: TextAlign.center), const SizedBox(height: 8),
       Row(children: [_summaryCard(key: const ValueKey('prayer-report-completed'), label: 'ادا شد', value: summary.completedCount, icon: Icons.check_circle_outline), const SizedBox(width: 8), _summaryCard(key: const ValueKey('prayer-report-missed'), label: 'قضا شد', value: summary.notCompletedCount, icon: Icons.history_toggle_off_outlined)]),
-      const SizedBox(height: 18), Text('نمازهای قضا شده', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)), const SizedBox(height: 8),
+      const SizedBox(height: 18), Text('نمازهای قضا شده', style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)), const SizedBox(height: 8),
       if (summary.missed.isEmpty)
         const Card(child: Padding(padding: EdgeInsets.all(16), child: Text('نماز قضاشده‌ای در این بازه ثبت نشده است', textAlign: TextAlign.center)))
       else
