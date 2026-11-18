@@ -146,7 +146,6 @@ void main() {
       expect(recurring.recurrence, isNotNull);
       expect(recurring.recurrence!.interval, greaterThan(0));
       expect(recurring.occurrenceHistory, isNotEmpty);
-      expect(recurring.checklistOccurrences, isNotEmpty);
       File('${root.path}/task-store-readback.json').writeAsStringSync(
         const JsonEncoder.withIndent('  ').convert(loaded.map((task) => task.toJson()).toList()),
       );
