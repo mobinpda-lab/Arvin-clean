@@ -103,15 +103,17 @@ jobs:
           if not recurrence:
               raise SystemExit('Expected non-empty historical recurrence JSON is missing')
           envelope = json.loads(raw) if raw else {}
-          scheduled = '2026-11-01T06:00:00.000'
+          scheduled = '2026-11-01T08:00:00.000Z'
           envelope['occurrenceHistory'] = {
               scheduled: {
                   'scheduledDate': scheduled,
-                  'status': 'pending'
+                  'status': 'completed',
+                  'completionDate': '2026-11-01T09:00:00.000Z',
+                  'result': 'done'
               }
           }
           envelope['checklistOccurrences'] = {
-              scheduled: ['fixture-item-one', 'fixture-item-two']
+              scheduled: ['[x] مرحله اول']
           }
           db.execute(
               'UPDATE tasks SET legacy_payload_json = ? WHERE id = ?',
