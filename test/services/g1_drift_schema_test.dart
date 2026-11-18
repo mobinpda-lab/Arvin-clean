@@ -73,6 +73,9 @@ void main() {
 
 
   test('v8 to v9 hierarchy migration preserves legacy rows and classifies ambiguous links', () async {
+    // This test issues setup SQL before the migration installer. Open the
+    // NativeDatabase executor first, matching Drift's real lifecycle contract.
+    await database.ensureOpen(G1DriftSchema());
     await database.runCustom('PRAGMA foreign_keys = ON');
     await database.runCustom('''
       CREATE TABLE tasks (
