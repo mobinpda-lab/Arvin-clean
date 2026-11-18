@@ -25,3 +25,16 @@ The baseline Build test-1 fails in `g1_drift_schema_test.dart`: executor operati
 
 ## Safety conditions
 No V19 installer changes, no V7 fixture edits, no real-user migration. Before any candidate migration: exact source-shape preconditions, full identity/relationship snapshot, explicit missing-vs-NULL-vs-value, unknown nested metadata, idempotent one/two/three runs, rollback injection, integrity/FK checks, backup and independent restore.
+
+
+## Person Directory membership integrity — 2026-11-19
+A live exact-SHA test exposed a separate active Schema 9 defect: after the owner removes a referenced Person from the directory, `G1DriftSchema.migrateTaskPeople` recreates that directory entry from `task_people` on every install. This violates the intended separation between the standalone directory and historical Task/Follow-up identity references.
+
+Lane A PR #3549 adds:
+- marker-versioned additive migration `person_directory_exclusions_v1`;
+- tombstones for explicitly removed Person IDs;
+- hydrator exclusion checks;
+- tombstone removal only when the same Person ID is explicitly re-added;
+- file-backed removal/reopen/re-add and historical relation tests.
+
+Status: IMPLEMENTED IN LANE A / TEST PENDING. No production data migration was run. No Main, V7 fixture or historical V19 installer changes.
