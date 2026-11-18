@@ -17,3 +17,10 @@
 | COMMAND 20-E | Final acceptance JSON not PASS | P0 | OPEN | Inspect regression summary and Calendar link checks |
 
 Do not close any item on code inspection alone; require exact-SHA test and, where applicable, physical-device evidence.
+
+
+## Person Directory rehydration — 2026-11-19
+- Reproduced on PR #3547 head `1c83db84145675aa31e67feef95c23ddd84c181c`, Build run `44417802140`, test-2.
+- Failure: after deleting a referenced Person from the directory, `loadPeopleDirectory()` returns the Person again.
+- Root cause: `G1DriftSchema.migrateTaskPeople` rehydrates all historical `task_people` rows on every install and has no owner-removal exclusion.
+- Lane A PR #3549 implements a marker-versioned exclusion tombstone and fresh-file-reopen regression test. Pending exact-head CI; not closed.
