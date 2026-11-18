@@ -68,6 +68,14 @@ void main() {
       const [],
     );
     expect(before.length, 4);
+    final sourceSnapshot = <String, Object?>{};
+    for (final row in before) {
+      final taskId = row['id'] as String;
+      sourceSnapshot[taskId] = jsonDecode(row['legacy_payload_json'] as String);
+    }
+    File(root.path + '/command50-source-occurrences.json').writeAsStringSync(
+      const JsonEncoder.withIndent('  ').convert(sourceSnapshot),
+    );
     await db.close();
 
     db = await _open(primary);
@@ -106,7 +114,17 @@ void main() {
         for (final key in ['id','task_id','scheduled_at','status','completed_at','result','ordinal'])
           key: row[key],
       }).toList();
-      expect(actual, expected, reason: 'SQL occurrence identity/content/ordinal must match the source fixture.');
+      final expectedByIdentity = <String, Map<String, Object?>>{
+        for (final row in expected)
+          '${row['task_id']}|${row['scheduled_at']}': row,
+      };
+      final actualByIdentity = <String, Map<String, Object?>>{
+        for (final row in actual)
+          '${row['task_id']}|${row['scheduled_at']}': row,
+      };
+      expect(actualByIdentity.length, expectedByIdentity.length);
+      expect(actualByIdentity, expectedByIdentity,
+          reason: 'Compare occurrence rows by Task ID + scheduled timestamp, not JSON array order.');
 
       for (final taskId in const ['c50-matrix-a','c50-matrix-b','c50-recurring','c50-no-recurrence']) {
         final restored = await OccurrenceSqlCodec.readTask(db, taskId);
