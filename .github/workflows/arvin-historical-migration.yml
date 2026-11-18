@@ -124,6 +124,7 @@ jobs:
           cat > test/command44_historical_runtime_smoke_test.dart <<'DART'
           import 'dart:convert';
           import 'dart:io';
+          import 'dart:typed_data';
 
           import 'package:arvin/services/g1_drift_schema.dart';
           import 'package:drift/drift.dart';
@@ -139,6 +140,34 @@ jobs:
               QueryExecutor executor,
               OpeningDetails details,
             ) async {}
+          }
+
+          Object? _normalizeSnapshotValue(Object? value) {
+            if (value == null || value is String || value is num || value is bool) {
+              return value;
+            }
+            if (value is Uint8List) {
+              return <String, Object?>{
+                'encoding': 'base64',
+                'value': base64Encode(value),
+              };
+            }
+            if (value is List<int>) {
+              return <String, Object?>{
+                'encoding': 'base64',
+                'value': base64Encode(value),
+              };
+            }
+            if (value is DateTime) return value.toIso8601String();
+            if (value is Map) {
+              return value.map(
+                (key, item) => MapEntry(key.toString(), _normalizeSnapshotValue(item)),
+              );
+            }
+            if (value is List) {
+              return value.map(_normalizeSnapshotValue).toList();
+            }
+            return value.toString();
           }
 
           void main() {
@@ -255,7 +284,12 @@ jobs:
                   // ignore: avoid_print
                   print('SNAPSHOT_TABLE_QUERY_READY=$table;rows=${rows.length}');
                   final values = rows
-                      .map((row) => Map<String, Object?>.from(row))
+                      .map((row) => row.map(
+                            (key, value) => MapEntry(
+                              key,
+                              _normalizeSnapshotValue(value),
+                            ),
+                          ))
                       .toList();
                   values.sort(
                     (a, b) => jsonEncode(a).compareTo(jsonEncode(b)),
@@ -282,9 +316,11 @@ jobs:
                 await snapshotFile.parent.create(recursive: true);
                 // ignore: avoid_print
                 print('SNAPSHOT_WRITE_BEGIN');
-                await snapshotFile.writeAsString(
-                  const JsonEncoder.withIndent('  ').convert(snapshot),
-                );
+                final encodedSnapshot =
+                    const JsonEncoder.withIndent('  ').convert(snapshot);
+                // ignore: avoid_print
+                print('SNAPSHOT_JSON_ENCODE_DONE;bytes=${encodedSnapshot.length}');
+                await snapshotFile.writeAsString(encodedSnapshot);
                 // ignore: avoid_print
                 print('SNAPSHOT_WRITE_DONE');
                 // ignore: avoid_print
