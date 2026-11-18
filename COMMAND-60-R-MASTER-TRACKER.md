@@ -91,3 +91,11 @@ Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75
 ## Additional exact-SHA CI checkpoint
 - Lane B PR #3548 head `d6c7ebe135e8422fea37a85cd22eb0927e129770`: Follow-up Persistence PASS; test-4 PASS; test-1 FAIL due the known V8→V9 executor lifecycle defect; test-5 and Quick Capture smoke were in progress, remaining jobs queued. Lane B must be revalidated after lane A's test fix is integrated.
 - Lane D PR #3547 head `1c83db84145675aa31e67feef95c23ddd84c181c`: test-1 PASS; test-2 FAIL due Person Directory rehydration. Lane A PR #3549 addresses both storage defect and assertion correction; no merge yet.
+
+
+## Latest lane activity — 2026-11-19
+- Lane B PR #3548 latest head `35fad86c6b6eb5dd03ce615d7bae002093c44d6f`: shared design tokens, navigation token use, Home Bismillah capsule, physical notification-left/menu-right layout and widget assertions. Build `44419703075`, Device Smoke `44419703399`, Follow-up Persistence `44419703242` queued at last poll. Earlier head's test-1 failure was the known executor fixture issue, corrected in lane A; latest head validation is pending.
+- Lane A PR #3549 head `ce9ce1d755ae994d1f2567285304dc23b07aa823`: Debug APK SUCCESS; Follow-up Persistence IN PROGRESS; Home and Quick Capture Device Smoke IN PROGRESS; remaining Build shards and smoke scenarios queued. No complete Build/Device acceptance yet.
+- Lane D PR #3547 remains OPEN; its exact-head test-2 failure proved Person Directory rehydration. Lane A carries the fix and regression test.
+- Lane C P0 Issue #3550 created for Center model/store, M2M graph and missing Home Center filter.
+- Canonical branch latest governance commit before this update: `d3f83e906f156e5120b07b66fedd2850cf904a3b`. Main unchanged: `45e4202b03a434459e4c021a04efa7e8396359db`.
