@@ -27,7 +27,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}
-        env:
           RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
         run: |
           set -Eeuo pipefail
