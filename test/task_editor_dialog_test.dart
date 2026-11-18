@@ -595,5 +595,54 @@ void main() {
     expect(result!.taskReminders.single.date.minute, 12);
   });
 
+  testWidgets('Task due date Timed to All-Day and back preserves time across save and reopen',
+      (tester) async {
+    Task? allDayResult;
+    Task? timedResult;
+    final scheduled = DateTime(2026, 12, 31, 23, 59);
+    final task = Task(
+      id: 'due-all-day-boundary',
+      title: 'موعد مرزی',
+      dueDate: scheduled,
+      allDay: false,
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => allDayResult = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-due-all-day'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isTrue);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(allDayResult, isNotNull);
+    expect(allDayResult!.allDay, isTrue);
+    expect(allDayResult!.dueDate, scheduled);
+
+    await pumpEditor(
+      tester,
+      task: allDayResult,
+      onResult: (value) => timedResult = value,
+    );
+    final reopenedToggle = find.byKey(
+      const ValueKey('task-editor-due-all-day'),
+    );
+    await tester.ensureVisible(reopenedToggle);
+    await tester.tap(reopenedToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(reopenedToggle).value, isFalse);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(timedResult, isNotNull);
+    expect(timedResult!.allDay, isFalse);
+    expect(timedResult!.dueDate, scheduled);
+    expect(timedResult!.dueDate!.hour, 23);
+    expect(timedResult!.dueDate!.minute, 59);
+  });
+
 
 }

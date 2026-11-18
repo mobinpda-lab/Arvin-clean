@@ -65,7 +65,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
   late final FocusNode _tagFocusNode;
   late final FocusNode _titleFocusNode;
   DateTime? _dueDateTime;
-  TimeOfDay? _dueTimeBeforeAllDay;
   late bool _dueAllDay;
   DateTime? _reminderDateTime;
   bool _reminderFollowsDueTime = true;
@@ -108,10 +107,6 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
     _titleFocusNode = FocusNode();
     _dueDateTime = task?.dueDate ?? widget.initialDueDate;
     _dueAllDay = task?.allDay ?? false;
-    final initialDue = _dueDateTime;
-    _dueTimeBeforeAllDay = initialDue != null && !_dueAllDay
-        ? TimeOfDay(hour: initialDue.hour, minute: initialDue.minute)
-        : null;
     _reminderDateTime = task?.legacyTaskReminderMigrationVersion == 1
         ? null
         : task?.reminderDate;
@@ -455,7 +450,6 @@ Future<void> _pickDueDate() async {
       setState(() {
         _dueDateTime = value;
         _dueAllDay = false;
-        _dueTimeBeforeAllDay = TimeOfDay(hour: value.hour, minute: value.minute);
         _syncAutomaticReminder();
       });
     }
@@ -502,7 +496,6 @@ Future<void> _pickDueDate() async {
 
   void _clearDueTime() => setState(() {
     _dueDateTime = null;
-    _dueTimeBeforeAllDay = null;
     _dueAllDay = false;
     _syncAutomaticReminder();
   });
@@ -510,16 +503,9 @@ Future<void> _pickDueDate() async {
   void _toggleDueAllDay(bool value) {
     if (_dueDateTime == null) return;
     setState(() {
-      final current = _dueDateTime!;
-      if (value) {
-        if (!_dueAllDay) {
-          _dueTimeBeforeAllDay = TimeOfDay(hour: current.hour, minute: current.minute);
-        }
-        _dueDateTime = DateTime(current.year, current.month, current.day);
-      } else if (_dueAllDay && _dueTimeBeforeAllDay != null) {
-        final time = _dueTimeBeforeAllDay!;
-        _dueDateTime = DateTime(current.year, current.month, current.day, time.hour, time.minute);
-      }
+      // Keep the exact timestamp in SQL/backup while All-Day is active.
+      // The allDay flag controls presentation and scheduling; retaining the
+      // hidden clock makes Timed ↔ All-Day reversible across save/reopen.
       _dueAllDay = value;
       _syncAutomaticReminder();
     });
