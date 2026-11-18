@@ -22,14 +22,14 @@ Two additional parity hazards were physically reproduced: explicit NULL optional
 | Simple pending first migration | PASS — physical evidence from COMMAND 49 |
 | Exact root cause for COMMAND 49 failure | PASS — confirmed |
 | ID / Task ID / timestamp / status for simple pending row | PASS — artifact inspected |
-| Completed / cancelled / missed / skipped matrix | PASS — physical run `44367002583` |
-| Multiple Occurrences and multiple Tasks | PASS — physical run `44367002583` |
-| Recurrence-linked and unlinked cases | PASS — physical run `44367002583`; Task-level relation confirmed |
+| Completed / cancelled / missed / skipped matrix | PASS — physical run `44368276255` |
+| Multiple Occurrences and multiple Tasks | PASS — physical run `44368276255` |
+| Recurrence-linked and unlinked cases | PASS — physical run `44368276255`; Task-level relation confirmed |
 | Explicit NULL physical negative case | FAIL_CONFIRMED — expected parity rejection; original JSON retained and transaction rolled back |
 | Unknown Occurrence-state physical negative case | FAIL_CONFIRMED — expected parity rejection; original JSON retained and transaction rolled back |
 | Timestamp boundary and offset physical case | PASS — boundaries preserved; Occurrence offset retained as text; Recurrence offset normalized to UTC |
 | TaskStore readback | PASS — physical readback on migrated database |
-| Full diagnostic workflow log and artifact | PASS — run `44367002583`, job `135024297667`, artifact `14456982207` |
+| Full diagnostic workflow log and artifact | PASS — run `44368276255`, job `135027809312`, artifact `14458356507` |
 | Initial-failure rollback / retry behavior | PASS as forensic observation — initial negative cases roll back; second install still fails with existing rows preserved |
 
 ## Protection
@@ -48,8 +48,10 @@ COMMAND 50-R forensic analysis is COMPLETE: the source-to-SQL matrix and the neg
 
 ## Final execution evidence
 
-- Run: `44367002583` — SUCCESS.
-- Job: `135024297667` — SUCCESS.
-- Artifact: `14456982207` — https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44367002583/artifacts/14456982207
-- Artifact SHA-256: `080d32fde09c0d2160ec121f1c3e5854606659ef8aa14e1ebd4f60c61f4f8260`.
-- Test harness commit: `5d5e63d9dbe95077a1e501e69576d299897cab11`.
+- Run: `44368276255` — SUCCESS.
+- Job: `135027809312` — SUCCESS.
+- Artifact: `14458356507` — https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44368276255/artifacts/14458356507
+- Artifact SHA-256: `eecb19a699a224044e8a868e69e133ee2ecc5ad76660f93e0ee45730fd4071b8`.
+- Test harness commit: `9032256a9e569c1bf5d7290bcfc966b8c5660c5f`.
+
+The final preservation rerun is `44368276255` (job `135027809312`, artifact `14458356507`). It explicitly checks the retained `completionDate: null`, `result: null`, and unknown `futureField` values after rollback.
