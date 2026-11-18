@@ -113,6 +113,7 @@ jobs:
         shell: bash
         env:
           ANDROID_USER_HOME: ${{ runner.temp }}/android-user
+          RUNNER_ENVIRONMENT_VALUE: ${{ runner.environment }}
         run: |
           set -Eeuo pipefail
           stage="initialization"
