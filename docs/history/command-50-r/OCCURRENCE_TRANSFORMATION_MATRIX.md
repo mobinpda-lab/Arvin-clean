@@ -15,6 +15,7 @@
 | Omitted optional NULL values | SQL NULL is read back with optional JSON keys omitted | PASS — omitted optional fields stored as SQL NULL and omitted on readback |
 | Explicit JSON NULL keys | Readback omits null-valued keys | FAIL_CONFIRMED — physical negative fixture; rollback and legacy source preservation verified |
 | Timestamp boundaries | Occurrence codec stores scheduled timestamp strings without parsing them | PASS — year 0001 and year 9999 boundaries; +03:30 Occurrence timestamp retained as raw text |
+| Recurrence timezone | Recurrence codec parses date strings and writes ISO-8601 | PASS — +03:30 start/end dates normalized to UTC `05:30Z` |
 | Unknown Task-level JSON field | Task model retains it under legacy metadata | PASS — physical TaskStore readback |
 | Unknown Occurrence-state field | Destination codec has no corresponding SQL field and readback omits it | FAIL_CONFIRMED — physical negative fixture; rollback and source-field preservation verified |
 
