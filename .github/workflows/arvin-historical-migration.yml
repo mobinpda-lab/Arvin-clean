@@ -310,8 +310,7 @@ jobs:
                   'integrity_check': integrity,
                   'foreign_key_check_violations': foreignKeyRows.length,
                 };
-                final encodedSnapshot =
-                    const JsonEncoder.withIndent('  ').convert(snapshot);
+                final encodedSnapshot = const JsonEncoder().convert(snapshot);
                 // ignore: avoid_print
                 print('SNAPSHOT_JSON_ENCODE_DONE;bytes=${encodedSnapshot.length}');
                 // The shell extracts this deterministic payload from the test log.
@@ -341,7 +340,15 @@ jobs:
           set -euo pipefail
           flutter test test/command44_historical_runtime_smoke_test.dart --reporter expanded 2>&1 | tee build/command44-runtime/flutter-test.log
           sed -n 's/^COMMAND44_READ_ONLY_SNAPSHOT=//p' build/command44-runtime/flutter-test.log > build/command44-runtime/v7-fixture-snapshot.json
+          jq -e 'type == "object" and (.tables | type == "object") and (.tables | length == 12)' build/command44-runtime/v7-fixture-snapshot.json > /dev/null
+          jq -S '{fixture_schema_version, pragma_user_version, tables}' build/command44-runtime/v7-fixture-snapshot.json > build/command44-runtime/v7-fixture-snapshot.normalized.json
+          jq -e '[.tables[] | length] | length == 12' build/command44-runtime/v7-fixture-snapshot.json > /dev/null
+          jq -e '[.. | nulls] | length > 0' build/command44-runtime/v7-fixture-snapshot.normalized.json > /dev/null
+          jq -S '(.tables | with_entries(.value |= length))' build/command44-runtime/v7-fixture-snapshot.json > build/command44-runtime/snapshot-record-counts.json
+          jq -S '{historical_installer_schema_version, sqlite_runtime_version, integrity_check, foreign_key_check_violations}' build/command44-runtime/v7-fixture-snapshot.json > build/command44-runtime/snapshot-environment-validation.json
+          sha256sum build/command44-runtime/v7-fixture-snapshot.normalized.json | tee build/command44-runtime/snapshot-normalized.sha256
           test -s build/command44-runtime/v7-fixture-snapshot.json
+          echo "SNAPSHOT_JSON_VALID=PASS" | tee build/command44-runtime/snapshot-validation.txt
 
       - name: Upload runtime bootstrap evidence
         if: always()
