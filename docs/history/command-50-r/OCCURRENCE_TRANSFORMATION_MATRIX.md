@@ -18,6 +18,7 @@
 | Recurrence timezone | Recurrence codec parses date strings and writes ISO-8601 | PASS — +03:30 start/end dates normalized to UTC `05:30Z` |
 | Unknown Task-level JSON field | Task model retains it under legacy metadata | PASS — physical TaskStore readback |
 | Unknown Occurrence-state field | Destination codec has no corresponding SQL field and readback omits it | FAIL_CONFIRMED — physical negative fixture; rollback and source-field preservation verified |
+| Legacy `checklistOccurrences` items | Normalized into `occurrence_checklist_items` by occurrence ID and ordinal | SUPPLEMENTARY — fixture added; run `44369147951` pending, not counted in required matrix completion |
 
 ## Confirmed single-row physical result
 
