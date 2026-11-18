@@ -131,11 +131,25 @@ class G1DriftSchema implements QueryExecutorUser {
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
     );
+    // The exclusion table is introduced by an additive versioned migration.
+    // On its first install it may not exist yet; historical hydration is
+    // allowed once, then explicit owner removals are respected on every reopen.
+    final exclusionTable = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'person_directory_exclusions'",
+      const [],
+    );
+    final excludedIds = exclusionTable.isEmpty
+        ? <String>{}
+        : (await executor.runSelect(
+            'SELECT person_id FROM person_directory_exclusions',
+            const [],
+          )).map((row) => row['person_id'] as String).toSet();
     final now = DateTime.now().toIso8601String();
     for (final row in rows) {
       final id = row['person_id'];
       final raw = row['person_json'];
       if (id is! String || id.trim().isEmpty || raw is! String) continue;
+      if (excludedIds.contains(id.trim())) continue;
       try {
         final decoded = jsonDecode(raw);
         if (decoded is! Map) continue;
