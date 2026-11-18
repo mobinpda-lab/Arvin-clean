@@ -10,13 +10,14 @@ void main() {
     expect(workflow, contains('pull-requests: read'));
     expect(
       workflow,
-      contains(r'[[ "$GITHUB_EVENT_NAME" == "push" || "$GITHUB_EVENT_NAME" == "pull_request" ]]'),
+      contains(r'[[ "$GITHUB_EVENT_NAME" == "push" ]]'),
     );
     expect(workflow, contains('EXPECTED_MAIN_SHA: 45e4202b03a434459e4c021a04efa7e8396359db'));
     expect(workflow, contains('PR_HEAD_SHA'));
     expect(workflow, contains('label_present'));
     expect(workflow, contains('zero-dollar-environment-smoke'));
     expect(workflow, contains('merge_base'));
+    expect(workflow, contains('timeout 600 adb wait-for-device'));
     expect(workflow.contains(r'\${{'), isFalse);
     expect(workflow, isNot(contains('chmod 0666')));
   });
