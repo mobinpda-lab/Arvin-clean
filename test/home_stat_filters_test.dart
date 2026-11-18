@@ -58,6 +58,44 @@ void main() {
     expect(find.text('سطل زباله'), findsOneWidget);
   });
 
+  testWidgets('Home sort defaults to Follow-up Date and exposes all approved sort keys', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final filterScroll = tester.widget<SingleChildScrollView>(
+      find.byKey(const ValueKey('home-filter-sort-scroll')),
+    );
+    expect(filterScroll.scrollDirection, Axis.horizontal);
+    expect(find.byKey(const ValueKey('home-sort')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تاریخ پیگیری'), findsOneWidget);
+    expect(find.text('موعد کار'), findsOneWidget);
+    expect(find.text('آخرین تغییرات'), findsOneWidget);
+    expect(find.text('عنوان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selected-lastFollowUp')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort-option-date')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-sort-selected-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selected-lastFollowUp')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort-descending')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<SwitchListTile>(
+        find.byKey(const ValueKey('home-sort-descending')),
+      ).value,
+      isTrue,
+    );
+
+    await tester.tap(find.text('بستن'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('Home keeps core controls reachable on a short Android viewport',
       (tester) async {
     tester.view.physicalSize = const Size(1080, 1800);
