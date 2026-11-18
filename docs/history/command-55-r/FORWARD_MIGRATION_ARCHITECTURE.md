@@ -112,3 +112,15 @@ Additional measurable constraints:
 - Record database size before/after; report added bytes per occurrence and checklist row. No fixed growth threshold is asserted until measured baseline fixtures exist.
 - Program startup impact must be measured separately from the migration duration. If the migration cannot finish within the profile budget, show a recoverable blocking state and do not expose partially migrated data.
 - Downgrade compatibility is not promised. Older binaries must use a verified pre-migration backup.
+
+
+## 12. Deployment and lineage qualification
+Live GitHub verification on 2026-11-18 shows:
+- Main currently declares `G1DriftSchema.version = 7`, blob `cd065ff25c680ed064e89068b3d063e737091025`.
+- PR #3384 is OPEN / DRAFT / UNMERGED; its head is the V19 source snapshot `310c0e20e3447c488c1e1c102c38bea5040708ca`, based on `fix/wave3-cycle3-calendar-product-repair` at `8c4c23f0c2a4f9b2374a2092c931782c4455fd41`, not Main.
+- PR #3463 is OPEN / DRAFT / UNMERGED; its V20 candidate head `812082964c649be7660c41213209ec34aea7167b` is based on PR #3384's head, not Main.
+- PR #3495 remains OPEN / DRAFT / UNMERGED and its base is Main.
+
+Therefore V19/V20 are verified source-lineage candidates, not evidence that the released Main application or all real user databases are already at V19. The actual production population must be inventoried independently. Main-v7 databases must follow an approved sequential v7 migration plan; this Occurrence adapter is not a shortcut from v7 to v20.
+
+The V19 installer sets `schemaVersion = 19` for Drift's `QueryExecutorUser`, but its own source explicitly avoids writing SQLite `PRAGMA user_version`; the canonical metadata uses `arvin_storage_meta`. A future adapter must classify the database by schema fingerprint, required tables/columns, migration markers and data evidence. Neither a PR description nor `user_version` alone identifies a user's database lineage.
