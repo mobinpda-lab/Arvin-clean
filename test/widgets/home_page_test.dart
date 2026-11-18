@@ -25,8 +25,8 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.text('جستجو در کارها...'), findsOneWidget);
     expect(find.text('کارهای من'), findsNothing);
@@ -163,8 +163,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
