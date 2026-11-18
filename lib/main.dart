@@ -2457,6 +2457,89 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _openHomeGlobalFilter() async {
+    final action = await showModalBottomSheet<_HomeMoreAction>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
+          children: [
+            ListTile(
+              key: const ValueKey('home-global-filter-today'),
+              leading: const Icon(Icons.today_outlined),
+              title: const Text('امروز'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.today),
+            ),
+            ListTile(
+              key: const ValueKey('home-global-filter-undated'),
+              leading: const Icon(Icons.event_busy_outlined),
+              title: const Text('کارهای فاقد زمان'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.undated),
+            ),
+            ListTile(
+              key: const ValueKey('home-global-filter-archive'),
+              leading: const Icon(Icons.archive_outlined),
+              title: const Text('بایگانی'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.archive),
+            ),
+            ListTile(
+              key: const ValueKey('home-global-filter-trash'),
+              leading: const Icon(Icons.delete_outline),
+              title: const Text('سطل زباله'),
+              onTap: () => Navigator.of(sheetContext).pop(_HomeMoreAction.trash),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (action == null || !mounted) return;
+    await _handleHomeMoreAction(action);
+  }
+
+  Future<void> _handleHomeMoreAction(_HomeMoreAction action) async {
+    switch (action) {
+      case _HomeMoreAction.quickCapture:
+        await _quickCapture();
+        return;
+      case _HomeMoreAction.myTasks:
+        await _openMyTasks();
+        return;
+      case _HomeMoreAction.today:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectHomeStat('امروز');
+        return;
+      case _HomeMoreAction.undated:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectDueScope(TaskDueScope.undated);
+        return;
+      case _HomeMoreAction.archive:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectHomeStat('بایگانی');
+        return;
+      case _HomeMoreAction.trash:
+        Navigator.of(context).popUntil((route) => route.isFirst);
+        _selectHomeStat('سطل زباله');
+        return;
+      case _HomeMoreAction.backup:
+        await _backupMenu();
+        return;
+      case _HomeMoreAction.settings:
+        await _openPrimarySettings();
+        return;
+      case _HomeMoreAction.nextAction:
+        await _openPrimaryNextAction();
+        return;
+      case _HomeMoreAction.report:
+        await _openPrimaryReports();
+        return;
+      case _HomeMoreAction.about:
+        _showAbout();
+        return;
+    }
+  }
+
   Future<void> _openPrimaryMore() async {
     final action = await showModalBottomSheet<_HomeMoreAction>(
       context: context,
@@ -2554,45 +2637,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     if (action == null || !mounted) return;
-    switch (action) {
-      case _HomeMoreAction.quickCapture:
-        await _quickCapture();
-        return;
-      case _HomeMoreAction.myTasks:
-        await _openMyTasks();
-        return;
-      case _HomeMoreAction.today:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectHomeStat('امروز');
-        return;
-      case _HomeMoreAction.undated:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectDueScope(TaskDueScope.undated);
-        return;
-      case _HomeMoreAction.archive:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectHomeStat('بایگانی');
-        return;
-      case _HomeMoreAction.trash:
-        Navigator.of(context).popUntil((route) => route.isFirst);
-        _selectHomeStat('سطل زباله');
-        return;
-      case _HomeMoreAction.backup:
-        await _backupMenu();
-        return;
-      case _HomeMoreAction.settings:
-        await _openPrimarySettings();
-        return;
-      case _HomeMoreAction.nextAction:
-        await _openPrimaryNextAction();
-        return;
-      case _HomeMoreAction.report:
-        await _openPrimaryReports();
-        return;
-      case _HomeMoreAction.about:
-        _showAbout();
-        return;
-    }
+    await _handleHomeMoreAction(action);
   }
 
   void _onPrimaryDestinationSelected(ArvinPrimaryDestination destination) {
@@ -3033,29 +3078,61 @@ class _HomePageState extends State<HomePage> {
           Padding(
             padding: EdgeInsets.fromLTRB(ArvinSpacing.x4, compactHome ? ArvinSpacing.x1 : ArvinSpacing.x2, ArvinSpacing.x4, 5),
             child: Row(
-              // Keep physical control placement stable while the app remains RTL:
-              // notifications on the left, menu on the right.
+              // Physical right: navigation drawer. Physical left: general views.
+              // Child text keeps the app's Persian RTL direction.
               textDirection: TextDirection.ltr,
               children: [
-                IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
-                Expanded(child: Column(children: [
-                  Container(
-                    key: const ValueKey('home-bismillah-capsule'),
-                    padding: const EdgeInsets.symmetric(horizontal: ArvinSpacing.x2, vertical: ArvinSpacing.x1),
-                    decoration: BoxDecoration(
-                      color: ArvinColors.primarySoft,
-                      borderRadius: BorderRadius.circular(ArvinRadii.pill),
-                    ),
-                    child: const Text(
-                      'بسم الله الرحمن الرحیم',
-                      key: ValueKey('home-bismillah'),
-                      style: TextStyle(color: ArvinColors.primary, fontSize: ArvinTypography.label, fontWeight: FontWeight.w700),
-                    ),
+                IconButton(
+                  key: const ValueKey('home-global-filter'),
+                  tooltip: 'نماهای عمومی',
+                  onPressed: _openHomeGlobalFilter,
+                  icon: const Icon(Icons.filter_alt_outlined),
+                ),
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Text(
+                        'بسم الله الرحمن الرحیم',
+                        key: ValueKey('home-bismillah'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ArvinColors.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        'آروین',
+                        key: ValueKey('home-app-name'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ArvinColors.textPrimary,
+                          fontSize: 19,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      SizedBox(height: 1),
+                      Text(
+                        'مدیریت کارها، یادداشت‌ها و پیگیری‌ها',
+                        key: ValueKey('home-title-block'),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ArvinColors.textSecondary,
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 2),
-                  const Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
-                ])),
-                IconButton(key: const ValueKey('home-menu'), tooltip: 'منو', onPressed: _openPrimaryMore, icon: const Icon(Icons.menu_rounded)),
+                ),
+                IconButton(
+                  key: const ValueKey('home-menu'),
+                  tooltip: 'منو',
+                  onPressed: _openPrimaryMore,
+                  icon: const Icon(Icons.menu_rounded),
+                ),
               ],
             ),
           ),
@@ -3065,7 +3142,7 @@ class _HomePageState extends State<HomePage> {
               key: const ValueKey('home-canonical-search'),
               onChanged: (value) => setState(() => query = value),
               decoration: InputDecoration(
-                hintText: 'جستجو در کارها، پروژه‌ها، دسته‌ها و برچسب‌ها...',
+                hintText: 'جستجو در کارها...',
                 hintStyle: const TextStyle(color: ArvinColors.textSecondary, fontSize: 12),
                 prefixIcon: const Icon(Icons.search_rounded),
                 filled: true, fillColor: ArvinColors.surface,
