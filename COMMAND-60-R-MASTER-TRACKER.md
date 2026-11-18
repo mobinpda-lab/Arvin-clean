@@ -86,3 +86,8 @@ Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75
 - Lane D PR #3547 remains open and unaccepted; its test-2 failure is addressed by lane A's fix pending CI.
 - Lane C blocker registered as Issue #3550: Center domain/store, M2M relations and missing Home Center filter. No Center persistence/UI implementation started.
 - Lane B PR #3548 head `d6c7ebe135e8422fea37a85cd22eb0927e129770`; shared design tokens and nav centralization implemented, CI pending.
+
+
+## Additional exact-SHA CI checkpoint
+- Lane B PR #3548 head `d6c7ebe135e8422fea37a85cd22eb0927e129770`: Follow-up Persistence PASS; test-4 PASS; test-1 FAIL due the known V8→V9 executor lifecycle defect; test-5 and Quick Capture smoke were in progress, remaining jobs queued. Lane B must be revalidated after lane A's test fix is integrated.
+- Lane D PR #3547 head `1c83db84145675aa31e67feef95c23ddd84c181c`: test-1 PASS; test-2 FAIL due Person Directory rehydration. Lane A PR #3549 addresses both storage defect and assertion correction; no merge yet.
