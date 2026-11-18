@@ -153,18 +153,31 @@ jobs:
               expect(await fixture.exists(), isTrue);
               expect(await fixture.length(), greaterThan(0));
 
+              // Diagnostic markers isolate any native FFI failure without touching the fixture.
+              // ignore: avoid_print
+              print('NATIVE_DATABASE_CONSTRUCTOR_BEGIN');
               final executor = NativeDatabase(fixture);
+              // ignore: avoid_print
+              print('NATIVE_DATABASE_CONSTRUCTOR_READY');
               try {
                 // Deliberately use the v7 inspection user, never the v19/v20
                 // schema user. This opens the file but cannot run either installer.
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_ENSURE_OPEN_BEGIN');
                 await executor.ensureOpen(_ReadOnlyV7FixtureUser());
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_ENSURE_OPEN_READY');
 
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_FIRST_QUERY_BEGIN');
                 final tableRows = await executor.runSelect(
                   "SELECT name FROM sqlite_master WHERE type = 'table' "
                   "AND name NOT LIKE 'sqlite_%' ORDER BY name",
                   const [],
                 );
                 final tables = tableRows.map((row) => row['name'] as String).toList();
+                // ignore: avoid_print
+                print('NATIVE_DATABASE_FIRST_QUERY_READY');
                 const expectedTables = <String>[
                   'arvin_storage_meta',
                   'checklist_items',
