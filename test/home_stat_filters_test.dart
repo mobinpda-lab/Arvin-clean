@@ -32,17 +32,30 @@ void main() {
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
-  testWidgets('Home notification remains physically left of menu in RTL',
+  testWidgets('Home general filter is physically left of menu in RTL',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final notificationCenter = tester.getCenter(
-      find.byKey(const ValueKey('home-notifications')),
+    final filterCenter = tester.getCenter(
+      find.byKey(const ValueKey('home-global-filter')),
     );
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
 
-    expect(notificationCenter.dx, lessThan(menuCenter.dx));
+    expect(filterCenter.dx, lessThan(menuCenter.dx));
+  });
+
+  testWidgets('Home general filter exposes Today, Timeless, Archive and Trash views', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-global-filter')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('کارهای فاقد زمان'), findsOneWidget);
+    expect(find.text('بایگانی'), findsOneWidget);
+    expect(find.text('سطل زباله'), findsOneWidget);
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
