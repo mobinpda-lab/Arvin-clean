@@ -33,7 +33,7 @@ class TaxonomyIconRow extends StatelessWidget {
     decoration:BoxDecoration(color:soft,borderRadius:BorderRadius.circular(9),border:Border.all(color:color.withValues(alpha:.28))),
     child:Row(mainAxisSize:MainAxisSize.min,children:[
       Icon(icon,size:14,color:color),const SizedBox(width:4),
-      Flexible(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:color,fontSize:10.5,fontWeight:FontWeight.w800))),
+      Flexible(child:Text(label,maxLines:1,overflow:TextOverflow.ellipsis,style:TextStyle(color:color,fontSize:10.5,fontWeight:FontWeight.w700))),
     ]),
   );
 }
