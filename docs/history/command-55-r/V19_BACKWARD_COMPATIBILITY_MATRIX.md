@@ -33,3 +33,13 @@ V19 `OccurrenceSqlCodec` has no occurrence-specific receipt. It reads only `task
 
 ## Compatibility adapter
 Adapter is read-only and versioned. It must recognize the exact V19 envelope shape and exact SQL shape. Unknown schema shape is not coerced into the V19 adapter. Newer and older formats require their own adapter version and explicit fixture coverage.
+
+## Outer source-key classification
+For every Task envelope, independently classify both `occurrenceHistory` and `checklistOccurrences` using `containsKey`:
+- absent → ABSENT;
+- present null → EXPLICIT_NULL;
+- present empty Map → PRESENT_EMPTY;
+- present populated Map → PRESENT_DATA;
+- present wrong type → INVALID.
+
+A present-empty collection can be migrated and receipted as a verified empty source. An absent key alone is not proof of an empty history. If V19 already removed both keys, target rows without an occurrence-specific receipt cannot prove whether the original source was empty or partially/fully migrated.
