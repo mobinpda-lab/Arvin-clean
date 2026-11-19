@@ -190,7 +190,8 @@ void main() {
     stored = await TaskStore().load();
     expect(stored.single.id, taskId);
     expect(stored.single.followUps, hasLength(2));
-    expect(stored.single.followUpEnabled, isFalse);
+    // Legacy compatibility getter reflects the canonical Follow-up history.
+    expect(stored.single.followUpEnabled, isTrue);
     expect(stored.single.completed, isFalse);
     expect(stored.single.completedAt, isNull);
     expect(find.text(taskTitle), findsOneWidget);
