@@ -330,3 +330,45 @@ The following 72 failed test instances were extracted from the exact-head job lo
 - Only that failed job was retried after diagnosis; retry job 135449076966 completed SUCCESS.
 - This establishes a successful staging APK build attempt on the same exact source SHA. The original failed attempt remains preserved in the run history; the aggregate Build run remains FAILURE because the six test shards still fail.
 - No staging artifact from the first attempt is accepted. The retry's artifact/logs must be retained with the run evidence; it does not change the six-shard failure count of 72.
+
+### COMMAND 63-R follow-up triage — draft corrections (2026-11-19)
+The following baseline failures now have a targeted source/test correction in an OPEN Draft PR. These are **authored corrections, not accepted PASS results**; exact-head Build must finish on each branch.
+
+| Baseline failure / contract | Correction branch / PR | Current disposition |
+|---|---|---|
+| Home six-group / completed-past mismatch; Center pill and filter order | #3569 | Five-group contract, completed-past historical ordering, visible five-filter row and RTL order implemented; CI pending |
+| Home filter Boolean hit-test warning | #3569 | Scroll category/tag option and Apply action into view before tap; no warning suppression; CI pending |
+| Home Today More-menu item not built while off-screen | #3569 | Scroll lazy More-menu action into view before tap; CI pending |
+| Home owner header and stale plural filter labels | #3569 | REV10 title, Bismillah capsule, notification/menu physical placement and visible singular filter labels asserted; CI pending |
+| Home status icon hard-coded stale blue value | #3567 and #3569 | Assertion now uses `ArvinColors.primary`; teal branch verifies approved palette; CI pending |
+| Issue #1891 tag count label absent | #3567 and #3569 | Test opts into `showLabel: true` before asserting visible selected-count text; CI pending |
+| Quick Capture Reminder/Recurrence controls not hit-testable | #3571 | Stable-key lookup, ensureVisible and pumpAndSettle before interaction; CI pending |
+| Quick Capture due-time display expected to mirror an unset reminder | #3571 | Expect one configured due-time value; no unconfigured reminder is fabricated; CI pending |
+| Quick Capture full-form editor wiring count stale | #3571 | Guard updated from five to six legitimate canonical coordinator paths and asserts the full-form path; CI pending |
+| Task Editor stale intermediate date-time action | #3570 | Tests use the current unified date/time control and assert the Persian date picker directly; CI pending |
+| Task Editor legacy reminderDate fixture loses data | #3570 | Fixture uses canonical TaskReminder and verifies due-date independence; CI pending |
+| Task model legacy reminderDate constructor fixture | #3570 | Canonical TaskReminder fixture and stable-ID/date readback; CI pending |
+| Follow-up swipe test expected legacy getter false after adding history | #3570 | Test now asserts the deprecated compatibility getter reflects non-empty canonical Follow-up history; pre-save no-write assertion remains; CI pending |
+| Work Agenda PDF expected events from deprecated reminderDate constructor fields | #3570 | Fixture uses canonical TaskReminder and separately asserts Follow-up history remains in the report entry; CI pending |
+| Task Details timeline finder did not scroll to lazy section | #3572 | Scroll to latest Follow-up and timeline before asserting; CI pending |
+| Task Details metadata section title absent | #3572 | Add «مشخصات کار» heading to metadata card; CI pending |
+| Legacy reminder-table marker column remains | #3570 | Add an idempotent DROP COLUMN migration guarded by SQLite >=3.35 and file-backed unknown-column/NULL/readback regression; CI pending, migration not accepted |
+| Occurrence/Checklist persistence across schema install and file reopen | #3570 | Add three-install file-backed regression for Occurrence, Checklist, explicit NULL and unknown nested fields; CI pending |
+| Person directory exclusion resurrection and rollback | #3574 / #3575 | Schema-17 tombstone migration, emergency backup inclusion, exact rollback and independent SQLite round-trip tests; CI pending |
+| Font registration and license asset coverage | #3573 | Nine static weights registered; manifest/rootBundle coverage added; Build/device rendering pending |
+
+### Remaining root-cause inventory
+The table above does not close the remaining failures. The following areas still require exact assertion/exception review or additional implementation:
+- Home Move-to-Today / None action, Past filter real-data ordering, Focus Today composition, keyboard/360–412dp layout and normal-height empty groups.
+- Home primary Add persistence, task-card in-place expansion and real Follow-up history, Home owner data/summary correctness.
+- Quick Capture Project create-new, Center create/select persistence, all-day ↔ timed reminder lifecycle, custom recurrence interaction and title-first capture on compact screens.
+- Task Editor recurrence interval persistence, circular clock cancellation, back/close save prompt, date/time icons and full form responsive layout.
+- Task Details ordinary compact state, Person association persistence, checklist add/edit/delete/reorder and Follow-up title/note/waiting state.
+- Follow-up Office empty-state, legacy next-follow-up filtering, report center Center/search controls and combined filter semantics.
+- Reports quick presets and PDF output beyond the targeted Work Agenda fixture.
+- Calendar repeat-occurrence action identity and prayer-card visual contract.
+- Backup/Restore actual Storage Access Framework export/import, encrypted backup, independent-file restore and physical Android validation.
+- Full V7/V19/V20 migration sequence, unknown columns/indexes/triggers, rollback/retry and physical SQLite acceptance.
+- Device Smoke and physical screenshots for all P0 scenarios.
+
+**Rule:** A correction row remains OPEN until its PR's exact HEAD has terminal Build evidence and the relevant test passes. A skipped/cancelled/pending/queued/in-progress run is not PASS. The original 80-instance baseline and the newer 72-instance run remain separate historical evidence.
