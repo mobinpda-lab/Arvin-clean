@@ -77,10 +77,24 @@ class TaskStore {
       final oldById = <String, Map<String, Object?>>{
         for (final row in oldRows) row['id'] as String: row,
       };
+      final incomingIds = normalized.keys.toSet();
+      final removedIds = oldById.keys.toSet().difference(incomingIds);
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom('DELETE FROM people');
         final now = DateTime.now().toIso8601String();
+        for (final personId in removedIds) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory_exclusions (person_id, excluded_at) VALUES (?, ?)',
+            <Object?>[personId, now],
+          );
+        }
+        for (final personId in incomingIds) {
+          await executor.runDelete(
+            'DELETE FROM person_directory_exclusions WHERE person_id = ?',
+            <Object?>[personId],
+          );
+        }
+        await executor.runCustom('DELETE FROM people');
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(

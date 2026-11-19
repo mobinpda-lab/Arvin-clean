@@ -61,6 +61,7 @@ void main() {
         'task_tags',
         'checklist_items',
         'task_people',
+        'person_directory_exclusions',
       ]),
     );
 
