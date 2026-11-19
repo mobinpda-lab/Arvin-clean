@@ -378,3 +378,15 @@ Child PR Build failures include the same inherited broad product/test failures a
 5. Preserve Device Smoke, Android file backup/restore, full REV10 page review, Local P2P implementation/security and owner acceptance as independent release gates.
 
 **Checkpoint disposition:** six-shard baseline remains FAILED; current operational Build is PENDING; child PRs #3571/#3572/#3573 have failed Builds; no child PR is integration-accepted. Main unchanged; no merge/release/deploy. RELEASE = NO-GO.
+
+
+## 13. Design System internal token correction — 2026-11-19
+
+PR #3567 was source-reviewed and an internal contradiction was confirmed: its new shared card shadow tokens were set to blur 8 / offset (0,2), while the pre-existing theme regression test still requires blur 10 / offset (0,4). The new token test also encoded the new offset (0,2). To preserve the established visual shadow contract and keep both tests meaningful, the isolated Design System branch was corrected:
+- `lib/theme/arvin_design_tokens.dart`: cardBlur restored to 10 and cardOffset to (0,4).
+- `test/theme/arvin_design_tokens_test.dart`: explicitly asserts blur 10 and offset (0,4), alongside the existing positive/relative shadow checks.
+- Commits: `65e1a07de5b7254e66ed772956c1d690bd5d26a2` (token correction), `7ba6036dfaa3bc7485413b956500f1272f0fecb3` (test contract alignment).
+- PR #3567 current head: `7ba6036dfaa3bc7485413b956500f1272f0fecb3`, still OPEN / DRAFT and based on stale operational SHA `a2825e0`.
+- Exact-head Build #11810 is PENDING; Device Smoke #8969 is PENDING; Follow-up Persistence #2892 is QUEUED. The correction is NOT ACCEPTED until focused and six-shard tests pass on this exact head and the branch is reconciled against the current operational head.
+
+This was a minimal token/test consistency correction on the child PR branch only. No Main or operational code was changed by this correction; no PR was merged.
