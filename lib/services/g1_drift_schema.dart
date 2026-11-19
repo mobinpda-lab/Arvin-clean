@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../models/task.dart';
+import 'g1_person_directory_exclusion_v1_migration.dart';
 import 'occurrence_sql_codec.dart';
 import 'recurrence_sql_codec.dart';
 
@@ -226,6 +227,7 @@ class G1DriftSchema implements QueryExecutorUser {
       if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
       }
+      await G1PersonDirectoryExclusionV1Migration().migrate(executor);
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
@@ -236,7 +238,12 @@ class G1DriftSchema implements QueryExecutorUser {
       );
       if (directorySeed.isEmpty) {
         await executor.runCustom(
-          'INSERT OR IGNORE INTO person_directory (person_id) SELECT id FROM persons',
+          '''INSERT OR IGNORE INTO person_directory (person_id)
+             SELECT persons.id FROM persons
+             WHERE NOT EXISTS (
+               SELECT 1 FROM person_directory_exclusions
+               WHERE person_id = persons.id
+             )''',
         );
         await executor.runCustom(
           "INSERT INTO arvin_storage_meta (key, value) VALUES ('person_directory_seeded_v1', '1') "
