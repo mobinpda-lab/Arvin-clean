@@ -6,7 +6,7 @@
 **Reference PR:** #3495 — OPEN / DRAFT / UNMERGED  
 **Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — protected by this execution; no write performed.  
 **PR #3052 checkpoint before COMMAND 62:** `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`  
-**Current COMMAND 62 candidate:** `c5d126f423e44b12c1c44fbf69324a7e326d800c`
+**Current COMMAND 62 documentation checkpoint:** `805375654d04b247cbac5038b92d30ce781fff7c`
 
 ## 1. Authority and safety
 - COMMAND 62-R explicitly keeps PR #3052 as the operational delivery route. PR #3495 and PRs #3547–#3549 are read-only comparison sources until an individual change is inspected and adapted.
@@ -121,3 +121,13 @@ Library archive: `vazirmatn-v33.003 (2).zip`
 7. Continue data, entity, and device acceptance independently; update this tracker after each exact-SHA checkpoint.
 
 **Release state: NO-GO. Main untouched. PR #3052 OPEN / DRAFT / UNMERGED. No merge, release or deploy.**
+
+
+## 9. Follow-on checkpoint — 2026-11-19
+- Commit `32daaa48bd63831668607e3547a39dc62057fb6e` added this Master Tracker to the operational branch.
+- Commit `805375654d04b247cbac5038b92d30ce781fff7c` added `docs/architecture/COMMAND-62-R-LOCAL-P2P-SECURITY-AND-CONFLICT-DESIGN.md`.
+- The P2P document defines the threat model, proposed pairing/trust lifecycle, authenticated encrypted transport requirements, durable operation envelope, idempotent retry/acknowledgement rules, causal conflict policy and two-device acceptance matrix. It is a design proposal only; no cryptographic or network code is implemented.
+- The Vazirmatn v33.003 archive was materialized from the Library and inspected in the runtime: 13,047,191 bytes, 387 entries, CRC clean, SHA-256 `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`. It includes static TTF/WOFF2 and variable/UI/Farsi-digit/Non-Latin variants, with nine static weights and SIL OFL 1.1. No font files were added to the app in this checkpoint.
+- The code/test correction remains unverified. Workflows triggered on tracker SHA `32daaa48bd63831668607e3547a39dc62057fb6e` had Build and Device Smoke pending, Follow-up Persistence cancelled by a newer run, Calendar Provider in progress and staging review in progress at the last poll. Docs-only P2P design commit `805375654d04b247cbac5038b92d30ce781fff7c` had no PR-triggered workflow runs.
+- The #3052 source schema uses `persons` + `person_directory` + `task_persons`, whereas #3549's tombstone fix is written against the separate #3495 `people`/legacy relation lineage. Direct copying is unsafe; an adapted #3052 fix requires a fresh reproduction and file-backed regression test before implementation.
+- Current operational branch HEAD at this checkpoint: `805375654d04b247cbac5038b92d30ce781fff7c`. PR #3052 remains OPEN / DRAFT / UNMERGED; Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
