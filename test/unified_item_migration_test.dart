@@ -25,8 +25,8 @@ void main() {
     expect(task.lastFollowUp, isNull);
   });
 
-  test('Unified Task JSON preserves reminder and recurrence fields', () {
-    final task = Task.fromJson({
+  test('Legacy Task JSON migrates reminder and preserves Follow-up history', () {
+    final task = Task.fromLegacyJson({
       'id': 'unified-1',
       'title': 'کار جدید',
       'reminderDate': '2026-08-21T10:00:00.000',

@@ -25,7 +25,6 @@ void main() {
         id: 'due-action-history',
         dateTime: followUpDate,
         note: 'سابقه باید محفوظ بماند',
-        nextFollowUp: DateTime(2026, 11, 12, 8),
         completed: true,
       );
       final task = Task(
@@ -33,11 +32,16 @@ void main() {
         title: 'کار دارای موعد',
         description: 'توضیح نباید تغییر کند',
         dueDate: oldDueDate,
-        reminderDate: reminderDate,
+        taskReminders: <TaskReminder>[
+          TaskReminder(
+            id: 'due-action-reminder',
+            title: 'یادآوری مستقل',
+            date: reminderDate,
+            sequence: 1,
+          ),
+        ],
         allDay: false,
         checklist: const <String>['[ ] مورد اول', '[x] مورد دوم'],
-        followUpEnabled: true,
-        followUpDate: followUpDate,
         followUps: <FollowUp>[followUp],
       );
       await store.save(<Task>[task]);
@@ -85,16 +89,10 @@ void main() {
       expect(persisted.reminderDate, reminderDate);
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
-      expect(persisted.followUpEnabled, isTrue);
-      expect(persisted.followUpDate, followUpDate);
       expect(persisted.followUps, hasLength(1));
       expect(persisted.followUps.single.id, 'due-action-history');
       expect(persisted.followUps.single.dateTime, followUpDate);
       expect(persisted.followUps.single.note, 'سابقه باید محفوظ بماند');
-      expect(
-        persisted.followUps.single.nextFollowUp,
-        DateTime(2026, 11, 12, 8),
-      );
     },
   );
 
