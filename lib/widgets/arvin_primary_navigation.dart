@@ -29,7 +29,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         ? const Color(0xFFD9F0EE)
         : ArvinColors.primarySoft;
     const iconColors = <ArvinPrimaryDestination, Color>{
-      ArvinPrimaryDestination.home: Color(0xFF0F766E),
+      ArvinPrimaryDestination.home: ArvinColors.primary,
       ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
       ArvinPrimaryDestination.notebook: Color(0xFFC76B16),
       ArvinPrimaryDestination.reports: Color(0xFF8E6CCF),
