@@ -213,3 +213,113 @@ The 74 entries below are the exact failed test instances parsed from the six job
 ### Root-cause triage reminders
 - Do not infer that the six original corrections resolved all related behaviors; the 74 failures above require their own classification.
 - Preserve all assertions. Where a test contradicts the newer product contract, update the contract test to assert the approved behavior rather than deleting the assertion.
+
+## Exact-head follow-on set — PR #3052 SHA a2825e003bb9e6b5c2413b0dc74b085273b6148b
+Build run: https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44490319550 (terminal conclusion: FAILURE).
+
+| Shard | Job ID | Passed | Failed |
+|---|---:|---:|---:|
+| test-0 | 135443980960 | 234 | 12 |
+| test-1 | 135443981268 | 195 | 6 |
+| test-2 | 135443981083 | 302 | 25 |
+| test-3 | 135443981089 | 151 | 10 |
+| test-4 | 135443981321 | 242 | 9 |
+| test-5 | 135443981366 | 186 | 10 |
+| **Total** | — | **1,310** | **72** |
+
+The following 72 failed test instances were extracted from the exact-head job logs. They are a distinct run and must not be added to the earlier 80 or 74 totals as if they were the same candidate.
+
+| Shard | Job ID | Failed test instance |
+|---|---:|---|
+| test-0 | 135443980960 | test/task_detail_checklist_flow_test.dart: task detail displays checklist and toggles an item |
+| test-0 | 135443980960 | test/widgets/task_dialog_test.dart: creates a task with trimmed text and a unique tag |
+| test-0 | 135443980960 | test/quick_capture_dialog_test.dart: Quick Capture can create a center inline and immediately select it |
+| test-0 | 135443980960 | test/services/task_report_filter_test.dart: combined filters use AND semantics without mutating tasks |
+| test-0 | 135443980960 | test/device_feedback_home_regression_test.dart: Home keeps backup in the More menu instead of the header |
+| test-0 | 135443980960 | test/primary_bottom_navigation_test.dart: primary navigation exposes exactly five canonical destinations |
+| test-0 | 135443980960 | test/home/home_filter_contract_test.dart: Home keeps completed past tasks visible in a separate non-overdue group |
+| test-0 | 135443980960 | test/follow_up_office_page_test.dart: follow-up office exposes the shared five filter dimensions |
+| test-0 | 135443980960 | test/canonical_home_boundary_test.dart: Home owns canonical Task state without legacy ArvinTask projection |
+| test-0 | 135443980960 | test/task_people_page_test.dart: empty People UI adds and removes a local Person explicitly |
+| test-0 | 135443980960 | test/task_editor_category_project_integration_test.dart: new task saves typed category without an extra apply step |
+| test-0 | 135443980960 | test/home_today_about_test.dart: Today menu action shows only active canonical tasks due today |
+| test-1 | 135443981268 | test/task_timeline_page_test.dart: renders canonical task history in chronological order |
+| test-1 | 135443981268 | test/calendar_explicit_export_contract_test.dart: normal Task save, capture, edit and completion contain no outbound sync |
+| test-1 | 135443981268 | test/widgets/home_page_test.dart: completed tasks remain visible in All and Completed filters |
+| test-1 | 135443981268 | test/widgets/home_page_test.dart: Home uses the five checkbox filters as combined filters and preserves time grouping |
+| test-1 | 135443981268 | test/quick_capture_dialog_test.dart: canonical capture keeps title-only path and optional choices |
+| test-1 | 135443981268 | test/quick_capture_dialog_test.dart: Quick Add scheduling uses the canonical circular date/time picker |
+| test-2 | 135443981083 | test/settings_page_test.dart: settings exposes date, swipe, projects and canonical backup controls |
+| test-2 | 135443981083 | test/widgets/home_quick_capture_test.dart: Home primary add persists canonical task and preserves history |
+| test-2 | 135443981083 | test/quick_capture_dialog_test.dart: Quick Add opens an independent Persian reminder date/time picker |
+| test-2 | 135443981083 | test/quick_capture_dialog_test.dart: Quick Add shows the selected scheduling time and uses injected now |
+| test-2 | 135443981083 | test/follow_up_entry_page_test.dart: waiting FollowUp can add, select, reopen and remove a stable person |
+| test-2 | 135443981083 | test/home_last_follow_up_real_record_test.dart: Home shows last FollowUp only for a real record and does not create one |
+| test-2 | 135443981083 | test/task_contract_test.dart: due date stays independent from reminder and follow-up timestamps |
+| test-2 | 135443981083 | test/task_store_reminder_persistence_test.dart: legacy reminder-table migration removes its flag without losing reminder rows |
+| test-2 | 135443981083 | test/widget_test.dart: Home exposes the canonical workflow controls |
+| test-2 | 135443981083 | test/task_editor_dialog_test.dart: Back-style close prompts and can save Task edits without data loss |
+| test-2 | 135443981083 | test/home/home_owner_reference_test.dart: Home follows the owner header, real summary values and Today navigation |
+| test-2 | 135443981083 | test/home/home_filter_boolean_logic_test.dart: Home filters combine OR within each dimension and AND across dimensions |
+| test-2 | 135443981083 | test/task_editor_due_date_preservation_test.dart: editing preserves canonical due date independently |
+| test-2 | 135443981083 | test/follow_up_office_page_test.dart: selects one of multiple tasks and persists only to that task |
+| test-2 | 135443981083 | test/task_detail_person_persistence_test.dart: Task Details Follow-up person selection persists through canonical Person and relation tables |
+| test-2 | 135443981083 | test/task_detail_master_screen_test.dart: Task Details presents canonical follow-up title, note and waiting-for-response state |
+| test-2 | 135443981083 | test/task_detail_master_screen_test.dart: Task Details persists checklist reorder and additions immediately without changing Follow-up history |
+| test-2 | 135443981083 | test/home_wave2_editor_wiring_guard_test.dart: Home add/edit stay wired to the canonical Wave 2 coordinator |
+| test-2 | 135443981083 | test/notebook_page_test.dart: editor tag picker replaces tags on the same canonical note |
+| test-2 | 135443981083 | test/canonical_home_boundary_test.dart: normal save, Quick Capture, edit and completion never export automatically |
+| test-2 | 135443981083 | test/task_detail_checklist_crud_test.dart: checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps |
+| test-2 | 135443981083 | test/home_today_about_test.dart: Today menu action has a dedicated empty state |
+| test-2 | 135443981083 | test/quick_capture_project_create_test.dart: Quick Add offers Project create-new and selects the created project |
+| test-2 | 135443981083 | test/report_center_page_test.dart: Report Center exposes center and searchable task controls |
+| test-2 | 135443981083 | test/home_stat_filters_test.dart: category checkbox selection applies OR only after confirmation |
+| test-3 | 135443981089 | test/widgets/home_page_test.dart: RTL Move-to-Today does not dismiss and None is a no-op |
+| test-3 | 135443981089 | test/widgets/home_page_test.dart: Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard |
+| test-3 | 135443981089 | test/widgets/home_page_test.dart: Home Past time filter excludes today and prioritizes incomplete tasks |
+| test-3 | 135443981089 | test/quick_capture_dialog_test.dart: Quick Add reminder presets match the product contract |
+| test-3 | 135443981089 | test/quick_capture_dialog_test.dart: Quick Add custom recurrence exposes every canonical time unit |
+| test-3 | 135443981089 | test/device_feedback_home_regression_test.dart: normal-height Home keeps empty groups and floating add action |
+| test-3 | 135443981089 | test/task_editor_dialog_test.dart: task editor recurrence uses RollBox and preserves interval |
+| test-3 | 135443981089 | test/home/home_filter_contract_test.dart: Home task card expands in place with real FollowUp history and preserves details route |
+| test-3 | 135443981089 | test/follow_up_office_page_test.dart: legacy Next Follow-up dates never create an automatic due filter |
+| test-3 | 135443981089 | test/task_detail_master_screen_test.dart: Smart visibility keeps an ordinary Task detail compact |
+| test-4 | 135443981321 | test/calendar_page_test.dart: prayer cards use mosque icon and subdued unregistered status |
+| test-4 | 135443981321 | test/task_detail_master_screen_test.dart: Smart visibility shows rich sections only when canonical data exists |
+| test-4 | 135443981321 | test/task_detail_master_screen_test.dart: Task Details presents summary, metadata and due date once in RTL order |
+| test-4 | 135443981321 | test/issue_1891_lane_d_rollbox_test.dart: issue 1891 tag roll box supports multi-select with apply/cancel |
+| test-4 | 135443981321 | test/g6_swipe_rtl_acceptance_test.dart: configured left and right swipes open Follow-up form and write only after save |
+| test-4 | 135443981321 | test/task_editor_dialog_test.dart: Task editor saves a real all-day deadline from inside the clock dialog |
+| test-4 | 135443981321 | test/work_agenda_pdf_renderer_test.dart: existing PDF renderer builds grouped Work Agenda bytes |
+| test-4 | 135443981321 | test/widgets/home_page_test.dart: overdue active task uses red text while card and icons stay neutral |
+| test-4 | 135443981321 | test/home_today_about_test.dart: About menu action opens the built-in Arvin about dialog |
+| test-5 | 135443981366 | test/canonical_calendar_launcher_test.dart: repeat occurrence actions resolve back to the canonical Task |
+| test-5 | 135443981366 | test/task_detail_master_screen_test.dart: Task Details does not present related people as assignees and keeps bottom content clear |
+| test-5 | 135443981366 | test/notebook_page_test.dart: Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries |
+| test-5 | 135443981366 | test/widget_test.dart: HomePage shows the empty-state message after loading |
+| test-5 | 135443981366 | test/report_center_page_test.dart: Report Center quick presets apply from a dedicated bottom sheet |
+| test-5 | 135443981366 | test/widgets/home_page_test.dart: Home separates calendar today from selected focus and persists toggle removal |
+| test-5 | 135443981366 | test/widgets/home_page_test.dart: Focus Today is reachable from drawer More and global funnel with one result set |
+| test-5 | 135443981366 | test/quick_capture_dialog_test.dart: timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder |
+| test-5 | 135443981366 | test/task_editor_dialog_test.dart: Task editor cancelling the circular clock does not commit a partial date |
+| test-5 | 135443981366 | test/follow_up_office_page_test.dart: asks the user to create a task when the list is empty |
+
+### Exact-head non-shard outcomes
+- Analyze: PASS; Visual: PASS.
+- Debug APK: PASS; Release APK: PASS.
+- Staging APK: FAIL on the first attempt because Gradle could not resolve Kotlin 2.2.21 artifacts (stdlib, Gradle plugin and BOM) from Plugin Portal; this is classified as external dependency resolution, not source compilation failure.
+- Staging job 135443981025 was retried alone after diagnosis. Retry job 135449076966 was IN PROGRESS at the last poll; do not count it as PASS yet.
+- Follow-up File Persistence run 44490319367: PASS.
+- Calendar Provider run 44490319483: PASS.
+- Draft Review APK run 44490319361: PASS.
+- G1 Lock Sync run 44490319577: PASS.
+- Device Smoke run 44490319359: PENDING with no jobs returned; no device lane is accepted.
+- Published workflow artifacts: arvin-debug-apk (93,488,372 bytes; artifact ID 14513066414) and arvin-release-apk (38,041,994 bytes; artifact ID 14513291302). No staging APK artifact was produced because the staging build failed.
+
+### Confirmed correction and open root causes
+- The Vazirmatn RootBundle license/authors regression passed on this SHA after explicit asset declarations in pubspec.yaml. This confirms the asset-bundle fix at test level; APK visual font rendering remains unverified.
+- test/task_contract_test.dart: the fixture passed deprecated Task.reminderDate to a constructor that intentionally ignores that legacy input. The corrected canonical TaskReminder fixture is isolated in draft PR #3570; no merge yet.
+- test/home/home_filter_contract_test.dart: Home did not render the completed past item under the current six-group implementation. The five-group product correction is isolated in draft PR #3569; no merge yet.
+- test/task_store_reminder_persistence_test.dart still reports that is_legacy_task_reminder remains in the existing SQL table. The safe table migration is NOT implemented; review unknown columns/indexes/FKs and preservation requirements before changing schema.
+- test/home/home_filter_boolean_logic_test.dart has a hit-test warning when selecting an off-screen checkbox option in the filter sheet; determine whether the sheet needs scrolling/layout correction or the test needs a correct scroll interaction. Do not suppress the warning.
+- Quick Capture tests cannot find the expected visible «یادآور» / «تکرار» controls. This remains a product/UI contract mismatch until the complete capture form and responsive layout are reviewed.
