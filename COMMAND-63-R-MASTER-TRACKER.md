@@ -558,3 +558,45 @@ Build jobs and selected real failure logs were fetched for each related PR head:
 - **Unresolved until focused reproduction:** multiple Task Details, checklist, people, backup/restore, calendar occurrence, notebook and swipe failures in the remaining shards. Do not label these fixed or root-caused from one representative log.
 - No stale child PR branch was modified in this audit. No tests/assertions were weakened. The two operational import-order corrections are the only code edits made in COMMAND 65-R so far; no focused rerun or exact-head CI has yet proven them.
 
+
+
+## 17. COMMAND 66-R — live audit checkpoint (2026-11-19)
+
+### 17.1 Exact refs and PR inventory
+- PR #3052 re-read from GitHub: OPEN / DRAFT / UNMERGED; head branch `fix/recovery-calendar-device-smoke-2026-10-31`; exact HEAD `b86d402a9928cc7dfa09ce4a22ea14b3866d9fb2`; base `main` at `45e4202b03a434459e4c021a04efa7e8396359db`. No new HEAD was observed during this checkpoint.
+- Main latest commit search returned `45e4202b03a434459e4c021a04efa7e8396359db`.
+- PR range #3564–#3575: #3564 OPEN/DRAFT (tracker/docs branch, HEAD `8ff372326ead7f853a9092385e37e8362e341f70`, base operational branch at `bc2b3d61...`); #3565, #3566 and #3568 returned GitHub 404 (not assumed merged or deleted); #3567, #3569–#3574 OPEN/DRAFT; #3575 OPEN/DRAFT. No PR in this range is merged.
+- Child PRs #3567, #3569, #3570, #3571, #3572, #3573 and #3574 still target the operational branch from stale base `a2825e003bb9e6b5c2413b0dc74b085273b6148b`; #3575 targets #3574 at `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`. Do not integrate without dependency reconciliation.
+
+### 17.2 Requested workflow runs — exact evidence
+All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9fb2`:
+- Build `44513194318`: started; job inventory now includes APK Release, Debug, Staging; Analyze; six quality shards test-0 through test-5; Visual. At last poll all were in progress or queued; no final conclusion yet. Each created job's exact-revision verification step completed successfully before the toolchain/build steps.
+- Device Smoke `44513194257`: job `135523919846` “Prepare selected smoke scenarios” queued; no smoke result yet.
+- Follow-up File Persistence `44513194224`: SUCCESS. Real file-backed SQLite test `alarm_overlay_file_persistence_test.dart` passed. Log shows temp SQLite file creation, Task+Reminder+FollowUp save, TaskStore reload, snooze mutation, close/reopen using a second connection, Task readback, actual Complete button interaction, TaskStore completion mutation, notification cancellation, and final readback. This validates that specific scenario only, not all TaskStore, backup/restore, or Task due-date paths.
+- Calendar Provider `44513194364`: in progress. Exact-SHA verification completed; provider acceptance instrumentation still running.
+- Draft Review APK `44513194389`: in progress. Exact-SHA verification completed; staging APK assembly not yet completed. This uses an ephemeral review signing key and is not a release-signing acceptance.
+
+### 17.3 Correction to the Task Date root-cause diagnosis
+- The historical failure from #3572 run `44498204462` / test shard-2 and #3573 run `44494326998` was in `test/task_contract_test.dart`, test “due date stays independent from reminder and follow-up timestamps”.
+- Inspection of the exact failing test and the associated patch shows the expected `2026-09-09 10:00` value is the *legacy reminderDate projection*, not the Task dueDate. The failing assertion is `restored.reminderDate == reminder`, while the same test's `restored.dueDate == due` assertion precedes it.
+- The old fixture constructs a Task using deprecated Task-level `reminderDate`, then calls `Task.fromJson(task.toJson())`. Current `Task.fromJson` intentionally does not migrate legacy reminder fields; migration is explicitly isolated in `Task.fromLegacyJson`. The test is stale relative to the canonical independent `taskReminders` model.
+- PR #3570 changes that fixture to construct a canonical `TaskReminder` and adds assertions for the reminder collection. This is the appropriate compatibility-contract correction; do not change Task due-date serialization to make the old test pass. Preserve separate dueDate, TaskReminder and FollowUp history semantics.
+- This is a confirmed test-fixture/API-boundary mismatch, not evidence of a confirmed current product dueDate persistence defect. A separate exact-head file-backed test for dueDate create/edit/save/reopen is still required.
+
+### 17.4 Home and Backup integration findings
+- PR #3569 changed `HomeGroupingService` to remove the separate `completed_past` group and include completed past Tasks in `overdue`; tests were also changed to assert the new grouping. This is a behavior change, not just a color/layout adjustment. It requires product-contract review against the approved Home information architecture before adoption. Do not accept solely because its revised tests pass.
+- PR #3569 also modifies the five-filter Home row and adds visible Center control; its patch touches `lib/main.dart`, `lib/home/home_filter_ui.dart`, grouping service and multiple Home tests. The branch also had an Analyze failure in its own run from unused `_showHomeFilterMenu`.
+- Current #3052 `lib/backup_manager.dart` does not yet contain `personDirectoryExclusions` in `backupCanonicalTasks`, the backup document, or `CanonicalBackupCandidate`.
+- PR #3575 supplies the exclusion serialization/decode/reconciliation API and adds file-backed backup/restore tests, but it depends on PR #3574's schema migration and TaskStore exclusion persistence. Preserve #3574 → #3575 order. Do not copy only the backup-manager signature or fake fixtures; review full migration, transactional persistence, rollback and restore orchestration together.
+- PR #3570 changes tests and schema handling, but does not modify the canonical Task model or TaskStore due-date code. Its changed tests include a real file-backed migration/reopen test preserving a future extension column; this is a useful preservation contract but is not yet integrated into #3052.
+
+### 17.5 Current acceptance and next actions
+- The only newly completed acceptance gate among the five requested runs is Follow-up File Persistence on exact SHA `b86d402...`.
+- Analyze, six shards, Visual, APKs, Device Smoke and Calendar Provider have not yet returned final results at the last poll. No claim of six-shard success or release readiness is allowed.
+- Continue polling Build `44513194318`, Device Smoke `44513194257`, Calendar `44513194364` and review APK `44513194389`; fetch logs for every failed shard before deduplication.
+- Reproduce the Home filter combined logic against canonical Center/Project/Category/Tag data. Inspect the actual source predicate and ensure semantics remain explicit; do not simply alter expected IDs.
+- For Backup/Restore, reconcile #3574 migration + TaskStore changes and #3575 manager + UI orchestration as one dependency chain, then run a real independent-database restore and compare Task IDs, relation IDs, tombstones, NULL and unknown envelope fields.
+- For Task dates, add/retain a file-backed exact test proving dueDate survives Task creation, editor save, SQLite close/reopen and TaskStore readback while reminders and Follow-up history remain distinct.
+- No code fix was made in this checkpoint because the reviewed child-branch patches are not yet safely reconciled with the current operational HEAD. No assertions were removed or weakened. Main unchanged; no merge, release or deploy.
+
+**COMMAND 66-R checkpoint disposition:** exact operational SHA remains `b86d402...`; one focused file-backed SQLite/TaskStore alarm-overlay persistence scenario passed on that SHA; remaining requested workflows are still running/queued; legacy reminder test mismatch has been distinguished from Task dueDate; Home grouping and Backup dependencies require controlled reconciliation. RELEASE = NO-GO.
