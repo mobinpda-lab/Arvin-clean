@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 
@@ -52,7 +53,7 @@ void main() {
         'settings': <String, dynamic>{
           'themeMode': 'dark',
           'usePersianDate': true,
-          'fontFamily': 'VazirHarf',
+          'fontFamily': 'Vazirmatn',
         },
       });
       final decoded = jsonDecode(utf8.decode(bytes));
@@ -62,7 +63,7 @@ void main() {
       expect(document['settings'], {
         'themeMode': 'dark',
         'usePersianDate': true,
-        'fontFamily': 'VazirHarf',
+        'fontFamily': 'Vazirmatn',
       });
     });
 
@@ -84,6 +85,12 @@ void main() {
         'peopleDirectory': <Map<String, dynamic>>[
           <String, dynamic>{'id': 'person-1', 'displayName': 'سارا احمدی'},
         ],
+        'personDirectoryExclusions': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'personId': 'person-removed',
+            'excludedAt': '2026-11-19T09:00:00.000',
+          },
+        ],
       });
       final document = ArvinBackupService.validateBackupDocument(
         jsonDecode(utf8.decode(bytes)),
@@ -99,10 +106,16 @@ void main() {
       expect(document['peopleDirectory'], [
         <String, dynamic>{'id': 'person-1', 'displayName': 'سارا احمدی'},
       ]);
+      expect(document['personDirectoryExclusions'], [
+        <String, dynamic>{
+          'personId': 'person-removed',
+          'excludedAt': '2026-11-19T09:00:00.000',
+        },
+      ]);
     });
 
     test('rejects malformed optional Calendar link and taxonomy containers', () {
-      for (final key in ['calendarLinks', 'categories', 'tags', 'peopleDirectory']) {
+      for (final key in ['calendarLinks', 'categories', 'tags', 'peopleDirectory', 'personDirectoryExclusions']) {
         expect(
           () => ArvinBackupService.encodeBackupDocument({
             'tasks': <dynamic>[],
@@ -120,6 +133,78 @@ void main() {
           throwsA(isA<FormatException>()),
         );
       }
+    });
+
+    test('rejects duplicate or simultaneously active person exclusions', () {
+      final duplicate = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'personId': 'person-removed',
+          'excludedAt': '2026-11-19T09:00:00.000',
+        },
+        <String, dynamic>{
+          'personId': 'person-removed',
+          'excludedAt': '2026-11-19T10:00:00.000',
+        },
+      ];
+      expect(
+        () => ArvinBackupService.encodeBackupDocument({
+          'tasks': <dynamic>[],
+          'personDirectoryExclusions': duplicate,
+        }),
+        throwsA(isA<FormatException>()),
+      );
+      expect(
+        () => ArvinBackupService.validateBackupDocument({
+          'type': 'arvin_backup',
+          'formatVersion': 1,
+          'tasks': <dynamic>[],
+          'peopleDirectory': <Map<String, dynamic>>[
+            <String, dynamic>{'id': 'person-removed', 'displayName': 'شخص'},
+          ],
+          'personDirectoryExclusions': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'personId': 'person-removed',
+              'excludedAt': '2026-11-19T09:00:00.000',
+            },
+          ],
+        }),
+        throwsA(isA<FormatException>()),
+      );
+    });
+
+    test('real write and read byte path preserves exclusions, unknown fields and explicit nulls', () async {
+      Uint8List? writtenBytes;
+      final fileService = ArvinBackupService(
+        localWriter: (_, __, ___, bytes) async {
+          writtenBytes = bytes;
+        },
+      );
+      final exclusion = <String, dynamic>{
+        'personId': 'person-removed-real-bytes',
+        'excludedAt': '2026-11-19T10:15:00.000',
+        'futureField': <String, dynamic>{'revision': 3},
+      };
+      await fileService.writeBackup(
+        directoryUri: 'content://arvin-backups',
+        fileName: 'real-roundtrip.json',
+        uploadToCloud: false,
+        payload: <String, dynamic>{
+          'tasks': <Map<String, dynamic>>[
+            <String, dynamic>{
+              'id': 'task-roundtrip',
+              'title': 'کار آزمایشی',
+              'legacy_payload_json': null,
+              'futureTaskField': <String, dynamic>{'kept': true},
+            },
+          ],
+          'personDirectoryExclusions': <Map<String, dynamic>>[exclusion],
+        },
+      );
+      expect(writtenBytes, isNotNull);
+      final restored = await fileService.decodeBackupBytes(writtenBytes!);
+      expect(restored['personDirectoryExclusions'], [exclusion]);
+      expect((restored['tasks'] as List).single['legacy_payload_json'], isNull);
+      expect((restored['tasks'] as List).single['futureTaskField'], {'kept': true});
     });
 
     test('rejects invalid settings payload without creating a new format', () {

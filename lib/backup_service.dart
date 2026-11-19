@@ -142,6 +142,7 @@ class ArvinBackupService {
     final rawCategories = payload['categories'];
     final rawTags = payload['tags'];
     final rawPeopleDirectory = payload['peopleDirectory'];
+    final rawPersonDirectoryExclusions = payload['personDirectoryExclusions'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
     }
@@ -160,6 +161,10 @@ class ArvinBackupService {
     if (rawPeopleDirectory != null && rawPeopleDirectory is! List) {
       throw const FormatException('Arvin backup People directory is invalid');
     }
+    _validatePersonDirectoryExclusions(
+      rawPersonDirectoryExclusions,
+      rawPeopleDirectory: rawPeopleDirectory,
+    );
 
     final document = <String, dynamic>{
       'type': backupType,
@@ -177,6 +182,9 @@ class ArvinBackupService {
       if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
       if (rawPeopleDirectory is List)
         'peopleDirectory': List<dynamic>.from(rawPeopleDirectory),
+      if (rawPersonDirectoryExclusions is List)
+        'personDirectoryExclusions':
+            List<dynamic>.from(rawPersonDirectoryExclusions),
     };
 
     return Uint8List.fromList(
@@ -230,6 +238,7 @@ class ArvinBackupService {
     }
     final rawTags = document['tags'];
     final rawPeopleDirectory = document['peopleDirectory'];
+    final rawPersonDirectoryExclusions = document['personDirectoryExclusions'];
     if (rawTags != null && rawTags is! List) {
       throw const FormatException('Arvin backup Tag catalog is invalid');
     }
@@ -242,8 +251,64 @@ class ArvinBackupService {
     if (rawPeopleDirectory is List) {
       document['peopleDirectory'] = List<dynamic>.from(rawPeopleDirectory);
     }
+    _validatePersonDirectoryExclusions(
+      rawPersonDirectoryExclusions,
+      rawPeopleDirectory: rawPeopleDirectory,
+    );
+    if (rawPersonDirectoryExclusions is List) {
+      document['personDirectoryExclusions'] =
+          List<dynamic>.from(rawPersonDirectoryExclusions);
+    }
 
     return document;
+  }
+
+  static void _validatePersonDirectoryExclusions(
+    Object? rawExclusions, {
+    required Object? rawPeopleDirectory,
+  }) {
+    if (rawExclusions == null) return;
+    if (rawExclusions is! List) {
+      throw const FormatException(
+        'Arvin backup person directory exclusions are invalid',
+      );
+    }
+
+    final activeIds = <String>{};
+    if (rawPeopleDirectory is List) {
+      for (final rawPerson in rawPeopleDirectory) {
+        if (rawPerson is Map && rawPerson['id'] is String) {
+          activeIds.add(rawPerson['id'] as String);
+        }
+      }
+    }
+
+    final exclusionIds = <String>{};
+    for (final raw in rawExclusions) {
+      if (raw is! Map) {
+        throw const FormatException(
+          'Arvin backup person directory exclusion entry is invalid',
+        );
+      }
+      final personId = raw['personId'];
+      final excludedAt = raw['excludedAt'];
+      if (personId is! String || personId.isEmpty ||
+          excludedAt is! String || DateTime.tryParse(excludedAt) == null) {
+        throw const FormatException(
+          'Arvin backup person directory exclusion fields are invalid',
+        );
+      }
+      if (!exclusionIds.add(personId)) {
+        throw FormatException(
+          'Arvin backup contains duplicate person exclusion id: $personId',
+        );
+      }
+      if (activeIds.contains(personId)) {
+        throw FormatException(
+          'Arvin backup Person is both active and excluded: $personId',
+        );
+      }
+    }
   }
 
   String createBackupFileName(DateTime dateTime) {
