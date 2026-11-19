@@ -323,3 +323,10 @@ The following 72 failed test instances were extracted from the exact-head job lo
 - test/task_store_reminder_persistence_test.dart still reports that is_legacy_task_reminder remains in the existing SQL table. The safe table migration is NOT implemented; review unknown columns/indexes/FKs and preservation requirements before changing schema.
 - test/home/home_filter_boolean_logic_test.dart has a hit-test warning when selecting an off-screen checkbox option in the filter sheet; determine whether the sheet needs scrolling/layout correction or the test needs a correct scroll interaction. Do not suppress the warning.
 - Quick Capture tests cannot find the expected visible «یادآور» / «تکرار» controls. This remains a product/UI contract mismatch until the complete capture form and responsive layout are reviewed.
+
+
+### Controlled staging retry outcome — PR #3052 SHA a2825e0
+- Original staging job 135443981025 failed during dependency resolution (Kotlin 2.2.21 artifacts unavailable from Plugin Portal).
+- Only that failed job was retried after diagnosis; retry job 135449076966 completed SUCCESS.
+- This establishes a successful staging APK build attempt on the same exact source SHA. The original failed attempt remains preserved in the run history; the aggregate Build run remains FAILURE because the six test shards still fail.
+- No staging artifact from the first attempt is accepted. The retry's artifact/logs must be retained with the run evidence; it does not change the six-shard failure count of 72.
