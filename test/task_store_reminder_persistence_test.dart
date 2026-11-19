@@ -98,6 +98,8 @@ void main() {
         sequence INTEGER NOT NULL,
         is_enabled INTEGER NOT NULL DEFAULT 1,
         is_legacy_task_reminder INTEGER NOT NULL DEFAULT 0,
+        opaque_payload TEXT NULL,
+        opaque_nullable TEXT NULL,
         UNIQUE (task_id, sequence)
       )
     ''');
@@ -107,8 +109,8 @@ void main() {
     );
     await executor.runInsert(
       '''INSERT INTO task_reminders
-         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder, opaque_payload, opaque_nullable)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         'legacy-task-reminder-schema-v15-task',
         'schema-v15-task',
@@ -118,6 +120,8 @@ void main() {
         1,
         1,
         1,
+        'future-reminder-metadata',
+        null,
       ],
     );
 
@@ -137,6 +141,12 @@ void main() {
     expect(rows.single['remind_at'], '2026-10-20T09:30:00.000');
     expect(rows.single['sequence'], 1);
     expect(rows.single['is_enabled'], 1);
+    final unknownRows = await executor.runSelect(
+      'SELECT opaque_payload, opaque_nullable FROM task_reminders WHERE task_id = ?',
+      const <Object?>['schema-v15-task'],
+    );
+    expect(unknownRows.single['opaque_payload'], 'future-reminder-metadata');
+    expect(unknownRows.single['opaque_nullable'], isNull);
 
     await G1DriftSchema.markLegacyMigrationComplete(executor);
     final restored = (await TaskStore(executor: executor).load()).single;
