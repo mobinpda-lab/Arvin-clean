@@ -479,16 +479,16 @@ void main() {
     final now = DateTime(2026, 11, 19, 10);
     final result = ArvinBackupManager.reconcilePersonDirectoryById(
       currentPeople: <PersonReference>[
-        const PersonReference(id: 'local-active', displayName: 'محلی'),
-        const PersonReference(id: 'backup-removes', displayName: 'حذف‌شونده'),
+        PersonReference(id: 'local-active', displayName: 'محلی'),
+        PersonReference(id: 'backup-removes', displayName: 'حذف‌شونده'),
       ],
       currentExclusions: <PersonDirectoryExclusion>[
         PersonDirectoryExclusion(personId: 'local-tombstone', excludedAt: now),
         PersonDirectoryExclusion(personId: 'backup-reactivates', excludedAt: now),
       ],
       backupPeople: <PersonReference>[
-        const PersonReference(id: 'backup-active', displayName: 'پشتیبان'),
-        const PersonReference(id: 'backup-reactivates', displayName: 'بازافزوده'),
+        PersonReference(id: 'backup-active', displayName: 'پشتیبان'),
+        PersonReference(id: 'backup-reactivates', displayName: 'بازافزوده'),
       ],
       backupExclusions: <PersonDirectoryExclusion>[
         PersonDirectoryExclusion(personId: 'backup-removes', excludedAt: now),
