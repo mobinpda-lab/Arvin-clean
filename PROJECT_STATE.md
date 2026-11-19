@@ -146,3 +146,33 @@ Exact-SHA workflows on implementation SHA `dbfcdb02879ed3939cb6a69d3a150e2237283
 - Latest implementation candidate remains PARTIAL / BLOCKED; exact-SHA Build `42866834521` and Device Smoke `42866834509` were PENDING at the time of the report.
 - Subsequent commits in this documentation checkpoint are documentation-only; no source change was made after implementation candidate SHA `271633dcf1793773738097ad6021ceca98ad1784`.
 - PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains READ-ONLY. Release remains NO-GO.
+
+
+## COMMAND 63-R live checkpoint — 2026-11-19
+
+**Audit baseline before this state update:** Main `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3052 branch HEAD `80c24c61f090aa24d2e808995ad0220f9a389a21`. PR #3052 remains OPEN / DRAFT / UNMERGED. Main remains READ-ONLY. No merge, release or deployment was performed.
+
+### Actions completed
+- Re-read AGENTS.md, AI_CONTINUITY_PROTOCOL.md, PROJECT_STATE.md, MASTER_GOVERNANCE.md, CURRENT_STATE.md, HANDOFF.md, OPEN_ISSUES.md and PRODUCT_DECISIONS.md at the authorized branch.
+- Confirmed the root file COMMAND-63-R-MASTER-TRACKER.md was absent from Main and the operational branch.
+- Created COMMAND-63-R-MASTER-TRACKER.md on the authorized PR #3052 branch. Tracker commit: `80c24c61f090aa24d2e808995ad0220f9a389a21`. It records live baseline, PR inventory, 72 failed test labels, font metadata, dependency conflicts and release gates.
+- No executable source, test, schema, migration, workflow, product data or Main file was changed.
+- The tracker commit advanced PR #3052 from 2,214 to 2,215 commits and from 401 to 402 changed files.
+
+### Exact-SHA evidence
+Build run `44490319550` on pre-tracker SHA `a2825e003bb9e6b5c2413b0dc74b085273b6148b`: Analyze PASS; six shards FAILED with 72 failures / 1,310 passes; Debug, Release build, Staging and Visual PASS. Calendar Provider `44490319483` and Follow-up File Persistence `44490319367` PASS. Device Smoke `44490319359` PENDING with no jobs returned. These results do not transfer to later commits.
+
+Fresh workflows triggered for tracker SHA `80c24c61f090aa24d2e808995ad0220f9a389a21`: Build `44502574294`, Device Smoke `44502574314`, Calendar Provider `44502574390`, Follow-up Persistence `44502574257`, Draft Review APK `44502574254`, Parallel Wave `44502574347`, Orchestrator `44502574205`, Production Loop `44502574225`, PR Wakeup `44502574458`, G1 lock sync `44502574219`. All were QUEUED or PENDING at the last lookup; no PASS is claimed.
+
+### Additional findings
+- PRs #3567, #3570, #3573, #3574 and #3575 are OPEN / DRAFT. #3570 and #3574 both edit g1_drift_schema.dart; #3574 and #3575 both edit task_store.dart; #3567 edits main.dart. Reconcile shared-file diffs before integration.
+- PR #3575 reports base SHA `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`, different from PR #3574 head `8aca2bd36ea28ae8c291e7418541453d12847de2`; verify the live dependency ref before accepting the chain.
+- The nine Vazirmatn TTF binaries on PR #3573 were inspected. OS/2 weight classes match 100–900 and pubspec maps all nine. Repository README identifies upstream v33.003 archive SHA-256 `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`; the ZIP itself was not retrievable in this session, so archive checksum/content verification remains NOT VERIFIED.
+- The existing Task Details specification and historical REV8/REV9 records contain directions that may conflict with current COMMAND 63-R. Current owner instruction and REV10 govern; preserve historical records and reconcile before changing product behavior.
+- Local P2P specification is a Phase 1 design draft only; implementation and two-device acceptance remain NOT VERIFIED.
+- Real user database inspection, full backup/restore, destructive migration safety, complete Device Smoke and owner acceptance remain open.
+
+### Next deterministic action
+Poll all fresh workflows for the exact live PR #3052 HEAD after this state update. Then inspect and fix the 72 failure roots individually on the authorized branch, beginning with the most shared Home/Quick Capture/Task Details/Date-Time behavior. Before every write, re-fetch PR #3052 and branch HEAD. Do not weaken tests, edit Main, merge, release or deploy.
+
+**Release:** BLOCKED — RELEASE: NO-GO.
