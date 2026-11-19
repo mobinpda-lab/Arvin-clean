@@ -335,6 +335,11 @@ class ArvinBackupManager {
       } catch (_) {
         throw const FormatException('Arvin backup person fields are invalid');
       }
+      if (person.isDeleted) {
+        throw FormatException(
+          'Arvin backup active People directory contains a deleted Person: ${person.id}',
+        );
+      }
       if (!ids.add(person.id)) {
         throw FormatException('Arvin backup contains duplicate person id: ${person.id}');
       }
