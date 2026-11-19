@@ -3,6 +3,8 @@ import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_directory_exclusion.dart';
+import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
@@ -19,6 +21,7 @@ class _HomeRestoreBackupService extends ArvinBackupService {
   final Map<String, dynamic> document;
   int writeCount = 0;
   int readCount = 0;
+  Map<String, dynamic>? writtenPayload;
 
   @override
   String createBackupFileName(DateTime dateTime) => 'emergency-backup.json';
@@ -32,6 +35,7 @@ class _HomeRestoreBackupService extends ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     writeCount += 1;
+    writtenPayload = payload;
   }
 
   @override
@@ -59,6 +63,14 @@ void main() {
     'Home restore rolls back Task, Project, calendar links and settings after a late failure',
     (tester) async {
       final taskStore = TaskStore();
+      final localPerson = PersonReference(
+        id: 'local-person-excluded',
+        displayName: 'شخص محلی حذف‌شده',
+      );
+      await taskStore.savePeopleDirectory(<PersonReference>[localPerson]);
+      await taskStore.savePeopleDirectory(const <PersonReference>[]);
+      final previousExclusions = await taskStore.loadPersonDirectoryExclusions();
+      expect(previousExclusions, hasLength(1));
       await taskStore.save([
         Task.fromJson(<String, dynamic>{
           'id': 'local-task',
@@ -124,6 +136,18 @@ void main() {
         },
         'categories': <String>['دسته بازیابی‌شده'],
         'tags': <String>['برچسب بازیابی‌شده'],
+        'peopleDirectory': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': 'backup-active-person',
+            'displayName': 'شخص فعال پشتیبان',
+          },
+        ],
+        'personDirectoryExclusions': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'personId': 'backup-excluded-person',
+            'excludedAt': '2026-11-19T09:00:00.000',
+          },
+        ],
       });
       final manager = ArvinBackupManager(service: backupService);
       final restoreStages = <String>[];
@@ -134,7 +158,7 @@ void main() {
             backupManager: manager,
             restoreStageHook: (stage) async {
               restoreStages.add(stage);
-              if (stage == 'catalogs') throw StateError('injected after catalogs');
+              if (stage == 'people-directory') throw StateError('injected after people directory');
             },
           ),
         ),
@@ -160,6 +184,17 @@ void main() {
 
       expect(backupService.readCount, 1);
       expect(backupService.writeCount, 1);
+      expect(
+        (backupService.writtenPayload?['personDirectoryExclusions'] as List)
+            .map((item) => (item as Map)['personId']),
+        <String>[localPerson.id],
+      );
+      expect(await taskStore.loadPeopleDirectory(), isEmpty);
+      final exclusionsAfterRollback = await taskStore.loadPersonDirectoryExclusions();
+      expect(
+        exclusionsAfterRollback.map((item) => item.personId),
+        <String>[localPerson.id],
+      );
       expect((await taskStore.load()).map((task) => task.id), ['local-task']);
       expect(await taskStore.loadCategories(), contains('دسته محلی'));
       expect(await taskStore.loadCategories(), isNot(contains('دسته بازیابی‌شده')));
@@ -178,10 +213,11 @@ void main() {
       expect(scheduleAfter.hour, scheduleBefore.hour);
       expect(scheduleAfter.minute, scheduleBefore.minute);
       expect(scheduleAfter.frequency, scheduleBefore.frequency);
+      expect(restoreStages, contains('people-directory'));
       expect(restoreStages, contains('rollback-reminders'));
       expect(
         restoreStages.indexOf('rollback-reminders'),
-        greaterThan(restoreStages.indexOf('catalogs')),
+        greaterThan(restoreStages.indexOf('people-directory')),
       );
       expect(
         find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
