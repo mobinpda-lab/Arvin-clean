@@ -36,7 +36,14 @@ void main() {
       tags: ['a', 'b'],
       category: 'work',
       checklist: ['one', 'two'],
-      reminderDate: DateTime.parse('2026-08-04T11:00:00.000'),
+      taskReminders: [
+        TaskReminder(
+          id: 'round-trip-reminder',
+          title: 'یادآوری مستقل',
+          date: DateTime.parse('2026-08-04T11:00:00.000'),
+          sequence: 1,
+        ),
+      ],
       archived: true,
       completed: true,
       completedAt: DateTime.parse('2026-08-07T14:15:00.000'),
@@ -68,6 +75,8 @@ void main() {
     expect(restored.tags, original.tags);
     expect(restored.category, original.category);
     expect(restored.checklist, original.checklist);
+    expect(restored.taskReminders.single.id, 'round-trip-reminder');
+    expect(restored.taskReminders.single.date, DateTime.parse('2026-08-04T11:00:00.000'));
     expect(restored.reminderDate, original.reminderDate);
     expect(restored.archived, original.archived);
     expect(restored.completed, original.completed);
@@ -123,7 +132,14 @@ void main() {
       id: 'due-independent-1',
       title: 'استقلال تاریخ‌ها',
       dueDate: due,
-      reminderDate: reminder,
+      taskReminders: [
+        TaskReminder(
+          id: 'due-independent-reminder',
+          title: 'یادآور مستقل',
+          date: reminder,
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUpDate: followUp,
       followUps: [
@@ -134,6 +150,9 @@ void main() {
     final restored = Task.fromJson(task.toJson());
 
     expect(restored.dueDate, due);
+    expect(restored.taskReminders, hasLength(1));
+    expect(restored.taskReminders.single.id, 'due-independent-reminder');
+    expect(restored.taskReminders.single.date, reminder);
     expect(restored.reminderDate, reminder);
     expect(restored.followUpDate, isNull);
     expect(restored.followUps.single.dateTime, followUp);
