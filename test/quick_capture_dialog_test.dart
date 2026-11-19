@@ -11,6 +11,7 @@ import 'package:arvin/services/task_store.dart';
 Future<void> _openQuickCaptureDueTimePicker(WidgetTester tester) async {
   final dueControl = find.byKey(const ValueKey('quick-capture-due-rollbox'));
   await tester.ensureVisible(dueControl);
+  await tester.pumpAndSettle();
   await tester.tap(dueControl);
   await tester.pumpAndSettle();
   expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
@@ -26,11 +27,13 @@ Future<void> _openQuickCaptureDueTimePicker(WidgetTester tester) async {
 Future<void> _openQuickCaptureCustomReminderPicker(WidgetTester tester) async {
   final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
   await tester.ensureVisible(reminderControl);
+  await tester.pumpAndSettle();
   await tester.tap(reminderControl);
   await tester.pumpAndSettle();
   final customReminder = find.text('تاریخ و ساعت سفارشی');
   expect(customReminder, findsOneWidget);
   await tester.ensureVisible(customReminder);
+  await tester.pumpAndSettle();
   await tester.tap(customReminder);
   await tester.pumpAndSettle();
 
@@ -41,6 +44,7 @@ Future<void> _openQuickCaptureCustomReminderPicker(WidgetTester tester) async {
     matching: find.text('انتخاب تاریخ'),
   ).last;
   await tester.ensureVisible(confirmDate);
+  await tester.pumpAndSettle();
   await tester.tap(confirmDate);
   await tester.pumpAndSettle();
   expect(find.text('زمان یادآوری'), findsWidgets);
