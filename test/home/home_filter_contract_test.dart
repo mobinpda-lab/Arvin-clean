@@ -98,7 +98,23 @@ void main() {
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
     expect(filterRow.textDirection, TextDirection.rtl);
-    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+    final filterPills = filterRow.children
+        .whereType<Expanded>()
+        .map((child) => child.child as HomeFilterPill)
+        .toList(growable: false);
+    expect(
+      filterPills.map((pill) => (pill.key as ValueKey<String>).value),
+      <String>[
+        'home-filter-card-time',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+        'home-filter-card-center',
+      ],
+    );
+    expect(filterPills.every((pill) => pill.showLabel), isTrue);
+
+    for (final id in ['time', 'project', 'category', 'tags', 'center']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
       expect(tester.getSize(pill).height, greaterThanOrEqualTo(48));
@@ -119,10 +135,10 @@ void main() {
       await tester.pumpAndSettle();
       final filterKeys = [
         'time',
-        'center',
         'project',
         'category',
         'tags',
+        'center',
       ];
       final filterRects = filterKeys
           .map((id) => tester.getRect(
