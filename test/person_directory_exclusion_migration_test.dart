@@ -46,6 +46,12 @@ void main() {
 
       await store.savePeopleDirectory(const <PersonReference>[]);
       expect(await store.loadPeopleDirectory(), isEmpty);
+      final retainedPerson = await database.runSelect(
+        'SELECT id, name FROM persons WHERE id = ?',
+        <Object?>[person.id],
+      );
+      expect(retainedPerson, hasLength(1));
+      expect(retainedPerson.single['name'], person.displayName);
 
       final retained = (await store.load()).single;
       expect(retained.people.single.id, person.id);
@@ -83,7 +89,6 @@ void main() {
     database = NativeDatabase(file);
     try {
       await G1DriftSchema.install(database);
-      await G1DriftSchema.install(database);
       final reopenedStore = TaskStore(executor: database);
       expect(await reopenedStore.loadPeopleDirectory(), isEmpty);
 
@@ -104,6 +109,7 @@ void main() {
       // Explicit re-add is the only operation that clears the exclusion.
       await reopenedStore.savePeopleDirectory(<PersonReference>[person]);
       expect((await reopenedStore.loadPeopleDirectory()).single.id, person.id);
+      expect((await reopenedStore.load()).single.people.single.isDeleted, isFalse);
       final clearedExclusion = await database.runSelect(
         'SELECT person_id FROM person_directory_exclusions WHERE person_id = ?',
         <Object?>[person.id],
