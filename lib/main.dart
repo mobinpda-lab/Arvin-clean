@@ -2735,7 +2735,7 @@ class _HomePageState extends State<HomePage> {
           if (candidate.hasPersonDirectoryExclusions) {
             await taskStore.savePersonDirectoryExclusions(
               reconciledPersonDirectoryExclusions,
-              activePersonIds: (reconciledPeople ?? const <PersonReference>[])
+              activePersonIds: reconciledPeople
                   .map((person) => person.id)
                   .toSet(),
             );
