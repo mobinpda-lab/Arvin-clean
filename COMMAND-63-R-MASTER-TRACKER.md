@@ -899,3 +899,13 @@ The same Analyze log also reports an unused import in `test/person_directory_exc
 - **First test-contract correction:** PR #3595 `fix/command-73-r-stale-widget-test-contracts`, commit `fa6ae438d0ed3721e7e0d5f8ae0ec534023025c7`, changes only `test/widget_test.dart`. It replaces visible-text finders with exact accessibility-label finders for the five compact Home filters and enables semantics in the two affected tests. Build run `44551014462`: Analyze PASS (job `135654417226`), Visual PASS (job `135654416247`); at this checkpoint test shards 0 and 3 were IN PROGRESS, shards 1, 2, 4 and 5 QUEUED, and Debug/Release/Staging APK jobs IN PROGRESS. No result is yet attributed to this SHA.
 - #3591 Device Smoke remains IN PROGRESS (boot job `135644080866`; six scenarios queued). #3052 Device Smoke remains IN PROGRESS (boot job `135647376720`; six scenarios queued).
 - No merge, release, deploy, Main write, signing acceptance or device acceptance occurred.
+
+
+### 23.10 P0 release-signing gate — confirmed unsigned candidate
+
+- A further source-to-workflow audit confirms that the successful #3591 Release rerun is **compile-only**, not a production-signed APK.
+- `android/app/build.gradle.kts` configures the `production` signingConfig only when all four environment inputs are present and the keystore file exists: `ARVIN_KEYSTORE_PATH`, `ARVIN_KEYSTORE_PASSWORD`, `ARVIN_KEY_ALIAS`, `ARVIN_KEY_PASSWORD`. Without them, the Gradle script explicitly warns that the release APK is unsigned and must not be distributed.
+- `.github/workflows/build.yml` creates an ephemeral keystore only when `matrix.variant == 'staging'`; the `apksigner verify` / certificate digest / v2-v3 / debuggable checks are also guarded by `if: matrix.variant == 'staging'`. The Release matrix leg has no production keystore injection and no release-signature verification step.
+- Consequently, the 78.7 MB `app-release.apk` produced by job `135651236282` is a successful build artifact only. It is **NOT a production-signed or distributable APK**. Its uploaded ZIP digest is not an APK signature or APK SHA-256.
+- **OWNER ACTION REQUIRED:** configure the production signing secrets securely in the protected GitHub Actions environment and make the release job materialize the keystore into a runner-temporary file, inject the four expected variables, then run `apksigner verify --verbose --print-certs` plus merged-manifest debuggable=false validation on the Release APK. Never commit the keystore or credentials.
+- Until owner-provisioned signing material and exact-SHA signature verification exist: `RELEASE_SIGNING = BLOCKED`, `FINAL APK = NOT ACCEPTED`, `RELEASE = NO-GO`. No secret or signing configuration was changed by this audit.
