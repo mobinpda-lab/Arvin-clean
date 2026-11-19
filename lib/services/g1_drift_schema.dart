@@ -323,28 +323,30 @@ class G1DriftSchema implements QueryExecutorUser {
     }
 
     final beforeRows = await executor.runSelect(
-      '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
-         FROM task_reminders ORDER BY id''',
+      'SELECT * FROM task_reminders ORDER BY id',
       const [],
     );
+    final expectedRows = beforeRows
+        .map((row) => Map<String, Object?>.from(row)
+          ..remove('is_legacy_task_reminder'))
+        .toList(growable: false);
     final beforeColumns = Set<String>.of(columnNames);
 
-    // sqlite3_flutter_libs supplies a modern SQLite runtime. DROP COLUMN
-    // preserves every other known or unknown column, row ID, FK and index.
-    // If the runtime or schema cannot safely perform this operation, fail
-    // closed; the enclosing transaction restores the original table.
+    // DROP COLUMN retains all remaining known and unknown columns, values,
+    // explicit NULLs, row IDs, foreign keys and indexes. If SQLite or the
+    // schema cannot safely perform this operation, fail closed; the enclosing
+    // transaction restores the original table.
     await executor.runCustom(
       'ALTER TABLE task_reminders DROP COLUMN is_legacy_task_reminder',
     );
 
     final afterRows = await executor.runSelect(
-      '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
-         FROM task_reminders ORDER BY id''',
+      'SELECT * FROM task_reminders ORDER BY id',
       const [],
     );
-    if (jsonEncode(beforeRows) != jsonEncode(afterRows)) {
+    if (jsonEncode(expectedRows) != jsonEncode(afterRows)) {
       throw StateError(
-        'Legacy reminder flag migration changed canonical reminder rows',
+        'Legacy reminder flag migration changed canonical or unknown row data',
       );
     }
 
