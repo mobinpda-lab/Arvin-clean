@@ -13,7 +13,7 @@ void main() {
       taskReminders: [
         TaskReminder(
           id: 'timeline-reminder',
-          title: 'یادآور',
+          title: 'یادآوری مستقل',
           date: DateTime(2026, 8, 26, 12),
           sequence: 1,
         ),
@@ -42,6 +42,7 @@ void main() {
     expect(find.text('خط زمانی'), findsOneWidget);
     expect(find.text('ایجاد کار'), findsOneWidget);
     expect(find.text('یادآور'), findsOneWidget);
+    expect(find.text('یادآوری مستقل'), findsOneWidget);
     expect(find.text('پیگیری'), findsNWidgets(2));
     expect(find.text('آخرین ویرایش'), findsOneWidget);
     expect(find.text('تماس اول'), findsOneWidget);
