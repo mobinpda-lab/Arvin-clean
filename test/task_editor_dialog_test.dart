@@ -326,8 +326,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('فوری'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('اعمال'));
-    await tester.pumpAndSettle();
+    // ArvinTagRollBox applies selections immediately through onChanged.
 
     await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
