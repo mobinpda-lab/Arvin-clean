@@ -412,3 +412,22 @@ This clarification resolves an asset-to-screen attribution error and does not in
 - Unknown Project fields must be preserved during migration and ordinary Project updates; an ID match alone never establishes content parity.
 - No legacy source may be physically retired before all owner-defined parity, round-trip, backup/restore, rollback, independent-test and Mobin-acceptance gates pass.
 - **Reminder four-state contract remains DECISION REQUIRED.** Names, transitions, terminal behavior, snooze and re-enable semantics must not be guessed.
+
+
+# COMMAND 63-R — CURRENT OWNER DECISION ADDENDUM (2026-11-19)
+
+This addendum is the latest explicit product-owner authority for the Arvin delivery scope. Earlier entries remain in place as historical records; where they conflict with this addendum, this addendum supersedes them.
+
+## ARVIN-DEC-2026-11-19-COMMAND-63-R
+
+| Area | Active decision | Supersedes / boundary |
+|---|---|---|
+| Fixed brand palette | Primary #078B91; Primary Dark #066F75; Primary Soft #DDF7F5; Background #F0FAF9; Border #D9ECEA | Supersedes Blue #4169A1, Sky Blue #3A86EF and earlier Persian Teal #0F766E as the current fixed Arvin brand palette. User-selectable palette colors remain secondary accents. |
+| Official UI font | Vazirmatn v33.003, SIL OFL 1.1 source archive | Explicitly supersedes the older VazirHarf v34.003 direction for Arvin. All UI text uses Vazirmatn; only the already approved sacred phrase SVG assets remain separate vector artwork. The archive contains nine static weights; the app must register only weights backed by exact source files and actual typography use. |
+| Home time groups | Exactly five: تاریخ‌گذشته، امروز، فردا، آینده، فاقد زمان | A separate sixth completed_past group is not part of the canonical five-group projection. Completed prior-date tasks remain visible within the historical group, after active overdue tasks. |
+| Home filters | Time, Center, Project, Category, Tag; OR within a dimension and AND across dimensions | Center is a first-class visible filter, not only a secondary-menu option. |
+| Relationship graph | Center↔Project M2M; Project↔Category M2M; Task direct Center/Project/Category independently optional 0..1; Task↔Tag M2M | The approved 2026-11-14 relationship decision remains active. Implementation and migration acceptance are separate gates. |
+| Local P2P Phase 1 | Re-authorized: direct local phone↔tablet synchronization on shared Wi-Fi/hotspot, no Internet/cloud/account dependency | This explicit COMMAND 63-R authorization supersedes the 2026-11-10 Local-First synchronization suspension for the limited Phase 1 scope. Dropbox/cloud remains deferred Phase 2. Security design and review must precede implementation. |
+
+### Implementation/acceptance separation
+These decisions authorize the product direction, not an assertion that code is complete. Palette rollout, font packaging/rendering, five-group Home behavior, M2M schema/store/backup migration, and Local P2P security/device tests remain independently subject to exact-SHA evidence. Main remains protected; PR #3052 remains OPEN / DRAFT / UNMERGED; no merge, release or deploy is authorized by this addendum.
