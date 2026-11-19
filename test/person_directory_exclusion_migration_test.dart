@@ -69,6 +69,11 @@ void main() {
       );
       expect(taskLinks.map((row) => row['person_id']), <String>[person.id]);
       expect(followUpLinks.map((row) => row['person_id']), <String>[person.id]);
+      // Simulate an incomplete/older seed marker so the next install must
+      // evaluate the tombstone rather than relying on a one-time seed flag.
+      await database.runCustom(
+        "DELETE FROM arvin_storage_meta WHERE key = 'person_directory_seeded_v1'",
+      );
     } finally {
       await database.close();
     }
