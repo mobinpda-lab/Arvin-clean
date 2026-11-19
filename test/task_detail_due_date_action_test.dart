@@ -33,7 +33,14 @@ void main() {
         title: 'کار دارای موعد',
         description: 'توضیح نباید تغییر کند',
         dueDate: oldDueDate,
-        reminderDate: reminderDate,
+        taskReminders: <TaskReminder>[
+          TaskReminder(
+            id: 'due-action-reminder',
+            title: 'یادآوری مستقل',
+            date: reminderDate,
+            sequence: 1,
+          ),
+        ],
         allDay: false,
         checklist: const <String>['[ ] مورد اول', '[x] مورد دوم'],
         followUpEnabled: true,
@@ -83,18 +90,30 @@ void main() {
       expect(persisted.title, 'کار دارای موعد');
       expect(persisted.description, 'توضیح نباید تغییر کند');
       expect(persisted.reminderDate, reminderDate);
+      expect(persisted.taskReminders, hasLength(1));
+      expect(persisted.taskReminders.single.id, 'due-action-reminder');
+      expect(persisted.taskReminders.single.date, reminderDate);
       expect(persisted.allDay, isFalse);
       expect(persisted.checklist, const <String>['[ ] مورد اول', '[x] مورد دوم']);
       expect(persisted.followUpEnabled, isTrue);
-      expect(persisted.followUpDate, followUpDate);
+      // Retired Follow-up scheduling is inert, but its original values remain
+      // available in the opaque compatibility envelope.
+      expect(persisted.followUpDate, isNull);
+      final legacyTaskLevel = Map<String, dynamic>.from(
+        persisted.legacyFollowUpMetadata['taskLevel'] as Map,
+      );
+      expect(legacyTaskLevel['followUpEnabled'], isTrue);
+      expect(legacyTaskLevel['followUpDate'], followUpDate.toIso8601String());
       expect(persisted.followUps, hasLength(1));
       expect(persisted.followUps.single.id, 'due-action-history');
-      expect(persisted.followUps.single.dateTime, followUpDate);
+      expect(persisted.followUps.single.completedAt, followUpDate);
       expect(persisted.followUps.single.note, 'سابقه باید محفوظ بماند');
-      expect(
-        persisted.followUps.single.nextFollowUp,
-        DateTime(2026, 11, 12, 8),
-      );
+      expect(persisted.followUps.single.nextFollowUp, isNull);
+      final legacyFollowUp = (persisted.legacyFollowUpMetadata['followUps'] as List)
+          .cast<Map>()
+          .single;
+      expect(legacyFollowUp['id'], 'due-action-history');
+      expect(legacyFollowUp['nextFollowUp'], DateTime(2026, 11, 12, 8).toIso8601String());
     },
   );
 
