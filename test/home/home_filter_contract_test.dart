@@ -82,7 +82,6 @@ void main() {
       88,
     );
   });
-}
 
   testWidgets('Home tag filters use OR within the selected tag dimension', (tester) async {
     SharedPreferences.setMockInitialValues({});
@@ -100,9 +99,13 @@ void main() {
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('خانه'));
+    final homeTag = find.widgetWithText(CheckboxListTile, 'خانه');
+    await tester.ensureVisible(homeTag);
+    await tester.tap(homeTag);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('اداری'));
+    final officeTag = find.widgetWithText(CheckboxListTile, 'اداری');
+    await tester.ensureVisible(officeTag);
+    await tester.tap(officeTag);
     await tester.pumpAndSettle();
 
     expect(find.text('کار خانه'), findsOneWidget);
@@ -110,3 +113,4 @@ void main() {
     expect(find.text('کار مشترک'), findsOneWidget);
     expect(find.text('کار شخصی'), findsNothing);
   });
+}
