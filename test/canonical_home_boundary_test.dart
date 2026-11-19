@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'package:flutter_test/flutter_test.dart';
+
 String _extractMethodBody(String source, String signature) {
   final start = source.indexOf(signature);
   if (start < 0) throw StateError('Missing method signature: $signature');
@@ -34,8 +37,6 @@ String _extractMethodBody(String source, String signature) {
   throw StateError('Unterminated method body: $signature');
 }
 
-import 'dart:io';
-import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('Home owns canonical Task state without legacy ArvinTask projection', () {
