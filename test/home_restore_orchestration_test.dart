@@ -3,7 +3,6 @@ import 'package:arvin/backup_schedule.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/models/goal_project.dart';
-import 'package:arvin/models/person_directory_exclusion.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/app_settings_service.dart';
