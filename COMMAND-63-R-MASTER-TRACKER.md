@@ -394,3 +394,35 @@ This was a minimal token/test consistency correction on the child PR branch only
 
 ### 13.1 Quick Capture assertion review
 PR #3571's change from two visible 14:35 labels to one is consistent with the product contract: a due-time value must not be mirrored as a reminder when no reminder has been selected. The same test then selects the 15-minute preset and expects 14:20. This is a correct UI-level distinction, not a test weakening. It does not prove persisted reminder data and remains subject to exact-head CI/device validation.
+
+
+## 14. Live checkpoint after subsequent operational-branch movement — 2026-11-19
+
+### 14.1 Current verified GitHub state
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`, protected=true; unchanged.
+- PR #3052: OPEN / DRAFT / UNMERGED; base=main; base SHA remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Operational branch HEAD at this checkpoint: `3482cab6fea8a9dbf03f6fffdf32f3b7915ea491`. It has advanced beyond `760cc7a`; all evidence must be evaluated at this exact SHA.
+- Tracker itself is being updated on the operational branch; this update must not be confused with an application-code fix.
+
+### 14.2 Exact-head CI state for `3482cab6`
+- Build #11813: PENDING; job matrix not yet exposed by GitHub at the time of this poll.
+- Device Smoke #8972: PENDING.
+- Follow-up File Persistence #2895: PENDING.
+- Draft Review APK #2101: PENDING.
+- Parallel Wave #8149, Orchestrator #8685, PR Wakeup #7418, Production Loop #31614: PENDING.
+- G1 lock sync #5668 and Calendar Provider Acceptance #3014: QUEUED.
+- No six-shard result is available yet for this SHA. Do not carry forward any previous SHA's test results.
+
+### 14.3 Child PR integration readiness
+- #3567 current head `7ba6036d`; still OPEN / DRAFT, based on stale `a2825e0`.
+- #3569 `19a65750`; #3570 `fd4954d7`; #3571 `60de06ec`; #3572 `be9248d7`; #3573 `6d0dc85e`; #3574 `8aca2bd3`: all remain based on stale `a2825e0`.
+- #3575 `6b1a03f5`: based on intermediate branch `command-63-r/path-f-person-directory-exclusion` at `90a8100c`, not on the current operational HEAD.
+- All eight child PRs remain OPEN / DRAFT. None is approved for merge or integration by status alone. Rebase/cherry-pick only after dependency and overlapping-file review.
+
+### 14.4 Decision
+- Continue the 72-test failure inventory from the original six-shard run; do not call the count fixed until each failure has a demonstrated root cause and a passing focused rerun.
+- Keep the #3567 shadow-token correction isolated pending its exact-head Build and stale-base reconciliation.
+- Quick Capture's due-time/reminder distinction has a coherent product explanation, but no persisted-data or device acceptance is claimed.
+- No application code was changed in this checkpoint. No merge, release, or deploy was performed.
+
+**Checkpoint disposition:** Main protected and unchanged; current operational HEAD CI pending; six-shard acceptance unavailable; child PRs stale-base and unintegrated; Device Smoke pending; persistence, UI, sync, and APK acceptance remain open. RELEASE = NO-GO.
