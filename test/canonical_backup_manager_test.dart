@@ -3,6 +3,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/models/goal_project.dart';
+import 'package:arvin/models/person_directory_exclusion.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/task_store.dart';
@@ -390,6 +391,116 @@ void main() {
     expect(
       candidate.tasks.single.followUps.single.personIds,
       [historicalPerson.id],
+    );
+  });
+
+  test('canonical backup carries Person Directory exclusion tombstones', () async {
+    final service = _FakeBackupService();
+    final exclusion = PersonDirectoryExclusion(
+      personId: 'person-removed',
+      excludedAt: DateTime(2026, 11, 19, 9),
+    );
+
+    await ArvinBackupManager(service: service).backupCanonicalTasks(
+      [_completeTask()],
+      people: const <PersonReference>[],
+      personDirectoryExclusions: <PersonDirectoryExclusion>[exclusion],
+    );
+
+    expect(
+      service.writtenPayload?['personDirectoryExclusions'],
+      <Map<String, dynamic>>[exclusion.toJson()],
+    );
+  });
+
+  test('canonical restore accepts Follow-up history backed only by an exclusion tombstone', () async {
+    final exclusion = PersonDirectoryExclusion(
+      personId: 'person-excluded-only',
+      excludedAt: DateTime(2026, 11, 19, 10),
+    );
+    final task = Task(
+      id: 'task-excluded-only',
+      title: 'پیگیری تاریخی',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-excluded-only',
+          dateTime: DateTime(2026, 11, 18, 10),
+          personIds: <String>[exclusion.personId],
+        ),
+      ],
+    );
+    final service = _FakeBackupService()
+      ..restoreDocument = <String, dynamic>{
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': <Map<String, dynamic>>[task.toJson()],
+        'peopleDirectory': <Map<String, dynamic>>[],
+        'personDirectoryExclusions': <Map<String, dynamic>>[
+          exclusion.toJson(),
+        ],
+      };
+
+    final candidate = await ArvinBackupManager(service: service)
+        .restoreCanonicalBackup();
+
+    expect(candidate, isNotNull);
+    expect(candidate!.hasPersonDirectoryExclusions, isTrue);
+    expect(candidate.personDirectoryExclusions, <PersonDirectoryExclusion>[exclusion]);
+    expect(candidate.people, isEmpty);
+    expect(candidate.tasks.single.followUps.single.personIds, <String>[exclusion.personId]);
+  });
+
+  test('canonical restore rejects a Person that is both active and excluded', () async {
+    final service = _FakeBackupService()
+      ..restoreDocument = <String, dynamic>{
+        'type': ArvinBackupService.backupType,
+        'formatVersion': ArvinBackupService.backupFormatVersion,
+        'tasks': <Map<String, dynamic>>[],
+        'peopleDirectory': <Map<String, dynamic>>[
+          <String, dynamic>{'id': 'person-conflict', 'displayName': 'شخص'},
+        ],
+        'personDirectoryExclusions': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'personId': 'person-conflict',
+            'excludedAt': '2026-11-19T10:00:00.000',
+          },
+        ],
+      };
+
+    await expectLater(
+      ArvinBackupManager(service: service).restoreCanonicalBackup(),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('Person Directory reconciliation applies backup decisions and keeps local-only state', () {
+    final now = DateTime(2026, 11, 19, 10);
+    final result = ArvinBackupManager.reconcilePersonDirectoryById(
+      currentPeople: <PersonReference>[
+        const PersonReference(id: 'local-active', displayName: 'محلی'),
+        const PersonReference(id: 'backup-removes', displayName: 'حذف‌شونده'),
+      ],
+      currentExclusions: <PersonDirectoryExclusion>[
+        PersonDirectoryExclusion(personId: 'local-tombstone', excludedAt: now),
+        PersonDirectoryExclusion(personId: 'backup-reactivates', excludedAt: now),
+      ],
+      backupPeople: <PersonReference>[
+        const PersonReference(id: 'backup-active', displayName: 'پشتیبان'),
+        const PersonReference(id: 'backup-reactivates', displayName: 'بازافزوده'),
+      ],
+      backupExclusions: <PersonDirectoryExclusion>[
+        PersonDirectoryExclusion(personId: 'backup-removes', excludedAt: now),
+        PersonDirectoryExclusion(personId: 'backup-tombstone', excludedAt: now),
+      ],
+    );
+
+    expect(
+      result.people.map((person) => person.id).toSet(),
+      <String>{'local-active', 'backup-active', 'backup-reactivates'},
+    );
+    expect(
+      result.exclusions.map((exclusion) => exclusion.personId).toSet(),
+      <String>{'local-tombstone', 'backup-removes', 'backup-tombstone'},
     );
   });
 
