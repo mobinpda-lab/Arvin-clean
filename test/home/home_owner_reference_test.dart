@@ -34,19 +34,20 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('آروین'), findsOneWidget);
-    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-bismillah-svg')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
+      'home-filter-card-center',
     ]) {
       expect(find.byKey(ValueKey(key)), findsOneWidget);
     }
-    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-drawer-button')), findsOneWidget);
     expect(find.text('امروز'), findsWidgets);
     final todayJalali = const PersianDateFormatter().format(today, usePersianDate: true);
     final weekdayName = switch (today.weekday) {
@@ -66,7 +67,7 @@ void main() {
     expect(find.text('پیگیری طراحی رابط کاربری'), findsNothing);
     expect(find.text('مراجعه به دکتر'), findsNothing);
 
-    for (final id in ['time', 'center', 'project', 'category', 'tags']) {
+    for (final id in ['time', 'project', 'category', 'tags', 'center']) {
       expect(find.byKey(ValueKey('home-filter-card-$id')), findsOneWidget);
     }
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
