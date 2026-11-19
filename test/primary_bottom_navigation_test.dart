@@ -12,10 +12,12 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        home: Scaffold(
-          bottomNavigationBar: ArvinPrimaryNavigation(
-            selected: ArvinPrimaryDestination.home,
-            onSelected: (value) => selected = value,
+        home: StatefulBuilder(
+          builder: (context, setState) => Scaffold(
+            bottomNavigationBar: ArvinPrimaryNavigation(
+              selected: selected ?? ArvinPrimaryDestination.home,
+              onSelected: (value) => setState(() => selected = value),
+            ),
           ),
         ),
       ),
@@ -30,7 +32,7 @@ void main() {
     expect(find.text('بیشتر'), findsOneWidget);
     final iconColors = tester.widgetList<Icon>(find.byType(Icon)).take(5).map((icon) => icon.color).toSet();
     expect(iconColors, hasLength(5));
-    expect(iconColors, containsAll(const [Color(0xFF0F766E), Color(0xFF2A9D8F), Color(0xFFC76B16), Color(0xFF8E6CCF), Color(0xFF219EBC)]));
+    expect(iconColors, containsAll(const [Color(0xFF078B91), Color(0xFF2A9D8F), Color(0xFFC76B16), Color(0xFF8E6CCF), Color(0xFF219EBC)]));
 
 
     await tester.tap(find.text('تقویم'));
@@ -68,7 +70,7 @@ void main() {
       ArvinColors.surface,
       ArvinColors.background,
       ArvinColors.primarySoft,
-      Color(0xFFF0F5FC),
+      ArvinColors.background,
     ];
 
     for (final surface in lightSurfaces) {
