@@ -529,3 +529,30 @@ No cancelled, skipped, queued, pending or in-progress job is counted as PASS. A 
 | H — P2P | DESIGN ONLY | Security review, protocol decisions and two-device test plan before implementation |
 
 **Release remains NO-GO. Main protected. PR #3052 and all source/documentation PRs remain OPEN / DRAFT / UNMERGED. No merge, release, deploy, destructive migration or production-database operation was performed.**
+
+## 29. COMMAND 63-R — current lane split and follow-on CI (2026-11-19)
+
+### Independent draft lanes created from the reviewed operational candidate a2825e003bb9e6b5c2413b0dc74b085273b6148b
+- PR #3567 — Path C Design System, branch command-63-r/path-c-design-system, head 05869cdb634acbbfb6f928b8b1c4a832f4f25e16. Applies the exact approved teal brand tokens in ArvinTheme and updates the token regression test. Scope is token foundation only; no full-page redesign claim.
+- PR #3569 — Path B Home grouping, branch command-63-r/path-b-home-grouping, head c00118e6f8854e74829213d9ef1a24c051bc75b0. Aligns the Home projection and HomeGroupingService to five groups, moves completed prior-day tasks into the historical group after active overdue work, and updates tests for the Center pill and five groups.
+- PR #3570 — Path A Task contract, branch command-63-r/path-a-task-contract, head 99fcc90dee2deba29d0d1ba6395d8275b78f85b0. Changes stale legacy reminderDate test fixtures to canonical TaskReminder records and adds stable-ID/date readback assertions.
+- All three are OPEN / DRAFT / UNMERGED. Their initial GitHub mergeability field returned false; do not infer conflict resolution or acceptability. Re-check compare/mergeability and exact-head CI before any promotion. No merge performed.
+
+### Current exact-head result — PR #3052 SHA a2825e0
+- Build run 44490319550: FAILURE. Analyze PASS; Visual PASS; Debug APK PASS; Release APK PASS; Staging APK first attempt FAIL due missing Kotlin 2.2.21 artifacts from Plugin Portal; all six test shards FAIL with 72 instances (12, 6, 25, 10, 9, 10).
+- The Vazirmatn license/authors RootBundle test now PASSes, confirming the explicit pubspec asset entries fixed that specific test-level failure.
+- The 72 exact failing test instances are appended in COMMAND-63-R-80-SHARD-FAILURE-INVENTORY.md.
+- Follow-up File Persistence 44490319367: PASS. Calendar Provider 44490319483: PASS. Draft Review APK 44490319361: PASS. G1 Lock Sync 44490319577: PASS.
+- Device Smoke 44490319359 remains PENDING with no jobs. No device acceptance.
+- Debug and Release artifacts exist: arvin-debug-apk (93,488,372 bytes) and arvin-release-apk (38,041,994 bytes). Staging artifact absent.
+- Staging failed job 135443981025 was retried individually after confirming an external dependency-resolution cause. Retry job 135449076966 was IN PROGRESS at last poll. No PASS is claimed until it completes.
+
+### Known root-cause decisions
+- Task contract failure is a stale fixture: Task.reminderDate constructor input is legacy-only and intentionally not converted by canonical Task constructor. Canonical TaskReminder fixture correction is isolated in PR #3570.
+- Home grouping failure is a product-contract mismatch: REV10 requires five groups and no separate completed_past group. The implementation and regression update are isolated in PR #3569.
+- Reminder table migration failure remains unresolved. Existing SQL table still contains is_legacy_task_reminder. No schema rebuild/drop was attempted because unknown columns, indexes, triggers, foreign keys and historical row preservation must be assessed first.
+- Home filter Boolean logic test has a hit-test warning on an off-screen option; investigate scroll/viewport behavior rather than suppressing it.
+- Quick Capture reminder/recurrence labels remain missing from the widget tree expected by tests; inspect the actual form, controls and responsive state before changing tests.
+
+### Updated release gate
+Build remains FAIL due six shards and the staging first attempt; controlled staging retry is still running. Device Smoke is PENDING. The release state is NO-GO. Main remains unchanged. PR #3052, #3564, #3567, #3569 and #3570 remain OPEN / DRAFT / UNMERGED. No destructive migration, merge, release or deploy was performed.
