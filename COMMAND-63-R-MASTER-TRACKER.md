@@ -600,3 +600,55 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - No code fix was made in this checkpoint because the reviewed child-branch patches are not yet safely reconciled with the current operational HEAD. No assertions were removed or weakened. Main unchanged; no merge, release or deploy.
 
 **COMMAND 66-R checkpoint disposition:** exact operational SHA remains `b86d402...`; one focused file-backed SQLite/TaskStore alarm-overlay persistence scenario passed on that SHA; remaining requested workflows are still running/queued; legacy reminder test mismatch has been distinguished from Task dueDate; Home grouping and Backup dependencies require controlled reconciliation. RELEASE = NO-GO.
+
+
+## 18. COMMAND 66-R — six-shard inventory, fixture corrections and backup integration audit
+
+### 18.1 Complete six-shard evidence from PR #3570
+- Run: `44499570840`; source PR head SHA: `fd4954d773e039cb56ed31806fd2b4790b82d3b5`.
+- Analyze SUCCESS; Visual SUCCESS; APK Debug/Release/Staging SUCCESS.
+- Shard failures: test-0=12, test-1=4, test-2=23, test-3=10, test-4=9, test-5=6.
+- Total failed test instances=64; unique test names=64; exact duplicate test names across shards=0.
+- Full per-shard test-name inventory and initial evidence classification: `docs/history/command-66-r/COMMAND-66-R-SHARD-FAILURE-INVENTORY.md`.
+- These 64 failures are from the PR #3570 head, not current #3052. They are not all one product defect. UI finder/hit-test issues, asynchronous settling, data contracts, schema envelopes, navigation, Home grouping and Report filter fixtures must be triaged independently.
+- Three observed Follow-up Office `pumpAndSettle` timeouts are separate from data persistence failures. The `canonical_home_boundary_test.dart` `RangeError(end)` is a source-boundary test-helper failure where a searched marker was not found. The Wave 2 editor wiring guard reports 5 expected vs 6 actual paths; review the sixth path before changing the guard.
+
+### 18.2 Corrected test-fixture root causes
+- Legacy reminder compatibility tests on old child branches used Task-level deprecated `reminderDate` but asserted it survives `Task.fromJson(task.toJson())`. Current architecture keeps that legacy import at `Task.fromLegacyJson`; canonical Task serialization uses `taskReminders`. PR #3570 updates the fixtures to canonical `TaskReminder` entries. Do not restore a synthetic Task-level reminder field or merge reminder and due-date semantics.
+- The editor due-date test in the old Vazirmatn branch likewise used deprecated `reminderDate` in the Task constructor. The expected null reminder projection is consistent with the canonical editor; the fixture must construct a `TaskReminder`. PR #3570 already carries that fixture correction.
+- The Report combined-filter failure was `test/services/task_report_filter_test.dart`, not Home filter logic. Its Follow-up record was at 09:00 while the selected record-time range was 14:00–17:00. The operational fixture now uses 15:00, preserving the original AND assertion and expected Task ID `a`.
+- No assertion was deleted or relaxed for these corrections.
+
+### 18.3 Operational code/test commits since checkpoint 17
+- File-backed Task due-date regression test added to `test/task_store_reminder_persistence_test.dart`:
+  - Commit `1209af784ae7701b617b9f1cbe6237e5d648f9b8`.
+  - Covers timed dueDate, independent TaskReminder, FollowUp history, SQLite file close/reopen and exact identity/date readback.
+- Report filter fixture corrected:
+  - Commit `46d8af4f29260ead3a7a3bfadb91673002c55309`.
+  - Follow-up timestamp changed 09:00 → 15:00 within the existing 14:00–17:00 window; expected result and assertions unchanged.
+- Six-shard inventory document added:
+  - Commit `e19927a27a1d481796dce44fe21fda8d31b3150c`.
+- Current PR #3052 HEAD at the time of this update: `e19927a27a1d481796dce44fe21fda8d31b3150c`. The latest code-bearing SHA is `46d8af4f29260ead3a7a3bfadb91673002c55309`; the subsequent `e19927a` commit only adds the failure-inventory document.
+
+### 18.4 Exact-head acceptance for code SHA 46d8af4
+- Build `44514323956`: PENDING, no jobs returned at the last poll. No Analyze or six-shard result yet.
+- Device Smoke `44514323986`: PENDING, no jobs returned.
+- Follow-up File Persistence `44514323993`: SUCCESS. Its log explicitly ran only `test/alarm_overlay_file_persistence_test.dart` and passed the SQLite close/reopen snooze+completion scenario. It did **not** run the newly added timed due-date test.
+- Calendar Provider `44514324115`: IN_PROGRESS; exact target SHA verification passed; provider acceptance still running.
+- Draft Review APK `44514324131`: IN_PROGRESS at last poll; this is review/staging-only and not release signing acceptance.
+- Earlier Build `44513194318` on `b86d402` had quality Analyze, five shards and Visual cancelled while test-3 and APK jobs were still active. It is not a completed six-shard run. Earlier Build `44514100889` on `1209af7` was also cancelled. Do not count either as pass or failure of product assertions.
+- The current code SHA `46d8af4` therefore has one focused file-backed alarm persistence success, but the new due-date test, Analyze, six shards and Device Smoke remain unproven.
+
+### 18.5 Backup/Restore root integration gap
+- PR #3574 adds the durable exclusion tombstone migration and TaskStore semantics; PR #3575 extends the backup candidate, backup document, validation, reconciliation and a new BackupPage flow. Their intended dependency remains #3574 → #3575.
+- Current operational `lib/main.dart` has an active `_backupToFolder` / `_restoreFromFile` flow. It still calls `backupCanonicalTasks` without `personDirectoryExclusions`, does not snapshot previous exclusions, and restores only `peopleDirectory` via `reconcilePeopleById` / `savePeopleDirectory`.
+- The #3575 patch updates `lib/backup_page.dart`, but the current `main.dart` operational flow independently owns the backup/restore handlers and was not updated by #3575. Thus even if the child PRs are combined, this active main path would still omit tombstones unless explicitly wired.
+- Current #3052 `TaskStore` also has no `loadPersonDirectoryExclusions` / `replacePersonDirectoryExclusions` methods and current G1 schema does not create the tombstone table. The #3575 child TaskStore/schema files are based on an older base and must not replace current files wholesale: the child schema is missing current `_migrateLegacyTaskReminderFlag` logic. Port only the reviewed additive migration and TaskStore changes while preserving the current migration.
+- This is a confirmed product integration gap, not yet corrected in this checkpoint. No partial backup API signature was copied into the active path. Next safe implementation must port model + migration + TaskStore in dependency order, then backup manager + active main backup/restore + rollback, with file-backed source/independent-target database tests for Task IDs, Person IDs, Task/Follow-up relations, tombstones, NULL and unknown fields.
+
+### 18.6 Home filter and grouping disposition
+- Current #3052 Home predicate applies sequential filters (AND across Center/Category/Project/Tags) and any selected member within the multi-select dimension (OR within that dimension). Center uses canonical Task.centerId first and falls back to linked Project.centerId for legacy Tasks.
+- The observed combined-filter failure in the six-shard PR #3570 run is a Report Center Follow-up record-time fixture mismatch, not proof that the Home predicate is wrong. The Home boolean logic test separately failed to find its expected Task in the PR #3570 widget test; its UI/data setup still requires focused reproduction.
+- PR #3569 changes completed-past group behavior by merging it into overdue. This is a user-visible product behavior change. Keep current separate completed-past grouping until an owner-approved contract says otherwise; do not accept the child PR's revised expectation as a test-only cleanup.
+
+**COMMAND 66-R disposition:** two assertion-preserving test-fixture/persistence test changes committed; 64 failures across six shards inventoried from PR #3570; one exact-head file-backed alarm persistence workflow passed on code SHA `46d8af4`; current Build/Device Smoke pending and Calendar/Review APK in progress; Backup/Restore active-main integration gap confirmed and not yet fixed; no merge, release or deploy. RELEASE = NO-GO.
