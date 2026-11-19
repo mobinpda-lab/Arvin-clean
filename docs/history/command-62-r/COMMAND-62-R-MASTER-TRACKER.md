@@ -212,3 +212,14 @@ Percentages are planning estimates from the explicit scope above, not a claim of
 - PR #3556 Build `44475246526` is QUEUED; Follow-up File Persistence `44475246595` is PASS; Device Smoke `44475246535` is PENDING.
 - The operational branch #3052 has moved to documentation checkpoint `e378ae0e40a0d3baf1570c8019022e3fb7b156e5`; its last code/test candidate remains `e9a74921fca32edb31478b80cc1c2d50b8d75222`. The documentation-only checkpoint does not change the test evidence attached to e9a.
 - Main base SHA observed for #3052 and #3495 remains `45e4202b03a434459e4c021a04efa7e8396359db`. No write to Main occurred.
+
+
+## 14. Final metadata poll before handoff
+- PR #3052 HEAD `422ecc1dbc550ff4a5e7f64a28069b7c6f31d1e5`: OPEN / DRAFT / UNMERGED; GitHub currently reports `mergeable=false`. This is not resolved as a merge conflict diagnosis; no merge was attempted.
+- PR #3495 HEAD `1b1534924db9f251df83c36cabff30285194784e`: OPEN / DRAFT / UNMERGED; `mergeable=true`.
+- PR #3556, #3557 and #3558 remain OPEN / DRAFT / UNMERGED. GitHub currently reports `mergeable=false` for these lane PRs after the operational base branch advanced beyond their captured base checkpoint `e9a74921fca32edb31478b80cc1c2d50b8d75222`. They must be refreshed against the latest base and reviewed before any integration; no merge or force-push.
+- PR #3052 Build on code candidate `e9a74921fca32edb31478b80cc1c2d50b8d75222`: FAIL with 80 failed test instances; Device Smoke `44474830680`: CANCELLED.
+- PR #3558: Analyze PASS, Visual PASS, Follow-up File Persistence PASS; Build `44476129018` remains IN PROGRESS and Device Smoke `44476128976` remains QUEUED/running.
+- PR #3556: Follow-up File Persistence PASS; Build `44475246526` QUEUED and Device Smoke `44475246535` PENDING.
+- PR #3557: Build `44476426493` QUEUED; Follow-up File Persistence `44476426700` IN PROGRESS; Device Smoke `44476426659` PENDING.
+- Latest operational documentation checkpoint is this tracker update; the latest code/test candidate remains `e9a74921fca32edb31478b80cc1c2d50b8d75222`. Main base remains `45e4202b03a434459e4c021a04efa7e8396359db`.
