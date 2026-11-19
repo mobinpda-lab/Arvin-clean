@@ -163,10 +163,10 @@ Library archive: `vazirmatn-v33.003 (2).zip`
 ### Path C — isolated font-compliance PR #3557
 - PR #3557: OPEN / DRAFT / UNMERGED; target is the operational branch.
 - Branch: `command-62-r/path-c-font-license`.
-- Head: `b09f897ddc4c3ae4a85fb606fdcffc669ff727d2`.
+- Head: `b3f6b237dca4eb47ccd71304b0de0ba8c1f67716`.
 - Adds upstream Vazirmatn OFL and Authors attribution; no font binaries or typography registrations changed.
 - Exact upstream license verification: Git blob SHA `be66b3824e9772e75141e631695c5256f105fb57` matches `git hash-object` of the archive's original `OFL.txt`.
-- No Build run is expected from this docs-only slice. Packaged-APK license inclusion remains NOT TESTED until the PR is incorporated and packaging is inspected.
+- Added `test/fonts/vazirmatn_license_asset_test.dart` to load the OFL and Authors files through Flutter `rootBundle`. Build run `44476426493`: PENDING; Device Smoke `44476426659`: PENDING. Packaged-APK license inclusion remains NOT TESTED until the test passes and the APK is inspected.
 
 ### Path E — isolated migration-contract PR #3558
 - PR #3558: OPEN / DRAFT / UNMERGED; target is the operational branch.
@@ -203,3 +203,12 @@ This successful Build is reference evidence only; it does not transfer to #3052.
 Percentages are planning estimates from the explicit scope above, not a claim of completed product acceptance.
 
 **Current safety:** Main unchanged. PR #3052 OPEN / DRAFT / UNMERGED. PRs #3495, #3556, #3557 and #3558 remain OPEN / DRAFT / UNMERGED. No merge, release or deploy.
+
+
+## 13. Latest lane metadata refresh
+- PR #3556, #3557 and #3558 are all OPEN / DRAFT / UNMERGED and currently report mergeable=true against their operational-branch base. No merge has been performed.
+- PR #3557 now includes a Flutter asset-bundle test for the Vazirmatn OFL and Authors files. Its current head is `b3f6b237dca4eb47ccd71304b0de0ba8c1f67716`; Build run `44476426493` is PENDING.
+- PR #3558 Build `44476129018` remains IN PROGRESS; its Analyze job and Visual job are PASS, Follow-up File Persistence `44476129063` is PASS, and selected Device Smoke `44476128976` is QUEUED / running scenarios.
+- PR #3556 Build `44475246526` is QUEUED; Follow-up File Persistence `44475246595` is PASS; Device Smoke `44475246535` is PENDING.
+- The operational branch #3052 has moved to documentation checkpoint `e378ae0e40a0d3baf1570c8019022e3fb7b156e5`; its last code/test candidate remains `e9a74921fca32edb31478b80cc1c2d50b8d75222`. The documentation-only checkpoint does not change the test evidence attached to e9a.
+- Main base SHA observed for #3052 and #3495 remains `45e4202b03a434459e4c021a04efa7e8396359db`. No write to Main occurred.
