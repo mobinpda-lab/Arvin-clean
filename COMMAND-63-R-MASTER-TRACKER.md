@@ -792,8 +792,9 @@ Build run `44527453895`, exact SHA `7e00f2f9c65bf16ed71db68adc9f2b559f0a66c7`, c
 - `2c78f5c37675cb941af377d4415fa86bcd4eb795`: removed the last redundant null-aware fallback from `lib/main.dart` at the restore active-person ID calculation. This addresses the sole analyzer warning observed on 7e00f2f; fresh Analyze evidence is NOT YET AVAILABLE.
 - `b91bcd72c839225c05aa83a6e8c1801edb2ac310`: updated `lib/services/g1_drift_schema.dart` to inspect `PRAGMA table_info('person_directory_exclusions')` inside the existing schema installation transaction and add nullable `legacy_payload_json` when absent. This is an additive migration; it does not drop or rebuild the legacy table.
 - `44e8810db6188702dd661c8e7cbefd00fc416f16`: added `test/services/g1_drift_schema_test.dart` coverage that creates the earlier two-column exclusion table, inserts a legacy row, runs Schema 18 installation, verifies the row and explicit NULL survive, then reruns installation and verifies idempotency.
-- Current PR #3586 head at this checkpoint: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
-- No exact-head Build, Analyze, targeted schema test or persistence workflow result has yet been surfaced for the new head. Do not transfer the 7e00f2f results to 44e8810.
+- Implementation head before the tracker-only append: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
+- A subsequent tracker-only commit `6cba55f909289d84144de7430d2ee872d05df1bb` advanced PR #3586 without changing application code. The live PR head must be read from GitHub after any further tracker append.
+- No exact-head Build, Analyze, targeted schema test or persistence workflow result has yet been surfaced for the implementation head or the later tracker-only head. Do not transfer the 7e00f2f results to either SHA.
 
 ### 22.4 Remaining acceptance gates
 - Run fresh Analyze and all six test shards on one exact new head after the above commits.
