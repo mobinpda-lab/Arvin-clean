@@ -740,3 +740,18 @@ These are evidence-backed failure clusters, not yet proven root causes. Each sti
 5. Run all six shards and Device Smoke on the resulting candidate; no prior SHA result transfers.
 
 **Acceptance: FAIL for the six-shard Build; targeted Analyze/APK/Visual and file-backed persistence checks PASS as individually listed; Device Smoke PENDING. Release remains NO-GO. Main remains unchanged.**
+
+
+## 22. COMMAND 63-R — independent Vazirmatn archive verification — 2026-11-19
+
+Source file: Library archive `vazirmatn-v33.003 (2).zip`, 13,047,191 bytes.
+- Archive SHA-256: `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb` — exact match with the upstream v33.003 release digest recorded in this tracker and the official release metadata.
+- ZIP integrity test: PASS; no corrupt member reported.
+- The nine canonical static TTFs under `fonts/ttf/` were extracted and their internal name tables, OS/2 weight classes, character maps and GSUB feature tags inspected.
+- All nine have family name `Vazirmatn`, expected OS/2 weights 100/200/300/400/500/600/700/800/900, 811 mapped glyphs, Persian digits ۰–۹, Latin digits 0–9, ZWNJ and ZWJ, Persian Yeh/Kaf and Arabic comma; GSUB includes `ccmp`, `rlig`, `calt`, `init`, `medi`, `fina`.
+- Each archive TTF's computed Git blob SHA-1 was compared with the corresponding file fetched from PR #3573 branch `command-63-r/path-d-vazirmatn`: all nine MATCH. No synthetic, renamed or duplicated weight was detected.
+- `OFL.txt` and `AUTHORS.txt` Git blob hashes also match the app's tracked `LICENSE.txt` and `AUTHORS.txt` blobs respectively.
+- PR #3573 registers all nine static weights in `pubspec.yaml`; its rootBundle/FontManifest regression test asserts all nine mappings and loads every asset. The source-level registration/test review is PASS.
+- Exact-head Build for #3573 was still IN_PROGRESS at this audit; Device Smoke remained PENDING. APK font packaging, Android rendering, RTL layout and long-text visual acceptance are therefore NOT VERIFIED. This archive/font inspection does not promote the PR or release gate.
+
+Archive verification was performed independently against the actual Library ZIP bytes on this date; it is not a claim of on-device rendering acceptance.
