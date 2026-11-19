@@ -1,6 +1,6 @@
 # COMMAND 62-R — Local P2P Security and Conflict Design
 **Status:** DESIGN PROPOSAL — SECURITY REVIEW REQUIRED — NOT IMPLEMENTED  
-**Authority:** Product-owner COMMAND 62-R (2026-11-19)  
+**Authority:** Product-owner COMMAND 62-R and reaffirming COMMAND 63-R (2026-11-19)  
 **Phase:** Local P2P only; Dropbox/cloud is excluded as Phase 2.  
 **Operational PR:** #3052 / `fix/recovery-calendar-device-smoke-2026-10-31`
 
@@ -133,4 +133,11 @@ Before Local P2P can be accepted:
 - Define backup/restore behavior when paired devices are restored from different snapshots.
 - Define maximum batch/payload sizes, retry/backoff and battery constraints.
 
-**Current disposition:** Local P2P Phase 1 is re-authorized by COMMAND 62-R. This document establishes a threat model and candidate design only. No pairing, networking, cryptographic or sync code has been implemented or accepted. Dropbox/cloud remains Phase 2 and is excluded.
+**Current disposition:** Local P2P Phase 1 is explicitly authorized and reaffirmed by COMMAND 63-R. This document establishes a threat model and candidate design only. No pairing, networking, cryptographic or sync code has been implemented or accepted. Dropbox/cloud remains Phase 2 and is excluded.
+
+
+## COMMAND 63-R authority reaffirmation — 2026-11-19
+
+COMMAND 63-R independently includes Local P2P as an active P1 workstream and confirms the Phase 1 scope: direct phone↔tablet communication on a shared local Wi-Fi/hotspot network, with no Internet, account, cloud or Dropbox dependency. This supersedes the 2026-11-10 suspension only for the explicitly bounded Phase 1 scope.
+
+The existing threat model, mTLS/key-management candidate, pairing lifecycle, replay protection, operation envelope, causal conflict matrix and two-device acceptance matrix remain design proposals. This reaffirmation does not approve a concrete cryptographic stack, pairing algorithm, schema migration or implementation. No networking, cryptographic or sync code is claimed implemented. Security review and owner acceptance of the concrete protocol remain mandatory before coding.
