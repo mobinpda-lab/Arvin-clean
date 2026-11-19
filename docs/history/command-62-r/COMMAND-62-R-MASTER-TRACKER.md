@@ -6,7 +6,8 @@
 **Reference PR:** #3495 — OPEN / DRAFT / UNMERGED  
 **Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — protected by this execution; no write performed.  
 **PR #3052 checkpoint before COMMAND 62:** `aba68e44be0fcac7d4ad425b58fbe75e5aba264e`  
-**Current COMMAND 62 documentation checkpoint:** `805375654d04b247cbac5038b92d30ce781fff7c`
+**Latest code/test candidate:** `e9a74921fca32edb31478b80cc1c2d50b8d75222`  
+**Latest P2P design commit:** `805375654d04b247cbac5038b92d30ce781fff7c`
 
 ## 1. Authority and safety
 - COMMAND 62-R explicitly keeps PR #3052 as the operational delivery route. PR #3495 and PRs #3547–#3549 are read-only comparison sources until an individual change is inspected and adapted.
@@ -137,3 +138,68 @@ Library archive: `vazirmatn-v33.003 (2).zip`
 - The Build, Device Smoke, Follow-up Persistence and Draft Review runs created for `32daaa48bd63831668607e3547a39dc62057fb6e` were subsequently marked CANCELLED when newer branch commits superseded that SHA before the jobs completed.
 - This is not a test result. The code correction in `test/services/g1_drift_completed_at_migration_test.dart` remains NOT TESTED.
 - A fresh documentation checkpoint is being created so GitHub Actions can validate the complete current candidate containing the code correction. Only runs tied to the resulting exact HEAD can upgrade its acceptance status.
+
+
+## 11. Parallel lane checkpoint — 2026-11-19
+### Operational candidate `e9a74921fca32edb31478b80cc1c2d50b8d75222`
+- `test/services/g1_drift_completed_at_migration_test.dart`: PASS in shard 2. The fixture verifies additive nullable `completed_at` and exact retention of legacy Follow-up scheduling columns/values.
+- `test/person_directory_history_file_reopen_test.dart`: PASS in shard 2. The test verifies file-backed SQLite reopen, directory removal, retained Person identity + Task relation, and re-addition under the same ID.
+- Build run `44474830536`: FAIL overall. Analyze PASS; Visual PASS; Debug, Staging and Release APK jobs PASS; five of six shards completed FAIL and the sixth also completed FAIL. Shard failure counts: 11, 6, 11, 14, 12 and 26 = **80 failed test instances** (not necessarily 80 unique tests).
+- Calendar Provider run `44474830516`: PASS.
+- Follow-up File Persistence run `44474830556`: PASS.
+- Draft Review APK run `44474830547`: PASS.
+- Device Smoke run `44474830680`: PENDING / no jobs reported at last poll. No device acceptance can be claimed.
+- The 80 failures remain broad: Home/Center filter contracts, Quick Capture, Task Editor and due-date contracts, Task Details/Checklist/People, Reminder migration, Reports and Follow-up UI. Do not patch by weakening assertions.
+
+### Path B — isolated design-system PR #3556
+- PR #3556: OPEN / DRAFT / UNMERGED; target is the operational branch, not Main.
+- Branch: `command-62-r/path-b-design-system`.
+- Head: `151e8f184db95d9524a9472bb4e1520a711e21e1`.
+- Adds shared non-color tokens and applies them to the existing primary navigation; includes a widget test.
+- Follow-up File Persistence run `44475246595`: PASS.
+- Build run `44475246526`: PENDING at last poll; Device Smoke `44475246535`: PENDING.
+- This is only a token/navigation foundation, not full REV10 page acceptance.
+
+### Path C — isolated font-compliance PR #3557
+- PR #3557: OPEN / DRAFT / UNMERGED; target is the operational branch.
+- Branch: `command-62-r/path-c-font-license`.
+- Head: `b09f897ddc4c3ae4a85fb606fdcffc669ff727d2`.
+- Adds upstream Vazirmatn OFL and Authors attribution; no font binaries or typography registrations changed.
+- Exact upstream license verification: Git blob SHA `be66b3824e9772e75141e631695c5256f105fb57` matches `git hash-object` of the archive's original `OFL.txt`.
+- No Build run is expected from this docs-only slice. Packaged-APK license inclusion remains NOT TESTED until the PR is incorporated and packaging is inspected.
+
+### Path E — isolated migration-contract PR #3558
+- PR #3558: OPEN / DRAFT / UNMERGED; target is the operational branch.
+- Branch: `command-62-r/path-e-migration-contracts`.
+- Head: `53537dd62569b68bc2c7a4f19d9797732e8e3150`.
+- Aligns legacy reminder test with `Task.fromLegacyJson`, asserts canonical Follow-up `completedAt`, uses canonical `TaskReminder` in the due-date preservation test, and models the production migration-complete marker in the file-reopen test.
+- Build run `44476129018`: IN PROGRESS at last poll; Analyze and test shards had not reported failures yet.
+- Follow-up File Persistence run `44476129063`: IN PROGRESS.
+- Device Smoke run `44476128976`: queued selected smoke scenarios.
+- No result is accepted until exact-head runs complete.
+
+### Reference PR #3495 exact-head result
+For head `1b1534924db9f251df83c36cabff30285194784e`:
+- Analyze: PASS.
+- All six test shards: PASS.
+- Debug APK: PASS.
+- Release APK: PASS.
+- Device Smoke: CANCELLED.
+- COMMAND 20-E storage-persistence job remained IN PROGRESS at last poll.
+This successful Build is reference evidence only; it does not transfer to #3052.
+
+## 12. Progress estimates (analytical, not GitHub-native percentages)
+| Path | Estimate | Basis |
+|---|---:|---|
+| A — Build/CI | 5% | Exact-head Build executed; Analyze and APKs pass, but 80 failed test instances remain. Two targeted regression tests pass. |
+| B — REV10 UI/UX | 5% | Shared token/navigation slice exists as a Draft PR; no page-by-page redesign acceptance. |
+| C — Font system | 25% | Archive, weights and OFL verified; license attribution proposed in Draft PR; packaging and visual acceptance open. |
+| D — Local P2P | 15% | Threat model and protocol/conflict proposal documented; crypto review and implementation not started. |
+| E — Data/migration | 10% | Several test contracts corrected in an isolated Draft PR; sequential migrations, rollback, NULL/unknown fields and backup/restore still open. |
+| F — People/entities | 20% | File-backed historical relation regression passes; complete Person lifecycle and M2M entity acceptance remain open. |
+| G — Device/product | 3% | APK jobs pass on candidate, but Device Smoke is pending and no physical two-device acceptance exists. |
+| H — Integration | 15% | Branch divergence measured and three isolated Draft PRs created; no code lane has been integrated into #3052 yet. |
+
+Percentages are planning estimates from the explicit scope above, not a claim of completed product acceptance.
+
+**Current safety:** Main unchanged. PR #3052 OPEN / DRAFT / UNMERGED. PRs #3495, #3556, #3557 and #3558 remain OPEN / DRAFT / UNMERGED. No merge, release or deploy.
