@@ -14,13 +14,13 @@ void main() {
       RegExp(r'wave2ProductFastTrack\.prepareEditor\(')
           .allMatches(source)
           .length,
-      5,
+      6,
     );
     expect(
       RegExp(r'wave2ProductFastTrack\.persistProjectSelection\(')
           .allMatches(source)
           .length,
-      5,
+      6,
     );
     expect(source, contains('projects: editorContext.projects'));
     expect(source, contains('knownCategories: editorContext.knownCategories'));
@@ -28,6 +28,8 @@ void main() {
       source,
       contains('onProjectChanged: (value) => selectedProjectId = value'),
     );
+    expect(source, contains('onFullForm: (draft) async {'));
+    expect(source, contains('final editedContext = await wave2ProductFastTrack.prepareEditor('));
     expect(
       source,
       isNot(contains('builder: (_) => const ArvinTaskEditorDialog(),')),
