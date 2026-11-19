@@ -2,10 +2,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'backup_service.dart';
 import 'models/goal_project.dart';
+import 'models/person_directory_exclusion.dart';
 import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'services/project_plan_codec.dart';
 import 'services/calendar_sync_plan_service.dart';
+
+typedef ReconciledPersonDirectory = ({
+  List<PersonReference> people,
+  List<PersonDirectoryExclusion> exclusions,
+});
 
 typedef CanonicalBackupCandidate = ({
   List<Task> tasks,
@@ -17,6 +23,8 @@ typedef CanonicalBackupCandidate = ({
   List<String>? tags,
   List<PersonReference>? people,
   bool hasPeople,
+  List<PersonDirectoryExclusion>? personDirectoryExclusions,
+  bool hasPersonDirectoryExclusions,
 });
 
 /// Coordinates the portable backup format with Arvin's local task storage.
@@ -165,6 +173,7 @@ class ArvinBackupManager {
     List<String>? categories,
     List<String>? tags,
     List<Map<String, dynamic>>? peopleDirectory,
+    List<Map<String, dynamic>>? personDirectoryExclusions,
     String? encryptionPassphrase,
   }) async {
     final directory = await getDirectory();
@@ -181,6 +190,8 @@ class ArvinBackupManager {
         if (categories != null) 'categories': categories,
         if (tags != null) 'tags': tags,
         if (peopleDirectory != null) 'peopleDirectory': peopleDirectory,
+        if (personDirectoryExclusions != null)
+          'personDirectoryExclusions': personDirectoryExclusions,
       },
       fileName: fileName,
       encryptionPassphrase: encryptionPassphrase,
@@ -199,6 +210,7 @@ class ArvinBackupManager {
     Iterable<String>? categories,
     Iterable<String>? tags,
     Iterable<PersonReference>? people,
+    Iterable<PersonDirectoryExclusion>? personDirectoryExclusions,
     String? encryptionPassphrase,
   }) {
     return backupTasks(
@@ -209,6 +221,9 @@ class ArvinBackupManager {
       categories: categories?.toList(growable: false),
       tags: tags?.toList(growable: false),
       peopleDirectory: people?.map((person) => person.toJson()).toList(growable: false),
+      personDirectoryExclusions: personDirectoryExclusions
+          ?.map((exclusion) => exclusion.toJson())
+          .toList(growable: false),
       encryptionPassphrase: encryptionPassphrase,
     );
   }
@@ -231,7 +246,17 @@ class ArvinBackupManager {
     final categories = _decodeCatalog(document, 'categories', 'Category');
     final tags = _decodeCatalog(document, 'tags', 'Tag');
     final people = _decodePeopleDirectory(document);
-    if (people != null) _validateFollowUpPersonReferences(tasks, people);
+    final personDirectoryExclusions = _decodePersonDirectoryExclusions(
+      document,
+      people: people,
+    );
+    if (people != null || personDirectoryExclusions != null) {
+      _validateFollowUpPersonReferences(
+        tasks,
+        people ?? const <PersonReference>[],
+        personDirectoryExclusions ?? const <PersonDirectoryExclusion>[],
+      );
+    }
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -249,6 +274,9 @@ class ArvinBackupManager {
       tags: tags,
       people: people,
       hasPeople: document.containsKey('peopleDirectory'),
+      personDirectoryExclusions: personDirectoryExclusions,
+      hasPersonDirectoryExclusions:
+          document.containsKey('personDirectoryExclusions'),
     );
   }
 
@@ -315,13 +343,62 @@ class ArvinBackupManager {
     return List<PersonReference>.unmodifiable(people);
   }
 
+  List<PersonDirectoryExclusion>? _decodePersonDirectoryExclusions(
+    Map<String, dynamic> document, {
+    required List<PersonReference>? people,
+  }) {
+    if (!document.containsKey('personDirectoryExclusions')) return null;
+    final rawExclusions = document['personDirectoryExclusions'];
+    if (rawExclusions is! List) {
+      throw const FormatException(
+        'Arvin backup person directory exclusions are invalid',
+      );
+    }
+    final activeIds = people?.map((person) => person.id).toSet() ?? <String>{};
+    final ids = <String>{};
+    final exclusions = <PersonDirectoryExclusion>[];
+    for (final raw in rawExclusions) {
+      if (raw is! Map) {
+        throw const FormatException(
+          'Arvin backup person directory exclusion entry is invalid',
+        );
+      }
+      late final PersonDirectoryExclusion exclusion;
+      try {
+        exclusion = PersonDirectoryExclusion.fromJson(
+          Map<String, dynamic>.from(raw),
+        );
+      } on FormatException {
+        rethrow;
+      } catch (_) {
+        throw const FormatException(
+          'Arvin backup person directory exclusion fields are invalid',
+        );
+      }
+      if (!ids.add(exclusion.personId)) {
+        throw FormatException(
+          'Arvin backup contains duplicate person exclusion id: ${exclusion.personId}',
+        );
+      }
+      if (activeIds.contains(exclusion.personId)) {
+        throw FormatException(
+          'Arvin backup Person is both active and excluded: ${exclusion.personId}',
+        );
+      }
+      exclusions.add(exclusion);
+    }
+    return List<PersonDirectoryExclusion>.unmodifiable(exclusions);
+  }
+
   /// Rejects dangling Follow-up person IDs before the restore UI can mutate storage.
   /// Old backups without a peopleDirectory remain backward-compatible.
   void _validateFollowUpPersonReferences(
     Iterable<Task> tasks,
     Iterable<PersonReference> people,
+    Iterable<PersonDirectoryExclusion> exclusions,
   ) {
     final knownIds = people.map((person) => person.id).toSet();
+    knownIds.addAll(exclusions.map((exclusion) => exclusion.personId));
     for (final task in tasks) {
       // Historical Task relations remain valid even after the Person is
       // removed from the active directory. The Task backup carries the
@@ -352,6 +429,41 @@ class ArvinBackupManager {
       result[person.id] = person;
     }
     return List<PersonReference>.unmodifiable(result.values);
+  }
+
+  /// Reconciles active directory membership and explicit exclusions by
+  /// stable Person ID. Backup entries are authoritative for IDs they mention;
+  /// local-only active people and tombstones are retained.
+  static ReconciledPersonDirectory reconcilePersonDirectoryById({
+    required Iterable<PersonReference> currentPeople,
+    required Iterable<PersonDirectoryExclusion> currentExclusions,
+    Iterable<PersonReference>? backupPeople,
+    Iterable<PersonDirectoryExclusion>? backupExclusions,
+  }) {
+    final peopleById = <String, PersonReference>{
+      for (final person in currentPeople) person.id: person,
+    };
+    final exclusionsById = <String, PersonDirectoryExclusion>{
+      for (final exclusion in currentExclusions)
+        exclusion.personId: exclusion,
+    };
+
+    for (final person in backupPeople ?? const <PersonReference>[]) {
+      peopleById[person.id] = person;
+      exclusionsById.remove(person.id);
+    }
+    for (final exclusion
+        in backupExclusions ?? const <PersonDirectoryExclusion>[]) {
+      peopleById.remove(exclusion.personId);
+      exclusionsById[exclusion.personId] = exclusion;
+    }
+
+    return (
+      people: List<PersonReference>.unmodifiable(peopleById.values),
+      exclusions: List<PersonDirectoryExclusion>.unmodifiable(
+        exclusionsById.values,
+      ),
+    );
   }
 
   Map<String, dynamic> _encodeCalendarLink(ExternalCalendarEventLink link) =>
