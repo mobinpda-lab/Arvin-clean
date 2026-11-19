@@ -38,3 +38,19 @@ PR #3549 is not a safe direct merge/cherry-pick candidate: relative to canonical
 - Same-ID re-add: MUST explicitly clear the exclusion.
 - Backup/Restore: NOT VERIFIED.
 - Product acceptance: NOT ACCEPTED until the gaps above pass on one exact canonical SHA.
+
+
+---
+
+## 7. Canonical integration update — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+The reviewed fix is now ported to canonical PR #3495:
+- Implementation commit: `7a6020de6d500b8ec21ae7f325db48e7b8708131`.
+- Test/fixture and Backup/Restore regression commit: `100b09ac331994d4796e4d3aa4a2cf64d2f416a4`.
+- Test null-safety correction: `c94f96b0847005c6e037503455a6c1bc7c2aec7b`.
+- Exact-SHA Build `44472443857`: Analyze, all six shards, Debug APK and Release APK PASS.
+- File-backed Person removal/reopen and Schema executor fixture tests PASS.
+- Backup → fresh file-backed SQLite Restore → reopen → same-ID re-add test PASS in Test-4. Explicit SQL row counts for Task and Follow-up relations remain one.
+- Follow-up File Persistence run `44472443858`: PASS.
+- Device Smoke `44472443854` and COMMAND 20-E `44472443836` remain in progress at this checkpoint; People and Backup/Restore smoke scenarios have not yet completed.
+
+**Decision:** IMPLEMENTED AND BUILD-VERIFIED ON `c94f96b0847005c6e037503455a6c1bc7c2aec7b`; final Path A acceptance remains pending Device Smoke and independent persistence completion.

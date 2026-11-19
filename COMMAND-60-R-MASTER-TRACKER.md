@@ -150,3 +150,40 @@ Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75
 - Center: schema present; feature path incomplete.
 - Vazirmatn: archive/license verified; repository weight registration and visual tests incomplete.
 - Release: NO-GO. No merge, release or deployment authorized.
+
+
+---
+
+## COMMAND 60-R.1 — implementation and exact-SHA validation update — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+
+**Current code candidate SHA:** `c94f96b0847005c6e037503455a6c1bc7c2aec7b` on `recovery-02/main-based-integration` / PR #3495.
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged.
+**Build:** run `44472443857` — SUCCESS on exact code SHA `c94f96b0847005c6e037503455a6c1bc7c2aec7b`.
+- Analyze PASS.
+- Test-0 through Test-5 PASS.
+- Debug APK PASS, including font packaging audit and APK verification.
+- Release APK PASS, including font packaging audit and APK verification.
+- File-backed Person exclusion/reopen test PASS.
+- Backup → fresh file-backed SQLite Restore → reopen → same-ID re-add test PASS (Test-4).
+- Person Directory page removal contract and Schema executor lifecycle tests PASS.
+**Follow-up File Persistence:** `44472443858` — SUCCESS.
+**Device Smoke:** `44472443854` — at last poll Home and Quick Capture PASS; SQL Persistence and SQL Migration IN PROGRESS; Backup/Restore, People and Calendar QUEUED.
+**COMMAND 20-E:** `44472443836` — SharedPreferences write/stop/fresh-process read still IN PROGRESS.
+
+### Path A decision
+The original #3547 test-2 defect was reproduced as `Expected empty / Actual PersonReference` after directory deletion. The minimal exclusion-table fix is now integrated on canonical PR #3495. The exact canonical SHA passes all six shards and Build; the new Backup/Restore regression also passes. Keep Path A IN PROGRESS until Device Smoke (especially People and Backup/Restore) and COMMAND 20-E finish. PR #3547 itself remains NOT ACCEPTED at its old SHA; no result transfers retroactively.
+
+### Path B — Design System audit
+PR #3548 head `e040eab4bba72b615b0641cb95549982a73a4d18` remains blocked: Build `44421110716` failed all six shards; Device Smoke `44421110586` failed Home. Preserve its owner-approved ArvinColors palette as the integration target, but do not merge that PR.
+A targeted scan of core UI files found remaining literal color duplicates in `task_detail_page.dart`, `arvin_primary_navigation.dart`, `arvin_home_primary_add_button.dart`, `arvin_radio_box.dart`, `project_selector_field.dart`, `task_recurrence_page.dart` and `home_visual_integration.dart`. Independent radius constructors remain across Home, Calendar, Task Editor, Notebook, Reports, Navigation, Quick Capture, Date/Time pickers and other pages. Full 175-file scan and migration to shared Components tokens remain open.
+The token candidate currently defines Spacing, Radii, Motion, Touch Targets and Typography; a Components token layer is still missing.
+
+### Path C — Home and Center
+Canonical `main.dart` renders five due-date groups (overdue/today/tomorrow/future/no_date), and Home contract tests verify them. A secondary `HomeGroupingService` still has only four time groups and no separate tomorrow group; it is not called by main.dart and must be reconciled to avoid a second conflicting grouping contract.
+Home exposes only Time, Project, Category and Tags filters. Center is still absent from Home state/query/UI. Issue #3550 remains OPEN.
+Schema 9 tables are present; Center model, CenterStore, management page, Home selection/query, Task direct assignment and Backup/Restore integration remain unimplemented/unaccepted.
+
+### Path E — Vazirmatn
+Actual archive SHA-256 `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`; 387 ZIP entries; CRC clean; Vazirmatn weights 100–900; SIL OFL 1.1. Canonical repo still packages only 400/500/700. Build font packaging audit PASS applies only to those currently registered assets, not to the full family. Settings text-size Slider remains persisted and applied by root MediaQuery.textScaler. Full font weight registration, Persian/Latin digit visual checks and cross-page typography acceptance remain open.
+
+**Overall release:** NO-GO. No merge, deployment or release authorized.

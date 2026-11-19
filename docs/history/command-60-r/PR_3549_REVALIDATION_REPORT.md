@@ -32,3 +32,11 @@
 
 ## Decision
 **CI PASS ON THIS SHA; PRODUCT ACCEPTANCE NOT YET.** Preserve this evidence. Integrate only the reviewed minimal change through canonical PR #3495 and repeat all required tests on the resulting exact SHA.
+
+
+---
+
+## 5. Canonical port status — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+The reviewed exclusion-table approach from this PR was ported manually as an additive change through canonical PR #3495; no direct merge or cherry-pick was performed.
+Canonical SHA `c94f96b0847005c6e037503455a6c1bc7c2aec7b` passed Analyze, all six shards, Debug APK and Release APK. The file-backed lifecycle test and Backup → fresh file-backed SQLite Restore → reopen → same-ID re-add test passed.
+The original PR #3549 remains DIVERGED (8 ahead / 30 behind canonical) and is not accepted for direct merge. Device Smoke People/Backup-Restore and COMMAND 20-E are still pending at this checkpoint.

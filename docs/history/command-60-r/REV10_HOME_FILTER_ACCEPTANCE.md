@@ -31,3 +31,10 @@ The Home cards and `_homeFilterActive` logic include these four dimensions; Cent
 Five time groups: IMPLEMENTED IN SOURCE, not separately accepted end-to-end.
 Center filter: NOT IMPLEMENTED in canonical Home.
 Overall REV10 Home filter acceptance: NOT ACCEPTED.
+
+
+---
+
+## 5. Additional architecture discrepancy — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+The live Home route in `lib/main.dart` does render five groups: overdue, today, tomorrow, future and no_date. However, the separate `HomeGroupingService._timeGroups` implementation returns only four groups and merges tomorrow into future. The service is not referenced by `main.dart`; retain one canonical grouping implementation and align/remove the stale duplicate only with regression coverage.
+The Home filter UI still has exactly four dimensions: Time, Project, Category and Tags. Center is not wired into Home state, active chips or SQL-backed task projection. Five groups therefore do not equal completion of the Center filter requirement.

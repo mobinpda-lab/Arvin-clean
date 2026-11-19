@@ -36,3 +36,10 @@ Settings already has a 12–24 text-size Slider and persists changes through `Ap
 Archive provenance and license: VERIFIED.
 Repository-wide font weights and visual acceptance: NOT COMPLETE.
 Font system: IN PROGRESS / NOT ACCEPTED.
+
+
+---
+
+## 5. Build evidence update — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+On canonical code SHA `c94f96b0847005c6e037503455a6c1bc7c2aec7b`, Build run `44472443857` passed its Font packaging audit for the assets currently registered in the repository, and both Debug and Release APK builds passed.
+This is not acceptance of all nine archive weights: the repository still registers only 400/500/700. Full 100–900 registration, Farsi/UI-Farsi digit variant selection and visual tests remain outstanding.

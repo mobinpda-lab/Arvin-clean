@@ -27,3 +27,11 @@ PR #3549's later Build passing all six shards is evidence for PR #3549's SHA onl
 
 ## Decision
 **NOT ACCEPTED / IN PROGRESS.** No merge or release authorization. The failing result remains part of the permanent history.
+
+
+---
+
+## 5. Canonical regression re-run — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+The exact failing scenario from this PR was reproduced: after deleting the referenced Person, the test expected an empty active directory but received one `PersonReference`. This confirms the product defect; it was not merely a UI copy mismatch.
+After porting the exclusion migration to canonical PR #3495, the Person Directory removal test passed on `c94f96b0847005c6e037503455a6c1bc7c2aec7b`. All six shards and Build passed on that exact canonical SHA.
+This does not retroactively change PR #3547's old head `1c83db84145675aa31e67feef95c23ddd84c181c`. PR #3547 remains OPEN / NOT ACCEPTED / superseded evidence. Integration and acceptance proceed only through canonical PR #3495.
