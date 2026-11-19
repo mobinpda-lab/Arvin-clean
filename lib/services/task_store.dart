@@ -7,6 +7,7 @@ import 'package:drift/native.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/person_directory_exclusion.dart';
 import '../models/person_reference.dart';
 import '../models/task.dart';
 import '../models/goal_project.dart';
@@ -68,6 +69,77 @@ class TaskStore {
         id: row['id'] as String,
         displayName: row['name'] as String,
       )).toList(growable: false);
+    });
+  }
+
+  Future<List<PersonDirectoryExclusion>> loadPersonDirectoryExclusions() async {
+    return TaskStorageLock.synchronized<List<PersonDirectoryExclusion>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT person_id, excluded_at FROM person_directory_exclusions ORDER BY person_id',
+        const [],
+      );
+      return rows.map((row) => PersonDirectoryExclusion(
+        personId: row['person_id'] as String,
+        excludedAt: DateTime.parse(row['excluded_at'] as String),
+      )).toList(growable: false);
+    });
+  }
+
+  /// Replaces the exact exclusion snapshot. Callers must provide the complete
+  /// merged set and may not exclude a Person that is currently in the directory.
+  Future<void> replacePersonDirectoryExclusions(
+    Iterable<PersonDirectoryExclusion> exclusions,
+  ) async {
+    final normalized = <String, PersonDirectoryExclusion>{};
+    for (final exclusion in exclusions) {
+      if (normalized.containsKey(exclusion.personId)) {
+        throw ArgumentError.value(
+          exclusion.personId,
+          'exclusions',
+          'Duplicate person exclusion id',
+        );
+      }
+      normalized[exclusion.personId] = exclusion;
+    }
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final activeRows = await executor.runSelect(
+        'SELECT person_id FROM person_directory',
+        const [],
+      );
+      final activeIds = activeRows
+          .map((row) => row['person_id'] as String)
+          .toSet();
+      final overlap = activeIds.intersection(normalized.keys.toSet());
+      if (overlap.isNotEmpty) {
+        throw ArgumentError.value(
+          overlap.first,
+          'exclusions',
+          'A Person cannot be active and excluded at the same time',
+        );
+      }
+
+      await executor.runCustom('BEGIN IMMEDIATE');
+      try {
+        await executor.runCustom('DELETE FROM person_directory_exclusions');
+        for (final exclusion in normalized.values) {
+          await executor.runInsert(
+            '''INSERT INTO person_directory_exclusions (person_id, excluded_at)
+               VALUES (?, ?)''',
+            <Object?>[
+              exclusion.personId,
+              exclusion.excludedAt.toIso8601String(),
+            ],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
     });
   }
 
