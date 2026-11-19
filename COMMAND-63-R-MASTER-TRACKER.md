@@ -471,3 +471,68 @@ All listed PRs remain OPEN / DRAFT; none was merged or integrated. Each branch i
 - No APK artifact from the current exact operational head has completed or been reviewed. The queued Build includes APK jobs but no artifact is yet evidenced.
 
 **COMMAND 64-R checkpoint:** current operational candidate `c10fbe3f7ccd5b2aee34bc4f987c4f3276fba878`; Main protected and unchanged; current Build queued; 72 historical failures remain open; #3567 correction pending CI; child PRs stale-base and unintegrated. RELEASE = NO-GO.
+
+
+## 16. COMMAND 65-R live evidence checkpoint — 2026-11-19
+
+### 16.1 Protected refs and operational HEAD
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Main SHA re-confirmed by repository commit search: `45e4202b03a434459e4c021a04efa7e8396359db`. No Main write was performed.
+- PR #3052 remains OPEN / DRAFT / UNMERGED, base=main, base SHA `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Live PR HEAD at the start of this checkpoint was `c7248dac5c547c3c2682b5b956d007487cb36b1d`, not the previously reported `c10fbe3f7ccd5b2aee34bc4f987c4f3276fba878`.
+- Two proven analyzer blockers were fixed on the authorized #3052 branch only: moved the existing import directives before top-level declarations in `test/calendar_explicit_export_contract_test.dart` and `test/canonical_home_boundary_test.dart`. No assertion was removed or weakened.
+- Fix commits: `fa8774d3eeebc96df979f047b7deadb3cb83938a` and `8274347cc23b991c37764965a2719e12b6f148bf`.
+- Latest HEAD after these edits: `8274347cc23b991c37764965a2719e12b6f148bf`. It has not yet received a fresh Build/six-shard run in the observed Actions results. Only G1 lock sync run `44512971214` was visible for this SHA at the poll. Do not treat the previous SHA's results as exact-head acceptance.
+
+### 16.2 Build #44505964469 exact-SHA disposition
+- Run `44505964469` checked out `c10fbe3f7ccd5b2aee34bc4f987c4f3276fba878`, not current #3052 HEAD.
+- Run conclusion: CANCELLED. Analyze, Visual, all six test shards and Device Smoke were cancelled. Debug, Release and Staging APK jobs completed successfully; staging signature v2/v3, APK_DEBUGGABLE=false, manifest and bundled Vazirmatn checks passed in the fetched logs.
+- The Release APK job did not validate a publishable signing certificate: the log reported v2/v3 verification PASS but v1 FAIL and signer-certificate SHA unavailable. The Staging key was ephemeral/test-only. These APK artifacts are not release acceptance.
+- Artifacts belong to the old `c10fbe3` SHA. No artifact from that run is evidence for `c7248da` or `8274347`.
+
+### 16.3 Build #11815 / run 44509057409 on SHA c7248da
+- Visual job: SUCCESS.
+- Analyze: FAILED with four analyzer errors, all caused by the two test files placing imports after declarations (two diagnostics in each file). These two source-order defects were corrected in the subsequent commits above.
+- Test shard 3: FAILED, 150 passed / 12 failed. Other shards were not all complete at the time of inspection; test-0 and test-5 were cancelled, while test-1, test-2 and test-4 were still running. Therefore this was not a complete six-shard acceptance.
+- APK Debug/Release/Staging jobs were still running at that poll.
+- Follow-up File Persistence run `44509057501`: SUCCESS on `c7248da`.
+- Calendar Provider Acceptance run `44509057346`: SUCCESS on `c7248da`.
+- Device Smoke run `44509057587`: pending; no job list was returned at the poll.
+- Draft Review APK run `44509057524`: SUCCESS on `c7248da`; this does not replace the full Build or Device Smoke gates.
+
+### 16.4 Failure inventory from test shard 3 on c7248da
+The twelve failed tests are recorded as symptoms, not twelve proven independent root causes:
+1. `task_detail_master_screen_test.dart`: ordinary Task detail did not expose key `task-detail-independent-reminders`.
+2. `home/home_filter_contract_test.dart`: expected `task-card-details-accordion-real` key was absent.
+3. `canonical_home_boundary_test.dart`: compile failure from imports after declarations — corrected in commit `8274347`.
+4. `device_feedback_home_regression_test.dart`: expected Home group label «آینده» was not found.
+5. `calendar_explicit_export_contract_test.dart`: compile failure from imports after declarations — corrected in commit `fa8774d`.
+6. `widgets/home_page_test.dart`: expected `none` key was absent in Move-to-Today flow.
+7. `widgets/home_page_test.dart`: expected project label «کار الف» was not found in five-filter responsive test.
+8. `widgets/home_page_test.dart`: Past filter test could not find its expected element before ensureVisible.
+9. `quick_capture_dialog_test.dart`: expected «یادآور» control was not found.
+10. `quick_capture_dialog_test.dart`: expected «تکرار» control was not found.
+11. `task_editor_dialog_test.dart`: expected recurrence label «روزانه» was not found although recurrence RollBox key existed.
+12. `follow_up_office_page_test.dart`: `pumpAndSettle` timed out in legacy Next Follow-up filter test.
+- The remaining ten failures need focused reproduction and code-path inspection. No assertion is to be deleted, relaxed, or rewritten merely to turn CI green.
+
+### 16.5 Related PRs — live metadata
+The seven direct feature/design PRs are still OPEN / DRAFT / UNMERGED and target the operational branch using stale base SHA `a2825e003bb9e6b5c2413b0dc74b085273b6148b`:
+- #3567 Design System: HEAD `7ba6036dfaa3bc7485413b956500f1272f0fecb3`, mergeable=false.
+- #3569 Home/five filters: HEAD `19a657503bd7b1a28576a5a0676a0a48af7ffa34`, mergeable=false.
+- #3570 Task/Reminder/Occurrence/Checklist persistence: HEAD `fd4954d773e039cb56ed31806fd2b4790b82d3b5`, mergeable=false.
+- #3571 Quick Capture: HEAD `60de06ecb0dae94fdbe3ebc6a4c0d93ce81f156e`, mergeable=false.
+- #3572 Task Details: HEAD `be9248d77348421bd044e2480634e804f5782aba`, mergeable=true (metadata only; not acceptance).
+- #3573 Vazirmatn: HEAD `6d0dc85ed2ce8bb144c157e39aabd94fe7a049ba`, mergeable=false.
+- #3574 Person Directory exclusions: HEAD `8aca2bd36ea28ae8c291e7418541453d12847de2`, mergeable=false.
+- Additional stacked dependency #3575 is OPEN / DRAFT / UNMERGED, HEAD `6b1a03f502d5c642ba28a8884186f4a348b0e572`, based on #3574 at `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`; its portable backup work cannot be promoted independently of #3574.
+- No child PR was merged or integrated. Metadata mergeability is not a substitute for fresh exact-head CI or dependency review.
+
+### 16.6 Next execution gates
+1. Poll the fresh Actions run for `8274347`; require Analyze and all six shards on that exact SHA. If no Build is automatically created, use an authorized workflow trigger only if available; do not substitute another SHA.
+2. Reproduce and fix the ten remaining shard-3 symptoms while preserving assertions; rerun focused tests before full shards.
+3. Collect logs for every remaining shard and deduplicate only after matching test names, stack traces and source paths.
+4. Reconcile the seven child PRs against the current operational SHA by dependency and overlapping-file review. Keep #3574 → #3575 ordering.
+5. Continue backup/restore, TaskStore/SQLite, all-page REV10, Android device smoke, and Local P2P as independent acceptance gates.
+
+**COMMAND 65-R disposition:** two analyzer source-order defects corrected on the authorized operational branch; current SHA `8274347` still lacks exact-head Build and six-shard evidence; ten shard-3 failures remain unresolved; Main protected and unchanged; all related PRs remain unmerged. No release or deploy. RELEASE = NO-GO.
