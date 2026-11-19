@@ -47,6 +47,53 @@ void main() {
     }
   });
 
+
+  test('upgrades legacy Person Directory Exclusions table without losing rows', () async {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom(
+      '''CREATE TABLE person_directory_exclusions (
+         person_id TEXT NOT NULL PRIMARY KEY,
+         excluded_at TEXT NOT NULL)''',
+    );
+    await database.runInsert(
+      '''INSERT INTO person_directory_exclusions (person_id, excluded_at)
+         VALUES (?, ?)''',
+      const <Object?>['legacy-excluded-person', '2026-11-03T10:00:00.000'],
+    );
+
+    await G1DriftSchema.install(database);
+
+    var columns = await database.runSelect(
+      "PRAGMA table_info('person_directory_exclusions')",
+      const [],
+    );
+    expect(columns.map((row) => row['name']), contains('legacy_payload_json'));
+    var rows = await database.runSelect(
+      '''SELECT person_id, excluded_at, legacy_payload_json
+         FROM person_directory_exclusions WHERE person_id = ?''',
+      const <Object?>['legacy-excluded-person'],
+    );
+    expect(rows, hasLength(1));
+    expect(rows.single['excluded_at'], '2026-11-03T10:00:00.000');
+    expect(rows.single['legacy_payload_json'], isNull);
+
+    // Re-entry must be idempotent and must not alter the existing row.
+    await G1DriftSchema.install(database);
+    columns = await database.runSelect(
+      "PRAGMA table_info('person_directory_exclusions')",
+      const [],
+    );
+    expect(columns.where((row) => row['name'] == 'legacy_payload_json'), hasLength(1));
+    rows = await database.runSelect(
+      '''SELECT person_id, excluded_at, legacy_payload_json
+         FROM person_directory_exclusions WHERE person_id = ?''',
+      const <Object?>['legacy-excluded-person'],
+    );
+    expect(rows, hasLength(1));
+    expect(rows.single['excluded_at'], '2026-11-03T10:00:00.000');
+    expect(rows.single['legacy_payload_json'], isNull);
+  });
+
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
     expect(G1DriftSchema.version, 18);
