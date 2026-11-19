@@ -176,3 +176,40 @@ Fresh workflows triggered for tracker SHA `80c24c61f090aa24d2e808995ad0220f9a389
 Poll all fresh workflows for the exact live PR #3052 HEAD after this state update. Then inspect and fix the 72 failure roots individually on the authorized branch, beginning with the most shared Home/Quick Capture/Task Details/Date-Time behavior. Before every write, re-fetch PR #3052 and branch HEAD. Do not weaken tests, edit Main, merge, release or deploy.
 
 **Release:** BLOCKED — RELEASE: NO-GO.
+
+
+## COMMAND 63-R execution checkpoint — 2026-11-19 (continued)
+
+**Operational PR #3052 pre-state-update HEAD:** c607f3c817301f529e04ffb2780c84de9676e87b. Main remains 45e4202b03a434459e4c021a04efa7e8396359db. PR #3052 remains OPEN / DRAFT / UNMERGED. No Main change, PR merge, release or deployment.
+
+### Additional verified work
+- Read current product operating package v49.1, Development Rules, UI Governance, Home Style Lock, Design Authority Index, project continuity docs and the non-authoritative COMMAND 28 REV10 migration draft from Library.
+- Personal continuity search recovered the owner-approved REV10 constraints: teal palette #078B91 / #066F75 / #DDF7F5 / #F0FAF9 / #D9ECEA; five visible Home filters including Center; four grouping modes; single-column Task Details with Action Rows, Quick Presets and Universal Bottom Sheet.
+- Audited PR #3569 and #3572 in addition to #3567/#3570/#3573/#3574/#3575. #3569's grouping service currently has no user-facing mode selector; main.dart still uses Time only. #3572 lacks Universal Bottom Sheet, reminders, attachments and Notebook integration. #3567's actual palette matches the approved values, but its shared component set is incomplete.
+- PR #3567, #3569 and #3572 are diverged from the current operational branch and 13 commits behind at the comparison checkpoint. Reconcile before integration.
+- Fixed stale Home filter test labels and strengthened the test to verify all five filters, including Center.
+- Updated Task Details calendar-launcher test to verify inline auto-save and stable Task identity.
+- Corrected stale Home wiring count by asserting the additional Task Details Project callback.
+- Corrected two TaskReminder fixtures to use canonical reminder rows instead of deprecated reminderDate constructor input.
+- Replaced obsolete static source-boundary anchors in two tests with method-body extraction.
+- Added a transactional, fail-closed SQL migration for obsolete task_reminders.is_legacy_task_reminder, with stable-ID checks and complete before/after row parity including unknown columns and explicit NULL; expanded its test to verify TaskStore readback.
+- Updated the Task Editor test to match immediate tag-rollbox selection rather than a nonexistent Apply button.
+
+### Important unresolved items
+- These corrections are not yet accepted: the latest complete Build/CI result has not returned. The earlier exact-SHA run on a2825e0 still has 72 failures and remains the only completed six-shard evidence at this checkpoint.
+- PR #3570 has a competing implementation of the same reminder-flag migration in g1_drift_schema.dart. The operational implementation is more defensive; reconcile one implementation before integration.
+- Full authoritative REV10 governance package is not present in the repository or Library search. The Library has a clearly marked non-authoritative migration engineering draft only. Current owner instructions and recovered constraints govern this work; full page-by-page visual acceptance remains incomplete.
+- The Vazirmatn ZIP itself remains unavailable for direct inspection. Nine actual TTF files on PR #3573 were inspected and their OpenType weight classes matched 100–900.
+- The operational Task Details page still lacks the Universal Bottom Sheet, attachments and Notebook integration. Home still lacks user-facing selection among all four grouping modes.
+- Local P2P is design-only; physical backup/restore, migration parity and device acceptance remain open.
+
+### CI for the latest code/test candidate before documentation updates
+Candidate SHA: 0535e78ff6f271086c259fadcfd088d52efcf79b.
+- Build 44504242136: PENDING, no jobs returned.
+- Calendar Provider 44504241833: QUEUED.
+- Follow-up File Persistence 44504241878: QUEUED.
+- Device Smoke 44504241926: PENDING.
+- Draft Review APK 44504241933: QUEUED.
+No pass is claimed for this candidate. This state update advances the branch again; fetch the exact live PR #3052 HEAD and run status before interpreting any result.
+
+**Next:** validate the latest SHA, then continue the remaining failing test roots and implement the missing Home grouping selector / Task Details Universal Bottom Sheet in controlled, non-conflicting workstreams. Do not merge, release or deploy. **RELEASE = NO-GO.**
