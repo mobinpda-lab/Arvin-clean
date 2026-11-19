@@ -642,8 +642,12 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
+    final latest = find.byKey(const ValueKey('task-detail-latest-followup'));
+    await _scrollTaskDetailUntilVisible(tester, latest, 240);
+    expect(latest, findsOneWidget);
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
+    expect(timeline, findsOneWidget);
   });
 
   testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
