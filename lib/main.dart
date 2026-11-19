@@ -1043,10 +1043,64 @@ class _HomePageState extends State<HomePage> {
                       ? 'زمان'
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  soft: ArvinColors.timeSoft,
                   accent: ArvinColors.time,
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
+                  showLabel: true,
                   onPressed: _showTimeFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-project'),
+                  label: _projectFilters.isEmpty
+                      ? 'پروژه'
+                      : _projectFilters.length == 1
+                          ? (_projectFilters.first == '__no_project__'
+                              ? 'بدون پروژه'
+                              : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده'))
+                          : 'پروژه',
+                  icon: Icons.folder_rounded,
+                  soft: ArvinColors.projectSoft,
+                  accent: ArvinColors.project,
+                  active: _projectFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showProjectFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-category'),
+                  label: _categoryFilters.isEmpty
+                      ? 'دسته'
+                      : _categoryFilters.length == 1
+                          ? _categoryFilters.first
+                          : 'دسته',
+                  icon: Icons.layers_rounded,
+                  soft: ArvinColors.categorySoft,
+                  accent: ArvinColors.category,
+                  active: _categoryFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showCategoryFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-tags'),
+                  label: _tagFilters.isEmpty
+                      ? 'برچسب'
+                      : _tagFilters.length == 1
+                          ? _tagFilters.first
+                          : 'برچسب',
+                  icon: Icons.sell_rounded,
+                  soft: ArvinColors.tagSoft,
+                  accent: ArvinColors.tag,
+                  active: _tagFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showTagFilterSheet,
                 ),
               ),
               const SizedBox(width: 2),
@@ -1061,62 +1115,11 @@ class _HomePageState extends State<HomePage> {
                               : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
                           : 'مرکز',
                   icon: Icons.location_city_outlined,
-                  soft: Color.alphaBlend(
-                    Theme.of(context).colorScheme.primary.withAlpha(18),
-                    Theme.of(context).colorScheme.surface,
-                  ),
-                  accent: Theme.of(context).colorScheme.primary,
+                  soft: ArvinColors.primarySoft,
+                  accent: ArvinColors.primary,
                   active: _centerFilters.isNotEmpty,
+                  showLabel: true,
                   onPressed: _showCenterFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-project'),
-                  label: _projectFilters.isEmpty
-                      ? 'پروژه'
-                      : _projectFilters.length == 1
-                          ? (_projectFilters.first == '__no_project__'
-                              ? 'بدون پروژه'
-                              : (_projectTitle(_projectFilters.first) ??
-                                  'پروژه حذف‌شده'))
-                          : 'پروژه',
-                  icon: Icons.folder_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.project,
-                  active: _projectFilters.isNotEmpty,
-                  onPressed: _showProjectFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-category'),
-                  label: _categoryFilters.isEmpty
-                      ? 'دسته'
-                      : _categoryFilters.length == 1
-                          ? _categoryFilters.first
-                          : 'دسته',
-                  icon: Icons.layers_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.category,
-                  active: _categoryFilters.isNotEmpty,
-                  onPressed: _showCategoryFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-tags'),
-                  label: _tagFilters.isEmpty
-                      ? 'برچسب'
-                      : 'برچسب',
-                  icon: Icons.sell_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.tag,
-                  active: _tagFilters.isNotEmpty,
-                  onPressed: _showTagFilterSheet,
                 ),
               ),
               const SizedBox(width: 1),
