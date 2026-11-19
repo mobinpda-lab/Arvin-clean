@@ -689,3 +689,34 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - Main unchanged; PR #3052 preserved OPEN / DRAFT; PR #3586 review-only OPEN / DRAFT; no merge, release or deploy.
 
 **COMMAND 68-R disposition:** durable Person Directory tombstones and active backup/restore/rollback wiring have been implemented on an isolated branch with new tests. Acceptance remains PENDING exact-SHA CI and independent File-backed restore verification. RELEASE = NO-GO.
+
+
+## 20. COMMAND 69-R — Exact-head CI diagnosis and test-contract correction
+
+### 20.1 Live baseline
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (protected; unchanged).
+- Operational PR #3052: OPEN / DRAFT / unmerged; head `0cf1792d52f764c89d0cd9a9411880140e0c67d4`; base `main`.
+- Review PR #3586: OPEN / DRAFT / unmerged; base is the PR #3052 branch at `0cf1792d52f764c89d0cd9a9411880140e0c67d4`; head branch `command-68-r/backup-restore-integrity`.
+- Initial COMMAND 69 head: `cdbcae04b75867acd55459d954e3bf9181f015c8`.
+
+### 20.2 Exact SHA CI result on cdbcae0
+- Build run `44517852469`: COMPLETED / FAILURE.
+- Analyze failed because test override `_RecordingBackupManager.backupCanonicalTasks` did not include new optional `personDirectoryExclusions`; its restore candidate tuple also supplied 9 fields while the new `CanonicalBackupCandidate` contract requires 11.
+- All six shards failed. Final summaries: test-0 236 passed / 12 failed; test-1 187 passed / 11 failed; test-2 307 passed / 21 failed; test-3 152 passed / 11 failed; test-4 242 passed / 10 failed; test-5 196 passed / 6 failed. Total observed in this run: 71 failing test cases across the shards. These are current-run counts, not historical inventories; shard jobs may repeat the same compile failure in each shard and therefore the total is not a count of unique product defects.
+- Debug APK succeeded; Staging APK succeeded including signing/manifest/font audit; Visual smoke succeeded.
+- Release APK failed during Gradle dependency resolution for Kotlin Gradle Plugin `2.2.21` and three additional artifacts with identical resolution cause. This is a build-environment/dependency-resolution failure, not evidence of a Dart compile failure in release-specific source.
+- Follow-up File-backed SQLite run `44517852362` succeeded on exact SHA cdbcae0, including repository persistence and alarm overlay close/reopen tests. It does not prove full cross-database Backup/Restore.
+- Device Smoke run `44517852329` remained PENDING with no jobs returned at the checkpoint.
+
+### 20.3 Assertion-preserving corrections committed
+- `cce825b63dbf78cc8313c79425224914d47e6618`: updated `test/services/project_backup_bridge_test.dart` override to accept and capture `personDirectoryExclusions`; added the two required fields `personDirectoryExclusions` and `hasPersonDirectoryExclusions` to the candidate fixture. No assertions removed or weakened.
+- `a621d4dfdc700da7938c39a06f40390082e59677`: updated `test/services/g1_drift_schema_test.dart` to assert schema version 18 and require the `person_directory_exclusions` table. No assertions removed or weakened.
+- Current branch head after these corrections: `a621d4dfdc700da7938c39a06f40390082e59677`.
+- Acceptance of these corrections is PENDING fresh exact-head Analyze, all six shards and persistence workflows. The prior cdbcae0 failures must not be attributed to the newer SHA until rerun results are available.
+
+### 20.4 Remaining COMMAND 69 gates
+- Full independent database A → backup → close → empty database B → restore → second restore idempotency test covering Task/Reminder/Follow-up/Occurrence/Checklist/People, stable IDs, relationships, explicit NULL, unknown fields, tombstones, SQLite integrity and foreign keys: NOT YET IMPLEMENTED/ACCEPTED.
+- Schema v18 upgrade/re-entry/partial-migration/old-backup/rollback matrix: NOT YET ACCEPTED as a complete matrix.
+- Six-shard test failures outside the two corrected contract mismatches remain to be triaged by exact test name and root cause. No assertion may be weakened.
+- REV10 all-page acceptance, full product flows, PDF, Vazirmatn/RTL, device smoke and Local P2P remain open. Local P2P operational activation remains blocked on Backup/Restore and data-contract acceptance.
+- No merge, release or deploy. Main and PR #3052 preserved. RELEASE = NO-GO.
