@@ -1,0 +1,110 @@
+# COMMAND 63-R — 80 failed test-instance inventory
+Baseline code SHA: `4b2a2ef418959420d6100d667431f35b55aba494`
+Build run: `44476625119`
+Scope: six test shards; 80 reported failed test instances. These are failed test instances, not necessarily 80 unique test names.
+This inventory records the exact failed test names from the six shard logs. The category is an initial triage label, not a confirmed root cause. A test is not closed until its product/test/environment cause is proven, the appropriate correction is committed, and an exact-new-SHA rerun passes.
+
+| Shard | Job ID | Test file | Test | Initial category | Current disposition |
+|---|---:|---|---|---|---|
+| quality (test-3) | 135401518167 | `test/widgets/home_page_test.dart` | RTL Move-to-Today does not dismiss and None is a no-op | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/widgets/home_page_test.dart` | Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/widgets/home_page_test.dart` | Home Past time filter excludes today and prioritizes incomplete tasks | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/quick_capture_dialog_test.dart` | Quick Add reminder presets match the product contract | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/quick_capture_dialog_test.dart` | Quick Add custom recurrence exposes every canonical time unit | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/services/task_migration_writer_test.dart` | Home projection persists explicitly supplied canonical Follow-up history | Migration / Reminder / Data Persistence | CORRECTED: canonical Follow-up serialization asserts completedAt; exact-head retest pending |
+| quality (test-3) | 135401518167 | `test/device_feedback_home_regression_test.dart` | normal-height Home keeps empty groups and floating add action | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/task_editor_dialog_test.dart` | task editor recurrence uses RollBox and preserves interval | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/home/home_filter_contract_test.dart` | Home task card expands in place with real FollowUp history and preserves details route | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/follow_up_office_page_test.dart` | legacy Next Follow-up dates never create an automatic due filter | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/task_detail_master_screen_test.dart` | Smart visibility keeps an ordinary Task detail compact | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-3) | 135401518167 | `test/home_stat_filters_test.dart` | tag choices are OR within Tags and AND with Category | Home / Center / Reports / Navigation | PARTIALLY CORRECTED: icon-only filter label tests use Semantics; remaining filter logic failures need retest |
+| quality (test-4) | 135401518247 | `test/widgets/home_page_test.dart` | overdue active task uses red text while card and icons stay neutral | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/g6_swipe_rtl_acceptance_test.dart` | configured left and right swipes open Follow-up form and write only after save | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/work_agenda_pdf_renderer_test.dart` | existing PDF renderer builds grouped Work Agenda bytes | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/task_editor_dialog_test.dart` | Task editor saves a real all-day deadline from inside the clock dialog | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/unified_item_migration_test.dart` | Unified Task JSON preserves reminder and recurrence fields | Migration / Reminder / Data Persistence | CORRECTED: legacy fixture now uses Task.fromLegacyJson; exact-head retest pending |
+| quality (test-4) | 135401518247 | `test/task_detail_master_screen_test.dart` | Smart visibility shows rich sections only when canonical data exists | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/task_detail_master_screen_test.dart` | Task Details presents summary, metadata and due date once in RTL order | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/issue_1891_lane_d_rollbox_test.dart` | issue 1891 tag roll box supports multi-select with apply/cancel | Other / cross-cutting | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/home_today_about_test.dart` | About menu action opens the built-in Arvin about dialog | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/calendar_page_test.dart` | prayer cards use mosque icon and subdued unregistered status | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-4) | 135401518247 | `test/home_stat_filters_test.dart` | time checkbox selections use OR without a numeric badge | Home / Center / Reports / Navigation | PARTIALLY CORRECTED: icon-only filter label tests use Semantics; remaining filter logic failures need retest |
+| quality (test-1) | 135401518252 | `test/widgets/home_page_test.dart` | completed tasks remain visible in All and Completed filters | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-1) | 135401518252 | `test/widgets/home_page_test.dart` | Home uses the five checkbox filters as combined filters and preserves time grouping | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-1) | 135401518252 | `test/quick_capture_dialog_test.dart` | canonical capture keeps title-only path and optional choices | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-1) | 135401518252 | `test/quick_capture_dialog_test.dart` | Quick Add scheduling uses the canonical circular date/time picker | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-1) | 135401518252 | `test/task_timeline_page_test.dart` | renders canonical task history in chronological order | Other / cross-cutting | ROOT_CAUSE_PENDING |
+| quality (test-1) | 135401518252 | `test/calendar_explicit_export_contract_test.dart` | normal Task save, capture, edit and completion contain no outbound sync | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_detail_person_persistence_test.dart` | Task Details Follow-up person selection persists through canonical Person and relation tables | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home_last_follow_up_real_record_test.dart` | Home shows last FollowUp only for a real record and does not create one | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_detail_master_screen_test.dart` | Task Details presents canonical follow-up title, note and waiting-for-response state | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_detail_master_screen_test.dart` | Task Details persists checklist reorder and additions immediately without changing Follow-up history | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/follow_up_entry_page_test.dart` | waiting FollowUp can add, select, reopen and remove a stable person | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/notebook_page_test.dart` | editor tag picker replaces tags on the same canonical note | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/widget_test.dart` | Home exposes the canonical workflow controls | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home/home_owner_reference_test.dart` | Home follows the owner header, real summary values and Today navigation | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/canonical_home_boundary_test.dart` | normal save, Quick Capture, edit and completion never export automatically | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home/home_filter_boolean_logic_test.dart` | Home filters combine OR within each dimension and AND across dimensions | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home_wave2_editor_wiring_guard_test.dart` | Home add/edit stay wired to the canonical Wave 2 coordinator | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/report_center_page_test.dart` | Report Center exposes center and searchable task controls | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/quick_capture_project_create_test.dart` | Quick Add offers Project create-new and selects the created project | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_detail_checklist_crud_test.dart` | checklist add, inline edit and delete persist immediately and preserve legacy follow-up timestamps | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/settings_page_test.dart` | settings exposes date, swipe, projects and canonical backup controls | Settings / Backup | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_editor_due_date_preservation_test.dart` | editing preserves canonical due date independently | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/widgets/home_quick_capture_test.dart` | Home primary add persists canonical task and preserves history | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home_stat_filters_test.dart` | category checkbox selection applies OR only after confirmation | Home / Center / Reports / Navigation | PARTIALLY CORRECTED: icon-only filter label tests use Semantics; remaining filter logic failures need retest |
+| quality (test-2) | 135401518298 | `test/task_contract_test.dart` | due date stays independent from reminder and follow-up timestamps | Migration / Reminder / Data Persistence | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/home_today_about_test.dart` | Today menu action has a dedicated empty state | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_store_reminder_persistence_test.dart` | legacy reminder-table migration removes its flag without losing reminder rows | Migration / Reminder / Data Persistence | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/quick_capture_dialog_test.dart` | Quick Add opens an independent Persian reminder date/time picker | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/quick_capture_dialog_test.dart` | Quick Add shows the selected scheduling time and uses injected now | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/task_editor_dialog_test.dart` | Back-style close prompts and can save Task edits without data loss | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/follow_up_office_page_test.dart` | selects one of multiple tasks and persists only to that task | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-2) | 135401518298 | `test/release_critical_path_test.dart` | critical capture to independent reminder path survives canonical persistence | Migration / Reminder / Data Persistence | CORRECTED: reminderDate compatibility getter now expected to project enabled TaskReminder; exact-head retest pending |
+| quality (test-5) | 135401518331 | `test/widgets/home_page_test.dart` | Home separates calendar today from selected focus and persists toggle removal | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/widgets/home_page_test.dart` | Focus Today is reachable from drawer More and global funnel with one result set | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/quick_capture_dialog_test.dart` | timed-to-all-day clears a relative reminder and all-day-to-timed preserves custom reminder | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/services/sql_task_migration_writer_test.dart` | preserves complete Follow-up history across closing and reopening SQLite | Migration / Reminder / Data Persistence | CORRECTED: file-reopen fixture records migration-complete marker; exact-head retest pending |
+| quality (test-5) | 135401518331 | `test/widget_test.dart` | HomePage shows the empty-state message after loading | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/task_editor_dialog_test.dart` | Task editor cancelling the circular clock does not commit a partial date | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/follow_up_office_page_test.dart` | asks the user to create a task when the list is empty | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/task_detail_master_screen_test.dart` | Task Details does not present related people as assignees and keeps bottom content clear | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/notebook_page_test.dart` | Notebook selectors use canonical Task taxonomy, including unused-by-Notebook entries | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/canonical_calendar_launcher_test.dart` | repeat occurrence actions resolve back to the canonical Task | Calendar / PDF / Integration | ROOT_CAUSE_PENDING |
+| quality (test-5) | 135401518331 | `test/report_center_page_test.dart` | Report Center quick presets apply from a dedicated bottom sheet | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/task_detail_checklist_flow_test.dart` | task detail displays checklist and toggles an item | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/widgets/task_dialog_test.dart` | creates a task with trimmed text and a unique tag | Other / cross-cutting | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/widgets/home_page_test.dart` | renders the current canonical HomePage shell | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/quick_capture_dialog_test.dart` | Quick Capture can create a center inline and immediately select it | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/task_detail_due_date_action_test.dart` | Task Details explicit today action aligns with Due Date and persists only the date change | Task Details / Follow-up / People / Checklist | CORRECTED: fixture now seeds canonical TaskReminder and asserts inert legacy metadata; exact-head retest pending |
+| quality (test-0) | 135401518408 | `test/services/task_report_filter_test.dart` | combined filters use AND semantics without mutating tasks | Other / cross-cutting | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/device_feedback_home_regression_test.dart` | Home keeps backup in the More menu instead of the header | Settings / Backup | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/primary_bottom_navigation_test.dart` | primary navigation exposes exactly five canonical destinations | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/home/home_filter_contract_test.dart` | Home keeps completed past tasks visible in a separate non-overdue group | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/follow_up_office_page_test.dart` | follow-up office exposes the shared five filter dimensions | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/canonical_home_boundary_test.dart` | Home owns canonical Task state without legacy ArvinTask projection | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/task_people_page_test.dart` | empty People UI adds and removes a local Person explicitly | Task Details / Follow-up / People / Checklist | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/task_editor_category_project_integration_test.dart` | new task saves typed category without an extra apply step | Quick Capture / Task Editor / Date-Time / Reminder | ROOT_CAUSE_PENDING |
+| quality (test-0) | 135401518408 | `test/home_today_about_test.dart` | Today menu action shows only active canonical tasks due today | Home / Center / Reports / Navigation | ROOT_CAUSE_PENDING |
+
+## Count check
+- quality (test-3) (job 135401518167): 12
+- quality (test-4) (job 135401518247): 11
+- quality (test-1) (job 135401518252): 6
+- quality (test-2) (job 135401518298): 26
+- quality (test-5) (job 135401518331): 11
+- quality (test-0) (job 135401518408): 14
+- Total inventory rows: 80
+- Expected shard failure instances: 80
+- Match: YES
+
+## Root-cause workflow
+For every row still marked ROOT_CAUSE_PENDING:
+1. Capture the full failing assertion/exception and source line from the shard log.
+2. Compare the assertion with the authoritative product decision and current implementation.
+3. Classify as product defect, stale test contract, fixture/migration-boundary defect, or CI/environment failure.
+4. Fix the product or fixture without deleting/weakening assertions.
+5. Add a focused regression test when missing.
+6. Rerun on one exact SHA and update this inventory with the commit and run IDs.
+7. Do not treat a shard as green while any test is failed, cancelled, skipped or unexecuted.
+
