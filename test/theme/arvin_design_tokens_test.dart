@@ -31,6 +31,7 @@ void main() {
     expect(ArvinMotion.standardCurve, Curves.easeOutCubic);
     expect(ArvinShadows.cardBlur, greaterThan(0));
     expect(ArvinShadows.dialogBlur, greaterThan(ArvinShadows.cardBlur));
-    expect(ArvinShadows.cardOffset, const Offset(0, 2));
+    expect(ArvinShadows.cardBlur, 10);
+    expect(ArvinShadows.cardOffset, const Offset(0, 4));
   });
 }
