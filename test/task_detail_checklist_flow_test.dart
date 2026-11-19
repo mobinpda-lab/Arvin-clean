@@ -6,6 +6,11 @@ import 'package:arvin/task_detail_page.dart';
 
 void main() {
   testWidgets('task detail displays checklist and toggles an item', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     var task = Task(
       id: 'checklist-detail-1',
       title: 'آماده‌سازی مدرسه',
