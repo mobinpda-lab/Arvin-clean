@@ -20,7 +20,7 @@ void main() {
       RegExp(r'wave2ProductFastTrack\.persistProjectSelection\(')
           .allMatches(source)
           .length,
-      5,
+      6,
     );
     expect(source, contains('projects: editorContext.projects'));
     expect(source, contains('knownCategories: editorContext.knownCategories'));
