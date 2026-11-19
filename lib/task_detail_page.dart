@@ -1928,9 +1928,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
 
     return _card(
       key: const ValueKey('task-detail-organization-card'),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _sectionTitle('مشخصات کار', Icons.info_outline_rounded),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
           key: const ValueKey('task-detail-metadata-chips'),
           textDirection: TextDirection.rtl,
           children: [
@@ -2000,7 +2005,9 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               ),
             ),
           ],
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
