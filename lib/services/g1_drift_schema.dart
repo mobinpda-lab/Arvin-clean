@@ -228,6 +228,7 @@ class G1DriftSchema implements QueryExecutorUser {
       }
       await migrateTaskPeople(executor);
       await migrateCanonicalEntities(executor);
+      await _dropLegacyTaskReminderFlag(executor);
       await OccurrenceSqlCodec.migrateLegacyEnvelopes(executor);
       await RecurrenceSqlCodec.migrateLegacyRules(executor);
       final directorySeed = await executor.runSelect(
@@ -260,6 +261,39 @@ class G1DriftSchema implements QueryExecutorUser {
       try { await executor.runCustom('PRAGMA foreign_keys = ON'); } catch (_) {}
       rethrow;
     }
+  }
+
+  /// Retires the obsolete reminder migration marker without rebuilding the
+  /// table. SQLite DROP COLUMN preserves every other known or future column,
+  /// row value (including explicit NULL), index, constraint and foreign key.
+  /// The operation is transactional with the rest of schema installation.
+  static Future<void> _dropLegacyTaskReminderFlag(QueryExecutor executor) async {
+    final columns = await executor.runSelect(
+      "PRAGMA table_info('task_reminders')",
+      const [],
+    );
+    if (!columns.any((row) => row['name'] == 'is_legacy_task_reminder')) {
+      return;
+    }
+
+    final versionRows = await executor.runSelect(
+      'SELECT sqlite_version() AS version',
+      const [],
+    );
+    final version = versionRows.single['version'] as String? ?? '';
+    final parts = version.split('.').map(int.tryParse).toList(growable: false);
+    final major = parts.isNotEmpty ? parts[0] ?? 0 : 0;
+    final minor = parts.length > 1 ? parts[1] ?? 0 : 0;
+    if (major < 3 || (major == 3 && minor < 35)) {
+      throw StateError(
+        'SQLite 3.35+ is required to retire is_legacy_task_reminder '
+        'without rebuilding and risking unknown task_reminders columns.',
+      );
+    }
+
+    await executor.runCustom(
+      'ALTER TABLE task_reminders DROP COLUMN is_legacy_task_reminder',
+    );
   }
 
   /// Copies historical Task-person identities into canonical Person and

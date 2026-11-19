@@ -128,7 +128,9 @@ class WorkAgendaProjection {
         }
       }
 
-      // Independent reminders belong to their exact canonical FollowUp.
+      // Follow-up history remains attached to the report entry; only canonical
+      // TaskReminder records create scheduled events. Historical Follow-ups do
+      // not create future scheduling events.
     }
 
     final days = grouped.keys.toList()..sort();
