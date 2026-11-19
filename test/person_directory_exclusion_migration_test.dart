@@ -198,18 +198,19 @@ void main() {
 
     final candidate = await backupManager.restoreCanonicalBackup();
     expect(candidate, isNotNull);
-    expect(candidate!.hasPeople, isTrue);
-    expect(candidate.people, isEmpty);
-    expect(candidate.tasks.single.people.single.id, person.id);
-    expect(candidate.tasks.single.followUps.single.personIds, <String>[person.id]);
+    final restoredCandidate = candidate!;
+    expect(restoredCandidate.hasPeople, isTrue);
+    expect(restoredCandidate.people, isEmpty);
+    expect(restoredCandidate.tasks.single.people.single.id, person.id);
+    expect(restoredCandidate.tasks.single.followUps.single.personIds, <String>[person.id]);
 
     var restoreDatabase = NativeDatabase(restoreFile);
     try {
       final restoreStore = TaskStore(executor: restoreDatabase);
       // Match canonical restore order: Tasks first, then the optional directory.
-      await restoreStore.save(candidate.tasks);
-      if (candidate.hasPeople) {
-        await restoreStore.savePeopleDirectory(candidate.people ?? const <PersonReference>[]);
+      await restoreStore.save(restoredCandidate.tasks);
+      if (restoredCandidate.hasPeople) {
+        await restoreStore.savePeopleDirectory(restoredCandidate.people ?? const <PersonReference>[]);
       }
       expect(await restoreStore.loadPeopleDirectory(), isEmpty);
       final restored = (await restoreStore.load()).single;
