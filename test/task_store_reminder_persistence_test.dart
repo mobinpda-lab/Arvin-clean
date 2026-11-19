@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -159,6 +161,64 @@ void main() {
       isMigratedTaskReminder(restored, restored.taskReminders.single),
       isTrue,
     );
+  });
+
+  test('timed due date remains independent from reminders and Follow-up history across file reopen', () async {
+    SharedPreferences.setMockInitialValues({});
+    final directory = await Directory.systemTemp.createTemp(
+      'arvin-task-due-date-reopen-',
+    );
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    addTearDown(() => directory.delete(recursive: true));
+
+    final firstExecutor = NativeDatabase(databaseFile);
+    await G1DriftSchema.install(firstExecutor);
+    await G1DriftSchema.markLegacyMigrationComplete(firstExecutor);
+    final firstStore = TaskStore(executor: firstExecutor);
+    final dueDate = DateTime(2026, 9, 11, 16, 0);
+    final reminderDate = DateTime(2026, 9, 9, 10, 0);
+    final followUpDate = DateTime(2026, 9, 10, 12, 30);
+    final task = Task(
+      id: 'file-due-date-independent',
+      title: 'استقلال موعد و یادآور',
+      dueDate: dueDate,
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'file-due-date-reminder',
+          title: 'یادآوری مستقل',
+          date: reminderDate,
+          sequence: 1,
+        ),
+      ],
+      followUps: <FollowUp>[
+        FollowUp(
+          id: 'file-due-date-follow-up',
+          dateTime: followUpDate,
+          note: 'پیگیری تاریخی',
+        ),
+      ],
+    );
+
+    await firstStore.save(<Task>[task]);
+    final storedDue = await firstExecutor.runSelect(
+      'SELECT due_date FROM tasks WHERE id = ?',
+      const <Object?>['file-due-date-independent'],
+    );
+    expect(storedDue.single['due_date'], dueDate.toIso8601String());
+    await firstExecutor.close();
+
+    final secondExecutor = NativeDatabase(databaseFile);
+    addTearDown(secondExecutor.close);
+    final reopened = (await TaskStore(executor: secondExecutor).load()).single;
+
+    expect(reopened.id, 'file-due-date-independent');
+    expect(reopened.dueDate, dueDate);
+    expect(reopened.taskReminders, hasLength(1));
+    expect(reopened.taskReminders.single.id, 'file-due-date-reminder');
+    expect(reopened.reminderDate, reminderDate);
+    expect(reopened.followUps, hasLength(1));
+    expect(reopened.followUps.single.id, 'file-due-date-follow-up');
+    expect(reopened.followUps.single.dateTime, followUpDate);
   });
 
   test('TaskStore stores All-Day due dates as date-only SQLite values', () async {
