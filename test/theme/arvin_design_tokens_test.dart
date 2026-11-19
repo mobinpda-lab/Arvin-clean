@@ -10,6 +10,7 @@ void main() {
     expect(ArvinButtonTokens.minimumWidth, greaterThanOrEqualTo(ArvinTouchTargets.minimum));
     expect(ArvinInputTokens.minimumHeight, greaterThanOrEqualTo(ArvinTouchTargets.minimum));
     expect(ArvinNavigationTokens.height, greaterThanOrEqualTo(ArvinTouchTargets.minimum));
+    expect(ArvinInputTokens.minimumHeight, 52);
   });
 
   test('component tokens resolve to the shared radius scale', () {
@@ -18,6 +19,9 @@ void main() {
     expect(ArvinCardTokens.radius, ArvinRadii.card);
     expect(ArvinDialogTokens.radius, ArvinRadii.dialog);
     expect(ArvinNavigationTokens.radius, ArvinRadii.navigation);
+    expect(ArvinCardTokens.elevation, 1);
+    expect(ArvinCardTokens.verticalMargin, 2);
+    expect(ArvinDialogTokens.padding, 20);
   });
 
   test('motion tokens provide fast standard and reduced-motion options', () {
@@ -25,5 +29,8 @@ void main() {
     expect(ArvinMotion.standard.inMilliseconds, lessThan(ArvinMotion.slow.inMilliseconds));
     expect(ArvinMotion.reduced, Duration.zero);
     expect(ArvinMotion.standardCurve, Curves.easeOutCubic);
+    expect(ArvinShadows.cardBlur, greaterThan(0));
+    expect(ArvinShadows.dialogBlur, greaterThan(ArvinShadows.cardBlur));
+    expect(ArvinShadows.cardOffset, const Offset(0, 2));
   });
 }
