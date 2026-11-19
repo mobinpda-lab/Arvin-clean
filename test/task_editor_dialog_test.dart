@@ -692,8 +692,7 @@ void main() {
     await tester.ensureVisible(unified);
     await tester.tap(unified);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('انتخاب تاریخ و ساعت'));
-    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('persian-date-picker')), findsOneWidget);
     await tester.tap(find.widgetWithText(FilledButton, 'انتخاب تاریخ'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
