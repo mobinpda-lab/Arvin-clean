@@ -45,9 +45,9 @@ abstract final class ArvinTypography {
 }
 
 abstract final class ArvinShadows {
-  static const double cardBlur = 8;
+  static const double cardBlur = 10;
   static const double cardSpread = 0.5;
-  static const Offset cardOffset = Offset(0, 2);
+  static const Offset cardOffset = Offset(0, 4);
   static const double dialogBlur = 24;
   static const Offset dialogOffset = Offset(0, 8);
 }
