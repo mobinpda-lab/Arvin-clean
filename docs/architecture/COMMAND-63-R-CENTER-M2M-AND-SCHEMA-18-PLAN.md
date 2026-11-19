@@ -1,7 +1,7 @@
 # COMMAND 63-R — Center / Project / Category relationship audit
 Status: **DESIGN REVIEW ONLY — NO SCHEMA CHANGE AUTHORIZED BY THIS DOCUMENT**
 Operational source: `fix/recovery-calendar-device-smoke-2026-10-31`
-Inspected code SHA: `542b719efc99c632e09ba070e40388c10a448379`
+Inspected operational PR #3052 HEAD: `a2825e003bb9e6b5c2413b0dc74b085273b6148b` (2026-11-19)
 Main remains untouched. Do not merge, deploy or run destructive migrations from this proposal.
 
 ## 1. Verified current #3052 schema facts
@@ -13,7 +13,7 @@ Main remains untouched. Do not merge, deploy or run destructive migrations from 
 - `ProjectPlan` exposes a scalar `centerId`, not a collection of Center IDs.
 - `ProjectStore.load` reads `projects.center_id`; `ProjectStore.save` transactionally deletes/rebuilds `project_items` and `projects`, then restores template application records. Any future relation tables must be included in that transaction and preserved through the save path.
 - Task category is currently a Task-level string; `taxonomy_categories` stores category names. There is no verified Project↔Category relation in this #3052 schema.
-- Home already has Center filter state, filtering logic, selected chips and a Center selector. COMMAND 63 adds the missing visible Center pill; this does not create M2M persistence.
+- Home already has Center filter state, filtering logic, selected chips and a Center selector. Draft PR #3569 adds the visible Center pill in the five-filter RTL row; it is not merged and does not create M2M persistence.
 
 ## 2. Architecture mismatch / critical warning
 The #3495 Issue #3550 description references a different schema lineage where schema 9 contains `center_projects` and `project_categories`. Those tables and assumptions are not present in the #3052 schema 17 source inspected above. Copying #3547/#3548/#3549 or the #3495 schema directly into #3052 would cross incompatible storage lineages.
@@ -54,5 +54,10 @@ Migration rules:
 - Home Center filter OR semantics and AND composition are verified with real stored relationships.
 - RTL/device screenshots and small-screen tests cover all five Home filter controls.
 
-## 6. Explicit non-claims
+## 6. Current PR / issue linkage
+- Issue #3550 remains OPEN / IN PROGRESS; the visible Home filter is being addressed in draft PR #3569.
+- PR #3569 is UI/filter integration only. It does not add `center_projects`, `project_categories`, or `task_centers` tables and does not satisfy the M2M acceptance gate.
+- PR #3574 and #3575 address Person-directory deletion/backup semantics; they do not change Center/Project/Category relationships.
+
+## 7. Explicit non-claims
 This document is a source-backed design proposal only. No schema v18 code, relation table, production data migration, backup format change, M2M UI or physical-device acceptance has been implemented by this document.
