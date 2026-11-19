@@ -84,14 +84,43 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      final oldRows = await executor.runSelect('SELECT id, created_at, updated_at FROM persons', const []);
-      final oldById = <String, Map<String, Object?>>{
-        for (final row in oldRows) row['id'] as String: row,
-      };
-      await executor.runCustom('BEGIN');
+      await executor.runCustom('BEGIN IMMEDIATE');
       try {
-        await executor.runCustom('DELETE FROM person_directory');
+        final oldRows = await executor.runSelect(
+          'SELECT id, created_at, updated_at FROM persons',
+          const [],
+        );
+        final oldById = <String, Map<String, Object?>>{
+          for (final row in oldRows) row['id'] as String: row,
+        };
+        final oldDirectoryRows = await executor.runSelect(
+          'SELECT person_id FROM person_directory',
+          const [],
+        );
+        final oldDirectoryIds = oldDirectoryRows
+            .map((row) => row['person_id'] as String)
+            .toSet();
+        final incomingIds = normalized.keys.toSet();
+        final removedIds = oldDirectoryIds.difference(incomingIds);
         final now = DateTime.now().toIso8601String();
+
+        // Persist explicit removals before replacing active membership. The
+        // tombstone has no FK so it survives independently of the Person row.
+        for (final personId in removedIds) {
+          await executor.runInsert(
+            '''INSERT OR REPLACE INTO person_directory_exclusions
+               (person_id, excluded_at) VALUES (?, ?)''',
+            <Object?>[personId, now],
+          );
+        }
+        for (final personId in incomingIds) {
+          await executor.runCustom(
+            'DELETE FROM person_directory_exclusions WHERE person_id = ?',
+            <Object?>[personId],
+          );
+        }
+
+        await executor.runCustom('DELETE FROM person_directory');
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
@@ -955,7 +984,11 @@ class TaskStore {
         // Seed directory membership only when this is a genuinely new Person.
         // A stale Task snapshot must not silently re-add someone whose active
         // directory membership was removed after that snapshot was loaded.
-        if (existingPerson.isEmpty) {
+        final exclusion = await executor.runSelect(
+          'SELECT person_id FROM person_directory_exclusions WHERE person_id = ?',
+          <Object?>[person.id],
+        );
+        if (existingPerson.isEmpty && exclusion.isEmpty) {
           await executor.runInsert(
             'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
             <Object?>[person.id],
