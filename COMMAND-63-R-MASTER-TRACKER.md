@@ -300,10 +300,31 @@ These are implementation/test changes, NOT accepted fixes yet. They must pass th
 
 ### 10.6 Shared schema conflict
 
-PR #3570 already contains a separate _dropLegacyTaskReminderFlag implementation in g1_drift_schema.dart. The operational branch now has a more defensive version with stable-ID validation and full row/unknown-column/NULL parity checks. Do not combine both methods or integrate the schema file wholesale. Reconcile the single migration path during controlled integration. PR #3570's larger v19/v20 migration remains blocked pending complete version-by-version and file-backed migration evidence.
+PR #3570 already contains a separate _dropLegacyTaskReminderFlag implementation in g1_drift_schema.dart. The operational branch now has a more defensive version with stable-ID validation and full row/unknown-column/NULL parity checks. Do not combine both methods or integrate the schema file wholesale. Reconcile the single migration path during controlled integration. PR #3570's inspected branch is schema version 17, not v19/v20. Its code includes a legacy reminder-flag retirement and its Occurrence/Checklist test uses file-backed NativeDatabase with three installs, close/reopen, unknown nested fields, explicit NULL, integrity_check and foreign_key_check. A separate Library engineering draft references v19/v20, but that migration chain was not found in PR #3570 and is NOT VERIFIED or accepted.
 
 ### 10.7 Current validation status for the new changes
 
 At the last lookup, the latest operational candidate was 0535e78ff6f271086c259fadcfd088d52efcf79b. Its Build run 44504242136 was PENDING with no jobs returned; Calendar Provider 44504241833 QUEUED; Follow-up Persistence 44504241878 QUEUED; Device Smoke 44504241926 PENDING; Draft Review APK 44504241933 QUEUED. No new test fix is accepted until the exact latest candidate has completed validation.
 
 **Release remains NO-GO.**
+
+
+## 11. Persistence / Backup evidence refinement — 2026-11-19
+
+### PR #3570 — actual schema scope
+- The inspected PR #3570 branch declares G1DriftSchema.version = 17. It is not a v19/v20 schema implementation.
+- Its command63_occurrence_checklist_persistence_test.dart creates a real temporary SQLite file, performs three schema installs, closes/reopens with a fresh executor, checks full Task JSON parity, nested unknown Occurrence state, explicit NULL fields, integrity_check and foreign_key_check.
+- The PR #3570 schema includes a separate _dropLegacyTaskReminderFlag helper using SQLite 3.35+ DROP COLUMN. The operational branch's current implementation adds stable-ID validation and before/after parity over all remaining columns and values. Keep one reconciled implementation only.
+- No DROP TABLE statement was found in the inspected PR #3570 g1_drift_schema.dart. Its current branch is version 17. Do not label it v19/v20.
+- The Library COMMAND 28 draft mentions v19/v20 in a separate historical context, but no matching v19/v20 implementation was verified in the current PR set. That historical chain remains unaccepted until its actual source and migration evidence are located.
+
+### PR #3574 / #3575 — Person and Backup/Restore evidence
+- PR #3574's person_directory_exclusion_migration_test.dart uses a file-backed SQLite database, closes/reopens it, checks retained Person identity, Task and Follow-up links, exclusion tombstone behavior, explicit re-add and database integrity.
+- PR #3575's person_directory_exclusion_backup_test.dart uses separate file-backed source and target SQLite databases and validates the backup document, reconciliation, restore of exclusions, historical relations, integrity_check and foreign_key_check.
+- These are meaningful file-backed database tests. However, the backup service itself is faked in the round-trip test; the test does not perform an actual Android Storage Access Framework file write/read. Android device-level backup/restore remains NOT VERIFIED.
+- canonical_backup_manager_test.dart and home_restore_orchestration_test.dart also use fake backup services for orchestration and rollback; they do not replace an actual file IO/device acceptance test.
+
+### Remaining unknown-field risk
+- The current TaskReminder model's JSON serialization contains only declared fields and has no opaque unknown-field envelope. TaskStore's reminder relation mapping likewise serializes the known SQL columns. The schema migration above preserves unknown SQL columns and explicit NULL during that migration, but this does not prove arbitrary unknown TaskReminder JSON fields survive a later load/save cycle.
+- Do not claim complete unknown-field preservation for TaskReminder until a canonical opaque-payload contract and a round-trip test are added. This is a data-contract issue requiring controlled design, not a reason to drop unknown data.
+
