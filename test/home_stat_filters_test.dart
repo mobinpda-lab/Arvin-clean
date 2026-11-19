@@ -365,4 +365,19 @@ void main() {
     expect(find.text('فقط تمرکز آینده'), findsNothing);
   });
 
+  testWidgets('Home Center filter opens the canonical selector', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
+    expect(centerFilter, findsOneWidget);
+    await tester.ensureVisible(centerFilter);
+    await tester.tap(centerFilter);
+    await tester.pumpAndSettle();
+
+    expect(find.text('انتخاب مرکز'), findsOneWidget);
+    expect(find.text('پروژه‌های بدون مرکز'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }
