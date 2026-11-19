@@ -49,7 +49,7 @@ void main() {
 
   test('creates the complete G1 relational schema', () async {
     await G1DriftSchema.install(database);
-    expect(G1DriftSchema.version, 17);
+    expect(G1DriftSchema.version, 18);
 
     final tables = await database.runSelect(
       "SELECT name FROM sqlite_master "
@@ -107,6 +107,7 @@ void main() {
         'occurrence_checklist_items',
         'task_recurrence_rules',
         'task_persons',
+        'person_directory_exclusions',
       ]),
     );
 
