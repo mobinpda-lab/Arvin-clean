@@ -365,7 +365,7 @@ Child PR Build failures include the same inherited broad product/test failures a
 ### 12.4 Source-diff findings requiring correction before acceptance
 - #3567: the new token file defines card shadow blur=8 and offset=(0,2), while the existing theme-token test still asserts blur=10 and offset=(0,4); the newly added design-token test separately asserts offset=(0,2). This is an internal token/test contradiction. Preserve the existing visual contract unless a new owner-approved shadow value is documented; reconcile code and tests without deleting assertions.
 - #3569: grouping service supports Time/Projects/Categories/Tags, but the inspected app wiring still selects Time only. A user-facing grouping-mode selector and persisted/accessible selection are not evidenced; four-mode grouping is not accepted.
-- #3571: adding `showLabel: true` to Quick Capture roll boxes addresses missing labels. However, its test patch changes the expected number of visible selected-time matches from 2 to 1. This is a potentially weaker assertion and is NOT ACCEPTED until the intended independent due-date/reminder presentation is explicitly verified.
+- #3571: adding `showLabel: true` to Quick Capture roll boxes addresses missing labels. The time test expects one visible due-time value before a reminder is selected, then selects 15 minutes before and verifies the independent 14:20 reminder value. This matches the due-date/reminder independence contract and is not a weakened assertion. It remains UI-level evidence only; persistence still needs separate validation.
 - #3572: the page adds a Task Details section heading and scrolls tests to off-screen content. This is a narrow presentation improvement, not the complete Task Details contract; Universal Bottom Sheet, attachments and Notebook linkage remain absent in the inspected PR.
 - #3570: its `_dropLegacyTaskReminderFlag` uses SQLite 3.35+ DROP COLUMN. Reconcile with the operational branch's more defensive stable-ID and row-parity migration; do not combine two independent implementations or silently assume every supported Android SQLite version meets 3.35.
 - #3574/#3575: retain the explicit dependency and file-overlap controls recorded above. Their fake backup-service tests do not prove Android SAF file IO.
@@ -390,3 +390,7 @@ PR #3567 was source-reviewed and an internal contradiction was confirmed: its ne
 - Exact-head Build #11810 is PENDING; Device Smoke #8969 is PENDING; Follow-up Persistence #2892 is QUEUED. The correction is NOT ACCEPTED until focused and six-shard tests pass on this exact head and the branch is reconciled against the current operational head.
 
 This was a minimal token/test consistency correction on the child PR branch only. No Main or operational code was changed by this correction; no PR was merged.
+
+
+### 13.1 Quick Capture assertion review
+PR #3571's change from two visible 14:35 labels to one is consistent with the product contract: a due-time value must not be mirrored as a reminder when no reminder has been selected. The same test then selects the 15-minute preset and expects 14:20. This is a correct UI-level distinction, not a test weakening. It does not prove persisted reminder data and remains subject to exact-head CI/device validation.
