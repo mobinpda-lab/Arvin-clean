@@ -212,7 +212,7 @@ Remaining font acceptance: runtime rendering on Android, Persian/Arabic shaping,
 ## 6. Design and architecture reconciliation
 
 - The current Task Details specification found in docs/project-continuity/task_detail_ui_ux_spec.md describes an older explicit display/edit-mode flow. COMMAND 63-R's newer three-pattern interaction model and Universal Bottom Sheet supersede conflicting portions. Do not treat the old spec as final acceptance.
-- PR #3567 establishes Persian Teal (#0F766E) tokens. The older decision register contains competing historical palette entries. Its colors must be checked against the actual REV10 authority before acceptance; no color decision is inferred from an older note.
+- PR #3567's theme branch uses the owner-approved REV10 palette: Primary #078B91, Dark/Header #066F75, Soft #DDF7F5, Background #F0FAF9, Border #D9ECEA. Its palette is aligned; token/component coverage remains partial.
 - Current continuity documents describe earlier REV8/REV9-era states. Their migration and design notes remain historical evidence; COMMAND 63-R governs the current mission.
 - The Local P2P specification already defines a Phase 1 draft: same local network, authenticated encrypted transport, QR/PIN pairing, bidirectional resumable exchange, idempotent apply and explicit trust revocation. The document explicitly says implementation is NOT VERIFIED. Cloud/Dropbox is deferred Phase 2.
 - Legacy follow-up scheduling columns and migration retirement remain a data-safety risk. No destructive DDL or schema retirement is accepted without real database inspection, backup, parity, rollback and readback evidence.
@@ -253,3 +253,57 @@ Remaining font acceptance: runtime rendering on Android, Persian/Arabic shaping,
 ## 9. Immutable release gate
 
 **RELEASE = NO-GO** until every required acceptance criterion passes on one exact candidate SHA, data safety and device evidence are complete, the Master Tracker is current, and the product owner explicitly accepts the candidate. This tracker does not grant merge, release or deployment permission.
+
+
+## 10. REV10 continuity and additional UI PR audit — 2026-11-19
+
+The Library search found the COMMAND 28 REV10 Migration Engineering Draft, explicitly marked NOT REV10-approved. It states that the full authoritative REV10 governance package and 14 November addendum were not present in that archive. The repository also contains older REV8/REV9-era documents. Therefore the exact owner-approved constraints recovered from prior product discussions are recorded here, but no claim is made that the complete REV10 package has been located:
+- Brand palette: Primary #078B91; Dark/Header #066F75; Soft #DDF7F5; Background #F0FAF9; Border #D9ECEA.
+- Home: five visible RTL filters including Center; four grouping modes: Time, Projects, Categories, Tags.
+- Task Details: single-column focus, actionable rows and quick presets; shared Universal Bottom Sheet; Jalali date/time; checklist, reminders, recurrence, Center, Project, Category, Tags, people follow-up, attachments and Notebook note.
+- Vazirmatn is the only official font under the current owner instruction.
+
+### 10.1 Additional UI PRs
+
+| PR | Head SHA | Scope | Current assessment |
+|---|---|---|---|
+| #3569 Home grouping / five filters | 19a657503bd7b1a28576a5a0676a0a48af7ffa34 | Home grouping service, filter UI and tests | PARTIAL |
+| #3572 Task Details | be9248d77348421bd044e2480634e804f5782aba | Task Details and history tests | PARTIAL |
+
+Branch comparison against the current operational branch reports #3567, #3569 and #3572 as DIVERGED, with each child branch 13 commits behind the operational branch at the comparison checkpoint. Rebase/port and compare diffs before integration; do not merge these branches directly.
+
+### 10.2 Design System PR #3567
+
+The actual theme constants in #3567 match the approved palette above. Its current tokens cover spacing, radius, motion, touch targets, typography, shadows, buttons, inputs, cards, navigation and dialogs. The PR does not yet establish the full requested shared component set: Universal Bottom Sheet, Action Rows, Empty/Loading/Error States and complete RTL component coverage remain open.
+
+### 10.3 Home PR #3569
+
+The branch provides a HomeGroupingService for Time, Projects, Categories and Tags and a five-filter row including Center with visible labels. However, its main.dart still invokes HomeGroupMode.time only; no user-facing mode selector was found for Projects, Categories and Tags. Therefore the four-mode Home grouping experience is NOT COMPLETE. The Home test on the operational branch had stale plural labels; it has been updated to assert the five actual REV10 filter controls and their singular labels. This test change is not yet validated by a fresh completed CI run.
+
+### 10.4 Task Details PR #3572 and operational page
+
+PR #3572 is not a complete REV10 Task Details implementation. Its inspected branch has no Universal Bottom Sheet, no TaskReminder section, no attachments and no Notebook integration. The operational branch's current Task Details includes reminders, recurrence, Center, Project, Category, Tags, checklist and Follow-up, but the inspected file still has no shared Universal Bottom Sheet, no attachment section and no Notebook note connection. These remain product gaps.
+
+### 10.5 New test/storage corrections on the operational branch
+
+The following source-grounded corrections were committed on the authorized operational branch after the original a2825e0 audit:
+- Replaced stale source-boundary anchors in canonical_home_boundary_test.dart and calendar_explicit_export_contract_test.dart with method-body extraction; this preserves the original outbound-sync assertions and prevents RangeError from an obsolete method name.
+- Updated canonical_calendar_launcher_test.dart to exercise the actual Task Details inline auto-save title field instead of a non-existent edit-mode toggle; it also verifies the same Task ID is retained.
+- Updated home_wave2_editor_wiring_guard_test.dart to account for the additional Task Details Project callback and explicitly assert that callback wiring.
+- Updated task_contract_test.dart and task_editor_due_date_preservation_test.dart to construct canonical TaskReminder rows rather than using the deprecated constructor-only reminderDate input.
+- Added an idempotent, transactional task_reminders migration that retires the obsolete is_legacy_task_reminder SQL column only when legacy rows have the canonical stable ID. It compares the complete row payload before/after, including unknown columns and explicit NULL values, and verifies the remaining schema columns.
+- Strengthened task_store_reminder_persistence_test.dart to verify unknown payload, explicit NULL, stable reminder identity and TaskStore readback.
+- Updated task_editor_dialog_test.dart to match ArvinTagRollBox's immediate onChanged selection contract; it no longer looks for a nonexistent Apply button.
+- Updated widget_test.dart to assert the five REV10 Home filters including Center and their visible labels.
+
+These are implementation/test changes, NOT accepted fixes yet. They must pass the focused tests and all six shards on one exact SHA before any failure is marked resolved.
+
+### 10.6 Shared schema conflict
+
+PR #3570 already contains a separate _dropLegacyTaskReminderFlag implementation in g1_drift_schema.dart. The operational branch now has a more defensive version with stable-ID validation and full row/unknown-column/NULL parity checks. Do not combine both methods or integrate the schema file wholesale. Reconcile the single migration path during controlled integration. PR #3570's larger v19/v20 migration remains blocked pending complete version-by-version and file-backed migration evidence.
+
+### 10.7 Current validation status for the new changes
+
+At the last lookup, the latest operational candidate was 0535e78ff6f271086c259fadcfd088d52efcf79b. Its Build run 44504242136 was PENDING with no jobs returned; Calendar Provider 44504241833 QUEUED; Follow-up Persistence 44504241878 QUEUED; Device Smoke 44504241926 PENDING; Draft Review APK 44504241933 QUEUED. No new test fix is accepted until the exact latest candidate has completed validation.
+
+**Release remains NO-GO.**
