@@ -29,10 +29,11 @@ void main() {
   });
   test('normal Task save, capture, edit and completion contain no outbound sync', () {
     final main = File('lib/main.dart').readAsStringSync();
-    final save = main.substring(
-      main.indexOf('Future<void> _save()'),
-      main.indexOf('DateTime? _homeLastFollowUpDate'),
-    );
+    final saveStart = main.indexOf('Future<void> _save()');
+    final saveEnd = main.indexOf('String? _projectTitleForTask', saveStart);
+    expect(saveStart, greaterThanOrEqualTo(0));
+    expect(saveEnd, greaterThan(saveStart));
+    final save = main.substring(saveStart, saveEnd);
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('calendarOutboundSyncService')));
     expect(main, isNot(contains('_syncCalendarAfterTaskMutation')));
