@@ -28,8 +28,15 @@ void main() {
     await tester.ensureVisible(categoryFilter);
     await tester.tap(categoryFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-شخصی')));
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-کاری')));
+    final personalOption = find.byKey(const ValueKey('multi-select-option-شخصی'));
+    await tester.ensureVisible(personalOption);
+    await tester.pumpAndSettle();
+    await tester.tap(personalOption);
+
+    final workOption = find.byKey(const ValueKey('multi-select-option-کاری'));
+    await tester.ensureVisible(workOption);
+    await tester.pumpAndSettle();
+    await tester.tap(workOption);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
@@ -37,8 +44,15 @@ void main() {
     await tester.ensureVisible(tagFilter);
     await tester.tap(tagFilter);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-خانه')));
-    await tester.tap(find.byKey(const ValueKey('multi-select-option-اداری')));
+    final homeTagOption = find.byKey(const ValueKey('multi-select-option-خانه'));
+    await tester.ensureVisible(homeTagOption);
+    await tester.pumpAndSettle();
+    await tester.tap(homeTagOption);
+
+    final officeTagOption = find.byKey(const ValueKey('multi-select-option-اداری'));
+    await tester.ensureVisible(officeTagOption);
+    await tester.pumpAndSettle();
+    await tester.tap(officeTagOption);
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
 
