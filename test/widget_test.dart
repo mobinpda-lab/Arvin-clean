@@ -40,7 +40,8 @@ void main() {
 
     expect(find.byType(TextField), findsOneWidget);
     expect(find.byIcon(Icons.add), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
+    expect(find.byKey(const ValueKey('home-notifications')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-drawer-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
@@ -99,8 +100,10 @@ void main() {
     expect(find.text('هنوز کاری برای نمایش نیست'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
   });
 }
