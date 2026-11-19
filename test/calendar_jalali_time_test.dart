@@ -23,6 +23,6 @@ void main() {
     expect(find.text('مرداد ۱۴۰۵'), findsOneWidget);
     expect(find.textContaining('۰۹:۳۰'), findsOneWidget);
     expect(find.text('تماس با مشتری'), findsOneWidget);
-    expect(find.text('تقویم پیگیری'), findsOneWidget);
+    expect(find.byKey(const ValueKey('calendar-sacred-header')), findsOneWidget);
   });
 }

@@ -22,10 +22,10 @@ void main() {
 
   test('revision fingerprint is stable and changes with event payload', () async {
     final service = CalendarSyncRevisionService();
-    final first = await service.fromReminder(reminder(id: 'followup:t1:f1'));
-    final same = await service.fromReminder(reminder(id: 'followup:t1:f1'));
+    final first = await service.fromReminder(reminder(id: 'task-due:t1:f1'));
+    final same = await service.fromReminder(reminder(id: 'task-due:t1:f1'));
     final changed = await service.fromReminder(
-      reminder(id: 'followup:t1:f1', title: 'پیگیری تغییر یافته'),
+      reminder(id: 'task-due:t1:f1', title: 'پیگیری تغییر یافته'),
     );
 
     expect(first.fingerprint, same.fingerprint);
@@ -36,7 +36,7 @@ void main() {
   test('all-day revision ends at next local day', () async {
     final revision = await CalendarSyncRevisionService().fromReminder(
       reminder(
-        id: 'followup:t1:f2',
+        id: 'task-due:t1:f2',
         date: DateTime(2026, 8, 27),
         allDay: true,
       ),
@@ -46,7 +46,7 @@ void main() {
     expect(revision.end, DateTime(2026, 8, 28));
   });
 
-  test('rejects official/non-followup and completed reminders', () async {
+  test('rejects official/non-Task and completed reminders', () async {
     final service = CalendarSyncRevisionService();
 
     await expectLater(
@@ -55,7 +55,7 @@ void main() {
     );
     await expectLater(
       service.fromReminder(
-        reminder(id: 'followup:t1:f1', completed: true),
+        reminder(id: 'task-due:t1:f1', completed: true),
       ),
       throwsA(isA<ArgumentError>()),
     );
@@ -64,29 +64,29 @@ void main() {
   test('planner emits create no-op update and delete deterministically',
       () async {
     final revisions = CalendarSyncRevisionService();
-    final create = await revisions.fromReminder(reminder(id: 'followup:t:c'));
-    final stable = await revisions.fromReminder(reminder(id: 'followup:t:n'));
+    final create = await revisions.fromReminder(reminder(id: 'task-due:t:c'));
+    final stable = await revisions.fromReminder(reminder(id: 'task-due:t:n'));
     final update = await revisions.fromReminder(
-      reminder(id: 'followup:t:u', title: 'نسخه جدید'),
+      reminder(id: 'task-due:t:u', title: 'نسخه جدید'),
     );
 
     final plan = const CalendarSyncPlanService().plan(
       revisions: <CalendarSyncRevision>[create, stable, update],
       links: <ExternalCalendarEventLink>[
         ExternalCalendarEventLink(
-          reminderId: 'followup:t:d',
+          reminderId: 'task-due:t:d',
           calendarId: 'google-account-calendar',
           eventId: 'event-d',
           lastSyncedFingerprint: 'old-d',
         ),
         ExternalCalendarEventLink(
-          reminderId: 'followup:t:n',
+          reminderId: 'task-due:t:n',
           calendarId: 'google-account-calendar',
           eventId: 'event-n',
           lastSyncedFingerprint: stable.fingerprint,
         ),
         ExternalCalendarEventLink(
-          reminderId: 'followup:t:u',
+          reminderId: 'task-due:t:u',
           calendarId: 'google-account-calendar',
           eventId: 'event-u',
           lastSyncedFingerprint: 'old-u',
@@ -97,10 +97,10 @@ void main() {
     expect(
       plan.items.map((item) => item.reminderId),
       <String>[
-        'followup:t:c',
-        'followup:t:d',
-        'followup:t:n',
-        'followup:t:u',
+        'task-due:t:c',
+        'task-due:t:d',
+        'task-due:t:n',
+        'task-due:t:u',
       ],
     );
     expect(plan.count(CalendarSyncAction.create), 1);
@@ -111,7 +111,7 @@ void main() {
 
   test('planner migrates when target calendar changes without content change', () async {
     final revision = await CalendarSyncRevisionService().fromReminder(
-      reminder(id: 'followup:t:destination'),
+      reminder(id: 'task-due:t:destination'),
     );
     final link = ExternalCalendarEventLink(
       reminderId: revision.reminderId,
@@ -132,7 +132,7 @@ void main() {
 
   test('planner rejects duplicate revisions and duplicate links', () async {
     final revision = await CalendarSyncRevisionService().fromReminder(
-      reminder(id: 'followup:t:dup'),
+      reminder(id: 'task-due:t:dup'),
     );
     final link = ExternalCalendarEventLink(
       reminderId: revision.reminderId,

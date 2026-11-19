@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('Home primary add action is compact circular indigo plus',
-      (tester) async {
+  testWidgets('Home primary add action follows the active theme', (tester) async {
     var pressed = false;
     await tester.pumpWidget(
       MaterialApp(
+        theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF3A86EF))),
         home: Scaffold(
           floatingActionButton: ArvinHomePrimaryAddButton(
             onPressed: () => pressed = true,
@@ -23,7 +23,7 @@ void main() {
     final fab = tester.widget<FloatingActionButton>(
       find.byKey(const ValueKey('home-primary-add')),
     );
-    expect(fab.backgroundColor, ArvinHomePrimaryAddButton.brandColor);
+    expect(fab.backgroundColor, Theme.of(tester.element(find.byKey(const ValueKey('home-primary-add')))).colorScheme.primary);
     expect(fab.foregroundColor, Colors.white);
 
     await tester.tap(find.byKey(const ValueKey('home-primary-add')));

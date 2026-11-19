@@ -76,8 +76,8 @@ class TaskNextActionService {
   DateTime? _dueAt(Task task) {
     final candidates = <DateTime>[];
 
-    if (task.reminderDate != null) {
-      candidates.add(task.reminderDate!);
+    for (final reminder in task.taskReminders) {
+      if (reminder.isEnabled) candidates.add(reminder.date);
     }
 
     if (candidates.isEmpty) return null;

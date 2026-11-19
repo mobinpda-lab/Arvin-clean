@@ -13,6 +13,7 @@ class TaskEditApplyService {
     target.title = edited.title;
     target.description = edited.description;
     target.dueDate = edited.dueDate;
+    target.centerId = edited.centerId;
     target.allDay = edited.allDay;
     target.tags = List<String>.of(edited.tags);
     target.category = edited.category;
@@ -20,7 +21,6 @@ class TaskEditApplyService {
     target.checklistEnabled = edited.checklistEnabled;
     // Per-occurrence checklist ticks belong to the existing canonical Task;
     // editing the template must not reset prior occurrence state.
-    target.reminderDate = edited.reminderDate;
     target.taskReminders = List<TaskReminder>.of(edited.taskReminders);
     target.nextReminderSequence = edited.nextReminderSequence;
     target.legacyTaskReminderMigrationVersion =

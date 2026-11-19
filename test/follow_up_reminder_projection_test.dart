@@ -25,11 +25,10 @@ void main() {
     expect(projection.pending([task], now: now), isEmpty);
   });
 
-  test('only independent TaskReminder records enter the projection', () {
+  test('canonical TaskReminder records project while historical Follow-up schedules do not', () {
     final task = Task(
       id: 'task-1',
       title: 'کار',
-      reminderDate: now.add(const Duration(hours: 1)),
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -42,20 +41,23 @@ void main() {
           id: 'r1',
           title: 'یادآور معتبر',
           date: now.add(const Duration(hours: 3)),
-          sequence: 1,
+          sequence: 2,
         ),
       ],
     );
 
     final result = projection.pending([task], now: now);
     expect(result, hasLength(1));
-    expect(result.single.stableKey, 'task:task-1:reminder:r1');
-    expect(result.single.isTaskReminder, isTrue);
-    expect(result.single.scheduledAt, now.add(const Duration(hours: 3)));
+    final byKey = {for (final item in result) item.stableKey: item};
+    expect(byKey.keys, contains('task:task-1:reminder:r1'));
+    expect(byKey.containsKey('task:task-1'), isFalse);
+    expect(byKey['task:task-1:reminder:r1']!.taskReminderId, 'r1');
+    expect(byKey['task:task-1:reminder:r1']!.scheduledAt,
+        now.add(const Duration(hours: 3)));
   });
 
   test('legacy Task reminder enters only through the approved decode migration', () {
-    final decoded = Task.fromJson({
+    final decoded = Task.fromLegacyJson({
       'id': 'legacy-task',
       'title': 'کار قدیمی',
       'reminderDate': '2026-08-28T17:00:00.000',
@@ -86,6 +88,37 @@ void main() {
       Task(id: 'trashed', title: 'حذف‌شده', trashed: true, taskReminders: [TaskReminder(id: 'c', title: 'c', date: at, sequence: 1)]),
     ];
     expect(projection.pending(tasks, now: now), isEmpty);
+  });
+
+  test('disabled reminders never become scheduling candidates, including mixed sets', () {
+    final at = now.add(const Duration(hours: 1));
+    final task = Task(
+      id: 'mixed-enabled',
+      title: 'ترکیبی',
+      taskReminders: [
+        TaskReminder(id: 'off', title: 'خاموش', date: at, sequence: 1, isEnabled: false),
+        TaskReminder(id: 'on', title: 'روشن', date: at.add(const Duration(minutes: 1)), sequence: 2),
+      ],
+    );
+
+    final result = projection.pending([task], now: now);
+    expect(result.map((candidate) => candidate.taskReminderId), ['on']);
+  });
+
+  test('disabled reminders remain excluded after Task JSON persistence round-trip', () {
+    final task = Task(
+      id: 'disabled-round-trip',
+      title: 'یادآور خاموش',
+      taskReminders: [
+        TaskReminder(
+          id: 'off', title: 'خاموش', date: now.add(const Duration(hours: 1)),
+          sequence: 1, isEnabled: false,
+        ),
+      ],
+    );
+    final restored = Task.fromJson(task.toJson());
+    expect(restored.taskReminders.single.isEnabled, isFalse);
+    expect(projection.pending([restored], now: now), isEmpty);
   });
 
   test('sorts independent reminders deterministically and uses 9 AM for all-day', () {

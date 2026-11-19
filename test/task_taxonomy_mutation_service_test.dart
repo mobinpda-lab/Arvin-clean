@@ -17,7 +17,15 @@ void main() {
         category: category,
         tags: List<String>.of(tags),
         dueDate: DateTime(2026, 8, 30, 9),
-        reminderDate: DateTime(2026, 8, 29, 9),
+        taskReminders: [
+          TaskReminder(
+            id: 'reminder-$id',
+            title: 'یادآور $id',
+            date: DateTime(2026, 8, 29, 9),
+            sequence: 1,
+          ),
+        ],
+        nextReminderSequence: 2,
         followUps: [
           FollowUp(id: 'fu-$id', dateTime: DateTime(2026, 8, 28, 12)),
         ],
@@ -129,4 +137,36 @@ void main() {
     expect(tasks.single.category, 'فروش');
     expect(tasks.single.tags, ['مهم']);
   });
+  test('archived Task with Follow-up history still blocks category and tag deletion', () {
+    final archived = Task(
+      id: 'archived-reference',
+      title: 'کار بایگانی‌شده',
+      category: 'دسته بایگانی',
+      tags: const ['برچسب بایگانی'],
+      completed: true,
+      archived: true,
+      followUps: [
+        FollowUp(
+          id: 'archived-follow-up',
+          dateTime: DateTime(2026, 8, 27, 10),
+          note: 'سابقه باید حفظ شود',
+        ),
+      ],
+    );
+    final tasks = <Task>[archived];
+
+    expect(
+      () => service.deleteCategory(tasks, 'دسته بایگانی'),
+      throwsA(isA<TaskTaxonomyDeleteBlocked>()),
+    );
+    expect(
+      () => service.deleteTag(tasks, 'برچسب بایگانی'),
+      throwsA(isA<TaskTaxonomyDeleteBlocked>()),
+    );
+    expect(archived.archived, isTrue);
+    expect(archived.category, 'دسته بایگانی');
+    expect(archived.tags, ['برچسب بایگانی']);
+    expect(archived.followUps.single.id, 'archived-follow-up');
+  });
+
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
+
 enum ArvinPrimaryDestination {
   home,
   calendar,
   notebook,
   reports,
-  nextAction,
   more,
 }
 
@@ -21,9 +22,19 @@ class ArvinPrimaryNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final primary = const Color(0xFF4A4CAB);
-    const background = Color(0xFFFDFDFE);
-    const muted = Color(0xFF80829C);
+    final primary = Theme.of(context).colorScheme.primary;
+    const background = ArvinColors.surface;
+    const muted = ArvinColors.textSecondary;
+    final selectedSurface = Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFFD9F0EE)
+        : ArvinColors.primarySoft;
+    const iconColors = <ArvinPrimaryDestination, Color>{
+      ArvinPrimaryDestination.home: Color(0xFF0F766E),
+      ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
+      ArvinPrimaryDestination.notebook: Color(0xFFC76B16),
+      ArvinPrimaryDestination.reports: Color(0xFF8E6CCF),
+      ArvinPrimaryDestination.more: Color(0xFF219EBC),
+    };
 
     const destinations = [
       (
@@ -62,7 +73,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
       decoration: const BoxDecoration(
         color: background,
         border: Border(
-          top: BorderSide(color: Color(0xFFE7E7F0), width: 1),
+          top: BorderSide(color: ArvinColors.border, width: 1),
         ),
       ),
       child: SafeArea(
@@ -86,6 +97,8 @@ class ArvinPrimaryNavigation extends StatelessWidget {
                     label: destination.$4,
                     primary: primary,
                     muted: muted,
+                    selectedSurface: selectedSurface,
+                    iconColor: iconColors[destination.$1]!,
                     onTap: () => onSelected(destination.$1),
                   ),
                 ),
@@ -105,6 +118,8 @@ class _NavigationItem extends StatelessWidget {
     required this.label,
     required this.primary,
     required this.muted,
+    required this.selectedSurface,
+    required this.iconColor,
     required this.onTap,
   });
 
@@ -113,6 +128,8 @@ class _NavigationItem extends StatelessWidget {
   final String label;
   final Color primary;
   final Color muted;
+  final Color selectedSurface;
+  final Color iconColor;
   final VoidCallback onTap;
 
   @override
@@ -123,12 +140,12 @@ class _NavigationItem extends StatelessWidget {
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
+          duration: const Duration(milliseconds: 250),
           curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
           decoration: BoxDecoration(
-            color: selected ? const Color(0xFFE9EAFF) : Colors.transparent,
+            color: selected ? selectedSurface : Colors.transparent,
             borderRadius: BorderRadius.circular(18),
           ),
           child: Column(
@@ -137,7 +154,7 @@ class _NavigationItem extends StatelessWidget {
               Icon(
                 icon,
                 size: 22,
-                color: selected ? primary : muted,
+                color: iconColor,
               ),
               const SizedBox(height: 2),
               Text(

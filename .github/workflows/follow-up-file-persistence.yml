@@ -43,37 +43,15 @@ jobs:
           test "$actual" = "$TARGET_SHA"
           echo "EXACT_TARGET_SHA=$actual"
 
-      - name: Cache pinned VazirHarf
-        uses: actions/cache@v5
-        with:
-          path: ${{ runner.temp }}/vazirharf
-          key: arvin-vazirharf-${{ runner.os }}-3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-
-      - name: Fetch pinned VazirHarf on cache miss
-        run: |
-          set -euo pipefail
-          if [ ! -d "$RUNNER_TEMP/vazirharf/.git" ]; then
-            git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-            git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-            git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          fi
-          test "$(git -C "$RUNNER_TEMP/vazirharf" rev-parse HEAD)" = "3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-
-      - name: Restore pinned font assets required by Flutter test asset bundling
-        run: |
-          set -euo pipefail
-          mkdir -p assets/fonts
-          rm -rf assets/fonts/vazirharf
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
-          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
-
       - name: Install Flutter Stable
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
-          cache: true
+          cache: false
+      - name: Install Linux SQLite development library
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -qq && sudo apt-get install -y libsqlite3-dev
 
       - name: Verify Flutter version and revision
         run: |
@@ -85,9 +63,9 @@ jobs:
         uses: actions/cache@v5
         with:
           path: ~/.pub-cache
-          key: arvin-follow-up-pub-${{ runner.os }}-${{ hashFiles('pubspec.lock') }}
+          key: arvin-follow-up-pub-v2-${{ runner.os }}-${{ hashFiles('pubspec.lock', 'pubspec.yaml') }}
           restore-keys: |
-            arvin-follow-up-pub-${{ runner.os }}-
+            arvin-follow-up-pub-v2-${{ runner.os }}-
 
       - name: Resolve locked dependencies
         run: |
@@ -95,5 +73,8 @@ jobs:
           flutter pub get --enforce-lockfile
           git diff --exit-code -- pubspec.lock
 
-      - name: Run only the file-backed Repository test
+      - name: Run file-backed Repository persistence test
         run: flutter test test/follow_up_repository_file_persistence_test.dart
+
+      - name: Run alarm overlay SQLite close-and-reopen diagnostic test
+        run: flutter test --reporter expanded test/alarm_overlay_file_persistence_test.dart

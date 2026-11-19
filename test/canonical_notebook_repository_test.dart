@@ -99,7 +99,7 @@ void main() {
     expect(all.single.tags, ['مهم', 'قرارداد']);
     expect(converted.title, note.title);
     expect(all.single.followUpEnabled, isFalse);
-    expect(all.single.followUpDate, legacyFollowUpDate);
+    expect(all.single.followUpDate, isNull);
     expect(all.single.completed, isFalse);
     expect(all.single.completedAt, isNull);
     expect(all.single.followUps, isEmpty);

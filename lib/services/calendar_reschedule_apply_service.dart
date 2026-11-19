@@ -22,9 +22,12 @@ class CalendarRescheduleApplyService {
     final updated = FollowUp(
       id: current.id,
       dateTime: dateTime,
+      title: current.title,
       note: current.note,
       result: current.result,
-      nextFollowUp: current.nextFollowUp,
+      completed: current.completed,
+      waitingForResponse: current.waitingForResponse,
+      personIds: current.personIds,
     );
 
     await writer.update(target.taskId, updated);

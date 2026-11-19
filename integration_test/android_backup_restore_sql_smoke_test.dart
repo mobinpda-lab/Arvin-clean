@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:arvin/backup_manager.dart';
+import 'package:arvin/main.dart' as app;
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/backup_schedule.dart';
@@ -76,7 +77,7 @@ class _FileBackedBackupService extends ArvinBackupService {
 }
 
 void main() {
-  IntegrationTestWidgetsFlutterBinding.ensureInitialized();
+  final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('canonical SQL migration and backup/restore runtime smoke',
       (tester) async {
@@ -377,9 +378,9 @@ void main() {
     await store.save(const <Task>[]);
   });
 
-  test(
+  testWidgets(
     'portable backup file round-trips Task and Calendar link metadata',
-    () async {
+    (tester) async {
       SharedPreferences.setMockInitialValues(<String, Object>{
         ArvinBackupManager.directoryKey: 'file-backed-runtime-smoke',
       });
@@ -437,6 +438,13 @@ void main() {
         expect(restoredLinks, hasLength(1));
         expect(restoredLinks.single.calendarId, 'calendar-file');
         expect(restoredLinks.single.eventId, 'event-file');
+
+        app.main();
+        await tester.pumpAndSettle();
+        expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+        await binding.convertFlutterSurfaceToImage();
+        await tester.pumpAndSettle();
+        await binding.takeScreenshot('task-lifecycle');
       } finally {
         await tempDirectory.delete(recursive: true);
       }

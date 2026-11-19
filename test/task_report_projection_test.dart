@@ -29,6 +29,43 @@ void main() {
     expect(entry.tags, ['مهم']);
     expect(entry.checklist, ['[x] ارسال']);
   });
+  test('projects dueDate and all-day state independently from Task reminders', () {
+    final dueAt = DateTime(2026, 8, 31, 14, 20);
+    final reminderAt = DateTime(2026, 9, 1, 9);
+    final tasks = [
+      Task(
+        id: 'timed-due',
+        title: 'موعد زمان‌دار',
+        dueDate: dueAt,
+        taskReminders: [
+          TaskReminder(
+            id: 'separate-reminder',
+            title: 'یادآور مستقل',
+            date: reminderAt,
+            sequence: 1,
+          ),
+        ],
+      ),
+      Task(
+        id: 'all-day-due',
+        title: 'موعد تمام‌روز',
+        dueDate: DateTime(2026, 9, 2),
+        allDay: true,
+      ),
+    ];
+
+    final entries = projection.project(tasks).entries;
+    final timed = entries.firstWhere((entry) => entry.id == 'timed-due');
+    final allDay = entries.firstWhere((entry) => entry.id == 'all-day-due');
+
+    expect(timed.dueDate, dueAt);
+    expect(timed.allDay, isFalse);
+    expect(timed.reminders.single.date, reminderAt);
+    expect(allDay.dueDate, DateTime(2026, 9, 2));
+    expect(allDay.allDay, isTrue);
+    expect(allDay.reminders, isEmpty);
+  });
+
   test('disabled checklist rows remain on Task but are excluded from reports', () {
     final task = Task(
       id: 'disabled-report-checklist',
@@ -41,6 +78,24 @@ void main() {
 
     expect(task.checklist, const ['[ ] کیف']);
     expect(entry.checklist, isEmpty);
+  });
+
+  test('groups report entries in P1 to P4 order and preserves order within each group', () {
+    final report = projection.project([
+      Task(id: 'p3-first', title: 'اول P3', priority: TaskPriority.low),
+      Task(id: 'p1', title: 'P1', priority: TaskPriority.high),
+      Task(id: 'p4', title: 'P4', priority: TaskPriority.none),
+      Task(id: 'p2', title: 'P2', priority: TaskPriority.medium),
+      Task(id: 'p3-second', title: 'دوم P3', priority: TaskPriority.low),
+    ]);
+    expect(
+      report.priorityGroups.map((group) => group.priority),
+      [TaskPriority.high, TaskPriority.medium, TaskPriority.low, TaskPriority.none],
+    );
+    expect(
+      report.priorityGroups.map((group) => group.entries.map((entry) => entry.id).toList()).toList(),
+      [['p1'], ['p2'], ['p3-first', 'p3-second'], ['p4']],
+    );
   });
 
 }

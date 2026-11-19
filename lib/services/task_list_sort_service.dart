@@ -13,6 +13,16 @@ class TaskListSortService {
   }) {
     final indexed = tasks.toList(growable: false).asMap().entries.toList();
     indexed.sort((left, right) {
+      if (by == TaskListSort.lastFollowUp) {
+        final followUpComparison = _compareNullableDate(
+          left.value.lastFollowUpDate,
+          right.value.lastFollowUpDate,
+          descending: descending,
+        );
+        if (followUpComparison != 0) return followUpComparison;
+      }
+      final priorityComparison = left.value.priority.sortOrder.compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
       final comparison = switch (by) {
         TaskListSort.date => _compareNullableDate(
             left.value.dueDate,
@@ -24,11 +34,7 @@ class TaskListSortService {
             _latestMeaningful(right.value),
             descending: descending,
           ),
-        TaskListSort.lastFollowUp => _compareNullableDate(
-            left.value.lastFollowUpDate,
-            right.value.lastFollowUpDate,
-            descending: descending,
-          ),
+        TaskListSort.lastFollowUp => 0,
         TaskListSort.title => _directional(
             _normalizeTitle(left.value.title)
                 .compareTo(_normalizeTitle(right.value.title)),
@@ -37,6 +43,94 @@ class TaskListSortService {
       };
       if (comparison != 0) return comparison;
 
+      final idComparison = left.value.id.compareTo(right.value.id);
+      if (idComparison != 0) return idComparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Canonical Home order: Eisenhower priority first, then task creation
+  /// timestamp from oldest to newest. Missing creation timestamps stay last.
+  /// The source iterable is never mutated.
+  List<Task> sortByPriorityThenCreatedAt(Iterable<Task> tasks) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final priorityComparison = left.value.priority.sortOrder.compareTo(
+        right.value.priority.sortOrder,
+      );
+      if (priorityComparison != 0) return priorityComparison;
+      final createdComparison = _compareNullableDate(
+        left.value.createdAt,
+        right.value.createdAt,
+        descending: false,
+      );
+      if (createdComparison != 0) return createdComparison;
+      // When priority and creation time are identical, preserve source order.
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Pure alphabetical ordering, independent of Eisenhower priority.
+  List<Task> sortByTitle(Iterable<Task> tasks, {bool descending = false}) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _directional(
+        _normalizeTitle(left.value.title).compareTo(_normalizeTitle(right.value.title)),
+        descending,
+      );
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Due-date ordering, independent of Eisenhower priority; undated tasks stay last.
+  List<Task> sortByDueDate(Iterable<Task> tasks, {bool descending = false}) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _compareNullableDate(left.value.dueDate, right.value.dueDate, descending: descending);
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Stable creation-time ordering with null timestamps kept at the end.
+  List<Task> sortByCreatedAt(
+    Iterable<Task> tasks, {
+    bool descending = false,
+  }) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      final comparison = _compareNullableDate(
+        left.value.createdAt,
+        right.value.createdAt,
+        descending: descending,
+      );
+      if (comparison != 0) return comparison;
+      return left.key.compareTo(right.key);
+    });
+    return indexed.map((entry) => entry.value).toList(growable: false);
+  }
+
+  /// Past tasks are grouped by completion state first, then by due date.
+  /// Oldest overdue work is shown first within each completion group.
+  List<Task> sortPast(Iterable<Task> tasks) {
+    final indexed = tasks.toList(growable: false).asMap().entries.toList();
+    indexed.sort((left, right) {
+      if (left.value.completed != right.value.completed) {
+        return left.value.completed ? 1 : -1;
+      }
+      final priorityComparison = left.value.priority.sortOrder.compareTo(right.value.priority.sortOrder);
+      if (priorityComparison != 0) return priorityComparison;
+      final dateComparison = _compareNullableDate(
+        left.value.dueDate,
+        right.value.dueDate,
+        descending: false,
+      );
+      if (dateComparison != 0) return dateComparison;
       final idComparison = left.value.id.compareTo(right.value.id);
       if (idComparison != 0) return idComparison;
       return left.key.compareTo(right.key);

@@ -2,10 +2,10 @@ import '../models/task.dart';
 
 /// Pure projection for the Home "Today" view.
 ///
-/// This reuses the canonical Task list and the same current Home follow-up
-/// date projection. It never owns persistence, routing, or a second task list.
-class HomeTodayProjection {
-  const HomeTodayProjection();
+/// Legacy Home projection for Tasks whose latest recorded Follow-up is today.
+/// This is not the calendar-due-today projection and owns no persistence.
+class HomeLastFollowUpProjection {
+  const HomeLastFollowUpProjection();
 
   List<Task> select(Iterable<Task> tasks, {DateTime? now}) {
     final reference = now ?? DateTime.now();
@@ -25,3 +25,6 @@ class HomeTodayProjection {
         localLeft.day == localRight.day;
   }
 }
+
+/// Source-compatible alias; new callers should use the unambiguous name.
+typedef HomeTodayProjection = HomeLastFollowUpProjection;

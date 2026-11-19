@@ -8,7 +8,7 @@ import '../models/goal_project.dart';
 class ProjectPlanCodec {
   const ProjectPlanCodec();
 
-  static const int defaultColorValue = 0xFF4A4CAB;
+  static const int defaultColorValue = 0xFF087F8C;
 
   Map<String, dynamic> encode(ProjectPlan project) {
     return <String, dynamic>{
@@ -16,6 +16,9 @@ class ProjectPlanCodec {
       'title': project.title,
       'colorValue': project.colorValue,
       'isArchived': project.isArchived,
+      if (project.centerId != null) 'centerId': project.centerId,
+      if (project.templateId != null) 'templateId': project.templateId,
+      if (project.templateNameSnapshot != null) 'templateNameSnapshot': project.templateNameSnapshot,
       'itemIds': List<String>.of(project.itemIds),
     };
   }
@@ -44,6 +47,14 @@ class ProjectPlanCodec {
     }
     final isArchived = rawArchived is bool ? rawArchived : false;
 
+    final rawCenterId = map['centerId'];
+    if (rawCenterId != null && (rawCenterId is! String || rawCenterId.trim().isEmpty)) {
+      throw const FormatException('Project centerId must be a non-empty string when present');
+    }
+    final rawTemplateId = map['templateId'];
+    final rawTemplateName = map['templateNameSnapshot'];
+    if (rawTemplateId != null && (rawTemplateId is! String || rawTemplateId.trim().isEmpty)) throw const FormatException('Project templateId must be non-empty when present');
+    if (rawTemplateName != null && rawTemplateName is! String) throw const FormatException('Project templateNameSnapshot must be a string');
     final rawItemIds = map['itemIds'];
     final itemIds = rawItemIds == null
         ? const <String>[]
@@ -54,6 +65,9 @@ class ProjectPlanCodec {
       title: title,
       colorValue: colorValue,
       isArchived: isArchived,
+      centerId: rawCenterId as String?,
+      templateId: rawTemplateId as String?,
+      templateNameSnapshot: rawTemplateName as String?,
       itemIds: itemIds,
     );
   }

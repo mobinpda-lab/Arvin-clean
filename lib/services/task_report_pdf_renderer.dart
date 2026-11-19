@@ -1,4 +1,6 @@
 import 'package:flutter/services.dart';
+
+import '../models/task.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
@@ -81,7 +83,10 @@ class TaskReportPdfRenderer {
           if (report.entries.isEmpty)
             pw.Text('موردی برای گزارش وجود ندارد')
           else
-            ...report.entries.map((entry) => _entry(entry, fonts)),
+            ...report.priorityGroups.expand((group) => <pw.Widget>[
+              _priorityHeader(group, fonts),
+              ...group.entries.map((entry) => _entry(entry, fonts)),
+            ]),
         ],
       ),
     );
@@ -136,6 +141,20 @@ class TaskReportPdfRenderer {
     return document.save();
   }
 
+  pw.Widget _priorityHeader(
+    TaskReportPriorityGroup group,
+    TaskReportFonts fonts,
+  ) => pw.Container(
+        width: double.infinity,
+        margin: const pw.EdgeInsets.only(top: 8, bottom: 6),
+        padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+        child: pw.Text(
+          '${group.priority.code} — ${group.priority.label}',
+          style: pw.TextStyle(font: fonts.bold, fontSize: 11),
+        ),
+      );
+
   pw.Widget _header(String title, TaskReportFonts fonts) => pw.Container(
         alignment: pw.Alignment.centerRight,
         child: pw.Text(
@@ -175,11 +194,17 @@ class TaskReportPdfRenderer {
         pw.SizedBox(height: 4),
         pw.Text(entry.description),
       ],
+      if (entry.dueDate != null)
+        pw.Text(
+          'موعد: ${entry.allDay ? formatDay(entry.dueDate!) : formatDateTime(entry.dueDate!)}',
+        ),
       pw.SizedBox(height: 6),
       ...leadingRows,
       pw.Text('وضعیت: ${entry.completed ? 'انجام‌شده' : 'باز'}'),
-      if (entry.reminderDate != null)
-        pw.Text('یادآوری: ${formatDateTime(entry.reminderDate!)}'),
+      for (final reminder in entry.reminders)
+        pw.Text(
+          'یادآوری: ${reminder.title} — ${reminder.isAllDay ? formatDay(reminder.date) : formatDateTime(reminder.date)}${reminder.isEnabled ? '' : ' (غیرفعال)'}',
+        ),
       if (entry.tags.isNotEmpty) pw.Text('برچسب‌ها: ${entry.tags.join('، ')}'),
       if (entry.checklist.isNotEmpty) ...[
         pw.SizedBox(height: 4),

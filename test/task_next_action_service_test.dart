@@ -12,12 +12,26 @@ void main() {
       Task(
         id: 'future',
         title: 'آینده',
-        reminderDate: DateTime(2026, 8, 26, 14),
+        taskReminders: [
+          TaskReminder(
+            id: 'future-reminder',
+            title: 'یادآوری آینده',
+            date: DateTime(2026, 8, 26, 14),
+            sequence: 1,
+          ),
+        ],
       ),
       Task(
         id: 'overdue',
         title: 'عقب افتاده',
-        reminderDate: DateTime(2026, 8, 26, 9),
+        taskReminders: [
+          TaskReminder(
+            id: 'overdue-reminder',
+            title: 'یادآوری عقب‌افتاده',
+            date: DateTime(2026, 8, 26, 9),
+            sequence: 1,
+          ),
+        ],
       ),
     ];
 

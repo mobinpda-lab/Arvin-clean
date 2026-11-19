@@ -270,7 +270,9 @@ class ArvinBackupManager {
       if (raw is! Map) {
         throw const FormatException('Arvin backup task entry is invalid');
       }
-      final task = Task.fromJson(Map<String, dynamic>.from(raw));
+      // Backup format v1 is the explicit backward-compatible import boundary.
+      // Canonical payloads carry independent TaskReminders and a migration marker.
+      final task = Task.fromLegacyJson(Map<String, dynamic>.from(raw));
       if (task.id.trim().isEmpty) {
         throw const FormatException('Arvin backup contains an empty task id');
       }
@@ -321,6 +323,10 @@ class ArvinBackupManager {
   ) {
     final knownIds = people.map((person) => person.id).toSet();
     for (final task in tasks) {
+      // Historical Task relations remain valid even after the Person is
+      // removed from the active directory. The Task backup carries the
+      // stable identity and display label needed to restore that history.
+      knownIds.addAll(task.people.map((person) => person.id));
       for (final followUp in task.followUps) {
         for (final personId in followUp.personIds) {
           if (!knownIds.contains(personId)) {

@@ -13,6 +13,19 @@ void main() {
       expect(person.displayName, 'سارا احمدی');
     });
 
+    test('deleted historical reference round-trips without losing its stable identity', () {
+      final person = PersonReference(
+        id: 'person-deleted',
+        displayName: 'نام تاریخی',
+        isDeleted: true,
+      );
+      final restored = PersonReference.fromJson(person.toJson());
+      expect(restored.id, 'person-deleted');
+      expect(restored.displayName, 'نام تاریخی');
+      expect(restored.isDeleted, isTrue);
+      expect(restored.displayLabel, 'شخص حذف‌شده');
+    });
+
     test('rejects empty identity or display label', () {
       expect(
         () => PersonReference(id: '   ', displayName: 'سارا'),

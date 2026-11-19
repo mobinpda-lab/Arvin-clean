@@ -28,7 +28,7 @@ void main() {
       Task(
         id: 'ui-task',
         title: 'تمرین روزانه',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        taskReminders: [TaskReminder(id: 'ui-reminder', title: 'یادآور', date: DateTime(2026, 8, 20, 9), sequence: 1)],
       ),
     ]);
     final repository = TaskRecurrenceRepository(
@@ -65,7 +65,7 @@ void main() {
       Task(
         id: 'resume-task',
         title: 'پیگیری تکراری',
-        reminderDate: DateTime(2026, 8, 20, 9),
+        taskReminders: [TaskReminder(id: 'ui-reminder', title: 'یادآور', date: DateTime(2026, 8, 20, 9), sequence: 1)],
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 2,
@@ -153,7 +153,7 @@ void main() {
       Task(
         id: 'lifecycle-ui',
         title: 'کار تکرارشونده',
-        reminderDate: occurrence,
+        taskReminders: [TaskReminder(id: 'lifecycle-reminder', title: 'یادآور', date: occurrence, sequence: 1)],
         recurrence: const RecurrenceRule(
           frequency: RecurrenceFrequency.daily,
           interval: 1,
@@ -229,7 +229,7 @@ void main() {
       Task(
         id: 'tracking-level-ui',
         title: 'تعهد قابل پیگیری',
-        reminderDate: reminder,
+        taskReminders: [TaskReminder(id: 'repeat-reminder', title: 'یادآور', date: reminder, sequence: 1)],
         recurrence: const RecurrenceRule(frequency: RecurrenceFrequency.daily),
       ),
     ]);
@@ -286,7 +286,7 @@ void main() {
       Task(
         id: 'repeat-editor-contract',
         title: 'تعهد دوره‌ای',
-        reminderDate: reminder,
+        taskReminders: [TaskReminder(id: 'repeat-reminder', title: 'یادآور', date: reminder, sequence: 1)],
       ),
     ]);
     final repository = TaskRecurrenceRepository(

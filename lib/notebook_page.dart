@@ -5,14 +5,17 @@ import 'package:flutter/material.dart';
 import 'arvin_colors.dart';
 
 import 'models/goal_project.dart';
+import 'models/arvin_center.dart';
 import 'models/task.dart';
 import 'services/canonical_notebook_repository.dart';
+import 'services/center_store.dart';
 import 'services/persian_date_formatter.dart';
 import 'task_report_page.dart';
 import 'widgets/arvin_radio_box.dart';
 import 'widgets/arvin_roll_box.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+import 'widgets/reusable_multi_select_filter_bottom_sheet.dart';
 
 enum _NotebookInlineTool { none, number, tick, checklist }
 
@@ -29,28 +32,54 @@ class NotebookPage extends StatefulWidget {
 }
 
 class _NotebookPageState extends State<NotebookPage> {
+  Color get _brand => ArvinColors.notebookOrange;
+  Color get _brandSoft => Theme.of(context).brightness == Brightness.dark
+      ? ArvinColors.notebookOrangeDarkSoft
+      : ArvinColors.notebookOrangeSoft;
   bool _loading = true;
   List<Task> _notes = const [];
   bool _selectionMode = false;
   final Set<String> _selected = <String>{};
   final TextEditingController _search = TextEditingController();
-  String _activeCategory = 'همه';
-  String? _activeProjectId;
-  String? _activeTag;
+  Set<String> _activeCenterIds = <String>{};
+  Set<String> _activeProjectIds = <String>{};
+  Set<String> _activeCategories = <String>{};
+  Set<String> _activeTags = <String>{};
+  List<ArvinCenter> _centers = const [];
   List<ProjectPlan> _projects = const [];
-  List<String> _knownTags = const [];
   bool _showTrash = false;
 
   List<Task> get _visibleNotes {
     final query = _search.text.trim().toLowerCase();
     return _notes.where((note) {
-      if (_activeCategory != 'همه' && note.category?.trim() != _activeCategory) return false;
-      final projectId = _activeProjectId;
-      if (projectId != null && !_projects.any((project) => project.id == projectId && project.itemIds.contains(note.id))) return false;
-      final tag = _activeTag;
-      if (tag != null && !note.tags.any((value) => value.trim() == tag)) return false;
+      if (_activeCenterIds.isNotEmpty) {
+        final noteCenterId = note.centerId;
+        final matchesCenter = noteCenterId != null
+            ? _activeCenterIds.contains(noteCenterId)
+            : _projects
+                .where((project) => project.itemIds.contains(note.id))
+                .map((project) => project.centerId)
+                .whereType<String>()
+                .any(_activeCenterIds.contains);
+        if (!matchesCenter) return false;
+      }
+      if (_activeProjectIds.isNotEmpty &&
+          !_projects.any((project) =>
+              _activeProjectIds.contains(project.id) &&
+              project.itemIds.contains(note.id))) {
+        return false;
+      }
+      if (_activeCategories.isNotEmpty &&
+          !_activeCategories.contains(note.category?.trim())) {
+        return false;
+      }
+      if (_activeTags.isNotEmpty &&
+          !note.tags.any((value) => _activeTags.contains(value.trim()))) {
+        return false;
+      }
       if (query.isEmpty) return true;
-      return note.title.toLowerCase().contains(query) || note.description.toLowerCase().contains(query);
+      return note.title.toLowerCase().contains(query) ||
+          note.description.toLowerCase().contains(query);
     }).toList();
   }
 
@@ -61,52 +90,145 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _reload() async {
-    final notes = _showTrash ? await widget.repository.loadTrashedNotes() : await widget.repository.loadNotes();
+    final notes = _showTrash
+        ? await widget.repository.loadTrashedNotes()
+        : await widget.repository.loadNotes();
     final projects = await widget.repository.loadProjects();
-    final knownTags = await widget.repository.loadTags();
+    final centers = await CenterStore().load(includeArchived: false);
     if (!mounted) return;
     setState(() {
       _notes = notes;
       _projects = projects;
-      _knownTags = List<String>.of(knownTags);
+      _centers = centers;
       _loading = false;
     });
   }
 
+  Future<Set<String>?> _openNotebookDimension({
+    required String title,
+    required String keyPrefix,
+    required List<ReusableFilterOption<String>> options,
+    required Set<String> selected,
+    required Color accent,
+    Future<ReusableFilterOption<String>?> Function(String value)? onCreate,
+  }) {
+    return ReusableMultiSelectFilterBottomSheet.showMultiSelect<String>(
+      context,
+      title: title,
+      options: options,
+      selectedValues: selected,
+      accent: accent,
+      optionKeyPrefix: keyPrefix,
+      onCreate: onCreate,
+      createHint: 'نام مورد جدید',
+      createLabel: 'افزودن و انتخاب',
+    );
+  }
+
+  Future<void> _pickNotebookCenter() async {
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب مرکز',
+      keyPrefix: 'notebook-center-filter',
+      options: _centers
+          .map((center) => ReusableFilterOption<String>(
+                value: center.id,
+                label: center.name,
+              ))
+          .toList(growable: false),
+      selected: _activeCenterIds,
+      accent: _brand,
+      onCreate: (name) async {
+        final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
+        await CenterStore().create(id: id, name: name);
+        final createdMatches = (await CenterStore().load(includeArchived: false))
+            .where((center) => center.id == id)
+            .toList(growable: false);
+        if (createdMatches.isEmpty) return null;
+        final created = createdMatches.first;
+        if (mounted) setState(() => _centers = [..._centers, created]);
+        return ReusableFilterOption<String>(value: id, label: created.name);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeCenterIds = selected);
+    }
+  }
+
   Future<void> _pickNotebookProject() async {
-    final selected = await showModalBottomSheet<String?>(
-      context: context,
-      builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-        ArvinRadioBox(label: 'همه پروژه‌ها', selected: _activeProjectId == null, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext)),
-        const SizedBox(height: 8),
-        for (final project in _projects.where((p) => !p.isArchived)) ...[
-          ArvinRadioBox(key: ValueKey('notebook-project-filter-${project.id}'), label: project.title, selected: project.id == _activeProjectId, icon: Icons.work_outline, accent: ArvinColors.project, onTap: () => Navigator.pop(sheetContext, project.id)),
-          const SizedBox(height: 8),
-        ],
-      ])));
-    if (!mounted) return;
-    setState(() => _activeProjectId = selected);
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب پروژه',
+      keyPrefix: 'notebook-project-filter',
+      options: _projects
+          .where((project) => !project.isArchived)
+          .map((project) => ReusableFilterOption<String>(
+                value: project.id,
+                label: project.title,
+              ))
+          .toList(growable: false),
+      selected: _activeProjectIds,
+      accent: ArvinColors.project,
+      onCreate: (title) async {
+        final project = await widget.repository.createProject(title: title);
+        if (mounted) setState(() => _projects = [..._projects, project]);
+        return ReusableFilterOption<String>(
+          value: project.id,
+          label: project.title,
+        );
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeProjectIds = selected);
+    }
   }
 
   Future<void> _pickNotebookCategory() async {
-    final categories = _notes.map((note) => note.category?.trim()).whereType<String>().where((v) => v.isNotEmpty).toSet().toList()..sort();
-    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه دسته‌ها', selected: _activeCategory == 'همه', icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, 'همه')),
-      const SizedBox(height: 8),
-      for (final category in categories) ...[ArvinRadioBox(key: ValueKey('notebook-category-filter-$category'), label: category, selected: category == _activeCategory, icon: Icons.folder_outlined, accent: ArvinColors.category, onTap: () => Navigator.pop(sheetContext, category)), const SizedBox(height: 8)],
-    ])));
-    if (!mounted || selected == null) return;
-    setState(() => _activeCategory = selected);
+    final categories = (await widget.repository.loadCategories())
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب دسته',
+      keyPrefix: 'notebook-category-filter',
+      options: categories
+          .map((value) => ReusableFilterOption<String>(value: value, label: value))
+          .toList(growable: false),
+      selected: _activeCategories,
+      accent: ArvinColors.category,
+      onCreate: (name) async {
+        final value = await widget.repository.createCategory(name);
+        return ReusableFilterOption<String>(value: value, label: value);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeCategories = selected);
+    }
   }
 
   Future<void> _pickNotebookTag() async {
-    final selected = await showModalBottomSheet<String?>(context: context, builder: (sheetContext) => SafeArea(child: ListView(shrinkWrap: true, padding: const EdgeInsets.all(16), children: [
-      ArvinRadioBox(label: 'همه برچسب‌ها', selected: _activeTag == null, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext)),
-      const SizedBox(height: 8),
-      for (final tag in _knownTags) ...[ArvinRadioBox(key: ValueKey('notebook-tag-filter-$tag'), label: tag, selected: tag == _activeTag, icon: Icons.sell_outlined, accent: ArvinColors.time, onTap: () => Navigator.pop(sheetContext, tag)), const SizedBox(height: 8)],
-    ])));
-    if (!mounted) return;
-    setState(() => _activeTag = selected);
+    final tags = (await widget.repository.loadTags())
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .toSet()
+        .toList()
+      ..sort();
+    final selected = await _openNotebookDimension(
+      title: 'انتخاب برچسب',
+      keyPrefix: 'notebook-tag-filter',
+      options: tags
+          .map((value) => ReusableFilterOption<String>(value: value, label: value))
+          .toList(growable: false),
+      selected: _activeTags,
+      accent: ArvinColors.time,
+      onCreate: (name) async {
+        final value = await widget.repository.createTag(name);
+        return ReusableFilterOption<String>(value: value, label: value);
+      },
+    );
+    if (selected != null && mounted) {
+      setState(() => _activeTags = selected);
+    }
   }
 
   void _toggleSelection(String id) {
@@ -368,7 +490,11 @@ class _NotebookPageState extends State<NotebookPage> {
   }
 
   Future<void> _create() async {
-    final note = await widget.repository.createNote(title: 'یادداشت جدید', notebookKind: NotebookItemKind.note, category: _activeCategory == 'همه' ? null : _activeCategory);
+    final note = await widget.repository.createNote(
+      title: 'یادداشت جدید',
+      notebookKind: NotebookItemKind.note,
+      category: _activeCategories.length == 1 ? _activeCategories.single : null,
+    );
     if (!mounted) return;
     await _open(note, startEditing: true);
   }
@@ -427,7 +553,7 @@ class _NotebookPageState extends State<NotebookPage> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: ArvinColors.primary.withValues(alpha: 0.09),
+                          color: _brand.withValues(alpha: 0.09),
                           blurRadius: 18,
                           offset: const Offset(0, 5),
                         ),
@@ -444,7 +570,7 @@ class _NotebookPageState extends State<NotebookPage> {
                         hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
                               color: ArvinColors.textSecondary,
                             ),
-                        prefixIcon: const Icon(Icons.search_rounded, color: ArvinColors.primary),
+                        prefixIcon: Icon(Icons.search_rounded, color: _brand),
                         suffixIcon: _search.text.isEmpty
                             ? null
                             : IconButton(
@@ -469,7 +595,7 @@ class _NotebookPageState extends State<NotebookPage> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(28),
-                          borderSide: const BorderSide(color: ArvinColors.primary, width: 1.4),
+                          borderSide: BorderSide(color: _brand, width: 1.4),
                         ),
                       ),
                     ),
@@ -484,38 +610,51 @@ class _NotebookPageState extends State<NotebookPage> {
                     child: Row(
                       children: [
                         _NotebookFilterChip(
-                          key: const ValueKey('notebook-tag-filter'),
-                          label: _activeTag == null ? 'برچسب‌ها: همه' : 'برچسب: $_activeTag',
-                          icon: Icons.sell_outlined,
-                          accent: ArvinColors.time,
-                          soft: ArvinColors.timeSoft,
-                          selected: _activeTag != null,
-                          onTap: _pickNotebookTag,
-                        ),
-                        const SizedBox(width: 8),
-                        _NotebookFilterChip(
-                          key: const ValueKey('notebook-category-filter'),
-                          label: _activeCategory == 'همه' ? 'دسته‌ها: همه' : 'دسته: $_activeCategory',
-                          icon: Icons.layers_outlined,
-                          accent: ArvinColors.reminder,
-                          soft: ArvinColors.reminderSoft,
-                          selected: _activeCategory != 'همه',
-                          onTap: _pickNotebookCategory,
+                          key: const ValueKey('notebook-center-filter'),
+                          label: _activeCenterIds.isEmpty
+                              ? 'مرکز: همه'
+                              : 'مرکز (${_activeCenterIds.length})',
+                          icon: Icons.apartment_outlined,
+                          accent: _brand,
+                          soft: _brandSoft,
+                          selected: _activeCenterIds.isNotEmpty,
+                          onTap: _pickNotebookCenter,
                         ),
                         const SizedBox(width: 8),
                         _NotebookFilterChip(
                           key: const ValueKey('notebook-project-filter'),
-                          label: _activeProjectId == null
-                              ? 'پروژه‌ها: همه'
-                              : _projects.firstWhere(
-                                  (project) => project.id == _activeProjectId,
-                                  orElse: () => ProjectPlan(id: '', title: 'پروژه'),
-                                ).title,
+                          label: _activeProjectIds.isEmpty
+                              ? 'پروژه: همه'
+                              : 'پروژه (${_activeProjectIds.length})',
                           icon: Icons.work_outline_rounded,
                           accent: ArvinColors.project,
                           soft: ArvinColors.projectSoft,
-                          selected: _activeProjectId != null,
+                          selected: _activeProjectIds.isNotEmpty,
                           onTap: _pickNotebookProject,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-category-filter'),
+                          label: _activeCategories.isEmpty
+                              ? 'دسته: همه'
+                              : 'دسته (${_activeCategories.length})',
+                          icon: Icons.layers_outlined,
+                          accent: ArvinColors.reminder,
+                          soft: ArvinColors.reminderSoft,
+                          selected: _activeCategories.isNotEmpty,
+                          onTap: _pickNotebookCategory,
+                        ),
+                        const SizedBox(width: 8),
+                        _NotebookFilterChip(
+                          key: const ValueKey('notebook-tag-filter'),
+                          label: _activeTags.isEmpty
+                              ? 'برچسب: همه'
+                              : 'برچسب (${_activeTags.length})',
+                          icon: Icons.sell_outlined,
+                          accent: ArvinColors.time,
+                          soft: ArvinColors.timeSoft,
+                          selected: _activeTags.isNotEmpty,
+                          onTap: _pickNotebookTag,
                         ),
                       ],
                     ),
@@ -539,8 +678,8 @@ class _NotebookPageState extends State<NotebookPage> {
                                       Container(
                                         width: 116,
                                         height: 116,
-                                        decoration: const BoxDecoration(
-                                          color: ArvinColors.primarySoft,
+                                        decoration: BoxDecoration(
+                                          color: _brandSoft,
                                           shape: BoxShape.circle,
                                         ),
                                       ),
@@ -574,19 +713,19 @@ class _NotebookPageState extends State<NotebookPage> {
                                         decoration: BoxDecoration(
                                           color: ArvinColors.surface,
                                           borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: ArvinColors.primary.withValues(alpha: 0.18)),
+                                          border: Border.all(color: _brand.withValues(alpha: 0.18)),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: ArvinColors.primary.withValues(alpha: 0.12),
+                                              color: _brand.withValues(alpha: 0.12),
                                               blurRadius: 14,
                                               offset: const Offset(0, 5),
                                             ),
                                           ],
                                         ),
-                                        child: const Icon(
+                                        child: Icon(
                                           Icons.note_alt_rounded,
                                           size: 42,
-                                          color: ArvinColors.primary,
+                                          color: _brand,
                                         ),
                                       ),
                                     ],
@@ -636,7 +775,7 @@ class _NotebookPageState extends State<NotebookPage> {
                               key: ValueKey('notebook-note-card-${note.id}'),
                               color: note.isNotebookChecklist
                                   ? ArvinColors.timeSoft
-                                  : ArvinColors.primarySoft,
+                                  : _brandSoft,
                               child: ListTile(
                                 key: ValueKey('notebook-note-${note.id}'),
                                 dense: true,
@@ -855,6 +994,11 @@ class NotebookEditorPage extends StatefulWidget {
 }
 
 class _NotebookEditorPageState extends State<NotebookEditorPage> {
+  Color get _brand => ArvinColors.notebookOrange;
+  Color get _brandSoft => Theme.of(context).brightness == Brightness.dark
+      ? ArvinColors.notebookOrangeDarkSoft
+      : ArvinColors.notebookOrangeSoft;
+
   final _title = TextEditingController();
   final _description = TextEditingController();
   final _titleFocus = FocusNode();
@@ -871,6 +1015,7 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
   bool _saving = false;
   String? _category;
   String? _projectTitle;
+  String? _centerName;
   List<String> _tags = [];
   List<String> _legacyChecklist = [];
   _NotebookInlineTool _inlineTool = _NotebookInlineTool.none;
@@ -932,6 +1077,13 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
         break;
       }
     }
+    final centers = await CenterStore().load(includeArchived: false);
+    for (final center in centers) {
+      if (center.id == note.centerId) {
+        _centerName = center.name;
+        break;
+      }
+    }
     _title.addListener(_scheduleAutosave);
     _description.addListener(_scheduleAutosave);
     setState(() => _loading = false);
@@ -970,6 +1122,46 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
     }
     if (!mounted) return;
     Navigator.of(context).pop();
+  }
+
+  Future<void> _pickCenter() async {
+    final centers = await CenterStore().load(includeArchived: false);
+    if (!mounted) return;
+    final selected = await ReusableMultiSelectFilterBottomSheet.showSingleSelect<String>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: _brand,
+      options: centers
+          .map((center) => ReusableFilterOption<String>(
+                value: center.id,
+                label: center.name,
+              ))
+          .toList(growable: false),
+      selectedValue: _note?.centerId,
+      emptyLabel: 'بدون مرکز',
+      onCreate: (name) async {
+        final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
+        await CenterStore().create(id: id, name: name);
+        return ReusableFilterOption<String>(value: id, label: name.trim());
+      },
+    );
+    if (!mounted || selected == null) return;
+    final centerId = selected.cleared ? null : selected.value;
+    final updated = await widget.repository.updateCenter(
+      id: widget.noteId,
+      centerId: centerId,
+    );
+    if (!mounted) return;
+    final resolved = centers.where((center) => center.id == centerId).toList();
+    setState(() {
+      _note = updated;
+      _centerName = resolved.isEmpty ? null : resolved.first.name;
+    });
+    if (centerId != null && resolved.isEmpty) {
+      final refreshed = await CenterStore().load(includeArchived: false);
+      final match = refreshed.where((center) => center.id == centerId).toList();
+      if (mounted) setState(() => _centerName = match.isEmpty ? null : match.first.name);
+    }
   }
 
   Future<String?> _promptNewCategory() async {
@@ -1422,34 +1614,16 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextButton.icon(
-                    key: const ValueKey('notebook-category-picker'),
-                    onPressed: _pickCategory,
-                    icon: const Icon(Icons.menu_book_outlined, size: 18, color: ArvinColors.category),
-                    label: Text(
-                      _category == null || _category!.trim().isEmpty
-                          ? 'انتخاب دسته'
-                          : _category!,
-                    ),
+                    key: const ValueKey('notebook-center-picker'),
+                    onPressed: _pickCenter,
+                    icon: Icon(Icons.apartment_outlined, size: 18, color: _brand),
+                    label: Text(_centerName ?? 'انتخاب مرکز'),
                     style: TextButton.styleFrom(
-                      foregroundColor: ArvinColors.categoryDark,
-                      backgroundColor: ArvinColors.categorySoft,
+                      foregroundColor: _brand,
+                      backgroundColor: _brandSoft,
+                      minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  TextButton.icon(
-                    key: const ValueKey('notebook-tags-picker'),
-                    onPressed: _pickTags,
-                    icon: const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
-                    label: Text(
-                      _tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' '),
-                    ),
-                    style: TextButton.styleFrom(
-                      foregroundColor: ArvinColors.tag,
-                      backgroundColor: ArvinColors.tagSoft,
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -1461,8 +1635,37 @@ class _NotebookEditorPageState extends State<NotebookEditorPage> {
                     style: TextButton.styleFrom(
                       foregroundColor: ArvinColors.projectDark,
                       backgroundColor: ArvinColors.projectSoft,
+                      minimumSize: const Size(48, 48),
                       padding: const EdgeInsets.symmetric(horizontal: 8),
-                      visualDensity: VisualDensity.compact,
+                      visualDensity: VisualDensity.standard,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-category-picker'),
+                    onPressed: _pickCategory,
+                    icon: const Icon(Icons.menu_book_outlined, size: 18, color: ArvinColors.category),
+                    label: Text(_category == null || _category!.trim().isEmpty ? 'انتخاب دسته' : _category!),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.categoryDark,
+                      backgroundColor: ArvinColors.categorySoft,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.standard,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  TextButton.icon(
+                    key: const ValueKey('notebook-tags-picker'),
+                    onPressed: _pickTags,
+                    icon: const Icon(Icons.sell_outlined, size: 18, color: ArvinColors.tag),
+                    label: Text(_tags.isEmpty ? 'برچسب‌ها' : _tags.map((tag) => '#$tag').join(' ')),
+                    style: TextButton.styleFrom(
+                      foregroundColor: ArvinColors.tag,
+                      backgroundColor: ArvinColors.tagSoft,
+                      minimumSize: const Size(48, 48),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      visualDensity: VisualDensity.standard,
                     ),
                   ),
                 ],

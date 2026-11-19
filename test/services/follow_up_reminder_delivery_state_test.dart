@@ -69,6 +69,37 @@ void main() {
     expect(result[candidate.stableKey], deliveryService.deliveryIdentity(candidate));
   });
 
+  test('reconcile preserves the legacy delivery key for a migrated Task reminder', () {
+    final migrated = Task.fromLegacyJson({
+      'id': 'legacy-state',
+      'title': 'یادآور قدیمی',
+      'reminderDate': '2026-08-28T11:00:00.000',
+    });
+    final state = <String, String>{
+      'task:legacy-state': 'task:legacy-state@2026-08-28T11:00:00.000',
+    };
+    final result = stateService.reconcile(state, [migrated]);
+    expect(result, state);
+  });
+
+  test('reconcile removes disabled reminder delivery markers without deleting canonical data', () {
+    final disabled = task(
+      'disabled',
+      taskReminders: [
+        TaskReminder(
+          id: 'r-off', title: 'خاموش', date: DateTime(2026, 8, 28, 11),
+          sequence: 1, isEnabled: false,
+        ),
+      ],
+    );
+    final state = <String, String>{
+      'task:disabled:reminder:r-off': 'already-delivered',
+    };
+    final result = stateService.reconcile(state, [disabled]);
+    expect(result, isEmpty);
+    expect(disabled.taskReminders.single.isEnabled, isFalse);
+  });
+
   test('reconcile removes legacy FollowUp delivery markers but keeps canonical Reminder markers', () {
     final canonical = task(
       'keep',

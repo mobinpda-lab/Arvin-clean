@@ -13,6 +13,7 @@ class DeviceCalendarInfo {
     this.visible = false,
     this.syncEvents = false,
     this.isPrimary = false,
+    this.isArvinLocal = false,
   });
 
   final String id;
@@ -24,6 +25,7 @@ class DeviceCalendarInfo {
   final bool visible;
   final bool syncEvents;
   final bool isPrimary;
+  final bool isArvinLocal;
 
   factory DeviceCalendarInfo.fromMap(Map<Object?, Object?> value) {
     String? optionalString(String key) {
@@ -44,6 +46,7 @@ class DeviceCalendarInfo {
       visible: value['visible'] == true,
       syncEvents: value['syncEvents'] == true,
       isPrimary: value['isPrimary'] == true,
+      isArvinLocal: value['isArvinLocal'] == true,
     );
   }
 }
@@ -107,16 +110,13 @@ class DeviceCalendarEvent {
 
 /// Android boundary for user-approved system calendar access.
 ///
-/// Existing FollowUp export remains intent-based and user-approved. Provider
-/// discovery and external-event reads are read-only and share the existing
-/// Android Calendar Provider boundary; no vendor-specific calendar engine is
-/// introduced here.
+/// Device-calendar writes are explicit, Task-owned exports only.
+/// External provider discovery and event reads remain read-only mirrors.
 class SystemCalendarBridge {
   SystemCalendarBridge({MethodChannel? channel})
       : _channel = channel ?? const MethodChannel(channelName);
 
   static const String channelName = 'arvin/system_calendar';
-  static const String insertMethod = 'insertSystemCalendarEvent';
   static const String permissionStatusMethod =
       'calendarReadPermissionGranted';
   static const String requestPermissionMethod =
@@ -127,6 +127,10 @@ class SystemCalendarBridge {
       'calendarWritePermissionGranted';
   static const String requestWritePermissionMethod =
       'requestCalendarWritePermission';
+  static const String requestAccessPermissionsMethod =
+      'requestCalendarAccessPermissions';
+  static const String ensureArvinLocalCalendarMethod =
+      'ensureArvinLocalCalendar';
   static const String createProviderEventMethod = 'createDeviceCalendarEvent';
   static const String updateProviderEventMethod = 'updateDeviceCalendarEvent';
   static const String deleteProviderEventMethod = 'deleteDeviceCalendarEvent';
@@ -137,33 +141,45 @@ class SystemCalendarBridge {
 
   final MethodChannel _channel;
 
-  static bool isEligible(CalendarReminder reminder) =>
-      (reminder.id.startsWith('followup:') ||
-          reminder.id.startsWith('task-due:') ||
-          reminder.id.startsWith('task-reminder-item:') ||
-          reminder.id.startsWith('task-reminder:') ||
-          reminder.id.startsWith('task-recurrence:') ||
-          reminder.id.startsWith('task-followup:')) &&
-      !reminder.completed;
+  static bool isExportableTaskReminderId(String id) {
+    final normalized = id.trim();
+    const prefixes = <String>[
+      'task-due:',
+      'task-reminder-item:',
+      'task-reminder:',
+      'task-recurrence:',
+    ];
+    return prefixes.any((prefix) =>
+        normalized.startsWith(prefix) &&
+        normalized.substring(prefix.length).trim().isNotEmpty);
+  }
 
+  static bool isEligible(CalendarReminder reminder) =>
+      isExportableTaskReminderId(reminder.id) && !reminder.completed;
+
+  /// Registers a Task reminder in Arvin's local calendar only.
   Future<bool> insert(CalendarReminder reminder) async {
     if (!isEligible(reminder)) return false;
-
+    final writeGranted =
+        await hasWritePermission() || await requestWritePermission();
+    if (!writeGranted) return false;
+    final calendar = await ensureArvinLocalCalendar();
+    if (calendar == null || !calendar.isArvinLocal) return false;
     final start = reminder.date;
-    final end = reminder.isAllDay
-        ? DateTime(start.year, start.month, start.day + 1)
-        : start.add(const Duration(minutes: 30));
-
-    final inserted = await _channel.invokeMethod<bool>(
-      insertMethod,
-      <String, Object?>{
-        'title': reminder.title,
-        'startMillis': start.millisecondsSinceEpoch,
-        'endMillis': end.millisecondsSinceEpoch,
-        'allDay': reminder.isAllDay,
-      },
+    final end = reminder.end ??
+        (reminder.isAllDay
+            ? DateTime(start.year, start.month, start.day + 1)
+            : start.add(const Duration(minutes: 30)));
+    final eventId = await createProviderEvent(
+      reminderId: reminder.id,
+      calendarId: calendar.id,
+      title: reminder.title,
+      start: start,
+      end: end,
+      allDay: reminder.isAllDay,
+      description: reminder.description,
     );
-    return inserted ?? false;
+    return eventId != null;
   }
 
   Future<bool> hasReadPermission() async {
@@ -182,6 +198,30 @@ class SystemCalendarBridge {
     } on PlatformException catch (error) {
       if (error.code == 'permission_request_in_progress') return false;
       rethrow;
+    }
+  }
+
+  Future<bool> requestAccessPermissions() async {
+    try {
+      return await _channel.invokeMethod<bool>(requestAccessPermissionsMethod) ??
+          false;
+    } on MissingPluginException {
+      return false;
+    } on PlatformException catch (error) {
+      if (error.code == 'permission_request_in_progress') return false;
+      rethrow;
+    }
+  }
+
+  Future<DeviceCalendarInfo?> ensureArvinLocalCalendar() async {
+    try {
+      final raw = await _channel.invokeMethod<Map<Object?, Object?>>(
+        ensureArvinLocalCalendarMethod,
+      );
+      if (raw == null) return null;
+      return DeviceCalendarInfo.fromMap(raw);
+    } on MissingPluginException {
+      return null;
     }
   }
 
@@ -207,6 +247,7 @@ class SystemCalendarBridge {
   }
 
   Future<String?> createProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String title,
     required DateTime start,
@@ -217,6 +258,7 @@ class SystemCalendarBridge {
     final eventId = await _channel.invokeMethod<String>(
       createProviderEventMethod,
       _providerEventPayload(
+        reminderId: reminderId,
         calendarId: calendarId,
         title: title,
         start: start,
@@ -230,6 +272,7 @@ class SystemCalendarBridge {
   }
 
   Future<bool> updateProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
     required String title,
@@ -242,6 +285,7 @@ class SystemCalendarBridge {
           updateProviderEventMethod,
           <String, Object?>{
             ..._providerEventPayload(
+              reminderId: reminderId,
               calendarId: calendarId,
               title: title,
               start: start,
@@ -283,16 +327,22 @@ class SystemCalendarBridge {
   /// Fails closed unless the exact provider row still belongs to the linked calendar.
   /// This protects against stale local IDs before an update or delete.
   Future<bool> verifyProviderEventIdentity({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async {
     final normalizedCalendarId = calendarId.trim();
     final normalizedEventId = eventId.trim();
-    if (normalizedCalendarId.isEmpty || normalizedEventId.isEmpty) return false;
+    if (!isExportableTaskReminderId(reminderId) ||
+        normalizedCalendarId.isEmpty ||
+        normalizedEventId.isEmpty) {
+      return false;
+    }
     try {
       return await _channel.invokeMethod<bool>(
             verifyProviderEventIdentityMethod,
             <String, Object?>{
+              'reminderId': reminderId,
               'calendarId': normalizedCalendarId,
               'eventId': normalizedEventId,
             },
@@ -304,12 +354,18 @@ class SystemCalendarBridge {
   }
 
   Future<bool> deleteProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async {
+    if (!isExportableTaskReminderId(reminderId)) {
+      throw ArgumentError.value(reminderId, 'reminderId',
+          'Only Task and TaskReminder identities may be exported.');
+    }
     return await _channel.invokeMethod<bool>(
           deleteProviderEventMethod,
           <String, Object?>{
+            'reminderId': reminderId,
             'calendarId': calendarId,
             'eventId': eventId,
           },
@@ -318,6 +374,7 @@ class SystemCalendarBridge {
   }
 
   Map<String, Object?> _providerEventPayload({
+    required String reminderId,
     required String calendarId,
     required String title,
     required DateTime start,
@@ -327,12 +384,14 @@ class SystemCalendarBridge {
   }) {
     final normalizedCalendarId = calendarId.trim();
     final normalizedTitle = title.trim();
-    if (normalizedCalendarId.isEmpty ||
+    if (!isExportableTaskReminderId(reminderId) ||
+        normalizedCalendarId.isEmpty ||
         normalizedTitle.isEmpty ||
         !end.isAfter(start)) {
       throw ArgumentError('Calendar provider event payload is invalid.');
     }
     return <String, Object?>{
+      'reminderId': reminderId,
       'calendarId': normalizedCalendarId,
       'title': normalizedTitle,
       'startMillis': start.millisecondsSinceEpoch,

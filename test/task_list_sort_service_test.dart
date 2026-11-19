@@ -11,6 +11,8 @@ void main() {
     DateTime? createdAt,
     DateTime? updatedAt,
     List<FollowUp> followUps = const [],
+    bool completed = false,
+    TaskPriority priority = TaskPriority.medium,
   }) {
     return Task(
       id: id,
@@ -19,8 +21,60 @@ void main() {
       createdAt: createdAt,
       updatedAt: updatedAt,
       followUps: followUps,
+      completed: completed,
+      priority: priority,
     );
   }
+
+  test('priority is primary before date and id', () {
+    final p1 = task('p1', dueDate: DateTime(2026, 9, 5), priority: TaskPriority.high);
+    final p2 = task('p2', dueDate: DateTime(2026, 9, 1), priority: TaskPriority.medium);
+    final p3 = task('p3', priority: TaskPriority.low);
+    final p4 = task('p4', priority: TaskPriority.none);
+    expect(const TaskListSortService().sort([p4, p2, p3, p1], by: TaskListSort.date), [p1, p2, p3, p4]);
+  });
+
+  test('canonical Home sort uses Eisenhower priority then oldest creation date', () {
+    final oldestHigh = task(
+      'oldest-high',
+      createdAt: DateTime(2026, 8, 1),
+      priority: TaskPriority.high,
+    );
+    final newestHigh = task(
+      'newest-high',
+      createdAt: DateTime(2026, 8, 9),
+      priority: TaskPriority.high,
+    );
+    final olderMedium = task(
+      'older-medium',
+      createdAt: DateTime(2026, 7, 1),
+      priority: TaskPriority.medium,
+    );
+    final missingCreation = task('missing-creation', priority: TaskPriority.medium);
+    final source = <Task>[
+      missingCreation,
+      olderMedium,
+      newestHigh,
+      oldestHigh,
+    ];
+
+    final result = const TaskListSortService().sortByPriorityThenCreatedAt(source);
+
+    expect(result, <Task>[oldestHigh, newestHigh, olderMedium, missingCreation]);
+    expect(source, <Task>[missingCreation, olderMedium, newestHigh, oldestHigh]);
+  });
+
+  test('canonical Home sort preserves source order for complete ties', () {
+    final createdAt = DateTime(2026, 8, 1, 9);
+    final secondId = task('a-id', createdAt: createdAt, priority: TaskPriority.high);
+    final firstId = task('z-id', createdAt: createdAt, priority: TaskPriority.high);
+    final source = <Task>[firstId, secondId];
+
+    final result = const TaskListSortService().sortByPriorityThenCreatedAt(source);
+
+    expect(result, <Task>[firstId, secondId]);
+    expect(source, <Task>[firstId, secondId]);
+  });
 
   test('date sort supports both directions and keeps undated items last', () {
     final early = task('early', dueDate: DateTime(2026, 8, 28, 8));
@@ -40,6 +94,16 @@ void main() {
       ),
       <Task>[late, early, undated],
     );
+  });
+
+  test('explicit alphabetical and due-date modes ignore Eisenhower priority', () {
+    final urgentLater = task('urgent-later', title: 'Zulu', dueDate: DateTime(2026, 8, 29), priority: TaskPriority.high);
+    final lowEarlier = task('low-earlier', title: 'Alpha', dueDate: DateTime(2026, 8, 20), priority: TaskPriority.low);
+    const service = TaskListSortService();
+    expect(service.sortByTitle([urgentLater, lowEarlier]), <Task>[lowEarlier, urgentLater]);
+    expect(service.sortByDueDate([urgentLater, lowEarlier]), <Task>[lowEarlier, urgentLater]);
+    expect(service.sortByTitle([lowEarlier, urgentLater], descending: true), <Task>[urgentLater, lowEarlier]);
+    expect(service.sortByDueDate([lowEarlier, urgentLater], descending: true), <Task>[urgentLater, lowEarlier]);
   });
 
   test('latest sort uses newest meaningful task or follow-up timestamp', () {
@@ -120,6 +184,19 @@ void main() {
       <Task>[beta, alpha],
     );
     expect(source, <Task>[beta, alpha]);
+  });
+
+  test('past sort puts incomplete tasks first and sorts dates oldest first within each group', () {
+    final openOlder = task('open-older', dueDate: DateTime(2026, 8, 20), priority: TaskPriority.medium);
+    final openNewer = task('open-newer', dueDate: DateTime(2026, 8, 25), priority: TaskPriority.high);
+    final doneOlder = task('done-older', dueDate: DateTime(2026, 8, 18), completed: true, priority: TaskPriority.medium);
+    final doneNewer = task('done-newer', dueDate: DateTime(2026, 8, 27), completed: true, priority: TaskPriority.high);
+
+    final result = const TaskListSortService().sortPast(
+      [doneNewer, openNewer, doneOlder, openOlder],
+    );
+
+    expect(result, [openNewer, openOlder, doneNewer, doneOlder]);
   });
 
   test('equal sort values use deterministic id tie break', () {

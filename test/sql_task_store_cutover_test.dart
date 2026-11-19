@@ -90,7 +90,12 @@ void main() {
     );
     final envelope =
         jsonDecode(rows.single['legacy_payload_json'] as String) as Map<String, dynamic>;
-    expect(envelope['title'], 'به‌روزشده');
+    expect(envelope.containsKey('title'), isFalse);
+    final taskRow = (await database.runSelect(
+      'SELECT title FROM tasks WHERE id = ?',
+      const ['preserve-save-1'],
+    )).single;
+    expect(taskRow['title'], 'به‌روزشده');
     expect(envelope['futureField'], {'keep': true, 'version': 7});
   });
 

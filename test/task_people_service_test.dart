@@ -60,6 +60,7 @@ void main() {
 
     final reloaded = (await store.load()).single;
     expect(reloaded.people.single.id, 'person-1');
+    expect((await store.loadPeopleDirectory()).map((person) => person.id), contains('person-1'));
     expect(reloaded.title, original.title);
     expect(reloaded.description, original.description);
     expect(reloaded.tags, original.tags);
@@ -72,6 +73,41 @@ void main() {
     expect(reloaded.archived, original.archived);
     expect(reloaded.trashed, original.trashed);
     expect(reloaded.completed, original.completed);
+  });
+
+  test('update Person changes the canonical directory label across Task references', () async {
+    final store = TaskStore();
+    final person = PersonReference(id: 'person-shared', displayName: 'سارا');
+    await store.save([
+      Task(id: 'task-1', title: 'کار اول', people: [person]),
+      Task(id: 'task-2', title: 'کار دوم', people: [person]),
+    ]);
+    final service = TaskPeopleService(store: store);
+    final staleTaskSnapshot = (await store.load()).first;
+
+    final updated = await service.updatePerson(
+      taskId: 'task-1',
+      personId: person.id,
+      displayName: '  سارا احمدی  ',
+    );
+
+    expect(updated.people.single.displayName, 'سارا احمدی');
+    // A Task snapshot captured before the rename must not roll the canonical
+    // Person display name back when it is saved later.
+    // TaskStore.save replaces the complete Task collection. Preserve the
+    // second Task while replaying the stale snapshot of the first one.
+    final currentTasks = await store.load();
+    await store.save([
+      staleTaskSnapshot,
+      ...currentTasks.where((task) => task.id != staleTaskSnapshot.id),
+    ]);
+    final tasks = await store.load();
+    expect(tasks.map((task) => task.people.single.displayName),
+        ['سارا احمدی', 'سارا احمدی']);
+    final directory = await store.loadPeopleDirectory();
+    expect(directory, hasLength(1));
+    expect(directory.single.id, person.id);
+    expect(directory.single.displayName, 'سارا احمدی');
   });
 
   test('duplicate Person id is rejected without overwriting Task', () async {

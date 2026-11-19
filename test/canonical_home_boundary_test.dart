@@ -1,47 +1,77 @@
 import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
+
+String _extractMethodBody(String source, String signature) {
+  final start = source.indexOf(signature);
+  if (start < 0) throw StateError('Missing method signature: $signature');
+  final openBrace = source.indexOf('{', start);
+  if (openBrace < 0) throw StateError('Missing method body: $signature');
+
+  var depth = 0;
+  int? quote;
+  var escaped = false;
+  for (var index = openBrace; index < source.length; index++) {
+    final code = source.codeUnitAt(index);
+    if (quote != null) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (code == 92) {
+        escaped = true;
+        continue;
+      }
+      if (code == quote) quote = null;
+      continue;
+    }
+    if (code == 39 || code == 34) {
+      quote = code;
+      continue;
+    }
+    if (code == 123) depth++;
+    if (code == 125) {
+      depth--;
+      if (depth == 0) return source.substring(openBrace + 1, index);
+    }
+  }
+  throw StateError('Unterminated method body: $signature');
+}
+
 
 void main() {
   test('Home owns canonical Task state without legacy ArvinTask projection', () {
     final source = File('lib/main.dart').readAsStringSync();
-
     expect(source, isNot(contains('class ArvinTask')));
     expect(source, isNot(contains('_legacyViewOf')));
     expect(source, isNot(contains('_canonicalSnapshotOf')));
     expect(source, contains('List<Task> tasks = [];'));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
     expect(source, contains('await taskStore.save(snapshot);'));
-    expect(source, contains('calendarOutboundSyncService.sync('));
+    final save = _extractMethodBody(source, 'Future<void> _save() async');
+    expect(save, isNot(contains('CalendarOutboundSyncService')));
+    expect(save, isNot(contains('syncTaskLifecycle')));
     expect(source, isNot(contains('TaskMigrationWriter')));
     expect(source, isNot(contains('migrationWriter.save(')));
   });
-
-  test('Home exposes a user-visible calendar sync recovery action', () {
+  test('normal save, Quick Capture, edit and completion never export automatically', () {
     final source = File('lib/main.dart').readAsStringSync();
-
-    expect(source, contains('همگام‌سازی کار با تقویم مقصد انجام نشد.'));
-    expect(source, contains('تلاش دوباره'));
-    expect(source, contains('Future<void> _retryCalendarSync'));
-    expect(source, contains('همگام‌سازی دوباره انجام شد؛ تغییرات آروین و تقویم گوشی بررسی و به‌روزرسانی شد.'));
-    expect(
-      source,
-      contains('همگام‌سازی انجام نشد؛ تنظیمات و دسترسی تقویم را بررسی کنید.'),
-    );
-    expect(
-      source,
-      isNot(contains('external side effect and is retried on the next canonical save')),
-    );
+    final save = _extractMethodBody(source, 'Future<void> _save() async');
+    expect(save, isNot(contains('CalendarOutboundSyncService')));
+    expect(save, isNot(contains('calendarOutboundSyncService')));
+    expect(source, isNot(contains('_syncCalendarAfterTaskMutation')));
+    expect(source, isNot(contains('_syncCalendarAfterQuickCapture')));
+    expect(source, isNot(contains('_syncCalendarAfterDetailTaskUpdate')));
+    expect(source, isNot(contains('_syncLinkedCalendarAfterTaskEdit')));
+    expect(source, isNot(contains('_retryCalendarSync')));
+    expect(source, contains('await taskStore.save(snapshot);'));
+    expect(source, contains("onCaptured: (captured) async"));
+    expect(source, contains("onFullForm: (draft) async"));
+    expect(source, contains('Future<Task?> _completeFromDetail(Task task)'));
+    expect(source, contains('task.setCompleted(!task.completed);'));
   });
-
   test('Home edit mutates the existing canonical Task instead of replacing it', () {
     final source = File('lib/main.dart').readAsStringSync();
-
     expect(source, contains("import 'services/task_edit_apply_service.dart';"));
-    expect(
-      source,
-      contains('final TaskEditApplyService taskEditApplyService = TaskEditApplyService();'),
-    );
     expect(source, contains('Future<void> _edit(Task old)'));
     expect(source, contains('taskEditApplyService.apply(old, edited)'));
     expect(source, contains('await _save();'));
@@ -49,35 +79,13 @@ void main() {
     expect(source, isNot(contains('tasks[tasks.indexOf(old)] = edited')));
     expect(source, isNot(contains('tasks[index] = edited')));
   });
-  test('Quick Capture routes newly persisted canonical Tasks through calendar sync', () {
-    final source = File('lib/main.dart').readAsStringSync();
-
-    expect(source, contains('Future<void> _syncCalendarAfterQuickCapture(List<Task> snapshot)'));
-    expect(source, contains('await _syncCalendarAfterQuickCapture(refreshed);'));
-    expect(source, contains('await calendarOutboundSyncService.sync('));
-    expect(source, contains('calendarProjection.project(snapshot)'));
-    expect(source, contains("onCaptured: (captured) async"));
-    expect(source, contains("onFullForm: (draft) async"));
-  });
-
-  test('Task Detail completion toggle uses the existing calendar sync recovery path', () {
-    final source = File('lib/main.dart').readAsStringSync();
-
-    expect(source, contains('Future<Task?> _completeFromDetail(Task task)'));
-    expect(source, contains('task.setCompleted(!task.completed);'));
-    expect(source, contains('task.updatedAt = DateTime.now();'));
-    expect(source, contains('await taskStore.save(List<Task>.of(tasks));'));
-    expect(source, contains('await taskStore.save(List<Task>.of(tasks));'));
-    expect(source, contains('await _syncCalendarAfterDetailTaskUpdate(refreshed);'));
-    expect(source, contains('Future<void> _syncCalendarAfterDetailTaskUpdate'));
-    expect(
-      source,
-      contains('calendarOutboundSyncService.sync(\n        calendarProjection.project(snapshot),'),
-    );
-    expect(source, contains("label: 'تلاش دوباره'"));
-    expect(
-      source,
-      isNot(contains('Future<Task?> _completeFromDetail(Task task) async {\n    task.completed = !task.completed;\n    task.updatedAt = DateTime.now();\n    await taskStore.save(List<Task>.of(tasks));\n    final refreshed = await taskStore.load();\n    if (!mounted) return task;\n    setState(() => tasks = List<Task>.of(refreshed));\n    return refreshed.firstWhere((item) => item.id == task.id);\n  }')),
-    );
+  test('only explicit Calendar swipe and Task Details callbacks are wired for export', () {
+    final main = File('lib/main.dart').readAsStringSync();
+    expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskInDeviceCalendar'));
+    expect(main, contains('onRegisterTaskToDeviceCalendar: _registerTaskFromDetails'));
+    expect(main, contains('linkedOnly: true'));
+    final outbound = File('lib/services/calendar_outbound_sync_service.dart').readAsStringSync();
+    expect(outbound, contains('if (linkedOnly && !linkedReminderIds.contains(reminder.id)) continue;'));
+    expect(outbound, contains('final managedLinks = linkedOnly'));
   });
 }

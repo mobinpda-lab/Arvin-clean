@@ -122,7 +122,11 @@ class WorkAgendaProjection {
       }
 
       addEvent(task.dueDate, WorkAgendaEventKind.taskDue);
-      addEvent(task.reminderDate, WorkAgendaEventKind.taskReminder);
+      for (final reminder in task.taskReminders) {
+        if (reminder.isEnabled) {
+          addEvent(reminder.date, WorkAgendaEventKind.taskReminder);
+        }
+      }
 
       // Independent reminders belong to their exact canonical FollowUp.
     }

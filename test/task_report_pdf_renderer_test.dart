@@ -30,6 +30,7 @@ void main() {
           id: '1',
           title: 'Release report',
           description: 'Evidence',
+          dueDate: DateTime(2026, 8, 26, 15, 10),
           reminderDate: DateTime(2026, 8, 27, 9, 5),
           followUps: [
             FollowUp(

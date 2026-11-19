@@ -64,6 +64,22 @@ void main() {
     expect(reloaded.tags, ['مهم']);
     expect(reloaded.checklist, ['مرحله یک']);
 
+    await tester.tap(find.byKey(const ValueKey('people-edit-person-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('ویرایش شخص'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی ویرایش‌شده',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-edit-save')));
+    await tester.pumpAndSettle();
+    expect(find.text('علی رضایی ویرایش‌شده'), findsOneWidget);
+    reloaded = (await store.load()).single;
+    expect(reloaded.people.single.id, 'person-1');
+    expect(reloaded.people.single.displayName, 'علی رضایی ویرایش‌شده');
+    expect((await store.loadPeopleDirectory()).single.displayName,
+        'علی رضایی ویرایش‌شده');
+
     await tester.tap(find.byKey(const ValueKey('people-remove-person-1')));
     await tester.pumpAndSettle();
     expect(find.text('حذف ارتباط'), findsOneWidget);

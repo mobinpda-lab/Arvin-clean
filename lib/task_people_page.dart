@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'models/task.dart';
+import 'models/person_reference.dart';
 import 'services/task_people_service.dart';
 
 class TaskPeoplePage extends StatefulWidget {
@@ -48,48 +49,70 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
     }
   }
 
-  Future<String?> _askForName() async {
-    var draft = '';
+  Future<String?> _askForName({
+    required String title,
+    required String saveKey,
+    String initialValue = '',
+  }) {
     return showDialog<String>(
       context: context,
-      builder: (dialogContext) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: const Text('افزودن شخص'),
-          content: TextField(
-            key: const ValueKey('people-name-input'),
-            autofocus: true,
-            textInputAction: TextInputAction.done,
-            decoration: const InputDecoration(
-              labelText: 'نام نمایشی',
-              hintText: 'مثلاً علی رضایی',
-            ),
-            onChanged: (value) => draft = value,
-            onSubmitted: (value) => Navigator.pop(dialogContext, value),
-          ),
-          actions: [
-            TextButton(
-              key: const ValueKey('people-add-cancel'),
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('لغو'),
-            ),
-            FilledButton(
-              key: const ValueKey('people-add-save'),
-              onPressed: () => Navigator.pop(dialogContext, draft),
-              child: const Text('افزودن'),
-            ),
-          ],
-        ),
+      builder: (_) => _PersonNameDialog(
+        title: title,
+        saveKey: saveKey,
+        initialValue: initialValue,
       ),
     );
   }
 
   Future<void> _addPerson() async {
-    final name = await _askForName();
+    final name = await _askForName(title: 'افزودن شخص', saveKey: 'people-add-save');
     if (name == null) return;
     try {
       final updated = await widget.service.addLocalPerson(
         taskId: widget.taskId,
+        displayName: name,
+      );
+      if (!mounted) return;
+      setState(() => task = updated);
+    } on ArgumentError {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('نام شخص را وارد کنید')),
+        );
+    } catch (error, stackTrace) {
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error.runtimeType,
+          stack: stackTrace,
+          library: 'arvin people',
+          context: ErrorDescription(
+            'Adding a person to a Task failed; error details omitted to protect user data.',
+          ),
+        ),
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('افزودن شخص انجام نشد؛ دوباره تلاش کنید')),
+        );
+    }
+  }
+
+  Future<void> _editPerson(PersonReference person) async {
+    if (person.isDeleted) return;
+    final name = await _askForName(
+      title: 'ویرایش شخص',
+      saveKey: 'people-edit-save',
+      initialValue: person.displayName,
+    );
+    if (name == null) return;
+    try {
+      final updated = await widget.service.updatePerson(
+        taskId: widget.taskId,
+        personId: person.id,
         displayName: name,
       );
       if (!mounted) return;
@@ -106,7 +129,7 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('افزودن شخص انجام نشد؛ دوباره تلاش کنید')),
+          const SnackBar(content: Text('ویرایش شخص انجام نشد؛ دوباره تلاش کنید')),
         );
     }
   }
@@ -206,16 +229,31 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
                               leading: const CircleAvatar(
                                 child: Icon(Icons.person_outline),
                               ),
-                              title: Text(person.displayName),
-                              subtitle: const Text('شناسه محلی آروین'),
-                              trailing: IconButton(
-                                key: ValueKey('people-remove-${person.id}'),
-                                tooltip: 'حذف ارتباط',
-                                onPressed: () => _removePerson(
-                                  person.id,
-                                  person.displayName,
-                                ),
-                                icon: const Icon(Icons.link_off_outlined),
+                              title: Text(person.displayLabel),
+                              subtitle: Text(person.isDeleted
+                                  ? 'این شخص از فهرست فعال حذف شده است'
+                                  : 'شناسه محلی آروین'),
+                              trailing: Wrap(
+                                spacing: 4,
+                                children: [
+                                  IconButton(
+                                    key: ValueKey('people-edit-${person.id}'),
+                                    tooltip: 'ویرایش نام',
+                                    onPressed: person.isDeleted
+                                        ? null
+                                        : () => _editPerson(person),
+                                    icon: const Icon(Icons.edit_outlined),
+                                  ),
+                                  IconButton(
+                                    key: ValueKey('people-remove-${person.id}'),
+                                    tooltip: 'حذف ارتباط',
+                                    onPressed: () => _removePerson(
+                                      person.id,
+                                      person.displayLabel,
+                                    ),
+                                    icon: const Icon(Icons.link_off_outlined),
+                                  ),
+                                ],
                               ),
                             ),
                           );
@@ -224,4 +262,67 @@ class _TaskPeoplePageState extends State<TaskPeoplePage> {
       ),
     );
   }
+}
+
+ 
+class _PersonNameDialog extends StatefulWidget {
+  const _PersonNameDialog({
+    required this.title,
+    required this.saveKey,
+    required this.initialValue,
+  });
+
+  final String title;
+  final String saveKey;
+  final String initialValue;
+
+  @override
+  State<_PersonNameDialog> createState() => _PersonNameDialogState();
+}
+
+class _PersonNameDialogState extends State<_PersonNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(widget.title),
+          content: TextField(
+            key: const ValueKey('people-name-input'),
+            controller: _controller,
+            autofocus: true,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'نام نمایشی',
+              hintText: 'مثلاً علی رضایی',
+            ),
+            onSubmitted: (value) => Navigator.pop(context, value),
+          ),
+          actions: [
+            TextButton(
+              key: const ValueKey('people-add-cancel'),
+              onPressed: () => Navigator.pop(context),
+              child: const Text('لغو'),
+            ),
+            FilledButton(
+              key: ValueKey(widget.saveKey),
+              onPressed: () => Navigator.pop(context, _controller.text),
+              child: const Text('ذخیره'),
+            ),
+          ],
+        ),
+      );
 }

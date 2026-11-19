@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arvin/backup_manager.dart';
@@ -8,6 +9,8 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/follow_up_reminder_delivery_service.dart';
+import 'package:arvin/services/follow_up_reminder_projection.dart';
+import 'package:arvin/services/follow_up_reminder_alarm_planner.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,13 +23,47 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
   });
 
+  test('disabled reminders stay disabled after database close and application restart', () async {
+    final directory = await Directory.systemTemp.createTemp('arvin-disabled-reminder-reopen-');
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    var executor = NativeDatabase(databaseFile);
+    final now = DateTime(2026, 11, 8, 10);
+    final original = Task(
+      id: 'disabled-after-restart',
+      title: 'یادآورهای خاموش',
+      taskReminders: [
+        TaskReminder(id: 'future-off', title: 'آینده خاموش', date: now.add(const Duration(hours: 1)), sequence: 1, isEnabled: false),
+        TaskReminder(id: 'past-off', title: 'گذشته خاموش', date: now.subtract(const Duration(hours: 1)), sequence: 2, isEnabled: false),
+      ],
+    );
+    await TaskStore(executor: executor).save([original]);
+    await executor.close();
+
+    executor = NativeDatabase(databaseFile);
+    try {
+      final restored = (await TaskStore(executor: executor).load()).single;
+      expect(restored.taskReminders.map((item) => item.isEnabled), [false, false]);
+      expect(const FollowUpReminderProjection().pending([restored], now: now), isEmpty);
+      expect(const FollowUpReminderDeliveryService().due([restored], now: now), isEmpty);
+      expect(
+        const FollowUpReminderAlarmPlanner().nextAlarmAt(
+          [restored], deliveredState: const <String, String>{}, now: now,
+        ),
+        isNull,
+      );
+    } finally {
+      await executor.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('deleted migrated legacy reminder does not return after SQL and backup restore',
       () async {
     final executor = NativeDatabase.memory();
     addTearDown(executor.close);
     final store = TaskStore(executor: executor);
     final legacyDate = DateTime(2026, 10, 10, 8, 30);
-    final task = Task.fromJson(<String, dynamic>{
+    final task = Task.fromLegacyJson(<String, dynamic>{
       'id': 'deleted-legacy-reminder',
       'title': 'یادآور حذف‌شده',
       'reminderDate': legacyDate.toIso8601String(),
@@ -34,15 +71,16 @@ void main() {
 
     expect(task.legacyTaskReminderMigrationVersion, 1);
     expect(task.taskReminders.map((reminder) => reminder.id),
-        <String>['legacy-task-reminder']);
+        <String>['legacy-task-reminder-deleted-legacy-reminder']);
 
     // Deletion is represented by an empty canonical collection plus the
-    // persisted migration tombstone; the old compatibility field stays intact.
+    // migration marker, which blocks stale legacy payload resurrection.
     task.taskReminders.clear();
     await store.save(<Task>[task]);
     final afterSql = await store.load();
     expect(afterSql.single.legacyTaskReminderMigrationVersion, 1);
-    expect(afterSql.single.reminderDate, legacyDate);
+    expect(afterSql.single.reminderDate, isNull,
+        reason: 'the canonical reminder was deleted and the migration tombstone prevents legacy resurrection');
     expect(afterSql.single.taskReminders, isEmpty);
 
     final payload = <String, dynamic>{
@@ -72,7 +110,7 @@ void main() {
     addTearDown(executor.close);
     final store = TaskStore(executor: executor);
     final legacyDate = DateTime(2026, 10, 10, 8, 30);
-    final oldTask = Task.fromJson(<String, dynamic>{
+    final oldTask = Task.fromLegacyJson(<String, dynamic>{
       'id': 'task-reminder-integration',
       'title': 'پیگیری قرارداد',
       'reminderDate': legacyDate.toIso8601String(),
@@ -82,8 +120,8 @@ void main() {
     });
 
     expect(oldTask.taskReminders, hasLength(1));
-    expect(oldTask.taskReminders.single.id, 'legacy-task-reminder');
-    expect(oldTask.taskReminders.single.isLegacyTaskReminder, isTrue);
+    expect(oldTask.taskReminders.single.id, 'legacy-task-reminder-task-reminder-integration');
+    
 
     oldTask.taskReminders.addAll(<TaskReminder>[
       TaskReminder(
@@ -102,7 +140,7 @@ void main() {
     oldTask.nextReminderSequence = 4;
 
     final eventLink = ExternalCalendarEventLink(
-      reminderId: 'task-reminder-item:task-reminder-integration:legacy-task-reminder',
+      reminderId: 'task-reminder-item:task-reminder-integration:legacy-task-reminder-task-reminder-integration',
       calendarId: 'calendar-local-1',
       eventId: 'provider-event-stable-42',
       lastSyncedFingerprint: 'fingerprint-v1',
@@ -122,7 +160,7 @@ void main() {
     expect(sqlReloaded.single.id, oldTask.id);
     expect(sqlReloaded.single.people.single.id, 'person-7');
     expect(sqlReloaded.single.taskReminders.map((r) => r.id).toSet(), {
-      'legacy-task-reminder',
+      'legacy-task-reminder-task-reminder-integration',
       'task-reminder-integration:reminder:2',
       'task-reminder-integration:reminder:3',
     });
@@ -152,12 +190,12 @@ void main() {
     expect(task.taskReminders, hasLength(3),
         reason: 'restore must not duplicate any Reminder');
     expect(task.taskReminders.map((r) => r.id).toSet(), {
-      'legacy-task-reminder',
+      'legacy-task-reminder-task-reminder-integration',
       'task-reminder-integration:reminder:2',
       'task-reminder-integration:reminder:3',
     });
     expect(task.legacyTaskReminderMigrationVersion, 1);
-    expect(task.taskReminders.singleWhere((r) => r.isLegacyTaskReminder).date,
+    expect(task.taskReminders.singleWhere((r) => r.id == 'legacy-task-reminder-${task.id}').date,
         legacyDate);
 
     final restoredLinks = (decoded['calendarLinks'] as List)

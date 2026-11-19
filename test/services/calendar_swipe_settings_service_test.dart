@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('calendar swipe sides persist independently', () async {
+  test('only explicit Device Calendar sync persists independently', () async {
     final service = CalendarSwipeSettingsService();
     final defaults = await service.load();
     expect(defaults.right, CalendarSwipeAction.none);
@@ -17,7 +17,7 @@ void main() {
     ));
 
     final loaded = await service.load();
-    expect(loaded.right, CalendarSwipeAction.edit);
+    expect(loaded.right, CalendarSwipeAction.none);
     expect(loaded.left, CalendarSwipeAction.sync);
   });
 

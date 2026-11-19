@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/calendar_page.dart';
+import 'package:arvin/services/calendar_swipe_settings_service.dart';
 
 Future<void> _expectReadOnlyReminder(
   WidgetTester tester, {
@@ -50,51 +51,37 @@ void main() {
       id: 'task-due:task-1',
       title: 'موعد کار',
     );
-    await _expectReadOnlyReminder(
-      tester,
-      id: 'task-followup:task-1',
-      title: 'پیگیری قدیمی',
-    );
   });
 
-  testWidgets('canonical follow-up row keeps generic Task actions', (
+  testWidgets('historical FollowUp is not rendered or actionable in local Calendar', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
-    final reminder = CalendarReminder(
-      id: 'followup:task-1:fu-1',
-      title: 'پیگیری قرارداد',
-      date: day,
-    );
+    const id = 'followup:task-1:fu-1';
 
     await tester.pumpWidget(
       MaterialApp(
         home: CalendarPage(
           initialSelectedDay: day,
-          reminders: [reminder],
-          canMutateReminder: (item) => item.id.startsWith('followup:'),
+          reminders: <CalendarReminder>[
+            CalendarReminder(
+              id: id,
+              title: 'پیگیری قرارداد',
+              date: DateTime(2026, 9, 15, 9),
+            ),
+          ],
           onCompleteReminder: (_) async {},
           onEditReminder: (_) async {},
         ),
       ),
     );
+    await tester.pumpAndSettle();
 
-    await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-    await tester.pump();
-
-    expect(
-      find.byKey(ValueKey('reminder-complete-${reminder.id}')),
-      findsOneWidget,
-    );
-    expect(
-      find.byKey(ValueKey('reminder-snooze-${reminder.id}')),
-      findsNothing,
-      reason: 'Calendar no longer exposes a nonfunctional snooze action',
-    );
-    expect(
-      find.byKey(ValueKey('reminder-edit-${reminder.id}')),
-      findsOneWidget,
-    );
+    expect(find.text('پیگیری قرارداد'), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-card-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-actions-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-complete-$id')), findsNothing);
+    expect(find.byKey(const ValueKey('reminder-edit-$id')), findsNothing);
   });
 
   testWidgets('long press on a week date forwards the exact selected date', (
@@ -121,12 +108,13 @@ void main() {
     expect(requestedDate, DateTime(2026, 9, 15));
   });
 
-  testWidgets('Arvin Task primary actions are visible before expansion', (
+  testWidgets('Task calendar cards open Details and never expose inline edit', (
     tester,
   ) async {
     final day = DateTime(2026, 9, 15, 9);
     var edited = 0;
     var registered = 0;
+    var opened = 0;
     final reminders = <CalendarReminder>[
       CalendarReminder(
         id: 'task-reminder:task-1',
@@ -140,7 +128,8 @@ void main() {
       ),
     ];
 
-    for (final reminder in reminders) {
+    for (var index = 0; index < reminders.length; index++) {
+      final reminder = reminders[index];
       await tester.pumpWidget(
         MaterialApp(
           home: CalendarPage(
@@ -148,8 +137,10 @@ void main() {
             initialSelectedDay: reminder.date,
             reminders: <CalendarReminder>[reminder],
             onEditTask: (_) async => edited++,
+            onOpenTask: (_) async => opened++,
             onDeleteTask: (_) async {},
             onRegisterTaskToDeviceCalendar: (_) async => registered++,
+            calendarSwipeRightAction: CalendarSwipeAction.sync,
           ),
         ),
       );
@@ -166,23 +157,30 @@ void main() {
       expect(register, findsNothing);
       expect(delete, findsNothing);
 
-      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
+      final card = find.byKey(ValueKey('reminder-card-${reminder.id}'));
+      await tester.ensureVisible(card);
+      await tester.pump(const Duration(milliseconds: 100));
+      await tester.tap(card);
+      await tester.pump();
+      expect(opened, index + 1);
+
+      await tester.longPress(card);
       await tester.pumpAndSettle();
-      expect(edit, findsOneWidget);
-      expect(register, findsOneWidget);
+      expect(edit, findsNothing);
+      expect(register, findsNothing);
       expect(delete, findsOneWidget);
 
-      await tester.tap(edit);
-      await tester.pumpAndSettle();
-      await tester.longPress(find.byKey(ValueKey('reminder-card-${reminder.id}')));
-      await tester.pumpAndSettle();
-      await tester.tap(register);
-      await tester.pumpAndSettle();
-      expect(delete, findsNothing);
+      // Close the long-press action sheet before replacing the CalendarPage
+      // fixture for the next reminder. Otherwise its ModalBarrier remains on
+      // the Navigator and blocks the next card tap.
+      Navigator.of(tester.element(find.byType(CalendarPage))).pop();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump();
     }
 
-    expect(edited, 2);
-    expect(registered, 2);
+    expect(opened, 2);
+    expect(edited, 0);
+    expect(registered, 0);
   });
 
 }

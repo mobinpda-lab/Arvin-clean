@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:drift/drift.dart';
+import 'package:drift/drift.dart' hide isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -11,15 +11,128 @@ import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_store.dart';
 
 final DateTime _actionAt = DateTime.utc(2026, 8, 15, 10, 15, 42, 123);
-final DateTime _reminderAt = DateTime.utc(2026, 8, 16, 9, 0);
-final DateTime _nextFollowUpAt = DateTime.utc(2026, 8, 20, 10, 15);
 final DateTime _siblingActionAt = DateTime.utc(2026, 8, 10, 8, 30);
 final DateTime _taskDueAt = DateTime.utc(2026, 9, 2, 14, 45);
-final DateTime _legacyReminderAt = DateTime.utc(2026, 8, 18, 11, 20);
 final DateTime _firstTaskReminderAt = DateTime.utc(2026, 8, 17, 12, 5);
-final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19, 16, 40);
+final DateTime _secondTaskReminderAt = DateTime.utc(2026, 8, 19);
 
 void main() {
+  test(
+    'independent Task Reminder create, edit, disable, delete and re-enable survives SQLite reopen',
+    () async {
+      final directory =
+          await Directory.systemTemp.createTemp('arvin-reminder-crud-persistence-');
+      final databasePath = '${directory.path}/arvin.sqlite';
+      _Harness? active;
+      final dueAt = DateTime.utc(2026, 9, 4, 16);
+      final firstAt = DateTime.utc(2026, 9, 1, 8);
+      final secondAt = DateTime.utc(2026, 9, 2, 9);
+      final thirdAt = DateTime.utc(2026, 9, 3, 10);
+      final editedAt = DateTime.utc(2026, 9, 1, 11);
+
+      try {
+        active = await _openHarness(databasePath);
+        await active.store.save([
+          Task(
+            id: 'reminder-crud-task',
+            title: 'یادآورهای مستقل',
+            dueDate: dueAt,
+            taskReminders: [
+              TaskReminder(
+                id: 'reminder-crud-1',
+                title: 'اول',
+                date: firstAt,
+                sequence: 1,
+              ),
+              TaskReminder(
+                id: 'reminder-crud-2',
+                title: 'دوم',
+                date: secondAt,
+                sequence: 2,
+              ),
+              TaskReminder(
+                id: 'reminder-crud-3',
+                title: 'سوم',
+                date: thirdAt,
+                sequence: 3,
+              ),
+            ],
+            nextReminderSequence: 4,
+          ),
+        ]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final task = (await active.store.load()).single;
+        task.taskReminders[0] = task.taskReminders[0].copyWith(
+          title: 'اول ویرایش‌شده',
+          date: editedAt,
+        );
+        task.taskReminders[1] =
+            task.taskReminders[1].copyWith(isEnabled: false);
+        task.taskReminders.removeWhere((reminder) => reminder.id == 'reminder-crud-3');
+        await active.store.save([task]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final afterEdit = (await active.store.load()).single;
+        expect(afterEdit.dueDate, dueAt);
+        expect(afterEdit.taskReminders, hasLength(2));
+        expect(
+          afterEdit.taskReminders.map((reminder) => reminder.id).toSet(),
+          {'reminder-crud-1', 'reminder-crud-2'},
+        );
+        final edited = afterEdit.taskReminders.singleWhere(
+          (reminder) => reminder.id == 'reminder-crud-1',
+        );
+        expect(edited.title, 'اول ویرایش‌شده');
+        expect(edited.date, editedAt);
+        final disabled = afterEdit.taskReminders.singleWhere(
+          (reminder) => reminder.id == 'reminder-crud-2',
+        );
+        expect(disabled.isEnabled, isFalse);
+        expect(
+          await _count(active.executor, 'task_reminders'),
+          2,
+        );
+
+        afterEdit.taskReminders[afterEdit.taskReminders.indexWhere(
+          (reminder) => reminder.id == 'reminder-crud-2',
+        )] = disabled.copyWith(isEnabled: true);
+        await active.store.save([afterEdit]);
+        await active.close();
+        active = null;
+
+        active = await _openHarness(databasePath);
+        final reopened = (await active.store.load()).single;
+        expect(reopened.dueDate, dueAt);
+        expect(reopened.taskReminders, hasLength(2));
+        expect(
+          reopened.taskReminders.singleWhere(
+            (reminder) => reminder.id == 'reminder-crud-1',
+          ).date,
+          editedAt,
+        );
+        expect(
+          reopened.taskReminders.singleWhere(
+            (reminder) => reminder.id == 'reminder-crud-2',
+          ).isEnabled,
+          isTrue,
+        );
+        expect(
+          await _count(active.executor, 'task_reminders'),
+          2,
+          reason: 'deleting a reminder must not leave a duplicate or tombstone row',
+        );
+      } finally {
+        if (active != null) await active.close();
+        await directory.delete(recursive: true);
+      }
+    },
+  );
+
   test(
     'completion true -> false -> true survives closing and reopening the same SQLite file',
     () async {
@@ -40,7 +153,6 @@ void main() {
             createdAt: DateTime.utc(2026, 8, 1, 7),
             updatedAt: DateTime.utc(2026, 8, 14, 18),
             dueDate: _taskDueAt,
-            reminderDate: _legacyReminderAt,
             legacyTaskReminderMigrationVersion: 1,
             followUpEnabled: true,
             category: 'فروش',
@@ -59,6 +171,7 @@ void main() {
                 id: 'task-reminder-2',
                 title: 'یادآور مستقل دوم',
                 date: _secondTaskReminderAt,
+                isAllDay: true,
                 sequence: 2,
               ),
             ],
@@ -70,8 +183,6 @@ void main() {
                 title: 'پیگیری قرارداد',
                 note: 'شرح کامل اقدام ثبت‌شده',
                 result: 'پاسخ دریافت شد',
-                reminderDate: _reminderAt,
-                nextFollowUp: _nextFollowUpAt,
                 completed: false,
                 waitingForResponse: true,
                 personIds: const <String>['person-1', 'person-2'],
@@ -115,7 +226,6 @@ void main() {
           expect(task.title, 'قرارداد فروش');
           expect(task.description, 'شرح مستقل Task باید حفظ شود');
           expect(task.dueDate?.toIso8601String(), _taskDueAt.toIso8601String());
-          expect(task.reminderDate?.toIso8601String(), _legacyReminderAt.toIso8601String());
           expect(task.legacyTaskReminderMigrationVersion, 1);
           expect(task.followUpEnabled, isTrue);
           expect(task.category, 'فروش');
@@ -125,6 +235,9 @@ void main() {
           // Independent Task reminders must retain their own IDs, dates and
           // sequence values, without being duplicated by a Follow-up mutation.
           expect(task.taskReminders, hasLength(2));
+          expect(task.taskReminders.every((reminder) => !isMigratedTaskReminder(task, reminder)), isTrue);
+          expect(task.reminderDate, _firstTaskReminderAt,
+              reason: 'The computed getter must expose the earliest enabled canonical reminder.');
           expect(
             task.taskReminders.map((reminder) => reminder.id).toSet(),
             <String>{'task-reminder-1', 'task-reminder-2'},
@@ -143,9 +256,19 @@ void main() {
             (reminder) => reminder.id == 'task-reminder-2',
           );
           expect(secondReminder.title, 'یادآور مستقل دوم');
-          expect(secondReminder.date.toIso8601String(), _secondTaskReminderAt.toIso8601String());
+          expect(secondReminder.isAllDay, isTrue);
+          expect(secondReminder.date.year, 2026);
+          expect(secondReminder.date.month, 8);
+          expect(secondReminder.date.day, 19);
+          expect(secondReminder.storageDateValue, '2026-08-19');
           expect(secondReminder.sequence, 2);
           expect(task.nextReminderSequence, 3);
+          final storedAllDayReminder = await active.executor.runSelect(
+            'SELECT remind_at, is_all_day FROM task_reminders WHERE id = ?',
+            const <Object?>['task-reminder-2'],
+          );
+          expect(storedAllDayReminder.single['remind_at'], '2026-08-19');
+          expect(storedAllDayReminder.single['is_all_day'], 1);
 
           // Re-read the Follow-ups through the public Repository boundary.
           final followUps = await active.repository.loadForTask('task-persistence-1');
@@ -173,9 +296,10 @@ void main() {
           // Assert canonical SQL rows and relation cardinality as well as the
           // model view, so accidental duplicate writes cannot hide in decoding.
           expect(await _count(active.executor, 'tasks'), 1);
-          expect(await _count(active.executor, 'follow_ups'), 2);
-          expect(await _count(active.executor, 'follow_up_people'), 3);
-          expect(await _count(active.executor, 'task_people'), 1);
+          expect(await _count(active.executor, 'follow_up_records'), 2);
+          expect(await _count(active.executor, 'follow_up_record_people'), 3);
+          expect(await _count(active.executor, 'task_reminders'), 2);
+          expect(await _count(active.executor, 'task_persons'), 1);
 
           await active.close();
           active = null;
@@ -207,9 +331,10 @@ Future<_Harness> _openHarness(String databasePath) async {
 Future<int> _count(QueryExecutor executor, String table) async {
   const allowedTables = <String>{
     'tasks',
-    'follow_ups',
-    'follow_up_people',
-    'task_people',
+    'follow_up_records',
+    'follow_up_record_people',
+    'task_reminders',
+    'task_persons',
   };
   if (!allowedTables.contains(table)) {
     throw ArgumentError.value(table, 'table', 'Unsupported test table');
@@ -227,8 +352,8 @@ void _expectTargetFollowUp(FollowUp followUp, {required bool completed}) {
   expect(followUp.title, 'پیگیری قرارداد');
   expect(followUp.note, 'شرح کامل اقدام ثبت‌شده');
   expect(followUp.result, 'پاسخ دریافت شد');
-  expect(followUp.reminderDate?.toIso8601String(), _reminderAt.toIso8601String());
-  expect(followUp.nextFollowUp?.toIso8601String(), _nextFollowUpAt.toIso8601String());
+  expect(followUp.toJson().containsKey('reminderDate'), isFalse);
+  expect(followUp.toJson().containsKey('nextFollowUp'), isFalse);
   expect(followUp.completed, completed);
   expect(followUp.waitingForResponse, isTrue);
   expect(followUp.personIds, <String>['person-1', 'person-2']);

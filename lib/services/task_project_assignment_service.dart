@@ -17,12 +17,13 @@ class TaskProjectAssignmentService {
 
   Future<List<ProjectPlan>> loadProjects() => store.load();
 
-  Future<ProjectPlan> createProject({required String title, String? id}) async {
+  Future<ProjectPlan> createProject({required String title, String? id, String? centerId}) async {
     final current = await store.load();
     final createdAt = DateTime.now().microsecondsSinceEpoch;
     final project = ProjectPlan(
       id: id ?? 'project_$createdAt',
       title: title.trim(),
+      centerId: centerId,
     );
     final next = lifecycle.add(current, project);
     await store.save(next);

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'arvin_colors.dart';
+
 import 'models/recurrence.dart';
 import 'models/task.dart';
 import 'services/persian_date_formatter.dart';
@@ -265,7 +267,7 @@ class _TaskRecurrencePageState extends State<TaskRecurrencePage> {
 
   Widget _infoChip(String label, String value) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-    decoration: BoxDecoration(color: const Color(0xFFE9EAFF), borderRadius: BorderRadius.circular(14)),
+    decoration: BoxDecoration(color: ArvinColors.primarySoft, borderRadius: BorderRadius.circular(14)),
     child: Text('$label: $value'),
   );
 

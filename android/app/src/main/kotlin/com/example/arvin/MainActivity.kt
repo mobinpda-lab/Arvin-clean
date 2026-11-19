@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.provider.CalendarContract
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -48,32 +49,6 @@ class MainActivity : FlutterActivity() {
         )
         systemCalendarChannel?.setMethodCallHandler { call, result ->
             when (call.method) {
-                METHOD_INSERT_SYSTEM_CALENDAR_EVENT -> {
-                    val title = call.argument<String>("title")?.trim().orEmpty()
-                    val startMillis = call.argument<Number>("startMillis")?.toLong()
-                    val endMillis = call.argument<Number>("endMillis")?.toLong()
-                    val allDay = call.argument<Boolean>("allDay") ?: false
-
-                    if (title.isEmpty() || startMillis == null || endMillis == null) {
-                        result.error("invalid_event", "Calendar event payload is incomplete", null)
-                        return@setMethodCallHandler
-                    }
-
-                    val calendarIntent = Intent(Intent.ACTION_INSERT).apply {
-                        data = CalendarContract.Events.CONTENT_URI
-                        putExtra(CalendarContract.Events.TITLE, title)
-                        putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, startMillis)
-                        putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endMillis)
-                        putExtra(CalendarContract.Events.ALL_DAY, allDay)
-                    }
-
-                    if (calendarIntent.resolveActivity(packageManager) == null) {
-                        result.success(false)
-                    } else {
-                        startActivity(calendarIntent)
-                        result.success(true)
-                    }
-                }
                 METHOD_CALENDAR_READ_PERMISSION_GRANTED -> {
                     result.success(hasCalendarReadPermission())
                 }
@@ -93,6 +68,11 @@ class MainActivity : FlutterActivity() {
                     ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_CALENDAR), CALENDAR_WRITE_PERMISSION_REQUEST_CODE)
                 }
                 METHOD_CREATE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -108,8 +88,16 @@ class MainActivity : FlutterActivity() {
                         return@setMethodCallHandler
                     }
                     try {
-                        val uri = contentResolver.insert(CalendarContract.Events.CONTENT_URI, eventValues(calendarId, title, startMillis, endMillis, allDay, description))
-                        result.success(uri?.lastPathSegment)
+                        val existingEventId = findOwnedProviderEventId(calendarId, reminderId!!)
+                        if (existingEventId != null) {
+                            result.success(existingEventId.toString())
+                        } else {
+                            val uri = contentResolver.insert(
+                                CalendarContract.Events.CONTENT_URI,
+                                eventValues(calendarId, reminderId, title, startMillis, endMillis, allDay, description),
+                            )
+                            result.success(uri?.lastPathSegment)
+                        }
                     } catch (error: SecurityException) {
                         result.error("calendar_write_denied", "Android Calendar Provider denied create", error.message)
                     } catch (error: RuntimeException) {
@@ -117,6 +105,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_UPDATE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -138,9 +131,9 @@ class MainActivity : FlutterActivity() {
                         // Use the collection URI and constrain both row and owner calendar.
                         val updated = contentResolver.update(
                             CalendarContract.Events.CONTENT_URI,
-                            eventValues(calendarId, title, startMillis, endMillis, allDay, description),
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            eventValues(calendarId, reminderId!!, title, startMillis, endMillis, allDay, description),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                         )
                         result.success(updated == 1)
                     } catch (error: SecurityException) {
@@ -173,6 +166,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_VERIFY_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be verified", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarReadPermission()) {
                         result.error("calendar_read_permission_denied", "Calendar read permission is required to verify a linked event", null)
                         return@setMethodCallHandler
@@ -188,14 +186,21 @@ class MainActivity : FlutterActivity() {
                         var exists = false
                         contentResolver.query(
                             CalendarContract.Events.CONTENT_URI,
-                            arrayOf(CalendarContract.Events._ID, CalendarContract.Events.CALENDAR_ID),
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            arrayOf(
+                                CalendarContract.Events._ID,
+                                CalendarContract.Events.CALENDAR_ID,
+                                CalendarContract.Events.CUSTOM_APP_PACKAGE,
+                                CalendarContract.Events.CUSTOM_APP_URI,
+                            ),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                             null,
                         )?.use { cursor ->
                             exists = cursor.moveToFirst() &&
                                 cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)) == eventId &&
-                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId
+                                cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Events.CALENDAR_ID)) == calendarId &&
+                                cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CUSTOM_APP_PACKAGE)) == packageName &&
+                                cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Events.CUSTOM_APP_URI)) == customAppUriForReminder(reminderId!!)
                         }
                         result.success(exists)
                     } catch (error: SecurityException) {
@@ -205,6 +210,11 @@ class MainActivity : FlutterActivity() {
                     }
                 }
                 METHOD_DELETE_DEVICE_CALENDAR_EVENT -> {
+                    val reminderId = call.argument<String>("reminderId")
+                    if (!isExportableTaskReminderId(reminderId)) {
+                        result.error("invalid_reminder_id", "Only Task and TaskReminder identities may be exported", null)
+                        return@setMethodCallHandler
+                    }
                     if (!hasCalendarWritePermission()) {
                         result.error("calendar_write_permission_denied", "Calendar write permission is required", null)
                         return@setMethodCallHandler
@@ -221,8 +231,8 @@ class MainActivity : FlutterActivity() {
                         // attached to a row-specific Events URI.
                         val deleted = contentResolver.delete(
                             CalendarContract.Events.CONTENT_URI,
-                            CalendarContract.Events._ID + " = ? AND " + CalendarContract.Events.CALENDAR_ID + " = ?",
-                            arrayOf(eventId.toString(), calendarIdText),
+                            eventOwnershipSelection(),
+                            eventOwnershipArgs(eventId, calendarId, reminderId!!),
                         )
                         result.success(deleted == 1)
                     } catch (error: SecurityException) {
@@ -277,6 +287,23 @@ class MainActivity : FlutterActivity() {
                         permissions.toTypedArray(),
                         CALENDAR_ACCESS_PERMISSION_REQUEST_CODE,
                     )
+                }
+                METHOD_ENSURE_ARVIN_LOCAL_CALENDAR -> {
+                    if (!hasCalendarReadPermission() || !hasCalendarWritePermission()) {
+                        result.error(
+                            "calendar_access_permission_denied",
+                            "Read and write calendar permissions are required to ensure Arvin's local calendar",
+                            null,
+                        )
+                        return@setMethodCallHandler
+                    }
+                    try {
+                        result.success(ensureArvinLocalCalendar())
+                    } catch (error: SecurityException) {
+                        result.error("calendar_write_denied", "Android Calendar Provider denied local Arvin calendar creation", error.message)
+                    } catch (error: RuntimeException) {
+                        result.error("calendar_local_creation_failed", "Unable to ensure the local Arvin calendar", error.message)
+                    }
                 }
                 METHOD_LIST_DEVICE_CALENDARS -> {
                     if (!hasCalendarReadPermission()) {
@@ -364,6 +391,17 @@ class MainActivity : FlutterActivity() {
         }
     }
 
+    private fun isExportableTaskReminderId(reminderId: String?): Boolean {
+        val id = reminderId?.trim().orEmpty()
+        val prefix = listOf(
+            "task-due:",
+            "task-reminder-item:",
+            "task-reminder:",
+            "task-recurrence:",
+        ).firstOrNull { id.startsWith(it) } ?: return false
+        return id.removePrefix(prefix).isNotBlank()
+    }
+
     private fun hasCalendarReadPermission(): Boolean =
         ContextCompat.checkSelfPermission(
             this,
@@ -376,8 +414,139 @@ class MainActivity : FlutterActivity() {
             Manifest.permission.WRITE_CALENDAR,
         ) == PackageManager.PERMISSION_GRANTED
 
+    /**
+     * Creates or reuses only the app-owned local Arvin calendar. A matching
+     * display name alone is never treated as proof of ownership.
+     */
+    @Synchronized
+    private fun ensureArvinLocalCalendar(): Map<String, Any?> {
+        val accountName = packageName
+        val accountType = CalendarContract.ACCOUNT_TYPE_LOCAL
+        val uri = arvinLocalCalendarSyncAdapterUri(accountName, accountType)
+        val selection =
+            "${CalendarContract.Calendars.ACCOUNT_NAME} = ? AND " +
+                "${CalendarContract.Calendars.ACCOUNT_TYPE} = ? AND " +
+                "${CalendarContract.Calendars.NAME} = ? AND " +
+                "${CalendarContract.Calendars.OWNER_ACCOUNT} = ?"
+        val args = arrayOf(
+            accountName,
+            accountType,
+            ARVIN_LOCAL_CALENDAR_NAME,
+            accountName,
+        )
+        val ids = mutableListOf<Long>()
+        contentResolver.query(
+            uri,
+            arrayOf(CalendarContract.Calendars._ID),
+            selection,
+            args,
+            null,
+        )?.use { cursor ->
+            val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+            while (cursor.moveToNext()) ids.add(cursor.getLong(idIndex))
+        }
+
+        check(ids.size <= 1) {
+            "Multiple app-owned Arvin local calendars were found; refusing to create another"
+        }
+        val calendarId = if (ids.size == 1) {
+            ids.single()
+        } else {
+            val values = ContentValues().apply {
+                put(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+                put(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
+                put(CalendarContract.Calendars.NAME, ARVIN_LOCAL_CALENDAR_NAME)
+                put(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME, ARVIN_LOCAL_CALENDAR_DISPLAY_NAME)
+                put(CalendarContract.Calendars.OWNER_ACCOUNT, accountName)
+                put(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL, CalendarContract.Calendars.CAL_ACCESS_OWNER)
+                put(CalendarContract.Calendars.CALENDAR_TIME_ZONE, TimeZone.getDefault().id)
+                put(CalendarContract.Calendars.VISIBLE, 1)
+                put(CalendarContract.Calendars.SYNC_EVENTS, 0)
+            }
+            val inserted = contentResolver.insert(uri, values)
+                ?: error("Calendar Provider returned no URI for the local Arvin calendar")
+            inserted.lastPathSegment?.toLongOrNull()
+                ?: error("Calendar Provider returned an invalid local Arvin calendar ID")
+        }
+
+        val projection = arrayOf(
+            CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.ACCOUNT_NAME,
+            CalendarContract.Calendars.ACCOUNT_TYPE,
+            CalendarContract.Calendars.NAME,
+            CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
+            CalendarContract.Calendars.OWNER_ACCOUNT,
+            CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL,
+        )
+        contentResolver.query(
+            uri,
+            projection,
+            "${CalendarContract.Calendars._ID} = ?",
+            arrayOf(calendarId.toString()),
+            null,
+        )?.use { cursor ->
+            check(cursor.moveToFirst()) { "The local Arvin calendar could not be read back" }
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_NAME)) == accountName)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.ACCOUNT_TYPE)) == accountType)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.NAME)) == ARVIN_LOCAL_CALENDAR_NAME)
+            check(cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.OWNER_ACCOUNT)) == accountName)
+            val access = cursor.getInt(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_ACCESS_LEVEL))
+            check(access >= CalendarContract.Calendars.CAL_ACCESS_OWNER) { "The local Arvin calendar is not writable" }
+            return mapOf(
+                "id" to cursor.getLong(cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)).toString(),
+                "displayName" to cursor.getString(cursor.getColumnIndexOrThrow(CalendarContract.Calendars.CALENDAR_DISPLAY_NAME)),
+                "accountName" to accountName,
+                "accountType" to accountType,
+                "ownerAccount" to accountName,
+                "accessLevel" to access,
+                "isArvinLocal" to true,
+            )
+        }
+        error("Calendar Provider returned no cursor while verifying the local Arvin calendar")
+    }
+
+    private fun arvinLocalCalendarSyncAdapterUri(
+        accountName: String,
+        accountType: String,
+    ): Uri = CalendarContract.Calendars.CONTENT_URI.buildUpon()
+        .appendQueryParameter(CalendarContract.CALLER_IS_SYNCADAPTER, "true")
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_NAME, accountName)
+        .appendQueryParameter(CalendarContract.Calendars.ACCOUNT_TYPE, accountType)
+        .build()
+
+    private fun customAppUriForReminder(reminderId: String): String =
+        Uri.Builder().scheme("arvin").authority("task").appendPath(reminderId).build().toString()
+
+    private fun eventOwnershipSelection(): String =
+        CalendarContract.Events._ID + " = ? AND " +
+            CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+            CalendarContract.Events.CUSTOM_APP_PACKAGE + " = ? AND " +
+            CalendarContract.Events.CUSTOM_APP_URI + " = ?"
+
+    private fun eventOwnershipArgs(eventId: Long, calendarId: Long, reminderId: String): Array<String> =
+        arrayOf(eventId.toString(), calendarId.toString(), packageName, customAppUriForReminder(reminderId))
+
+    private fun findOwnedProviderEventId(calendarId: Long, reminderId: String): Long? {
+        val ids = mutableListOf<Long>()
+        contentResolver.query(
+            CalendarContract.Events.CONTENT_URI,
+            arrayOf(CalendarContract.Events._ID),
+            CalendarContract.Events.CALENDAR_ID + " = ? AND " +
+                CalendarContract.Events.CUSTOM_APP_PACKAGE + " = ? AND " +
+                CalendarContract.Events.CUSTOM_APP_URI + " = ?",
+            arrayOf(calendarId.toString(), packageName, customAppUriForReminder(reminderId)),
+            null,
+        )?.use { cursor ->
+            val index = cursor.getColumnIndexOrThrow(CalendarContract.Events._ID)
+            while (cursor.moveToNext()) ids.add(cursor.getLong(index))
+        }
+        check(ids.size <= 1) { "Multiple Arvin-owned events exist for one Task and calendar" }
+        return ids.singleOrNull()
+    }
+
     private fun eventValues(
         calendarId: Long,
+        reminderId: String,
         title: String,
         startMillis: Long,
         endMillis: Long,
@@ -385,6 +554,8 @@ class MainActivity : FlutterActivity() {
         description: String?,
     ): ContentValues = ContentValues().apply {
         put(CalendarContract.Events.CALENDAR_ID, calendarId)
+        put(CalendarContract.Events.CUSTOM_APP_PACKAGE, packageName)
+        put(CalendarContract.Events.CUSTOM_APP_URI, customAppUriForReminder(reminderId))
         put(CalendarContract.Events.TITLE, title)
         put(CalendarContract.Events.DTSTART, startMillis)
         put(CalendarContract.Events.DTEND, endMillis)
@@ -396,6 +567,7 @@ class MainActivity : FlutterActivity() {
     private fun readDeviceCalendars(): List<Map<String, Any?>> {
         val projection = arrayOf(
             CalendarContract.Calendars._ID,
+            CalendarContract.Calendars.NAME,
             CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             CalendarContract.Calendars.ACCOUNT_NAME,
             CalendarContract.Calendars.ACCOUNT_TYPE,
@@ -415,6 +587,7 @@ class MainActivity : FlutterActivity() {
             "${CalendarContract.Calendars.CALENDAR_DISPLAY_NAME} COLLATE NOCASE ASC",
         )?.use { cursor ->
             val idIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars._ID)
+            val nameIndex = cursor.getColumnIndexOrThrow(CalendarContract.Calendars.NAME)
             val displayNameIndex = cursor.getColumnIndexOrThrow(
                 CalendarContract.Calendars.CALENDAR_DISPLAY_NAME,
             )
@@ -445,6 +618,12 @@ class MainActivity : FlutterActivity() {
                     mapOf(
                         "id" to cursor.getLong(idIndex).toString(),
                         "displayName" to cursor.getString(displayNameIndex).orEmpty(),
+                        "isArvinLocal" to (
+                            cursor.getString(accountNameIndex) == packageName &&
+                                cursor.getString(accountTypeIndex) == CalendarContract.ACCOUNT_TYPE_LOCAL &&
+                                cursor.getString(nameIndex) == ARVIN_LOCAL_CALENDAR_NAME &&
+                                cursor.getString(ownerAccountIndex) == packageName
+                        ),
                         "accountName" to cursor.getString(accountNameIndex),
                         "accountType" to cursor.getString(accountTypeIndex),
                         "ownerAccount" to cursor.getString(ownerAccountIndex),
@@ -584,7 +763,6 @@ class MainActivity : FlutterActivity() {
         const val METHOD_TASK_SELECTED = "widgetTaskSelected"
 
         const val SYSTEM_CALENDAR_CHANNEL = "arvin/system_calendar"
-        const val METHOD_INSERT_SYSTEM_CALENDAR_EVENT = "insertSystemCalendarEvent"
         const val METHOD_CALENDAR_READ_PERMISSION_GRANTED =
             "calendarReadPermissionGranted"
         const val METHOD_REQUEST_CALENDAR_READ_PERMISSION =
@@ -599,6 +777,9 @@ class MainActivity : FlutterActivity() {
         const val METHOD_VERIFY_DEVICE_CALENDAR_EVENT = "verifyDeviceCalendarEvent"
         const val METHOD_DELETE_DEVICE_CALENDAR_EVENT = "deleteDeviceCalendarEvent"
         const val METHOD_OPEN_DEVICE_CALENDAR_EVENT = "openDeviceCalendarEvent"
+        const val METHOD_ENSURE_ARVIN_LOCAL_CALENDAR = "ensureArvinLocalCalendar"
+        const val ARVIN_LOCAL_CALENDAR_NAME = "com.example.arvin.local.calendar.v1"
+        const val ARVIN_LOCAL_CALENDAR_DISPLAY_NAME = "Arvin"
         const val METHOD_LIST_DEVICE_CALENDARS = "listDeviceCalendars"
         const val METHOD_LIST_DEVICE_CALENDAR_EVENTS = "listDeviceCalendarEvents"
         const val CALENDAR_PERMISSION_REQUEST_CODE = 4102

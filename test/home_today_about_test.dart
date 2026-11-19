@@ -15,7 +15,7 @@ void main() {
   });
 
   Future<void> openMore(WidgetTester tester) async {
-    await tester.tap(find.byKey(const ValueKey('home-menu')));
+    await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
     await tester.pumpAndSettle();
   }
 

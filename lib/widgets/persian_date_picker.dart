@@ -189,6 +189,20 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
     );
   }
 
+  Future<void> _pickGregorianDate() async {
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: _calendar.fromJalali(_selected),
+      firstDate: widget.firstDate,
+      lastDate: widget.lastDate,
+      helpText: 'انتخاب تاریخ میلادی',
+      cancelText: widget.cancelText,
+      confirmText: widget.confirmText,
+    );
+    if (!mounted || selected == null) return;
+    Navigator.of(context).pop(DateUtils.dateOnly(selected));
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -320,6 +334,12 @@ class _PersianDatePickerDialogState extends State<_PersianDatePickerDialog> {
         ),
       ),
       actions: [
+        TextButton.icon(
+          key: const ValueKey('persian-date-gregorian-toggle'),
+          onPressed: _pickGregorianDate,
+          icon: const Icon(Icons.calendar_today_outlined, size: 16),
+          label: const Text('میلادی'),
+        ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
           child: Text(widget.cancelText),

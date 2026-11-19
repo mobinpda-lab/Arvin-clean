@@ -13,7 +13,14 @@ void main() {
       description: 'شرح کامل',
       tags: ['مهم'],
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 28, 8),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder',
+          title: 'یادآور کار',
+          date: DateTime(2026, 8, 28, 8),
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUps: [
         FollowUp(
@@ -53,7 +60,14 @@ void main() {
       id: 'task',
       title: 'چندروزه',
       dueDate: DateTime(2026, 8, 28, 9),
-      reminderDate: DateTime(2026, 8, 29, 8),
+      taskReminders: [
+        TaskReminder(
+          id: 'task-reminder',
+          title: 'یادآور کار',
+          date: DateTime(2026, 8, 29, 8),
+          sequence: 1,
+        ),
+      ],
     );
 
     final report = adapter.forRange(

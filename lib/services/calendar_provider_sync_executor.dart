@@ -33,6 +33,14 @@ class CalendarProviderSyncExecutor {
     required CalendarSyncPlan plan,
     required String targetCalendarId,
   }) async {
+    final invalidIds = plan.items
+        .map((item) => item.reminderId)
+        .where((id) => !SystemCalendarBridge.isExportableTaskReminderId(id))
+        .toList(growable: false);
+    if (invalidIds.isNotEmpty) {
+      throw ArgumentError.value(invalidIds, 'plan.items',
+          'Only explicitly selected Task and TaskReminder identities may cross the device-calendar export boundary.');
+    }
     final calendarId = targetCalendarId.trim();
     if (calendarId.isEmpty) {
       throw ArgumentError.value(
@@ -66,8 +74,11 @@ class CalendarProviderSyncExecutor {
     if (targetCalendar == null) {
       throw StateError('تقویم مقصد پیدا نشد؛ لطفاً در تنظیمات تقویم مقصد را دوباره انتخاب کنید.');
     }
+    if (!targetCalendar.isArvinLocal) {
+      throw StateError('نوشتن رویداد فقط در تقویم محلی Arvin مجاز است؛ تقویم‌های Google و Samsung فقط برای نمایش هستند.');
+    }
     if (targetCalendar.accessLevel < 500) {
-      throw StateError('تقویم مقصد اجازه ثبت رویداد ندارد؛ یک تقویم قابل ویرایش انتخاب کنید.');
+      throw StateError('تقویم محلی Arvin اجازه ثبت رویداد ندارد.');
     }
 
     final links = <String, ExternalCalendarEventLink>{
@@ -96,6 +107,7 @@ class CalendarProviderSyncExecutor {
             throw StateError('این مورد قبلاً در تقویم گوشی ثبت شده است.');
           }
           final eventId = await bridge.createProviderEvent(
+            reminderId: item.reminderId,
             calendarId: calendarId,
             title: revision.title,
             start: revision.start,
@@ -122,21 +134,21 @@ class CalendarProviderSyncExecutor {
             throw StateError('Update plan item is missing revision/link data.');
           }
 
-          // Provider IDs are installation-local and may be stale after restore,
-          // calendar edits, or provider-side deletion. Never mutate or replace an
-          // event until the exact (calendarId, eventId) identity is verified.
-          final linkedEventExists = await bridge.verifyProviderEventIdentity(
-            calendarId: link.calendarId,
-            eventId: link.eventId,
-          );
-          if (!linkedEventExists) {
-            throw StateError(
-              'رویداد پیوندخورده در تقویم گوشی قابل تأیید نیست؛ برای جلوگیری از تغییر رویداد اشتباه، همگام‌سازی متوقف شد. ثبت دوباره فقط با اقدام صریح کاربر انجام شود.',
-            );
-          }
-
+          // Provider IDs are installation-local and may be stale after restore or
+          // provider-side deletion. Verify ownership before mutating an Arvin event.
           if (link.calendarId == calendarId) {
+            final linkedEventExists = await bridge.verifyProviderEventIdentity(
+              reminderId: item.reminderId,
+              calendarId: link.calendarId,
+              eventId: link.eventId,
+            );
+            if (!linkedEventExists) {
+              throw StateError(
+                'رویداد پیوندخورده در تقویم Arvin قابل تأیید نیست؛ برای جلوگیری از تغییر رویداد اشتباه، همگام‌سازی متوقف شد.',
+              );
+            }
             final ok = await bridge.updateProviderEvent(
+              reminderId: item.reminderId,
               calendarId: link.calendarId,
               eventId: link.eventId,
               title: revision.title,
@@ -159,10 +171,11 @@ class CalendarProviderSyncExecutor {
             break;
           }
 
-          // Calendar Provider cannot move an event between calendar accounts.
-          // Create the replacement first, then remove the old owned event. If
-          // removal fails, roll back the new event and keep the old link intact.
+          // Existing links may point to Google/Samsung from older releases.
+          // Those calendars are now read-only: create the Arvin replacement but
+          // never update or delete the external provider event.
           final replacementEventId = await bridge.createProviderEvent(
+            reminderId: item.reminderId,
             calendarId: calendarId,
             title: revision.title,
             start: revision.start,
@@ -172,18 +185,6 @@ class CalendarProviderSyncExecutor {
           );
           if (replacementEventId == null) {
             throw StateError('Calendar Provider did not create replacement event.');
-          }
-
-          final removedOld = await bridge.deleteProviderEvent(
-            calendarId: link.calendarId,
-            eventId: link.eventId,
-          );
-          if (!removedOld) {
-            await bridge.deleteProviderEvent(
-              calendarId: calendarId,
-              eventId: replacementEventId,
-            );
-            throw StateError('Calendar Provider did not remove the old linked event.');
           }
 
           links[item.reminderId] = ExternalCalendarEventLink(
@@ -200,22 +201,27 @@ class CalendarProviderSyncExecutor {
           if (link == null) {
             throw StateError('Delete plan item is missing linked event data.');
           }
-          final linkedEventExists = await bridge.verifyProviderEventIdentity(
-            calendarId: link.calendarId,
-            eventId: link.eventId,
-          );
-          if (!linkedEventExists) {
-            throw StateError(
-              'رویداد پیوندخورده در تقویم گوشی قابل تأیید نیست؛ برای جلوگیری از حذف رویداد اشتباه، پیوند حفظ شد.',
+          if (link.calendarId == calendarId) {
+            final linkedEventExists = await bridge.verifyProviderEventIdentity(
+              reminderId: item.reminderId,
+              calendarId: link.calendarId,
+              eventId: link.eventId,
             );
+            if (!linkedEventExists) {
+              throw StateError(
+                'رویداد پیوندخورده در تقویم Arvin قابل تأیید نیست؛ پیوند حفظ شد.',
+              );
+            }
+            final ok = await bridge.deleteProviderEvent(
+              reminderId: item.reminderId,
+              calendarId: link.calendarId,
+              eventId: link.eventId,
+            );
+            if (!ok) {
+              throw StateError('Calendar Provider did not delete linked Arvin event.');
+            }
           }
-          final ok = await bridge.deleteProviderEvent(
-            calendarId: link.calendarId,
-            eventId: link.eventId,
-          );
-          if (!ok) {
-            throw StateError('Calendar Provider did not delete linked event.');
-          }
+          // A historical external-calendar event is never deleted by Arvin.
           links.remove(item.reminderId);
           await linkStore.save(links.values);
           deleted++;

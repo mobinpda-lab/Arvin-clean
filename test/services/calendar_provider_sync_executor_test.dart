@@ -26,12 +26,13 @@ class _FakeBridge extends SystemCalendarBridge {
 
   @override
   Future<List<DeviceCalendarInfo>> listDeviceCalendars() async => const [
-        DeviceCalendarInfo(id: '42', displayName: 'Test', accessLevel: 700),
-        DeviceCalendarInfo(id: '99', displayName: 'Target', accessLevel: 700),
+        DeviceCalendarInfo(id: '42', displayName: 'Arvin', accessLevel: 700, isArvinLocal: true),
+        DeviceCalendarInfo(id: '99', displayName: 'Google', accessLevel: 700),
       ];
 
   @override
   Future<String?> createProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String title,
     required DateTime start,
@@ -45,12 +46,14 @@ class _FakeBridge extends SystemCalendarBridge {
 
   @override
   Future<bool> verifyProviderEventIdentity({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async => linkedIdentityExists;
 
   @override
   Future<bool> updateProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
     required String title,
@@ -65,6 +68,7 @@ class _FakeBridge extends SystemCalendarBridge {
 
   @override
   Future<bool> deleteProviderEvent({
+    required String reminderId,
     required String calendarId,
     required String eventId,
   }) async {
@@ -113,9 +117,9 @@ void main() {
     final result = await executor.execute(
       plan: CalendarSyncPlan([
         CalendarSyncPlanItem(
-          reminderId: 'followup:1',
+          reminderId: 'task-due:1',
           action: CalendarSyncAction.create,
-          revision: _revision('followup:1', 'fp1', 'پیگیری'),
+          revision: _revision('task-due:1', 'fp1', 'پیگیری'),
         ),
       ]),
       targetCalendarId: '42',
@@ -129,7 +133,7 @@ void main() {
 
   test('stale create plan with an existing stable link fails with the exact duplicate message', () async {
     final existing = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: 'already-linked-event',
       lastSyncedFingerprint: 'old',
@@ -143,9 +147,9 @@ void main() {
       executor.execute(
         plan: CalendarSyncPlan([
           CalendarSyncPlanItem(
-            reminderId: 'followup:1',
+            reminderId: 'task-due:1',
             action: CalendarSyncAction.create,
-            revision: _revision('followup:1', 'new', 'پیگیری'),
+            revision: _revision('task-due:1', 'new', 'پیگیری'),
           ),
         ]),
         targetCalendarId: '42',
@@ -174,9 +178,9 @@ void main() {
       executor.execute(
         plan: CalendarSyncPlan([
           CalendarSyncPlanItem(
-            reminderId: 'followup:1',
+            reminderId: 'task-due:1',
             action: CalendarSyncAction.create,
-            revision: _revision('followup:1', 'fp1', 'پیگیری'),
+            revision: _revision('task-due:1', 'fp1', 'پیگیری'),
           ),
         ]),
         targetCalendarId: '42',
@@ -190,7 +194,7 @@ void main() {
 
   test('update preserves exact linked event id and advances fingerprint', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: '7',
       lastSyncedFingerprint: 'old',
@@ -203,9 +207,9 @@ void main() {
     final result = await executor.execute(
       plan: CalendarSyncPlan([
         CalendarSyncPlanItem(
-          reminderId: 'followup:1',
+          reminderId: 'task-due:1',
           action: CalendarSyncAction.update,
-          revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+          revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
           link: old,
         ),
       ]),
@@ -220,7 +224,7 @@ void main() {
 
   test('stale linked identity fails closed before update and preserves link', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: 'stale-7',
       lastSyncedFingerprint: 'old',
@@ -234,9 +238,9 @@ void main() {
       executor.execute(
         plan: CalendarSyncPlan([
           CalendarSyncPlanItem(
-            reminderId: 'followup:1',
+            reminderId: 'task-due:1',
             action: CalendarSyncAction.update,
-            revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+            revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
             link: old,
           ),
         ]),
@@ -253,7 +257,7 @@ void main() {
 
   test('stale linked identity fails closed before delete and preserves link', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: 'stale-7',
       lastSyncedFingerprint: 'old',
@@ -267,7 +271,7 @@ void main() {
       executor.execute(
         plan: CalendarSyncPlan([
           CalendarSyncPlanItem(
-            reminderId: 'followup:1',
+            reminderId: 'task-due:1',
             action: CalendarSyncAction.delete,
             link: old,
           ),
@@ -282,11 +286,11 @@ void main() {
     expect(store.links.single.eventId, 'stale-7');
   });
 
-  test('changing target calendar migrates the linked event without leaving a duplicate', () async {
+  test('legacy external link is replaced in Arvin without mutating the external event', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
-      calendarId: '42',
-      eventId: '7',
+      reminderId: 'task-due:1',
+      calendarId: '99',
+      eventId: 'google-event-7',
       lastSyncedFingerprint: 'old',
     );
     final bridge = _FakeBridge();
@@ -297,28 +301,47 @@ void main() {
     final result = await executor.execute(
       plan: CalendarSyncPlan([
         CalendarSyncPlanItem(
-          reminderId: 'followup:1',
+          reminderId: 'task-due:1',
           action: CalendarSyncAction.update,
-          revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+          revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
           link: old,
         ),
       ]),
-      targetCalendarId: '99',
+      targetCalendarId: '42',
     );
 
     expect(result.updated, 1);
-    expect(
-      bridge.calls,
-      ['create:99:پیگیری جدید', 'delete:42:7'],
-    );
-    expect(store.links.single.calendarId, '99');
+    expect(bridge.calls, ['create:42:پیگیری جدید']);
+    expect(store.links.single.calendarId, '42');
     expect(store.links.single.eventId, 'event-1');
-    expect(store.links.single.lastSyncedFingerprint, 'new');
   });
 
-  test('target migration rolls back replacement when old event cannot be removed', () async {
+  test('external calendar is rejected as a write target', () async {
+    final bridge = _FakeBridge();
+    final store = _MemoryLinkStore();
+    final executor =
+        CalendarProviderSyncExecutor(bridge: bridge, linkStore: store);
+
+    await expectLater(
+      executor.execute(
+        plan: CalendarSyncPlan([
+          CalendarSyncPlanItem(
+            reminderId: 'task-due:1',
+            action: CalendarSyncAction.create,
+            revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
+          ),
+        ]),
+        targetCalendarId: '99',
+      ),
+      throwsStateError,
+    );
+    expect(bridge.calls, isEmpty);
+    expect(store.links, isEmpty);
+  });
+
+  test('external calendar target is rejected before touching a linked event', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: '7',
       lastSyncedFingerprint: 'old',
@@ -332,9 +355,9 @@ void main() {
       executor.execute(
         plan: CalendarSyncPlan([
           CalendarSyncPlanItem(
-            reminderId: 'followup:1',
+            reminderId: 'task-due:1',
             action: CalendarSyncAction.update,
-            revision: _revision('followup:1', 'new', 'پیگیری جدید'),
+            revision: _revision('task-due:1', 'new', 'پیگیری جدید'),
             link: old,
           ),
         ]),
@@ -342,19 +365,14 @@ void main() {
       ),
       throwsStateError,
     );
-
-    expect(
-      bridge.calls,
-      ['create:99:پیگیری جدید', 'delete:42:7', 'delete:99:event-1'],
-    );
-    expect(store.links.single.calendarId, '42');
+    expect(bridge.calls, isEmpty);
     expect(store.links.single.eventId, '7');
     expect(store.saveCount, 0);
   });
 
   test('delete removes link only after exact provider delete succeeds', () async {
     final old = ExternalCalendarEventLink(
-      reminderId: 'followup:1',
+      reminderId: 'task-due:1',
       calendarId: '42',
       eventId: '7',
       lastSyncedFingerprint: 'old',
@@ -367,7 +385,7 @@ void main() {
     final result = await executor.execute(
       plan: CalendarSyncPlan([
         CalendarSyncPlanItem(
-          reminderId: 'followup:1',
+          reminderId: 'task-due:1',
           action: CalendarSyncAction.delete,
           link: old,
         ),
@@ -379,4 +397,38 @@ void main() {
     expect(bridge.calls.single, 'delete:42:7');
     expect(store.links, isEmpty);
   });
+  test('single-item export preserves every unrelated calendar link', () async {
+    final selectedRevision = _revision('task-due:task-1', 'new-selected', 'Selected');
+    final selectedLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-1', calendarId: '42', eventId: 'selected-event',
+      lastSyncedFingerprint: 'old-selected',
+    );
+    final unrelatedLink = ExternalCalendarEventLink(
+      reminderId: 'task-due:task-2', calendarId: '42', eventId: 'unrelated-event',
+      lastSyncedFingerprint: 'unrelated-fingerprint',
+    );
+    final links = _MemoryLinkStore([selectedLink, unrelatedLink]);
+    final bridge = _FakeBridge();
+    final executor = CalendarProviderSyncExecutor(bridge: bridge, linkStore: links);
+    final result = await executor.execute(
+      plan: CalendarSyncPlan([
+        CalendarSyncPlanItem(
+          reminderId: selectedRevision.reminderId,
+          action: CalendarSyncAction.update,
+          revision: selectedRevision,
+          link: selectedLink,
+        ),
+      ]),
+      targetCalendarId: '42',
+    );
+    expect(result.updated, 1);
+    expect(bridge.calls, ['update:42:selected-event:Selected']);
+    expect(links.links, hasLength(2));
+    expect(links.links.map((link) => link.reminderId),
+        containsAll(['task-due:task-1', 'task-due:task-2']));
+    expect(links.links.singleWhere((link) => link.reminderId == 'task-due:task-2').eventId,
+        'unrelated-event');
+  });
+
+
 }

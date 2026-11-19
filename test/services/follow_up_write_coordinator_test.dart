@@ -65,7 +65,7 @@ void main() {
 
     expect(reminderRescheduleCalls, 1);
     final saved = await repository.loadForTask('task-1');
-    expect(saved.single.nextFollowUp, DateTime(2026, 8, 28, 10));
+    expect(saved.single.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   test('successful completion refreshes independent reminder schedule', () async {

@@ -126,6 +126,21 @@ class CanonicalNotebookRepository {
     });
   }
 
+  /// Assigns or clears the canonical Center reference on the same Notebook Task.
+  Future<Task> updateCenter({
+    required String id,
+    required String? centerId,
+  }) {
+    return _store.mutate<Task>((tasks) {
+      final index = tasks.indexWhere((task) => task.id == id && task.isNotebookItem);
+      if (index < 0) throw StateError('Notebook task not found: $id');
+      final task = tasks[index];
+      task.centerId = centerId;
+      task.updatedAt = _now();
+      return task;
+    });
+  }
+
   /// Loads the existing first-class Project collection without creating any
   /// Notebook-owned Project state.
   Future<List<ProjectPlan>> loadProjects() =>

@@ -124,7 +124,7 @@ class CalendarSyncRevisionService {
       throw ArgumentError.value(
         reminder.id,
         'reminder.id',
-        'Only active canonical task/follow-up reminders are sync eligible.',
+        'Only active canonical Task and TaskReminder entries are export eligible.',
       );
     }
     final title = reminder.title.trim();

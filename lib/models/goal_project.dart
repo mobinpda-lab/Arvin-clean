@@ -2,8 +2,11 @@ class ProjectPlan {
   ProjectPlan({
     required this.id,
     required this.title,
-    this.colorValue = 0xFF4A4CAB,
+    this.colorValue = 0xFF087F8C,
     this.isArchived = false,
+    this.centerId,
+    this.templateId,
+    this.templateNameSnapshot,
     Iterable<String> itemIds = const [],
   }) : itemIds = List.unmodifiable(itemIds);
 
@@ -21,6 +24,14 @@ class ProjectPlan {
   /// alternative to destructive deletion while preserving history.
   final bool isArchived;
 
+  /// Null keeps legacy Projects without a fabricated Center.
+  final String? centerId;
+
+  /// Stable origin template identity; null for legacy/manual Projects.
+  final String? templateId;
+  /// Human-readable template name at generation time.
+  final String? templateNameSnapshot;
+
   /// References existing canonical Task ids. Item payloads are never copied
   /// into this planning domain, preserving Task as the executable source of
   /// truth.
@@ -36,12 +47,21 @@ class ProjectPlan {
     int? colorValue,
     bool? isArchived,
     Iterable<String>? itemIds,
+    String? centerId,
+    bool clearCenterId = false,
+    String? templateId,
+    bool clearTemplateId = false,
+    String? templateNameSnapshot,
+    bool clearTemplateNameSnapshot = false,
   }) {
     return ProjectPlan(
       id: id,
       title: title ?? this.title,
       colorValue: colorValue ?? this.colorValue,
       isArchived: isArchived ?? this.isArchived,
+      centerId: clearCenterId ? null : centerId ?? this.centerId,
+      templateId: clearTemplateId ? null : templateId ?? this.templateId,
+      templateNameSnapshot: clearTemplateNameSnapshot ? null : templateNameSnapshot ?? this.templateNameSnapshot,
       itemIds: itemIds ?? this.itemIds,
     );
   }
@@ -93,12 +113,14 @@ class ProjectLifecycleService {
     required String projectId,
     String? title,
     int? colorValue,
+    String? centerId,
+    bool clearCenterId = false,
   }) {
     var found = false;
     final next = projects.map((project) {
       if (project.id != projectId) return project;
       found = true;
-      return project.copyWith(title: title, colorValue: colorValue);
+      return project.copyWith(title: title, colorValue: colorValue, centerId: centerId, clearCenterId: clearCenterId);
     }).toList(growable: false);
     if (!found) {
       throw ArgumentError.value(projectId, 'projectId', 'Unknown Project');

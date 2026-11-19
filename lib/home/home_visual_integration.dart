@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
@@ -15,13 +16,6 @@ class HomeVisualIntegration extends StatelessWidget {
     this.searchHint = 'جست‌وجو در کارها',
   });
 
-  static const primary = Color(0xFF4A4CAB);
-  static const background = Color(0xFFF8F8FB);
-  static const surface = Color(0xFFFDFDFE);
-  static const border = Color(0xFFE5E7ED);
-  static const textPrimary = Color(0xFF232433);
-  static const textSecondary = Color(0xFF80829C);
-
   final Widget body;
   final VoidCallback? onAdd;
   final VoidCallback? onMenu;
@@ -30,8 +24,16 @@ class HomeVisualIntegration extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    final svgColor = isDark ? colors.onSurface : colors.onSurface;
+    final capsuleBackground = isDark
+        ? colors.surfaceContainerLow
+        : Color.alphaBlend(colors.primary.withAlpha(10), colors.surface);
+    final searchBorder = colors.outlineVariant;
     return Scaffold(
-      backgroundColor: background,
+      backgroundColor: colors.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -46,35 +48,39 @@ class HomeVisualIntegration extends StatelessWidget {
                     onPressed: onNotifications,
                     icon: const Icon(Icons.notifications_none_rounded),
                   ),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       children: [
                         DecoratedBox(
+                          key: const ValueKey('home-bismillah-capsule-surface'),
                           decoration: BoxDecoration(
-                            color: Color(0xFFF0F0F6),
-                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                            color: capsuleBackground,
+                            borderRadius: const BorderRadius.all(Radius.circular(14)),
                           ),
                           child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            child: Text(
-                              'بسم الله الرحمن الرحیم',
-                              key: ValueKey('home-bismillah-capsule'),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: textSecondary,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w400,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            child: Semantics(
+                              key: const ValueKey('home-bismillah-capsule'),
+                              label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                              child: SvgPicture.asset(
+                                'assets/images/branding/bismillah.svg',
+                                key: const ValueKey('home-bismillah-svg'),
+                                width: 52,
+                                height: 30,
+                                fit: BoxFit.contain,
+                                colorFilter: ColorFilter.mode(svgColor, BlendMode.srcIn),
+                                excludeFromSemantics: true,
                               ),
                             ),
                           ),
                         ),
-                        SizedBox(height: 8),
+                        const SizedBox(height: 8),
                         Text(
                           'مدیریت کارها و پیگیری آروین',
-                          key: ValueKey('home-product-title'),
+                          key: const ValueKey('home-product-title'),
                           textAlign: TextAlign.center,
                           style: TextStyle(
-                            color: textPrimary,
+                            color: colors.onSurface,
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
                           ),
@@ -97,21 +103,21 @@ class HomeVisualIntegration extends StatelessWidget {
                 key: const ValueKey('home-canonical-search'),
                 decoration: InputDecoration(
                   hintText: searchHint,
-                  hintStyle: const TextStyle(color: textSecondary),
+                  hintStyle: TextStyle(color: colors.onSurfaceVariant),
                   prefixIcon: const Icon(Icons.search_rounded),
                   filled: true,
-                  fillColor: surface,
+                  fillColor: colors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: border),
+                    borderSide: BorderSide(color: searchBorder),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: border),
+                    borderSide: BorderSide(color: searchBorder),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
-                    borderSide: const BorderSide(color: primary, width: 1.4),
+                    borderSide: BorderSide(color: colors.primary, width: 1.4),
                   ),
                 ),
               ),
@@ -123,7 +129,7 @@ class HomeVisualIntegration extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         key: const ValueKey('home-canonical-add'),
         tooltip: 'افزودن کار جدید',
-        backgroundColor: primary,
+        backgroundColor: colors.primary,
         foregroundColor: Colors.white,
         onPressed: onAdd,
         child: const Icon(Icons.add, size: 30),

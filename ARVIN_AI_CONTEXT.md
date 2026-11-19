@@ -1,3 +1,7 @@
+> **MANDATORY FIRST READ:** All AI agents and future sessions must read the repository-root [AGENTS.md](AGENTS.md), [AI_CONTINUITY_PROTOCOL.md](AI_CONTINUITY_PROTOCOL.md), and [PROJECT_STATE.md](PROJECT_STATE.md), then reconcile them with live GitHub before taking any action. The protocol is the cross-session operating rule; the state file is the current checkpoint.
+
+---
+
 # Arvin — AI Evaluation & Continuity Guide
 
 > Purpose: make Arvin independently understandable and reviewable when the repository is exported as a ZIP and provided to an AI assistant in a new conversation or account.
@@ -127,3 +131,12 @@ A new AI conversation should begin by reading these files and then reconciling t
 ## 10. Owner-reported feedback and execution continuity
 
 Before any continuation, read `docs/ARVIN_MASTER_EXECUTION_PROTOCOL.md`, especially **“Owner-Reported Requirements & Post-Install Feedback Index — 2026-10-09”**, then reconcile every linked Issue/PR with live GitHub state. The index preserves post-install reports (Calendar actions/recurrence #2535 and PR #2533; project persistence #2151 and PR #2540; overdue warning/calendar duplicate import #2543 and PR #2544; stronger colors/Persian typography #2546 and PR #2547) and maps the owner's broader product contracts to the existing Home, Report Center, Checklist, Repeat, typography, visual, Backup/Restore and release records. These are traceability links, not assertions that the work is complete. Prefer updating existing records; do not create duplicate Issues, PRs, branches, models or storage.
+
+
+## 10. Permanent project continuity (2026-11-04)
+
+For the active PR #3052 delivery stream, begin with docs/project-continuity/README.md, then CURRENT_STATE.md and HANDOFF.md. These are the navigation and live checkpoint documents; root CHANGELOG.md remains the chronological history and docs/ARVIN_CONTINUATION_LEDGER.md remains the detailed evidence ledger.
+
+GitHub main is the released baseline; the explicitly authorized PR branch is the source for in-progress work on that PR. Always inspect the live PR head and branch ref before acting. Never treat main and the active PR branch as interchangeable. A workflow result applies only to its exact SHA. Local uncommitted working-tree state is NOT VERIFIED unless directly inspected in the relevant local environment.
+
+Use the status vocabulary PROPOSED, APPROVED, IN_PROGRESS, IMPLEMENTED, VERIFIED, BLOCKED, SUPERSEDED and REJECTED. Distinguish owner decisions, implementation and test evidence. Current Quick Capture one-versus-two-message behavior needs owner clarification. P2P QR/PIN and LWW/tombstones remain proposals pending security review and explicit owner approval; device-local clock winner selection is not approved.

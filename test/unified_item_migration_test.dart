@@ -19,14 +19,14 @@ void main() {
     expect(task.title, 'کار قدیمی');
     expect(task.description, 'اطلاعات قدیمی');
     expect(task.tags, ['قدیمی']);
-    expect(task.followUpEnabled, isTrue);
-    expect(task.followUpDate, legacyDate);
+    expect(task.followUpEnabled, isFalse);
+    expect(task.followUpDate, isNull);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
   });
 
-  test('Unified Task JSON preserves reminder and recurrence fields', () {
-    final task = Task.fromJson({
+  test('Legacy Task JSON migrates reminder and preserves Follow-up history', () {
+    final task = Task.fromLegacyJson({
       'id': 'unified-1',
       'title': 'کار جدید',
       'reminderDate': '2026-08-21T10:00:00.000',
@@ -41,6 +41,7 @@ void main() {
 
     expect(task.reminderDate, DateTime.parse('2026-08-21T10:00:00.000'));
     expect(task.followUps.single.note, 'پیگیری');
-    expect(task.toJson()['reminderDate'], '2026-08-21T10:00:00.000');
+    expect(task.toJson().containsKey('reminderDate'), isFalse);
+    expect(task.toJson()['taskReminders'], isNotEmpty);
   });
 }

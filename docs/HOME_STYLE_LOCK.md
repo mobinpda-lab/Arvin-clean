@@ -1,5 +1,8 @@
 # Arvin Home — Approved Style Lock
 
+> **یادداشت تقدم REV5 — EXEC-06 (۱۴۰۵/۰۸/۱۸):** این سند برای بخش‌های سازگار، مرجع تاریخی باقی می‌ماند؛ اما در هر تعارض با REV5، قرارداد REV5 و EXEC-06 مقدم است. فونت VazirHarf و رنگ اصلی `#4A4CAB` در این سند منسوخ‌اند. فونت مصوب فعلی Vazirmatn با وزن‌های Light 300، Regular 400، Medium 500، SemiBold 600 و Bold 700 است و رنگ اصلی `#4169A1` است. از بندهای قدیمی این سند برای بازگرداندن فونت یا پالت قبلی استفاده نشود.
+
+
 Status: **BINDING UI CONTRACT**
 
 ## Permanent Brand Lock — NON-NEGOTIABLE

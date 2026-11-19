@@ -9,16 +9,22 @@ void main() {
 
   test('canonical Vazirmatn report typography assets are bundled and loadable',
       () async {
+    const light = 'assets/fonts/ui/vazirmatn/Vazirmatn-Light.ttf';
     const regular = 'assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf';
     const medium = 'assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf';
+    const semiBold = 'assets/fonts/ui/vazirmatn/Vazirmatn-SemiBold.ttf';
     const bold = 'assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf';
 
+    final lightBytes = await rootBundle.load(light);
     final regularBytes = await rootBundle.load(regular);
     final mediumBytes = await rootBundle.load(medium);
+    final semiBoldBytes = await rootBundle.load(semiBold);
     final boldBytes = await rootBundle.load(bold);
 
+    expect(lightBytes.lengthInBytes, greaterThan(1000));
     expect(regularBytes.lengthInBytes, greaterThan(1000));
     expect(mediumBytes.lengthInBytes, greaterThan(1000));
+    expect(semiBoldBytes.lengthInBytes, greaterThan(1000));
     expect(boldBytes.lengthInBytes, greaterThan(1000));
     expect(arvinFontById('vazirmatn').fontFamily, 'Vazirmatn');
     expect(

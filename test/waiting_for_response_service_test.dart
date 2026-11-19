@@ -99,7 +99,7 @@ void main() {
     expect(marked.id, original.id);
     expect(marked.dateTime, original.dateTime);
     expect(marked.note, original.note);
-    expect(marked.nextFollowUp, original.nextFollowUp);
+    expect(marked.toJson().containsKey('nextFollowUp'), isFalse);
     expect(marked.result, WaitingForResponseService.canonicalResult);
   });
 }

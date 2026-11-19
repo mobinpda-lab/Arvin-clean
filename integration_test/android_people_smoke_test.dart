@@ -165,6 +165,21 @@ void main() {
     persisted = (await store.load())
         .singleWhere((task) => task.title == taskTitle);
     expect(persisted.people.single.displayName, 'علی رضایی اندروید');
+
+    await tester.tap(
+      find.byKey(ValueKey('people-edit-${persisted.people.single.id}')),
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const ValueKey('people-name-input')),
+      'علی رضایی ویرایش‌شده اندروید',
+    );
+    await tester.tap(find.byKey(const ValueKey('people-edit-save')));
+    await tester.pumpAndSettle();
+    persisted = (await store.load())
+        .singleWhere((task) => task.title == taskTitle);
+    expect(persisted.people.single.displayName, 'علی رضایی ویرایش‌شده اندروید');
+
     final personRow =
         find.byKey(ValueKey('people-row-${persisted.people.single.id}'));
     for (var attempt = 0; attempt < 20 && personRow.evaluate().isEmpty; attempt++) {
@@ -206,4 +221,57 @@ void main() {
     await tester.pumpAndSettle();
     await binding.takeScreenshot('people');
   });
+  testWidgets('Android opens Report Center and completed Follow-up report from filters',
+      (tester) async {
+    app.main();
+    await tester.pumpAndSettle();
+
+    final skipGuide = find.text('رد کردن');
+    if (skipGuide.evaluate().isNotEmpty) {
+      await tester.tap(skipGuide);
+      await tester.pumpAndSettle();
+    }
+
+    final reportsTab = find.descendant(
+      of: find.byType(ArvinPrimaryNavigation),
+      matching: find.text('گزارش‌ها'),
+    );
+    expect(reportsTab, findsOneWidget);
+    await tester.tap(reportsTab);
+    await tester.pumpAndSettle();
+
+    final filters = find.byKey(const ValueKey('report-center-filters'));
+    for (var attempt = 0; attempt < 50 && filters.evaluate().isEmpty; attempt++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(filters, findsOneWidget);
+
+    await binding.convertFlutterSurfaceToImage();
+    await tester.pumpAndSettle();
+    await binding.takeScreenshot('report-center');
+
+    await tester.tap(filters);
+    await tester.pumpAndSettle();
+    expect(find.byKey(
+      const ValueKey('report-filter-type-completed-follow-ups'),
+    ), findsOneWidget);
+    await binding.takeScreenshot('report-center-filters');
+
+    await tester.tap(find.byKey(
+      const ValueKey('report-filter-type-completed-follow-ups'),
+    ));
+    await tester.pumpAndSettle();
+    final apply = find.byKey(const ValueKey('report-filter-apply'));
+    await tester.ensureVisible(apply);
+    await tester.tap(apply);
+    await tester.pumpAndSettle();
+
+    expect(find.text('گزارش پیگیری‌های انجام‌شده'), findsOneWidget);
+    await binding.takeScreenshot('report-center-completed-follow-ups');
+    await tester.tap(find.byTooltip('بستن').last);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-center-filters')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
 }

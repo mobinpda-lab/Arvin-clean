@@ -1,4 +1,7 @@
 from pathlib import Path
+import base64
+import json
+import re
 
 
 def require(text: str, token: str, source: str) -> None:
@@ -9,6 +12,26 @@ def require(text: str, token: str, source: str) -> None:
 def forbid(text: str, token: str, source: str) -> None:
     if token in text:
         raise SystemExit(f"Fast Lane contract forbids in {source}: {token}")
+
+
+def decode_embedded_shell_scripts(workflow: str, source: str) -> str:
+    """Return decoded shell scripts embedded as printf + base64 pipelines."""
+    decoded_scripts = []
+    pattern = re.compile(
+        r'printf\s+"%s"\s+"([A-Za-z0-9+/=]+)"\s*'
+        r'\|\s*base64\s+--decode\s*\|\s*bash',
+        re.DOTALL,
+    )
+    for match in pattern.finditer(workflow):
+        encoded = match.group(1)
+        try:
+            decoded = base64.b64decode(encoded, validate=True).decode("utf-8")
+        except (ValueError, UnicodeDecodeError) as exc:
+            raise SystemExit(f"Fast Lane contract invalid embedded Base64 shell in {source}: {exc}")
+        decoded_scripts.append(decoded)
+    if not decoded_scripts:
+        raise SystemExit(f"Fast Lane contract missing embedded Base64 shell script in {source}")
+    return "\n".join(decoded_scripts)
 
 
 build_path = Path('.github/workflows/build.yml')
@@ -28,8 +51,22 @@ forbid(build, 'needs: quality', str(build_path))
 require(build, 'lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]', str(build_path))
 require(build, 'flutter test --total-shards 6 --shard-index', str(build_path))
 forbid(build, 'run: flutter test\\n', str(build_path))
-require(build, 'variant: [release, debug]', str(build_path))
+require(build, 'variant: [release, debug, staging]', str(build_path))
 require(build, '- name: Android V2 audit', str(build_path))
+require(build, '- name: Create ephemeral staging signing key', str(build_path))
+require(build, ':app:assembleStaging', str(build_path))
+require(build, '- name: Verify staging APK signature and merged manifest', str(build_path))
+require(build, 'apksigner', str(build_path))
+require(build, 'APK_DEBUGGABLE_CHECK=$debuggable_status', str(build_path))
+require(build, 'APK_SIGNATURE_V2=$v2_status', str(build_path))
+require(build, 'APK_SIGNATURE_V3=$v3_status', str(build_path))
+require(build, 'APKSIGNER_EXIT_CODE=$apksigner_exit', str(build_path))
+require(build, 'release-manifest.json', str(build_path))
+require(build, 'RELEASE_MANIFEST_VALIDATION=$manifest_status', str(build_path))
+require(build, 'apksigner-verify.log', str(build_path))
+require(build, 'arvin-staging-apk-audit-candidate', str(build_path))
+require(build, '::add-mask::$password', str(build_path))
+forbid(build, 'password="arvin-staging-test-only"', str(build_path))
 require(build, '- name: Build APK', str(build_path))
 require(build, 'flutter build apk --${{ matrix.variant }}', str(build_path))
 require(build, 'arvin-${{ matrix.variant }}-apk', str(build_path))
@@ -57,37 +94,41 @@ require(device, 'workflow_dispatch:', str(device_path))
 require(device, '# Validate PRs targeting integration branches too; product code can live there before main integration.', str(device_path))
 require(device, '# Draft PRs need CI evidence before they are marked ready; this job never promotes or merges.', str(device_path))
 forbid(device, "if: github.event_name != 'pull_request' || github.event.pull_request.draft == false", str(device_path))
-# Device Smoke must retain every canonical scenario mapping whether the
-# workflow uses a static YAML matrix or a generated JSON include matrix.
+# Device Smoke must run the canonical seven acceptance lanes on every event.
 canonical_scenarios = {
-    'home': 'integration_test/android_home_smoke_test.dart',
-    'quick-capture': 'integration_test/android_quick_capture_smoke_test.dart',
-    'sql-persistence': 'integration_test/android_sql_persistence_smoke_test.dart',
-    'sql-migration': 'integration_test/android_upgrade_migration_smoke_test.dart',
-    'backup-restore': 'integration_test/android_backup_restore_sql_smoke_test.dart',
-    'people': 'integration_test/android_people_smoke_test.dart',
-    'calendar': 'integration_test/calendar_card_interaction_test.dart',
+    'smoke-boot': 'integration_test/android_home_smoke_test.dart',
+    'smoke-navigation': 'integration_test/android_people_smoke_test.dart',
+    'smoke-calendar-segmented-view': 'integration_test/calendar_card_interaction_test.dart',
+    'smoke-quick-capture': 'integration_test/android_quick_capture_smoke_test.dart',
+    'smoke-task-lifecycle': 'integration_test/android_backup_restore_sql_smoke_test.dart',
+    'smoke-reminder-vazirmatn': 'integration_test/alarm_overlay_smoke_test.dart',
+    'smoke-follow-up-persistence': 'integration_test/android_sql_persistence_smoke_test.dart',
 }
-for scenario, test_file in canonical_scenarios.items():
-    static_mapping = f'scenario: {scenario}' in device and f'test_file: {test_file}' in device
-    dynamic_mapping = f'"scenario":"{scenario}","test_file":"{test_file}"' in device
-    if not (static_mapping or dynamic_mapping):
-        raise SystemExit(
-            f'Fast Lane contract missing in {device_path}: '
-            f'{scenario} -> {test_file}'
-        )
+matrix_match = re.search(r"scenarios='(\[.*?\])'", device, re.DOTALL)
+if not matrix_match:
+    raise SystemExit(f'Fast Lane contract missing in {device_path}: canonical scenario JSON')
+try:
+    scenario_entries = json.loads(matrix_match.group(1))
+except json.JSONDecodeError as exc:
+    raise SystemExit(f'Fast Lane contract invalid scenario JSON in {device_path}: {exc}')
+actual_scenarios = {
+    item.get('scenario'): item.get('test_file')
+    for item in scenario_entries
+    if isinstance(item, dict)
+}
+if actual_scenarios != canonical_scenarios:
+    raise SystemExit(
+        f'Fast Lane contract scenario mismatch in {device_path}: '
+        f'expected={canonical_scenarios!r} actual={actual_scenarios!r}'
+    )
 
 # Exact-SHA manual dispatch must be fail-closed before the emulator/test step.
 for token in (
     'target_sha:',
-    'run_calendar:',
-    'run_sql_persistence:',
-    'run_sql_migration:',
-    'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}',
-    'ref: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.sha }}',
+    'ref: ${{ env.TARGET_SHA }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
-    'echo "CHECKOUT_SHA=$actual"',
+    'echo "CHECKED_OUT_SHA=$actual"',
     'echo "EXACT_TARGET_SHA=$actual"',
     'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual',
 ):
@@ -95,8 +136,19 @@ for token in (
 require(device, 'if [ "$actual" != "$TARGET_SHA" ]; then', str(device_path))
 require(device, 'exit 1', str(device_path))
 
-require(device, 'max-parallel: 2', str(device_path))
-require(device, 'flutter drive --driver=test_driver/integration_test.dart', str(device_path))
+require(device, 'max-parallel: 1', str(device_path))
+require(device, 'timeout-minutes: 60', str(device_path))
+require(device, 'cancel-in-progress: false', str(device_path))
+# The emulator action's script is intentionally Base64-encoded in YAML.
+# Validate the decoded executable payload, not an absent plaintext copy.
+require(device, 'base64 --decode', str(device_path))
+device_shell_scripts = decode_embedded_shell_scripts(device, str(device_path))
+require(
+    device_shell_scripts,
+    'flutter drive --driver=test_driver/integration_test.dart',
+    str(device_path) + ' decoded emulator script',
+)
+require(device_shell_scripts, 'mkdir -p artifacts/device-smoke', str(device_path) + ' decoded emulator script')
 forbid(device, 'adb exec-out screencap -p', str(device_path))
 driver_path = Path('test_driver/integration_test.dart')
 if not driver_path.is_file():
@@ -104,8 +156,10 @@ if not driver_path.is_file():
 driver = driver_path.read_text(encoding='utf-8')
 require(driver, 'integrationDriver(', str(driver_path))
 require(driver, 'onScreenshot:', str(driver_path))
-require(driver, 'artifacts/device-smoke/$screenshotName.png', str(driver_path))
-forbidden_device_parallel = 'max-parallel: 1'
+require(driver, "Directory('artifacts/device-smoke')", str(driver_path))
+require(driver, 'await outputDirectory.create(recursive: true);', str(driver_path))
+require(driver, "File('${outputDirectory.path}/$screenshotName.png')", str(driver_path))
+forbidden_device_parallel = 'max-parallel: 2'
 forbid(device, forbidden_device_parallel, str(device_path))
 
 print('Arvin Fast Lane workflow contract: OK')

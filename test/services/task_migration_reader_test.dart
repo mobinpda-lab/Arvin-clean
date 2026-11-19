@@ -29,19 +29,24 @@ void main() {
     expect(tasks.single.completed, isTrue);
   });
 
-  test('preserves legacy followUpDate through read boundary without fake history', () async {
+  test('retains retired legacy followUpDate as inert metadata at the read boundary', () async {
+    const legacyDate = '2026-08-25T08:00:00.000Z';
     SharedPreferences.setMockInitialValues({
       legacyKey:
-          '[{"id":"reader-followup","title":"پیگیری","followUpDate":"2026-08-25T08:00:00.000Z"}]',
+          '[{"id":"reader-followup","title":"پیگیری","followUpDate":"$legacyDate"}]',
     });
     final prefs = await SharedPreferences.getInstance();
 
     final task = TaskMigrationReader().loadFrom(prefs).single;
 
-    expect(task.followUpDate, DateTime.parse('2026-08-25T08:00:00.000Z'));
-    expect(task.followUpEnabled, isTrue);
+    expect(task.followUpDate, isNull);
+    expect(task.followUpEnabled, isFalse);
     expect(task.followUps, isEmpty);
     expect(task.lastFollowUp, isNull);
+    expect(task.legacyFollowUpMetadata['taskLevel'], {
+      'followUpDate': legacyDate,
+      'followUpEnabled': null,
+    });
   });
 
   test('does not write to storage', () async {

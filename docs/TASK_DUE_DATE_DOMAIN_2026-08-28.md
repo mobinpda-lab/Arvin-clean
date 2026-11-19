@@ -7,9 +7,9 @@ Arvin keeps the Task's intended/due date-time independent from both reminder sch
 
 Canonical meanings:
 - `Task.dueDate`: when the Task itself is intended/due;
-- `Task.reminderDate`: when the user should be reminded about the Task;
-- `FollowUp.dateTime`: FollowUp/history timestamp;
-- independent FollowUp reminder is owned separately by Issue #372.
+- `Task.taskReminders[]`: the complete collection of explicitly configured reminders;
+- `Task.reminderDate`: read-only computed projection of the earliest enabled TaskReminder;
+- `FollowUp.dateTime`: FollowUp/history timestamp; legacy FollowUp reminder fields are decode-only migration input and are normalized into the parent Task's `taskReminders`.
 
 ## This slice
 - adds optional backward-compatible `Task.dueDate`;

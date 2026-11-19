@@ -39,9 +39,12 @@ class WaitingForResponseService {
   FollowUp markWaiting(FollowUp followUp) => FollowUp(
         id: followUp.id,
         dateTime: followUp.dateTime,
+        title: followUp.title,
         note: followUp.note,
         result: canonicalResult,
-        nextFollowUp: followUp.nextFollowUp,
+        completed: followUp.completed,
+        waitingForResponse: true,
+        personIds: followUp.personIds,
       );
 
   String _normalize(String value) =>

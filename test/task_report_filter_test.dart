@@ -71,28 +71,81 @@ void main() {
     expect(result.map((task) => task.id), ['open']);
   });
 
-  test('person multi-select matches Task people and Follow-up associations', () {
+  test('person multi-select matches linked Tasks and Follow-up history', () {
     final ana = PersonReference(id: 'ana', displayName: 'آنا');
-    final taskPerson = Task(id: 'task-person', title: 'کار آنا', people: [ana]);
-    final followUpPerson = Task(
-      id: 'follow-up-person',
-      title: 'کار رضا',
+    final taskPersonOnly = Task(id: 'task-person-only', title: 'فقط ارتباط شخص', people: [ana]);
+    final waitingFollowUp = Task(
+      id: 'waiting-follow-up-person',
+      title: 'منتظر پاسخ رضا',
       followUps: [
         FollowUp(
           id: 'follow-up-reza',
           dateTime: DateTime(2026, 10, 7, 9),
           personIds: ['reza'],
+          waitingForResponse: true,
         ),
       ],
     );
-    final unrelated = Task(id: 'unrelated', title: 'کار دیگر');
+    final ordinaryFollowUp = Task(
+      id: 'ordinary-follow-up-person',
+      title: 'پیگیری عادی آنا',
+      followUps: [
+        FollowUp(
+          id: 'follow-up-ana',
+          dateTime: DateTime(2026, 10, 7, 10),
+          personIds: ['ana'],
+          waitingForResponse: false,
+        ),
+      ],
+    );
 
     final result = const TaskReportFilter(personIds: {'ana', 'reza'}).apply(
-      [taskPerson, followUpPerson, unrelated],
+      [taskPersonOnly, waitingFollowUp, ordinaryFollowUp],
       now: now,
     );
 
-    expect(result.map((task) => task.id).toSet(), {'task-person', 'follow-up-person'});
+    expect(
+      result.map((task) => task.id).toSet(),
+      {'task-person-only', 'waiting-follow-up-person', 'ordinary-follow-up-person'},
+    );
+  });
+
+  test('past filter follows timed and all-day overdue boundaries and excludes completed', () {
+    final timedEarlierToday = Task(
+      id: 'timed-earlier-today',
+      title: 'موعد ساعت‌دار گذشته',
+      dueDate: DateTime(2026, 10, 7, 9),
+    );
+    final allDayToday = Task(
+      id: 'all-day-today',
+      title: 'موعد بدون ساعت امروز',
+      dueDate: DateTime(2026, 10, 7),
+      allDay: true,
+    );
+    final allDayYesterday = Task(
+      id: 'all-day-yesterday',
+      title: 'موعد بدون ساعت دیروز',
+      dueDate: DateTime(2026, 10, 6),
+      allDay: true,
+    );
+    final completedOverdue = Task(
+      id: 'completed-overdue',
+      title: 'کار تکمیل‌شده',
+      dueDate: DateTime(2026, 10, 6, 9),
+      completed: true,
+    );
+
+    final result = const TaskReportFilter(
+      timePreset: ReportTimePreset.past,
+    ).apply(
+      [timedEarlierToday, allDayToday, allDayYesterday, completedOverdue],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id).toSet(),
+      {'timed-earlier-today', 'all-day-yesterday'},
+    );
   });
 
   test('trashed tasks never enter reports', () {
@@ -213,6 +266,69 @@ void main() {
     ).apply([note, checklist, ordinaryTask], now: now);
 
     expect(result.map((task) => task.id), ['note-school']);
+  });
+
+  test('past preset includes elapsed timed tasks today, excludes all-day today and completed tasks', () {
+    final openOlder = Task(
+      id: 'open-older',
+      title: 'باز قدیمی‌تر',
+      dueDate: DateTime(2026, 10, 4, 9),
+    );
+    final openNewer = Task(
+      id: 'open-newer',
+      title: 'باز جدیدتر',
+      dueDate: DateTime(2026, 10, 6, 18),
+    );
+    final completedOlder = Task(
+      id: 'completed-older',
+      title: 'انجام‌شده قدیمی‌تر',
+      dueDate: DateTime(2026, 10, 3, 9),
+      completed: true,
+    );
+    final completedNewer = Task(
+      id: 'completed-newer',
+      title: 'انجام‌شده جدیدتر',
+      dueDate: DateTime(2026, 10, 6, 8),
+      completed: true,
+    );
+    final todayAtStart = Task(
+      id: 'today-start',
+      title: 'امروز از ابتدای روز',
+      dueDate: DateTime(2026, 10, 7),
+      allDay: true,
+    );
+    final todayEarlierThanNow = Task(
+      id: 'today-morning',
+      title: 'امروز صبح',
+      dueDate: DateTime(2026, 10, 7, 8),
+    );
+    final future = Task(
+      id: 'future',
+      title: 'آینده',
+      dueDate: DateTime(2026, 10, 8),
+    );
+    final undated = Task(id: 'undated', title: 'بدون موعد');
+
+    final result = const TaskReportFilter(
+      timePreset: ReportTimePreset.past,
+    ).apply(
+      [
+        completedNewer,
+        todayAtStart,
+        openNewer,
+        undated,
+        completedOlder,
+        todayEarlierThanNow,
+        future,
+        openOlder,
+      ],
+      now: now,
+    );
+
+    expect(
+      result.map((task) => task.id),
+      ['open-older', 'open-newer', 'today-morning'],
+    );
   });
 
 }

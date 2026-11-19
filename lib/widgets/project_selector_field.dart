@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../arvin_colors.dart';
 import '../models/goal_project.dart';
 import 'arvin_radio_box.dart';
+import 'arvin_task_selector_wrap.dart';
 
 /// Visual selector for first-class Projects.
 ///
@@ -45,7 +47,7 @@ class ProjectSelectorField extends StatelessWidget {
               ),
         ),
         const SizedBox(height: 8),
-        Wrap(
+        ArvinTaskSelectorWrap(
           spacing: 7,
           runSpacing: 7,
           children: [
@@ -76,7 +78,7 @@ class ProjectSelectorField extends StatelessWidget {
               label: 'گزینه جدید',
               selected: false,
               newOption: true,
-              accent: const Color(0xFF4A4CAB),
+              accent: ArvinColors.primary,
               onTap: () async {
                 final controller = TextEditingController();
                 final title = await showDialog<String>(

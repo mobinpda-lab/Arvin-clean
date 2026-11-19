@@ -17,7 +17,14 @@ void main() {
       id: 'due-safe',
       title: 'تحویل قرارداد',
       dueDate: DateTime(2026, 9, 11, 14, 45),
-      reminderDate: DateTime(2026, 9, 10, 9, 30),
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'reminder-due-safe',
+          title: 'یادآوری مستقل',
+          date: DateTime(2026, 9, 10, 9, 30),
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUpDate: DateTime(2026, 9, 12, 11),
       followUps: <FollowUp>[

@@ -14,10 +14,6 @@ class PersonFollowUpReportRow {
   final FollowUp followUp;
   final List<PersonReference> people;
 
-  DateTime? get nextFollowUp => followUp.nextFollowUp;
-
-  /// Deliberately independent from [nextFollowUp].
-  DateTime? get reminderDate => followUp.reminderDate;
 }
 
 /// Projects person-linked rows from canonical Task/Follow-up data only.
@@ -33,7 +29,7 @@ class PersonFollowUpReportProjection {
     Set<String> personIds = const <String>{},
     bool waitingForResponseOnly = true,
     bool includeDanglingPeople = true,
-    @Deprecated('Next Follow-up is not a scheduling or report filter. Use Reminder-specific filters when in scope.') DateTime? nextActionDueBy,
+    bool Function(Task task, FollowUpRecord followUp)? followUpPredicate,
   }) {
     final directory = <String, PersonReference>{
       for (final person in people) person.id: person,
@@ -55,6 +51,9 @@ class PersonFollowUpReportProjection {
         continue;
       }
       for (final followUp in task.followUps) {
+        if (followUpPredicate != null && !followUpPredicate(task, followUp)) {
+          continue;
+        }
         if (waitingForResponseOnly &&
             (!followUp.waitingForResponse || followUp.completed)) {
           continue;
@@ -70,7 +69,7 @@ class PersonFollowUpReportProjection {
               (id) =>
                   directory[id] ??
                   (includeDanglingPeople
-                      ? PersonReference(id: id, displayName: 'شخص حذف‌شده')
+                      ? PersonReference(id: id, displayName: 'شخص حذف‌شده', isDeleted: true)
                       : null),
             )
             .whereType<PersonReference>()

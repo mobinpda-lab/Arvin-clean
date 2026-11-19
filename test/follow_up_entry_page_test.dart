@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
+import 'package:arvin/services/task_store.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   Future<void> saveEditor(WidgetTester tester) async {
@@ -59,7 +62,8 @@ void main() {
     expect(result!.note, 'شرح تماس');
     expect(result!.result, 'پاسخ دریافت شد');
     expect(result!.dateTime, initial);
-    expect(result!.reminderDate, isNull);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
   });
 
   testWidgets('blank optional title remains absent in the model', (tester) async {
@@ -104,60 +108,18 @@ void main() {
     expect(result!.dateTime, initial);
   });
 
-  testWidgets('editing preserves legacy scheduling timestamps without exposing controls',
-      (tester) async {
-    FollowUp? result;
-    final reminder = DateTime(2026, 9, 2, 7, 45);
+  testWidgets('editing a historical Follow-up can add an independent all-day Task Reminder', (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    addTearDown(TaskStore.resetTestDatabase);
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-edit-reminder', title: 'کار مادر')]);
     final initial = FollowUp(
-      id: 'fu-reminder',
-      dateTime: DateTime(2026, 8, 28, 10, 15),
-      note: 'تماس',
-      result: 'انجام شد',
-      reminderDate: reminder,
-      nextFollowUp: DateTime(2026, 9, 3, 10, 15),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Builder(
-          builder: (context) => Scaffold(
-            body: ElevatedButton(
-              onPressed: () async {
-                result = await Navigator.of(context).push<FollowUp>(
-                  MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
-                  ),
-                );
-              },
-              child: const Text('open'),
-            ),
-          ),
-        ),
-      ),
-    );
-
-    await tester.tap(find.text('open'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
-    expect(find.byKey(const ValueKey('follow-up-reminder-block')), findsNothing);
-
-    await saveEditor(tester);
-
-    expect(result, isNotNull);
-    expect(result!.id, initial.id);
-    expect(result!.reminderDate, reminder);
-    expect(result!.nextFollowUp, initial.nextFollowUp);
-  });
-
-  testWidgets('legacy FollowUp reminder is hidden but preserved without retired controls',
-      (tester) async {
-    FollowUp? result;
-    final initial = FollowUp(
-      id: 'fu-clear',
+      id: 'historical-follow-up',
       dateTime: DateTime(2026, 8, 28, 12),
-      reminderDate: DateTime(2026, 8, 29, 8, 30),
+      note: 'سابقه تماس',
     );
+    FollowUp? result;
 
     await tester.pumpWidget(
       MaterialApp(
@@ -167,29 +129,142 @@ void main() {
               onPressed: () async {
                 result = await Navigator.of(context).push<FollowUp>(
                   MaterialPageRoute(
-                    builder: (_) => FollowUpEntryPage(initialFollowUp: initial),
+                    builder: (_) => FollowUpEntryPage(
+                      initialFollowUp: initial,
+                      taskId: 'follow-up-edit-reminder',
+                      allowAddingReminder: true,
+                    ),
                   ),
                 );
               },
-              child: const Text('open'),
+              child: const Text('open-edit-follow-up-reminder'),
             ),
           ),
         ),
       ),
     );
-
-    await tester.tap(find.text('open'));
+    await tester.tap(find.text('open-edit-follow-up-reminder'));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const ValueKey('follow-up-reminder-clear')), findsNothing);
-    expect(find.text('انتخاب پیگیری بعدی'), findsNothing);
-
+    expect(find.byKey(const ValueKey('follow-up-legacy-reminder-editor')), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-reminder-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
     await saveEditor(tester);
 
+    final savedTask = (await store.load()).single;
     expect(result, isNotNull);
     expect(result!.id, initial.id);
-    expect(result!.reminderDate, initial.reminderDate);
+    expect(result!.dateTime, initial.dateTime);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+    expect(savedTask.taskReminders, hasLength(1));
+    expect(savedTask.taskReminders.single.isAllDay, isTrue);
+    expect(savedTask.taskReminders.single.date.hour, 0);
+    expect(savedTask.taskReminders.single.date.minute, 0);
   });
+
+  testWidgets('waiting FollowUp can add, select, reopen and remove a stable person', (tester) async {
+    FollowUp? saved;
+    final people = <PersonReference>[
+      PersonReference(id: 'person-ana', displayName: 'آنا'),
+    ];
+    Future<void> createPerson(PersonReference person) async {
+      people.add(person);
+    }
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(
+                      initialDateTime: DateTime(2026, 11, 6, 9),
+                      people: people,
+                      onCreatePerson: createPerson,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-person-follow-up'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-person-follow-up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-waiting-for-response')));
+    await tester.pumpAndSettle();
+    expect(find.text('منتظر پیگیری دیگران'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-person-ana')));
+    await tester.enterText(
+      find.byKey(const ValueKey('multi-select-create-0')),
+      'سارا احمدی',
+    );
+    await tester.tap(find.text('+ ایجاد مورد جدید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('ثبت انتخاب اشخاص'));
+    await tester.pumpAndSettle();
+
+    expect(people, hasLength(2));
+    expect(find.byKey(ValueKey('follow-up-person-selected-${people.last.id}')), findsOneWidget);
+    await saveEditor(tester);
+    expect(saved, isNotNull);
+    expect(saved!.waitingForResponse, isTrue);
+    expect(saved!.personIds, contains('person-ana'));
+    expect(saved!.personIds, contains(people.last.id));
+
+    final edited = saved!;
+    saved = null;
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                saved = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => FollowUpEntryPage(
+                      initialFollowUp: edited,
+                      people: people,
+                      onCreatePerson: createPerson,
+                    ),
+                  ),
+                );
+              },
+              child: const Text('reopen-person-follow-up'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('reopen-person-follow-up'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-person-picker')));
+    await tester.pumpAndSettle();
+    final anaOption = find.byKey(const ValueKey('follow-up-person-person-ana'));
+    expect(tester.widget<CheckboxListTile>(anaOption).value, isTrue);
+    await tester.tap(anaOption);
+    await tester.tap(find.text('ثبت انتخاب اشخاص'));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+    expect(saved!.personIds, isNot(contains('person-ana')));
+    expect(saved!.personIds, contains(people.last.id));
+  });
+
   testWidgets('FollowUp Back prompts and save preserves entered changes',
       (tester) async {
     FollowUp? result;
@@ -319,5 +394,137 @@ void main() {
       expect(result!.dateTime, initial);
     },
   );
+
+
+  testWidgets('saving without the optional Reminder shortcut creates no Reminder',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-no-reminder', title: 'بدون یادآور')]);
+    FollowUp? result;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => const FollowUpEntryPage(
+                      taskId: 'follow-up-no-reminder',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-no-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-no-reminder'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-entry-add-reminder')), findsOneWidget);
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(result, isNotNull);
+    expect(saved.taskReminders, isEmpty);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+  });
+
+  testWidgets('optional Reminder shortcut creates a normal Reminder for the same Task',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-with-reminder', title: 'با یادآور')]);
+    FollowUp? result;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () async {
+                result = await Navigator.of(context).push<FollowUp>(
+                  MaterialPageRoute(
+                    builder: (_) => const FollowUpEntryPage(
+                      taskId: 'follow-up-with-reminder',
+                    ),
+                  ),
+                );
+              },
+              child: const Text('open-with-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-with-reminder'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('follow-up-reminder-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('follow-up-reminder-time')), findsNothing);
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(result, isNotNull);
+    expect(saved.followUps, isEmpty); // Parent saves the returned historical record.
+    expect(saved.taskReminders, hasLength(1));
+    expect(saved.taskReminders.single.title, 'یادآور پیگیری');
+    expect(saved.taskReminders.single.date.isAfter(DateTime.now()), isTrue);
+    expect(isMigratedTaskReminder(saved, saved.taskReminders.single), isFalse);
+    expect(result!.toJson().containsKey('reminderDate'), isFalse);
+    expect(result!.toJson().containsKey('nextFollowUp'), isFalse);
+  });
+  testWidgets('Follow-up reminder shortcut stores all-day without a fake time',
+      (tester) async {
+    await TaskStore.resetTestDatabase();
+    SharedPreferences.setMockInitialValues({});
+    final store = TaskStore();
+    await store.save([Task(id: 'follow-up-all-day-reminder', title: 'با یادآور')]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: ElevatedButton(
+              onPressed: () => Navigator.of(context).push<FollowUp>(
+                MaterialPageRoute(
+                  builder: (_) => const FollowUpEntryPage(
+                    taskId: 'follow-up-all-day-reminder',
+                  ),
+                ),
+              ),
+              child: const Text('open-with-reminder'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('open-with-reminder'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-entry-add-reminder')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('follow-up-reminder-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'تأیید'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
+    await tester.pumpAndSettle();
+    await saveEditor(tester);
+
+    final saved = (await store.load()).single;
+    expect(saved.taskReminders, hasLength(1));
+    expect(saved.taskReminders.single.isAllDay, isTrue);
+    expect(saved.taskReminders.single.date.hour, 0);
+    expect(saved.taskReminders.single.date.minute, 0);
+  });
+
 
 }

@@ -126,12 +126,14 @@ void main() {
         'tags': <String>['برچسب بازیابی‌شده'],
       });
       final manager = ArvinBackupManager(service: backupService);
+      final restoreStages = <String>[];
 
       await tester.pumpWidget(
         MaterialApp(
           home: HomePage(
             backupManager: manager,
             restoreStageHook: (stage) async {
+              restoreStages.add(stage);
               if (stage == 'catalogs') throw StateError('injected after catalogs');
             },
           ),
@@ -141,7 +143,13 @@ void main() {
 
       await tester.tap(find.byKey(const ValueKey('primary-nav-more')));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('پشتیبان‌گیری'));
+      final backupAction = find.text('پشتیبان‌گیری');
+      await tester.scrollUntilVisible(
+        backupAction,
+        180,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(backupAction);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Restore از فایل'));
       await tester.pumpAndSettle();
@@ -170,6 +178,11 @@ void main() {
       expect(scheduleAfter.hour, scheduleBefore.hour);
       expect(scheduleAfter.minute, scheduleBefore.minute);
       expect(scheduleAfter.frequency, scheduleBefore.frequency);
+      expect(restoreStages, contains('rollback-reminders'));
+      expect(
+        restoreStages.indexOf('rollback-reminders'),
+        greaterThan(restoreStages.indexOf('catalogs')),
+      );
       expect(
         find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
         findsOneWidget,

@@ -10,7 +10,14 @@ void main() {
       id: 'task-1',
       title: 'پرونده مشتری',
       createdAt: DateTime(2026, 8, 26, 8),
-      reminderDate: DateTime(2026, 8, 26, 12),
+      taskReminders: [
+        TaskReminder(
+          id: 'timeline-reminder',
+          title: 'یادآور',
+          date: DateTime(2026, 8, 26, 12),
+          sequence: 1,
+        ),
+      ],
       updatedAt: DateTime(2026, 8, 26, 15),
       followUps: [
         FollowUp(
@@ -92,13 +99,48 @@ void main() {
     expect(canonicalTimeline.single.id, 'followup:real');
   });
 
+  test('includes every independent reminder in chronological history', () {
+    final task = Task(
+      id: 'multi-reminder',
+      title: 'چند یادآور',
+      taskReminders: [
+        TaskReminder(
+          id: 'later',
+          title: 'یادآور دیرتر',
+          date: DateTime(2026, 8, 26, 16),
+          sequence: 2,
+        ),
+        TaskReminder(
+          id: 'earlier',
+          title: 'یادآور زودتر',
+          date: DateTime(2026, 8, 26, 9),
+          sequence: 1,
+        ),
+      ],
+    );
+
+    final timeline = service.build(task);
+    expect(
+      timeline.map((entry) => entry.id),
+      ['task:multi-reminder:reminder:earlier', 'task:multi-reminder:reminder:later'],
+    );
+    expect(timeline.map((entry) => entry.note), ['یادآور زودتر', 'یادآور دیرتر']);
+  });
+
   test('orders equal timestamps deterministically', () {
     final sameTime = DateTime(2026, 8, 26, 12);
     final task = Task(
       id: 'same-time',
       title: 'هم‌زمان',
       createdAt: sameTime,
-      reminderDate: sameTime,
+      taskReminders: [
+        TaskReminder(
+          id: 'legacy-task-reminder-same-time',
+          title: 'یادآور',
+          date: sameTime,
+          sequence: 1,
+        ),
+      ],
       updatedAt: sameTime,
       followUps: [
         FollowUp(id: 'b', dateTime: sameTime),
@@ -110,7 +152,7 @@ void main() {
       service.build(task).map((entry) => entry.id).toList(),
       [
         'task:same-time:created',
-        'task:same-time:reminder',
+        'task:same-time:reminder:legacy-task-reminder-same-time',
         'followup:a',
         'followup:b',
         'task:same-time:updated',

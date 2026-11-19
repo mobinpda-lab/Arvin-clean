@@ -140,10 +140,7 @@ void main() {
     expect(loaded.single.followUps, hasLength(1));
     expect(loaded.single.followUps.single.id, 'fu-1');
     expect(loaded.single.followUps.single.note, 'Call customer');
-    expect(
-      loaded.single.followUps.single.reminderDate,
-      DateTime.utc(2026, 9, 3, 9, 45),
-    );
+    expect(loaded.single.followUps.single.toJson().containsKey('reminderDate'), isFalse);
     expect(loaded.single.followUps.single.completed, isTrue);
   });
 
@@ -270,7 +267,6 @@ void main() {
     final payload = <String, dynamic>{
       'id': 'legacy-repeat',
       'title': 'تکرار قدیمی',
-      'reminderDate': DateTime(2026, 10, 8, 9).toIso8601String(),
       'recurrence': recurrence,
       'archived': false,
       'trashed': false,
@@ -282,13 +278,12 @@ void main() {
     await executor.runInsert(
       '''INSERT INTO tasks (
         id, storage_ordinal, title, description, created_at, updated_at, due_date,
-        follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-        priority, archived, trashed, completed, recurrence_json, legacy_payload_json
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+        category, notebook_kind, priority, archived, trashed, completed,
+        recurrence_json, legacy_payload_json
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         'legacy-repeat', 0, 'تکرار قدیمی', '', null, null, null,
-        0, null, null, null, DateTime(2026, 10, 8, 9).toIso8601String(),
-        'none', 0, 0, 0, null, jsonEncode(payload),
+        null, null, 'none', 0, 0, 0, null, jsonEncode(payload),
       ],
     );
 
@@ -339,6 +334,58 @@ void main() {
     expect(reloaded.single.followUps.single.waitingForResponse, isTrue);
   });
 
+  test('TaskStore updates description without rewriting completedAt or historical Follow-ups', () async {
+    await TaskStore.resetTestDatabase();
+    try {
+      final store = TaskStore();
+      final completedAt = DateTime(2026, 10, 30, 13, 45);
+      final followUpDate = DateTime(2026, 10, 29, 10);
+      final nextFollowUp = DateTime(2026, 11, 2, 12);
+      final followUp = FollowUp(
+        id: 'description-update-history',
+        dateTime: followUpDate,
+        note: 'Historical action',
+        nextFollowUp: nextFollowUp,
+        completed: true,
+      );
+      await store.save(<Task>[
+        Task(
+          id: 'description-update-task',
+          title: 'Description update',
+          description: 'Before',
+          updatedAt: DateTime(2026, 10, 27, 8),
+          completed: true,
+          completedAt: completedAt,
+          followUpEnabled: true,
+          followUpDate: followUpDate,
+          followUps: <FollowUp>[followUp],
+        ),
+      ]);
+
+      final updatedAt = DateTime(2026, 10, 31, 12);
+      await store.updateDescription(
+        'description-update-task',
+        'After',
+        updatedAt,
+      );
+
+      final loaded = (await store.load()).single;
+      expect(loaded.description, 'After');
+      expect(loaded.updatedAt, updatedAt);
+      expect(loaded.completedAt, completedAt);
+      expect(loaded.followUpEnabled, isTrue);
+      expect(loaded.followUpDate, isNull);
+      expect(loaded.followUps, hasLength(1));
+      expect(loaded.followUps.single.id, followUp.id);
+      expect(loaded.followUps.single.dateTime, followUpDate);
+      expect(loaded.followUps.single.note, 'Historical action');
+      expect(loaded.followUps.single.toJson().containsKey('nextFollowUp'), isFalse);
+      expect(loaded.followUps.single.completed, isTrue);
+    } finally {
+      await TaskStore.resetTestDatabase();
+    }
+  });
+
   test('TaskStore persists completedAt and Follow-up history together', () async {
     await TaskStore.resetTestDatabase();
     try {
@@ -370,6 +417,75 @@ void main() {
     }
   });
 
+
+  test('TaskStore persists multiple reminders, Follow-up records and Persons in canonical tables', () async {
+    final database = NativeDatabase.memory();
+    try {
+      final store = TaskStore(executor: database);
+      final person = PersonReference(id: 'canonical-person', displayName: 'شخص کانونی');
+      await store.savePeopleDirectory(<PersonReference>[person]);
+      final firstDate = DateTime(2026, 11, 8, 9);
+      final secondDate = DateTime(2026, 11, 9);
+      final followUpAt = DateTime(2026, 11, 7, 12);
+      await store.save(<Task>[
+        Task(
+          id: 'canonical-relations-task',
+          title: 'کار با روابط مستقل',
+          people: <PersonReference>[person],
+          taskReminders: <TaskReminder>[
+            TaskReminder(
+              id: 'canonical-reminder-1',
+              title: 'یادآور اول',
+              date: firstDate,
+              sequence: 1,
+            ),
+            TaskReminder(
+              id: 'canonical-reminder-2',
+              title: 'یادآور دوم',
+              date: secondDate,
+              isAllDay: true,
+              sequence: 2,
+            ),
+          ],
+          followUps: <FollowUp>[
+            FollowUp(
+              id: 'canonical-follow-up',
+              dateTime: followUpAt,
+              note: 'سابقه مستقل',
+              personIds: const <String>['canonical-person'],
+            ),
+          ],
+        ),
+      ]);
+
+      final reminderRows = await database.runSelect(
+        'SELECT id, is_all_day FROM task_reminders WHERE task_id = ? ORDER BY sequence',
+        <Object?>['canonical-relations-task'],
+      );
+      expect(reminderRows.map((row) => row['id']),
+          ['canonical-reminder-1', 'canonical-reminder-2']);
+      expect(reminderRows.map((row) => row['is_all_day']), [0, 1]);
+
+      final followUpRows = await database.runSelect(
+        'SELECT id, completed_at FROM follow_up_records WHERE task_id = ?',
+        <Object?>['canonical-relations-task'],
+      );
+      expect(followUpRows.single['id'], 'canonical-follow-up');
+      expect(followUpRows.single['completed_at'], followUpAt.toIso8601String());
+
+      final personRows = await database.runSelect(
+        'SELECT name FROM persons WHERE id = ?',
+        <Object?>['canonical-person'],
+      );
+      expect(personRows.single['name'], 'شخص کانونی');
+
+      final loaded = (await store.load()).single;
+      expect(loaded.taskReminders, hasLength(2));
+      expect(loaded.followUps.single.personIds, ['canonical-person']);
+    } finally {
+      await database.close();
+    }
+  });
 
   test('does not resurrect the last deleted Task Reminder after SQLite reopen', () async {
     final directory =
