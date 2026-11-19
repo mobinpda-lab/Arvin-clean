@@ -803,3 +803,89 @@ Build run `44527453895`, exact SHA `7e00f2f9c65bf16ed71db68adc9f2b559f0a66c7`, c
 - Full independent DB A-to-B production Backup/Restore, repeat restore, rollback atomicity, unknown-field/explicit-NULL parity, legacy backup compatibility, tombstone preservation, `PRAGMA integrity_check` and `PRAGMA foreign_key_check` remain NOT ACCEPTED.
 - The 64 UI/product test failures remain open; each must be diagnosed and corrected without weakening expectations.
 - No merge, release or deploy. PR #3052 and #3586 remain OPEN / DRAFT. RELEASE = NO-GO.
+
+
+## 23. COMMAND 73-R — Live GitHub audit, exact-SHA CI and Backup/Restore reconciliation
+
+**Audit timestamp:** 2026-11-19 14:55 UTC / 18:25 Iran time  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Disposition:** IN PROGRESS — RELEASE NO-GO — NO MERGE / DEPLOY
+
+### 23.1 Authoritative refs and permissions
+
+- Repository metadata confirms default branch `main`, public visibility, and authenticated Admin / Maintain / Push / Pull / Triage permissions.
+- Exact `main` HEAD from branch comparison: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Operational PR #3052 branch `fix/recovery-calendar-device-smoke-2026-10-31`: `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- PR #3574 branch `command-63-r/path-f-person-directory-exclusion`: `8aca2bd36ea28ae8c291e7418541453d12847de2`.
+- PR #3575 branch `command-63-r/path-f-backup-exclusions`: `6b1a03f502d5c642ba28a8884186f4a348b0e572`.
+- PR #3586 branch `command-68-r/backup-restore-integrity`: `6daa62d1605d82a807eaef2d08463db6d3e5cd3a`.
+- PR #3591 branch `command-72-r/backup-serializer-roundtrip`: `6a7200ba90a7086e308b35ca5918d569296a3d44`.
+- No Main write, PR merge, release, publication or deployment was performed.
+
+### 23.2 Branch ancestry and integration decision
+
+- #3586 is a direct descendant of #3052 at `0cf1792d...`, with 17 commits ahead and no behind commits at the comparison checkpoint.
+- #3591 is a direct child of #3586: 2 commits ahead, 0 behind. Its two-commit delta contains the serializer implementation in `lib/backup_service.dart` and the byte-level tests in `test/backup_service_test.dart`.
+- #3575 is NOT currently based on the current #3574 head. The branches diverge at `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`; #3575 is 17 commits ahead and 1 behind #3574.
+- #3586 is an independent adaptation from #3052, not a linear continuation of #3574/#3575. Relative to #3574 it diverges at `a2825e003bb9e6b5c2413b0dc74b085273b6148b` (50 ahead / 7 behind); relative to #3575 it diverges at the same base (50 ahead / 23 behind).
+- Therefore #3574 → #3575 must not be treated as a current, clean stack, and neither branch may be merged/cherry-picked wholesale into #3586. #3586 → #3591 is the currently coherent Backup/Restore review chain. This is a branch-lineage finding, not merge authorization.
+
+### 23.3 Exact-SHA CI evidence
+
+| PR / exact head | Build run | Analyze | Six shards | APK / Visual | Persistence | Device Smoke |
+|---|---:|---|---|---|---|---|
+| #3052 / `0cf1792d...` | `44514942772` | PASS, job `135638744637` | 6/6 FAIL | Debug, Release, Staging and Visual PASS | run `44514942662` PASS | run `44514942616`: boot job `135647376720` IN PROGRESS; six lanes queued |
+| #3574 / `8aca2bd3...` | `44496047708` | PASS, job `135479742495` | 6/6 FAIL | Debug, Release, Staging and Visual PASS | run `44496047750` PASS | run `44496047759` QUEUED |
+| #3575 / `6b1a03f5...` | `44495959431` | FAIL, job `135476278973` | 6/6 FAIL | Debug, Release, Staging and Visual PASS | run `44495959408` PASS | run `44495959492` QUEUED |
+| #3586 / `6daa62d1...` | `44545499523` | PASS, job `135637957199` | 6/6 FAIL | Debug, Release, Staging and Visual PASS | run `44545499573` PASS | run `44545499511` PENDING |
+| #3591 / `6a7200ba...` | `44548064208` | PASS, job `135643942414` | 6/6 FAIL | Debug and Staging PASS; Visual PASS; Release FAIL | run `44548064192` PASS | run `44548064195`: boot job `135644080866` IN PROGRESS; six lanes queued |
+
+Relevant exact-head job IDs:
+- #3052 shards 0–5: `135638652216`, `135638652117`, `135638652251`, `135638651606`, `135638652289`, `135638652329`.
+- #3591 shards 0–5: `135643942478`, `135643942410`, `135643942346`, `135643942431`, `135643942611`, `135643942520`.
+- #3574 shards 0–5: `135479743145`, `135479742427`, `135479742478`, `135479742716`, `135479742309`, `135479742446`.
+- #3575 shards 0–5: `135476278787`, `135476278859`, `135476278771`, `135476278975`, `135476278987`, `135476278865`.
+- #3586 shards 0–5: `135637957300`, `135637957387`, `135637957567`, `135637957337`, `135637957231`, `135637957247`.
+
+### 23.4 Six-shard failure comparison — do not reuse results across SHAs
+
+- #3052 SHA `0cf1792d...`: shard failures = 10 / 5 / 20 / 10 / 9 / 10; 64 distinct failing test labels.
+- #3591 SHA `6a7200ba...`: shard failures = 10 / 5 / 20 / 10 / 9 / 10; 64 distinct failing test labels.
+- A direct name-set comparison of all twelve raw shard logs found the same 64 failing test labels on these two different SHAs. This is an observed inventory overlap only; each SHA retains its own CI result and no PASS/FAIL is transferred between them.
+- The recurring areas are Home filters / Focus Today / grouping, Quick Capture and Task Editor date-time-recurrence flows, Task Details / checklist / People, Follow-up Office, Notebook taxonomy, Calendar, Reports / PDF, navigation and settings.
+- Individual failure mechanisms are not yet all classified. Examples in the logs include missing expected labels/keys, ambiguous duplicate text finders, hit-test/scroll constraints and `pumpAndSettle` timeouts. These must be diagnosed against the approved product contracts; do not mass-update expectations or weaken assertions.
+- No test was deleted, skipped or weakened in this audit.
+
+### 23.5 Confirmed Analyze root cause on #3575
+
+The #3575 Analyze job `135476278973` reports two compile-time errors in `test/services/project_backup_bridge_test.dart`:
+1. `_RecordingBackupManager.backupCanonicalTasks` does not include the newly required `personDirectoryExclusions` named parameter in its override.
+2. Its `CanonicalBackupCandidate` fixture supplies 9 named fields while the expanded record requires 11, including `personDirectoryExclusions` and `hasPersonDirectoryExclusions`.
+
+The same Analyze log also reports an unused import in `test/person_directory_exclusion_backup_test.dart` and two unnecessary non-null assertions in `lib/backup_page.dart`. The primary blocker is stale test-double / fixture API shape after the backup candidate expansion. No fix was committed because #3575 is branch-diverged from the current #3574 prerequisite and its Device Smoke run is still queued.
+
+### 23.6 Backup / Restore source audit
+
+- #3586 `G1DriftSchema.version` is 18. The canonical `person_directory_exclusions` table includes nullable `legacy_payload_json`.
+- Schema installation checks `PRAGMA table_info('person_directory_exclusions')` and transactionally adds `legacy_payload_json TEXT NULL` when an earlier two-column table is found. Existing rows are not dropped or rebuilt. The exact-head #3591 test shard 3 log includes PASS for “upgrades legacy Person Directory Exclusions table without losing rows”.
+- #3586 TaskStore reads tombstone identity/time plus unknown fields from `legacy_payload_json`; writes use `BEGIN IMMEDIATE`, preserve unknown keys in the payload column, and roll back on write failure.
+- #3586 wires the active `main.dart` backup path to load exclusions; restore snapshots previous exclusions in the emergency backup, reconciles active people and exclusions by stable ID, applies them in the people-directory stage, and restores the previous exclusion set in rollback.
+- #3591 serializer code validates exclusion container shape, non-empty identity, parseable timestamp, duplicate IDs and active/excluded overlap. It includes the optional field in v1 output and accepts legacy v1 documents where the field is absent.
+- Exact-head #3591 shard 5 reports PASS for `backup_service_test.dart`: “real write and read byte path preserves exclusions, unknown fields and explicit nulls”. This test exercises `writeBackup` → injected `localWriter` byte capture → `decodeBackupBytes`; it proves serializer/byte round-trip, but does not exercise a physical Android SAF destination.
+- The #3575 independent-database test creates separate file-backed source and target SQLite databases and checks Person/Task/Follow-up identity, relation rows, `PRAGMA integrity_check` and `PRAGMA foreign_key_check`. However, it injects `_FakeBackupService` for backup/restore rather than writing and reading the real backup file bytes.
+- #3575 also contains a tombstone rollback scenario with an injected failure after the people-directory stage; that test is on the divergent #3575 branch and is not yet reconciled into #3586/#3591.
+- Therefore the required single end-to-end path — real backup file bytes, independent target database, all requested entities/relations, second restore, rollback, SAF round-trip and integrity checks — remains NOT VERIFIED. The complementary partial tests do not combine into full acceptance.
+
+### 23.7 Release-build dependency failure on #3591
+
+- Release job `135643942376` failed during Gradle configuration while resolving Kotlin artifacts `org.jetbrains.kotlin:kotlin-gradle-plugin:2.2.21`, `kotlin-stdlib:2.2.21` and `kotlin-gradle-plugins-bom:2.2.21` from the Gradle Plugin Portal.
+- `android/settings.gradle.kts` already declares `google()`, `mavenCentral()` and `gradlePluginPortal()`; the current evidence does not justify a blind repository configuration change.
+- A rerun of only the failed Release job was requested for the same SHA using job `135643942376`. Result is pending. No source commit was added to the active #3591 branch.
+
+### 23.8 Next controlled actions
+
+1. Await the #3591 Release-job rerun and both active Device Smoke runs; do not write to a branch while its SHA has active workflows.
+2. Reconcile #3575 only after refreshing its dependency against the current #3574 lineage; fix its stale test double/record fixture without weakening assertions.
+3. Continue the 64-test inventory by individual root cause, prioritizing Home filter semantics, Quick Capture date/time persistence, Task Details/checklist, and Follow-up Office settling/interaction.
+4. Add one combined real-file A-to-B Backup/Restore test that includes a second restore and rollback; keep SAF physical-device validation separate and explicit.
+5. Keep all PRs OPEN / DRAFT / UNMERGED. Main remains unchanged. RELEASE = NO-GO.
