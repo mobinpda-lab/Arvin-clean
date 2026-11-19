@@ -14,6 +14,7 @@ import 'arvin_colors.dart';
 import 'core/theme/arvin_theme.dart';
 import 'core/theme/app_theme_manager.dart';
 import 'theme/app_fonts.dart';
+import 'theme/arvin_design_tokens.dart';
 import 'alarm_overlay_page.dart';
 import 'follow_up_reminder_notification_service.dart';
 
@@ -292,22 +293,22 @@ class _ArvinAppState extends State<ArvinApp> {
       fontFamily: ArvinTheme.fontFamily,
     );
     final readableLightTextTheme = lightBaseTextTheme.copyWith(
-      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600, height: 1.5),
-      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500, height: 1.5),
-      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500, height: 1.5),
-      titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700, height: 1.5),
-      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700, height: 1.5),
-      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700, height: 1.5),
-      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700, height: 1.5),
+      bodyLarge: lightBaseTextTheme.bodyLarge?.copyWith(fontSize: ArvinTypography.bodyLarge, fontWeight: FontWeight.w600, height: 1.5),
+      bodyMedium: lightBaseTextTheme.bodyMedium?.copyWith(fontSize: ArvinTypography.body, fontWeight: FontWeight.w500, height: 1.5),
+      bodySmall: lightBaseTextTheme.bodySmall?.copyWith(fontSize: ArvinTypography.label, fontWeight: FontWeight.w500, height: 1.5),
+      titleLarge: lightBaseTextTheme.titleLarge?.copyWith(fontSize: ArvinTypography.title, fontWeight: FontWeight.w700, height: 1.5),
+      titleMedium: lightBaseTextTheme.titleMedium?.copyWith(fontSize: ArvinTypography.bodyLarge, fontWeight: FontWeight.w700, height: 1.5),
+      titleSmall: lightBaseTextTheme.titleSmall?.copyWith(fontSize: ArvinTypography.body, fontWeight: FontWeight.w700, height: 1.5),
+      labelLarge: lightBaseTextTheme.labelLarge?.copyWith(fontSize: ArvinTypography.label, fontWeight: FontWeight.w700, height: 1.5),
     );
     final readableDarkTextTheme = darkBaseTextTheme.copyWith(
-      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: 18, fontWeight: FontWeight.w600),
-      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: 16, fontWeight: FontWeight.w500),
-      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: 22, fontWeight: FontWeight.w700),
-      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: 18, fontWeight: FontWeight.w700),
-      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: 16, fontWeight: FontWeight.w700),
-      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: 14, fontWeight: FontWeight.w700),
+      bodyLarge: darkBaseTextTheme.bodyLarge?.copyWith(fontSize: ArvinTypography.bodyLarge, fontWeight: FontWeight.w600),
+      bodyMedium: darkBaseTextTheme.bodyMedium?.copyWith(fontSize: ArvinTypography.body, fontWeight: FontWeight.w500),
+      bodySmall: darkBaseTextTheme.bodySmall?.copyWith(fontSize: ArvinTypography.label, fontWeight: FontWeight.w500),
+      titleLarge: darkBaseTextTheme.titleLarge?.copyWith(fontSize: ArvinTypography.title, fontWeight: FontWeight.w700),
+      titleMedium: darkBaseTextTheme.titleMedium?.copyWith(fontSize: ArvinTypography.bodyLarge, fontWeight: FontWeight.w700),
+      titleSmall: darkBaseTextTheme.titleSmall?.copyWith(fontSize: ArvinTypography.body, fontWeight: FontWeight.w700),
+      labelLarge: darkBaseTextTheme.labelLarge?.copyWith(fontSize: ArvinTypography.label, fontWeight: FontWeight.w700),
     );
     return MaterialApp(
       navigatorKey: arvinNavigatorKey,
@@ -349,17 +350,28 @@ class _ArvinAppState extends State<ArvinApp> {
         scaffoldBackgroundColor: ArvinColors.background,
         cardTheme: CardThemeData(
           color: ArvinTheme.cardBackground,
-          elevation: 1,
+          elevation: ArvinCardTokens.elevation,
           surfaceTintColor: Colors.transparent,
           shadowColor: ArvinTheme.brandGlow,
-          margin: const EdgeInsets.symmetric(vertical: 2),
+          margin: const EdgeInsets.symmetric(vertical: ArvinCardTokens.verticalMargin),
           shape: RoundedRectangleBorder(
             borderRadius: ArvinTheme.cardBorderRadius,
             side: const BorderSide(color: ArvinColors.border, width: 0.8),
           ),
         ),
-        dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
-        bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
+        dialogTheme: DialogThemeData(
+          surfaceTintColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(ArvinDialogTokens.padding),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(ArvinDialogTokens.radius)),
+          ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(ArvinRadii.sheet)),
+          ),
+        ),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableLightTextTheme,
@@ -369,6 +381,11 @@ class _ArvinAppState extends State<ArvinApp> {
             foregroundColor: Colors.white,
             elevation: 1,
             shadowColor: ArvinTheme.brandGlow,
+            minimumSize: const Size(ArvinButtonTokens.minimumWidth, ArvinButtonTokens.height),
+            padding: const EdgeInsets.symmetric(horizontal: ArvinButtonTokens.horizontalPadding),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(ArvinButtonTokens.radius),
+            ),
           ),
         ),
         chipTheme: ChipThemeData(
@@ -413,7 +430,7 @@ class _ArvinAppState extends State<ArvinApp> {
         iconTheme: const IconThemeData(color: ArvinColors.neutral, size: 24),
         iconButtonTheme: IconButtonThemeData(
           style: IconButton.styleFrom(
-            minimumSize: const Size(48, 48),
+            minimumSize: const Size(ArvinTouchTargets.minimum, ArvinTouchTargets.minimum),
             tapTargetSize: MaterialTapTargetSize.padded,
           ),
         ),
@@ -431,20 +448,25 @@ class _ArvinAppState extends State<ArvinApp> {
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
+          constraints: const BoxConstraints(minHeight: ArvinInputTokens.minimumHeight),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: ArvinInputTokens.horizontalPadding,
+            vertical: ArvinSpacing.x3,
+          ),
           filled: true,
           fillColor: ArvinColors.surface,
           labelStyle: TextStyle(color: ArvinColors.textSecondary, fontWeight: FontWeight.w600),
           hintStyle: TextStyle(color: ArvinColors.textSecondary),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: brandPrimary, width: 1.8),
           ),
         ),
@@ -464,20 +486,48 @@ class _ArvinAppState extends State<ArvinApp> {
         ),
         cardTheme: CardThemeData(
           color: ArvinColors.darkSurface,
-          elevation: 1,
+          elevation: ArvinCardTokens.elevation,
           surfaceTintColor: Colors.transparent,
           shadowColor: ArvinColors.shadowDark,
-          margin: EdgeInsets.symmetric(vertical: 4),
+          margin: EdgeInsets.symmetric(vertical: ArvinCardTokens.verticalMargin),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
+            borderRadius: ArvinTheme.cardBorderRadius,
             side: BorderSide(color: ArvinColors.darkBorder, width: 0.8),
           ),
         ),
-        dialogTheme: const DialogThemeData(surfaceTintColor: Colors.transparent),
-        bottomSheetTheme: const BottomSheetThemeData(surfaceTintColor: Colors.transparent),
+        dialogTheme: DialogThemeData(
+          surfaceTintColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(ArvinDialogTokens.padding),
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(ArvinDialogTokens.radius)),
+          ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(ArvinRadii.sheet)),
+          ),
+        ),
         popupMenuTheme: const PopupMenuThemeData(surfaceTintColor: Colors.transparent),
         fontFamily: AppFonts.vazirmatnFamily,
         textTheme: readableDarkTextTheme,
+        filledButtonTheme: FilledButtonThemeData(
+          style: FilledButton.styleFrom(
+            backgroundColor: ArvinColors.darkBrandPrimary,
+            foregroundColor: Colors.white,
+            minimumSize: const Size(ArvinButtonTokens.minimumWidth, ArvinButtonTokens.height),
+            padding: const EdgeInsets.symmetric(horizontal: ArvinButtonTokens.horizontalPadding),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(ArvinButtonTokens.radius),
+            ),
+          ),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(ArvinTouchTargets.minimum, ArvinTouchTargets.minimum),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ),
+        ),
         dividerTheme: const DividerThemeData(color: ArvinColors.darkDivider, thickness: 1),
         appBarTheme: AppBarTheme(
           surfaceTintColor: Colors.transparent,
@@ -486,18 +536,23 @@ class _ArvinAppState extends State<ArvinApp> {
           iconTheme: const IconThemeData(color: Colors.white),
         ),
         inputDecorationTheme: InputDecorationTheme(
+          constraints: const BoxConstraints(minHeight: ArvinInputTokens.minimumHeight),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: ArvinInputTokens.horizontalPadding,
+            vertical: ArvinSpacing.x3,
+          ),
           filled: true,
           fillColor: ArvinColors.darkSurface,
           border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           enabledBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(14)),
+            borderRadius: const BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkBrandPrimary, width: 1.8),
           ),
         ),

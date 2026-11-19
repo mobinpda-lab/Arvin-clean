@@ -6,8 +6,8 @@ import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/widgets/arvin_roll_box.dart';
 
 void main() {
-  test('interactive domain tokens retain semantic accents independently of the blue brand', () {
-    expect(ArvinColors.primary, const Color(0xFF4169A1));
+  test('interactive domain tokens retain semantic accents independently of the approved teal brand', () {
+    expect(ArvinColors.primary, const Color(0xFF078B91));
     expect(ArvinColors.time, const Color(0xFF008080));
     expect(ArvinColors.reminder, const Color(0xFFD97706));
     expect(ArvinColors.project, const Color(0xFF7C3AED));
@@ -36,6 +36,7 @@ void main() {
             body: ArvinTagRollBox(
               tags: const <String>['مهم', 'مشتری'],
               selectedTags: selected,
+              showLabel: true,
               onChanged: (value) => setState(() => selected = List<String>.of(value)),
             ),
           ),

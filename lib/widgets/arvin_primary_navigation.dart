@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
+import '../theme/arvin_design_tokens.dart';
 
 enum ArvinPrimaryDestination {
   home,
@@ -25,11 +26,15 @@ class ArvinPrimaryNavigation extends StatelessWidget {
     final primary = Theme.of(context).colorScheme.primary;
     const background = ArvinColors.surface;
     const muted = ArvinColors.textSecondary;
-    final selectedSurface = Theme.of(context).brightness == Brightness.dark
-        ? const Color(0xFFD9F0EE)
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final selectedSurface = isDark
+        ? Color.alphaBlend(
+            ArvinColors.darkPrimary.withAlpha(26),
+            ArvinColors.darkSurface,
+          )
         : ArvinColors.primarySoft;
     const iconColors = <ArvinPrimaryDestination, Color>{
-      ArvinPrimaryDestination.home: Color(0xFF0F766E),
+      ArvinPrimaryDestination.home: ArvinColors.primary,
       ArvinPrimaryDestination.calendar: Color(0xFF2A9D8F),
       ArvinPrimaryDestination.notebook: Color(0xFFC76B16),
       ArvinPrimaryDestination.reports: Color(0xFF8E6CCF),
@@ -78,9 +83,14 @@ class ArvinPrimaryNavigation extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        minimum: const EdgeInsets.fromLTRB(10, 7, 10, 7),
+        minimum: const EdgeInsets.fromLTRB(
+          ArvinNavigationTokens.horizontalInset,
+          ArvinNavigationTokens.verticalInset,
+          ArvinNavigationTokens.horizontalInset,
+          ArvinNavigationTokens.verticalInset,
+        ),
         child: SizedBox(
-          height: 60,
+          height: ArvinNavigationTokens.height,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -137,33 +147,33 @@ class _NavigationItem extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ArvinNavigationTokens.radius),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(horizontal: 3),
-          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
+          duration: ArvinMotion.fast,
+          curve: ArvinMotion.standardCurve,
+          margin: const EdgeInsets.symmetric(horizontal: ArvinSpacing.x1),
+          padding: const EdgeInsets.symmetric(horizontal: ArvinSpacing.x1, vertical: ArvinSpacing.x1),
           decoration: BoxDecoration(
             color: selected ? selectedSurface : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(ArvinNavigationTokens.radius),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
                 icon,
-                size: 22,
+                size: ArvinNavigationTokens.iconSize,
                 color: iconColor,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: ArvinSpacing.x1),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: selected ? primary : muted,
-                  fontSize: 10.5,
+                  fontSize: ArvinTypography.caption,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),

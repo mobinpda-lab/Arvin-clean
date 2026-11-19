@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/theme/arvin_theme.dart';
 import 'models/task.dart';
 
-/// Canonical semantic palette used across Arvin. Brand tokens are fixed Blue & White;
+/// Canonical semantic palette used across Arvin. Brand tokens are fixed Teal & White;
 /// product semantics (priority, status and taxonomy) remain independently defined.
 abstract final class ArvinColors {
   static const primary = ArvinTheme.primaryTeal;
