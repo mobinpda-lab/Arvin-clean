@@ -213,3 +213,15 @@ Candidate SHA: 0535e78ff6f271086c259fadcfd088d52efcf79b.
 No pass is claimed for this candidate. This state update advances the branch again; fetch the exact live PR #3052 HEAD and run status before interpreting any result.
 
 **Next:** validate the latest SHA, then continue the remaining failing test roots and implement the missing Home grouping selector / Task Details Universal Bottom Sheet in controlled, non-conflicting workstreams. Do not merge, release or deploy. **RELEASE = NO-GO.**
+
+
+## COMMAND 63-R persistence evidence correction — 2026-11-19
+
+- Correction: PR #3570's inspected G1DriftSchema is version 17, not v19/v20. Its Occurrence/Checklist test is genuinely file-backed: temporary SQLite file, three installs, close/reopen, unknown nested state, explicit NULL, integrity_check and foreign_key_check. The separate Library draft references v19/v20 but that implementation was not found in the current PR set.
+- PR #3574 has a file-backed Person Directory exclusion migration test with close/reopen, retained Task/Follow-up history, tombstone behavior and integrity checks.
+- PR #3575 has a file-backed source/target SQLite backup/restore orchestration test for Person exclusions and historical relations. Its backup service is faked; real Android SAF file read/write is still not verified.
+- TaskReminder unknown JSON keys are not currently preserved by a dedicated opaque payload in the model/SQL relation mapping. The new schema migration preserves unknown SQL columns and explicit NULL values during the column retirement itself, but a later TaskStore load/save cycle is not yet proven to preserve arbitrary unknown TaskReminder payloads.
+- PR #3570 and the operational branch both implement legacy reminder flag retirement differently. The operational branch implementation adds stable-ID and full row parity guards. Reconcile before integration; keep one migration path.
+- Latest tracker update commit: e925bb38eceee8155c8b29b25c375324e951e7fb. This update advances the operational branch; fetch the exact live HEAD and CI status again before accepting any result.
+
+**No merge, release or deploy. RELEASE = NO-GO.**
