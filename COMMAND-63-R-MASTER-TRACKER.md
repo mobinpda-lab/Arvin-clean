@@ -652,3 +652,40 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - PR #3569 changes completed-past group behavior by merging it into overdue. This is a user-visible product behavior change. Keep current separate completed-past grouping until an owner-approved contract says otherwise; do not accept the child PR's revised expectation as a test-only cleanup.
 
 **COMMAND 66-R disposition:** two assertion-preserving test-fixture/persistence test changes committed; 64 failures across six shards inventoried from PR #3570; one exact-head file-backed alarm persistence workflow passed on code SHA `46d8af4`; current Build/Device Smoke pending and Calendar/Review APK in progress; Backup/Restore active-main integration gap confirmed and not yet fixed; no merge, release or deploy. RELEASE = NO-GO.
+
+
+## 19. COMMAND 68-R — Person Directory exclusion persistence and active Backup/Restore wiring
+
+### 19.1 Exact execution base and review path
+- Operational PR #3052 remains OPEN / DRAFT / unmerged.
+- PR #3052 head at execution start: `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- Main at execution start and final audit: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Independent implementation branch: `command-68-r/backup-restore-integrity`.
+- Review-only dependent PR #3586 targets the operational PR #3052 branch, not Main. PR #3586 remains OPEN / DRAFT / unmerged. Merge is prohibited.
+- Implementation head at tracker update: `c11fa1d6ea55a720e275bf1b92465e83ecded72e`.
+
+### 19.2 Code changes committed on the independent branch
+- `5ab0e1a7662d3b48398c7ff13f39de2286537a00`: additive G1 schema version 18 and `person_directory_exclusions` table with timestamp and unknown-payload storage; initial directory seeding excludes tombstoned IDs.
+- `b0a0d03a9e7c0e41f9436fb657f4a2ace292378d`: TaskStore read/write APIs for exclusions; atomic `BEGIN IMMEDIATE` directory replacement; explicit removals become tombstones; re-added active IDs clear tombstones; stale Task snapshots cannot silently reactivate excluded people.
+- `abfbf4fd42144508cb9e437d7568cd49d6690d15`: canonical backup candidate, serialization, validation, unknown JSON field retention and ID-based tombstone reconciliation.
+- `88066613ce7393343373974ece7e23c882dfa758`: active `main.dart` backup, restore, emergency backup and rollback now carry exclusions.
+- `ca4f1d0c82439d995264381756061f4c988b0886`: file-backed close/reopen test now asserts tombstone persistence and re-add clearing.
+- `c11fa1d6ea55a720e275bf1b92465e83ecded72e`: backup contract tests for round-trip, legacy omitted-vs-explicit-empty distinction, duplicate/malformed rejection, unknown fields and active-directory precedence.
+
+### 19.3 Acceptance status at exact implementation SHA
+- Build run `44517742925` targets exact SHA `c11fa1d6ea55a720e275bf1b92465e83ecded72e`; queued/in progress at last poll. All six test shards, Analyze, Visual and Debug/Release/Staging jobs were created.
+- Device Smoke run `44517742991` targets the same exact SHA; seven smoke scenarios were queued.
+- Follow-up File Persistence run `44517743015` targets the same SHA and was still in progress.
+- Orchestrator run `44517742771` completed successfully; this is routing evidence only, not product acceptance.
+- Draft Review APK run `44517742978` was skipped because the specialized workflow is restricted to the canonical PR #3052 head branch.
+- No test pass is claimed until exact-head job logs and conclusions are retrieved. No physical-device evidence has yet been accepted.
+
+### 19.4 Current product-integrity scope and remaining work
+- Person Directory exclusion is now wired through the active backup/restore path on the independent branch; it is not yet accepted until CI and File-backed restore evidence pass.
+- A full independent-database backup/restore equivalence test covering all Task/Reminder/Follow-up/Occurrence/Checklist/People relationships, explicit NULLs and unknown fields is still required.
+- Current 64 failures on SHA `0cf1792` remain a separate active CI failure inventory: test-0=10, test-1=5, test-2=20, test-3=9, test-4=10, test-5=10. These are not the historical PR #3570 inventory by assumption; compare individual test identities before deduplication.
+- Historical PR #3570 inventory remains 64 unique failures as documented in section 18.1.
+- REV10 page-wide acceptance, PDF/Vazirmatn coverage, complete integration flows and local P2P implementation remain open.
+- Main unchanged; PR #3052 preserved OPEN / DRAFT; PR #3586 review-only OPEN / DRAFT; no merge, release or deploy.
+
+**COMMAND 68-R disposition:** durable Person Directory tombstones and active backup/restore/rollback wiring have been implemented on an isolated branch with new tests. Acceptance remains PENDING exact-SHA CI and independent File-backed restore verification. RELEASE = NO-GO.
