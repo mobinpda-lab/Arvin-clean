@@ -131,3 +131,9 @@ Library archive: `vazirmatn-v33.003 (2).zip`
 - The code/test correction remains unverified. Workflows triggered on tracker SHA `32daaa48bd63831668607e3547a39dc62057fb6e` had Build and Device Smoke pending, Follow-up Persistence cancelled by a newer run, Calendar Provider in progress and staging review in progress at the last poll. Docs-only P2P design commit `805375654d04b247cbac5038b92d30ce781fff7c` had no PR-triggered workflow runs.
 - The #3052 source schema uses `persons` + `person_directory` + `task_persons`, whereas #3549's tombstone fix is written against the separate #3495 `people`/legacy relation lineage. Direct copying is unsafe; an adapted #3052 fix requires a fresh reproduction and file-backed regression test before implementation.
 - Current operational branch HEAD at this checkpoint: `805375654d04b247cbac5038b92d30ce781fff7c`. PR #3052 remains OPEN / DRAFT / UNMERGED; Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+
+## 10. Exact-head rerun boundary
+- The Build, Device Smoke, Follow-up Persistence and Draft Review runs created for `32daaa48bd63831668607e3547a39dc62057fb6e` were subsequently marked CANCELLED when newer branch commits superseded that SHA before the jobs completed.
+- This is not a test result. The code correction in `test/services/g1_drift_completed_at_migration_test.dart` remains NOT TESTED.
+- A fresh documentation checkpoint is being created so GitHub Actions can validate the complete current candidate containing the code correction. Only runs tied to the resulting exact HEAD can upgrade its acceptance status.
