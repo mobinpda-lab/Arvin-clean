@@ -41,10 +41,17 @@ void main() {
     expect(find.byIcon(Icons.add), findsOneWidget);
     expect(find.byKey(const ValueKey('home-notifications')), findsNothing);
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
+    // REV10 Home exposes five visible RTL filters, including Center.
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب'), findsOneWidget);
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
@@ -96,8 +103,14 @@ void main() {
     expect(find.text('هنوز کاری برای نمایش نیست'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-empty-add')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.text('پروژه‌ها'), findsOneWidget);
-    expect(find.text('دسته‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
+    expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
+    expect(find.text('پروژه'), findsOneWidget);
+    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('برچسب'), findsOneWidget);
   });
 }
