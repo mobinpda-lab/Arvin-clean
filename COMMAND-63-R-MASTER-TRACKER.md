@@ -426,3 +426,48 @@ PR #3571's change from two visible 14:35 labels to one is consistent with the pr
 - No application code was changed in this checkpoint. No merge, release, or deploy was performed.
 
 **Checkpoint disposition:** Main protected and unchanged; current operational HEAD CI pending; six-shard acceptance unavailable; child PRs stale-base and unintegrated; Device Smoke pending; persistence, UI, sync, and APK acceptance remain open. RELEASE = NO-GO.
+
+
+## 15. COMMAND 64-R live execution checkpoint — 2026-11-19
+
+### 15.1 Repository and protected baseline
+- Repository access verified: admin/maintain/push/pull permissions are true.
+- Main branch API re-read: SHA `45e4202b03a434459e4c021a04efa7e8396359db`; `protected=true`. Main was not modified.
+- PR #3052 remains OPEN / DRAFT / UNMERGED, base `main`, base SHA `45e4202b03a434459e4c021a04efa7e8396359db`, head `c10fbe3f7ccd5b2aee34bc4f987c4f3276fba878`. This head is a documentation checkpoint, not an application-code fix.
+
+### 15.2 Exact-head CI refresh
+- Build run `44505964469` for #3052 head `c10fbe3`: QUEUED. The job matrix is present; Analyze, test-0 through test-5, visual, and Debug/Release/Staging APK jobs are all QUEUED. No test result exists yet.
+- Device Smoke `44505964461`: PENDING.
+- Follow-up File Persistence `44505964476`: PENDING.
+- Calendar Provider Acceptance `44505964482`: QUEUED.
+- Draft Review APK `44505964555`: PENDING.
+- Parallel Wave `44505964430`, Orchestrator `44505964506`, Production Loop `44505964422`, G1 lock sync `44505964471`: QUEUED/PENDING as reported by GitHub. No exact-head acceptance is claimed.
+
+### 15.3 Design System correction — PR #3567
+- PR #3567 remains OPEN / DRAFT, head `7ba6036dfaa3bc7485413b956500f1272f0fecb3`, base operational branch at stale SHA `a2825e003bb9e6b5c2413b0dc74b085273b6148b`.
+- The correction history recorded in Section 13 remains: token correction commit `65e1a07de5b7254e66ed772956c1d690bd5d26a2`; current head commit `7ba6036...` aligns the token regression assertion with blur 10 / offset (0,4). The fetched current commit changes `test/theme/arvin_design_tokens_test.dart`; token source was changed in the preceding commit.
+- Exact-head Build run `44505240154`: QUEUED; Analyze and six shards are all QUEUED. Device Smoke run `44505240086`: PENDING. Therefore the shadow correction is source-aligned but NOT CI-ACCEPTED and NOT integration-accepted.
+
+### 15.4 Dependent PR status at this poll
+All listed PRs remain OPEN / DRAFT; none was merged or integrated. Each branch is still based on stale operational SHA `a2825e0`, except #3575 which is based on #3574 branch SHA `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`:
+- #3567 Design System: `7ba6036dfaa3bc7485413b956500f1272f0fecb3`; Build QUEUED; Device Smoke PENDING.
+- #3569 Home/five filters: `19a657503bd7b1a28576a5a0676a0a48af7ffa34`; Build FAILED (run `44499411767`; Analyze and all six shards failed); Persistence SUCCESS; Device Smoke PENDING.
+- #3570 Task/Reminder/Occurrence/Checklist: `fd4954d773e039cb56ed31806fd2b4790b82d3b5`; Build FAILED (run `44499570840`; six shards failed, Analyze SUCCESS); Persistence SUCCESS; Device Smoke PENDING.
+- #3571 Quick Capture: `60de06ecb0dae94fdbe3ebc6a4c0d93ce81f156e`; Build FAILED (run `44498710771`; six shards failed, Analyze SUCCESS); Persistence SUCCESS; Device Smoke PENDING.
+- #3572 Task Details: `be9248d77348421bd044e2480634e804f5782aba`; Build FAILED (run `44498204462`; six shards failed, Analyze SUCCESS); Persistence SUCCESS; Device Smoke PENDING.
+- #3573 Vazirmatn: `6d0dc85ed2ce8bb144c157e39aabd94fe7a049ba`; Build FAILED (run `44494326998`; six shards failed, Analyze SUCCESS); Persistence SUCCESS; Device Smoke PENDING.
+- #3574 Person directory exclusion: `8aca2bd36ea28ae8c291e7418541453d12847de2`; Build FAILED (run `44496047708`; six shards failed, Analyze SUCCESS); Persistence SUCCESS; Device Smoke PENDING.
+- #3575 Backup exclusions: `6b1a03f502d5c642ba28a8884186f4a348b0e572`; Build FAILED (run `44495959431`; Analyze and six shards failed); Persistence SUCCESS; Device Smoke PENDING.
+- PR #3568 returned 404 from GitHub and is not treated as an existing dependent PR.
+
+### 15.5 72-failure reconciliation and disposition
+- The historical baseline remains 72 failed tests on Build #11720 / SHA `a2825e0`, six shards. No new six-shard execution has completed on the current operational head; therefore no baseline failure can be marked resolved from the present queued run.
+- The six shards are independent execution partitions, not 72 proven independent root causes. The existing signature clusters (labels/controls, due-time vs reminder semantics, Home/Follow-up/Details, due-date contract, reminder migration, widget harness, Notebook/Reports/Calendar/PDF, swipe/color/prayer card) remain symptom groups. Root cause is still unproven for every individual test.
+- Current child PR builds show repeated all-shard failures on stale-base heads; these do not establish that the narrow child changes caused all failures. No tests/assertions were deleted or weakened in this checkpoint.
+
+### 15.6 Integration and product safety
+- No branch rebase, cherry-pick, merge, release, deployment, or Main write was performed. Shared-file overlaps and stale bases remain a hard integration gate; #3574 -> #3575 dependency is preserved.
+- TaskReminder unknown JSON-field round-trip, Android SAF Backup/Restore, physical-device font/UI smoke, complete REV10 page audit, Universal Bottom Sheet, full Home grouping selector, and Local P2P implementation remain unaccepted as described in earlier sections.
+- No APK artifact from the current exact operational head has completed or been reviewed. The queued Build includes APK jobs but no artifact is yet evidenced.
+
+**COMMAND 64-R checkpoint:** current operational candidate `c10fbe3f7ccd5b2aee34bc4f987c4f3276fba878`; Main protected and unchanged; current Build queued; 72 historical failures remain open; #3567 correction pending CI; child PRs stale-base and unintegrated. RELEASE = NO-GO.
