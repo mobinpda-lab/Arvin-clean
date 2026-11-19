@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/native.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -63,9 +65,14 @@ void main() {
     expect(loaded.dueDate, DateTime(2026, 11, 3, 12));
   });
 
-  test('legacy reminder-table migration removes its flag without losing reminder rows', () async {
-    final executor = NativeDatabase.memory();
-    addTearDown(executor.close);
+  test('legacy reminder-table migration drops only its marker and preserves unknown data across reopen', () async {
+    final directory = await Directory.systemTemp.createTemp(
+      'arvin-reminder-migration-',
+    );
+    final databaseFile = File('${directory.path}/arvin.sqlite');
+    addTearDown(() => directory.delete(recursive: true));
+
+    final executor = NativeDatabase(databaseFile);
     await executor.ensureOpen(G1DriftSchema());
     await executor.runCustom('''
       CREATE TABLE tasks (
@@ -98,6 +105,7 @@ void main() {
         sequence INTEGER NOT NULL,
         is_enabled INTEGER NOT NULL DEFAULT 1,
         is_legacy_task_reminder INTEGER NOT NULL DEFAULT 0,
+        future_extension TEXT NULL,
         UNIQUE (task_id, sequence)
       )
     ''');
@@ -107,8 +115,9 @@ void main() {
     );
     await executor.runInsert(
       '''INSERT INTO task_reminders
-         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled, is_legacy_task_reminder)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
+         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled,
+          is_legacy_task_reminder, future_extension)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
       <Object?>[
         'legacy-task-reminder-schema-v15-task',
         'schema-v15-task',
@@ -118,25 +127,67 @@ void main() {
         1,
         1,
         1,
+        'opaque-v15-value',
+      ],
+    );
+    await executor.runInsert(
+      '''INSERT INTO task_reminders
+         (id, task_id, title, remind_at, is_all_day, sequence, is_enabled,
+          is_legacy_task_reminder, future_extension)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+      <Object?>[
+        'legacy-task-reminder-null-extension',
+        'schema-v15-task',
+        'یادآوری با مقدار تهی',
+        '2026-10-21T09:30:00.000',
+        1,
+        2,
+        0,
+        1,
+        null,
       ],
     );
 
     await G1DriftSchema.install(executor);
 
-    final columns = await executor.runSelect(
-      "PRAGMA table_info('task_reminders')",
-      const [],
-    );
-    expect(columns.map((row) => row['name']), isNot(contains('is_legacy_task_reminder')));
-    final rows = await executor.runSelect(
-      'SELECT id, remind_at, sequence, is_enabled FROM task_reminders WHERE task_id = ?',
-      const <Object?>['schema-v15-task'],
-    );
-    expect(rows, hasLength(1));
-    expect(rows.single['id'], 'legacy-task-reminder-schema-v15-task');
-    expect(rows.single['remind_at'], '2026-10-20T09:30:00.000');
-    expect(rows.single['sequence'], 1);
-    expect(rows.single['is_enabled'], 1);
+    Future<void> expectMigratedRows(QueryExecutor database) async {
+      final columns = await database.runSelect(
+        "PRAGMA table_info('task_reminders')",
+        const [],
+      );
+      final names = columns.map((row) => row['name']).toList();
+      expect(names, isNot(contains('is_legacy_task_reminder')));
+      expect(names, contains('future_extension'));
+
+      final rows = await database.runSelect(
+        '''SELECT id, remind_at, sequence, is_enabled, future_extension
+           FROM task_reminders WHERE task_id = ? ORDER BY sequence''',
+        const <Object?>['schema-v15-task'],
+      );
+      expect(rows, hasLength(2));
+      expect(rows[0]['id'], 'legacy-task-reminder-schema-v15-task');
+      expect(rows[0]['remind_at'], '2026-10-20T09:30:00.000');
+      expect(rows[0]['sequence'], 1);
+      expect(rows[0]['is_enabled'], 1);
+      expect(rows[0]['future_extension'], 'opaque-v15-value');
+      expect(rows[1]['id'], 'legacy-task-reminder-null-extension');
+      expect(rows[1]['sequence'], 2);
+      expect(rows[1]['is_enabled'], 0);
+      expect(rows[1]['future_extension'], isNull);
+
+      final integrity = await database.runSelect('PRAGMA integrity_check', const []);
+      expect(integrity.single['integrity_check'], 'ok');
+      final foreignKeys = await database.runSelect('PRAGMA foreign_key_check', const []);
+      expect(foreignKeys, isEmpty);
+    }
+
+    await expectMigratedRows(executor);
+    await executor.close();
+
+    final reopened = NativeDatabase(databaseFile);
+    addTearDown(reopened.close);
+    await G1DriftSchema.install(reopened);
+    await expectMigratedRows(reopened);
   });
 
   test('TaskStore stores All-Day due dates as date-only SQLite values', () async {
