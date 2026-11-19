@@ -706,7 +706,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('یادآور'));
+    final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderControl);
+    await tester.pumpAndSettle();
+    await tester.tap(reminderControl);
     await tester.pumpAndSettle();
     final customReminder = find.text('تاریخ و ساعت سفارشی');
     expect(customReminder, findsOneWidget);
@@ -768,7 +771,7 @@ void main() {
     await _openQuickCaptureDueTimePicker(tester);
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('۱۴:۳۵'), findsNWidgets(2));
+    expect(find.textContaining('۱۴:۳۵'), findsOneWidget);
 
     final reminderRollBox = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
     await tester.ensureVisible(reminderRollBox);
@@ -796,7 +799,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('یادآور'));
+    final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderControl);
+    await tester.pumpAndSettle();
+    await tester.tap(reminderControl);
     await tester.pumpAndSettle();
 
     expect(find.text('همان زمان موعد'), findsOneWidget);
@@ -822,7 +828,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('تکرار'));
+    final recurrenceControl = find.byKey(const ValueKey('quick-capture-recurrence-rollbox'));
+    await tester.ensureVisible(recurrenceControl);
+    await tester.pumpAndSettle();
+    await tester.tap(recurrenceControl);
     await tester.pumpAndSettle();
     await tester.tap(find.text('تکرار سفارشی'));
     await tester.pumpAndSettle();
@@ -1427,7 +1436,10 @@ void main() {
       await _openQuickCaptureDueTimePicker(tester);
       await tester.tap(find.byKey(const ValueKey('universal-time-save')));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+      final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+      await tester.ensureVisible(reminderControl);
+      await tester.pumpAndSettle();
+      await tester.tap(reminderControl);
       await tester.pumpAndSettle();
       await tester.tap(find.text(entry.key));
       await tester.pumpAndSettle();
