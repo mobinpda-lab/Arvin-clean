@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/arvin_design_tokens.dart';
+
 /// Canonical Arvin teal brand tokens. User-selectable palette colors remain
 /// secondary accents and never replace these fixed product identity colors.
 abstract final class ArvinTheme {
@@ -27,12 +29,12 @@ abstract final class ArvinTheme {
       Theme.of(context).brightness == Brightness.dark ? primaryGlow : brandGlow;
 
   static const BorderRadius cardBorderRadius =
-      BorderRadius.all(Radius.circular(16.0));
+      BorderRadius.all(Radius.circular(ArvinCardTokens.radius));
   static const String fontFamily = 'Vazirmatn';
   static const BoxShadow shadowStyle = BoxShadow(
     color: primaryGlow,
-    blurRadius: 10,
-    spreadRadius: 0.5,
-    offset: Offset(0, 4),
+    blurRadius: ArvinShadows.cardBlur,
+    spreadRadius: ArvinShadows.cardSpread,
+    offset: ArvinShadows.cardOffset,
   );
 }
