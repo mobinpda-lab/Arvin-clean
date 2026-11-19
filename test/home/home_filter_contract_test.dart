@@ -21,7 +21,7 @@ Finder _homeVerticalScrollable() => find.descendant(
     ).first;
 
 void main() {
-  testWidgets('Home keeps completed past tasks visible in a separate non-overdue group', (tester) async {
+  testWidgets('Home keeps five due-date groups and completed past tasks in the historical group', (tester) async {
     tester.view.physicalSize = const Size(390, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -42,7 +42,7 @@ void main() {
 
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
     expect(find.text('کار گذشته انجام‌شده'), findsOneWidget);
-    expect(find.text('گذشته (انجام‌شده)'), findsOneWidget);
+    expect(find.text('گذشته (انجام‌شده)'), findsNothing);
     final activePastTitle = tester.widget<Text>(
       find.byKey(const ValueKey('task-card-title-past')),
     );
@@ -79,26 +79,42 @@ void main() {
     );
     expect(homeTitle.style?.fontFamily, isNull);
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
-    expect(find.byKey(const ValueKey('home-filter-card-center')), findsNothing);
+    expect(find.byKey(const ValueKey('home-filter-card-center')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-group-overdue')), findsOneWidget);
     final overdueHeader = find.descendant(
       of: find.byKey(const ValueKey('home-group-overdue')),
-      matching: find.text('گذشته'),
+      matching: find.text('تاریخ‌گذشته'),
     );
     final overdueHeaderText = tester.widget<Text>(overdueHeader);
     expect(overdueHeaderText.textAlign, TextAlign.right);
     expect(overdueHeaderText.style?.fontWeight, FontWeight.w900);
     expect(find.byKey(const ValueKey('home-filter-card-all')), findsNothing);
     expect(find.byKey(const ValueKey('home-compact-filter-row')), findsOneWidget);
-    expect(find.byType(HomeFilterPill), findsNWidgets(4));
+    expect(find.byType(HomeFilterPill), findsNWidgets(5));
     final filterRow = tester.widget<Row>(
       find.byKey(const ValueKey('home-compact-filter-row')),
     );
     expect(filterRow.textDirection, TextDirection.rtl);
-    for (final id in ['time', 'project', 'category', 'tags']) {
+    final filterPills = filterRow.children
+        .whereType<Expanded>()
+        .map((child) => child.child as HomeFilterPill)
+        .toList(growable: false);
+    expect(
+      filterPills.map((pill) => (pill.key as ValueKey<String>).value),
+      <String>[
+        'home-filter-card-time',
+        'home-filter-card-project',
+        'home-filter-card-category',
+        'home-filter-card-tags',
+        'home-filter-card-center',
+      ],
+    );
+    expect(filterPills.every((pill) => pill.showLabel), isTrue);
+
+    for (final id in ['time', 'project', 'category', 'tags', 'center']) {
       final pill = find.byKey(ValueKey('home-filter-card-$id'));
       expect(tester.getSize(pill).width, greaterThanOrEqualTo(48));
       expect(tester.getSize(pill).height, greaterThanOrEqualTo(48));
@@ -122,6 +138,7 @@ void main() {
         'project',
         'category',
         'tags',
+        'center',
       ];
       final filterRects = filterKeys
           .map((id) => tester.getRect(
@@ -179,6 +196,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('انتخاب زمان'), findsNothing);
     expect(find.text('کار عقب‌افتاده'), findsOneWidget);
+    expect(find.text('کار گذشته انجام‌شده'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
     expect(find.text('آینده'), findsNothing);
 

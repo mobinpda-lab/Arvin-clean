@@ -19,6 +19,18 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  Future<void> tapMoreAction(WidgetTester tester, String label) async {
+    final action = find.widgetWithText(ListTile, label);
+    await tester.scrollUntilVisible(
+      action,
+      240,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(action);
+    await tester.pumpAndSettle();
+  }
+
   testWidgets('Today menu action shows only active canonical tasks due today',
       (tester) async {
     final now = IranClock.now();
@@ -50,8 +62,7 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
     await openMore(tester);
-    await tester.tap(find.widgetWithText(ListTile, 'امروز'));
-    await tester.pumpAndSettle();
+    await tapMoreAction(tester, 'امروز');
 
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);

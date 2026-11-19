@@ -956,7 +956,7 @@ class _HomePageState extends State<HomePage> {
     );
     if (!_timeFilters.contains('past')) return groups;
     return groups.map((group) {
-      if (group.id != 'overdue' && group.id != 'completed_past') return group;
+      if (group.id != 'overdue') return group;
       return HomeGroup<Task>(
         id: group.id,
         title: group.title,
@@ -1043,10 +1043,64 @@ class _HomePageState extends State<HomePage> {
                       ? 'زمان'
                       : _timeFilterLabel,
                   icon: Icons.schedule_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
+                  soft: ArvinColors.timeSoft,
                   accent: ArvinColors.time,
                   active: _timeFilters.isNotEmpty || _timeFilter == 'customRange' || _todayFocusOnly,
+                  showLabel: true,
                   onPressed: _showTimeFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-project'),
+                  label: _projectFilters.isEmpty
+                      ? 'پروژه'
+                      : _projectFilters.length == 1
+                          ? (_projectFilters.first == '__no_project__'
+                              ? 'بدون پروژه'
+                              : (_projectTitle(_projectFilters.first) ?? 'پروژه حذف‌شده'))
+                          : 'پروژه',
+                  icon: Icons.folder_rounded,
+                  soft: ArvinColors.projectSoft,
+                  accent: ArvinColors.project,
+                  active: _projectFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showProjectFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-category'),
+                  label: _categoryFilters.isEmpty
+                      ? 'دسته'
+                      : _categoryFilters.length == 1
+                          ? _categoryFilters.first
+                          : 'دسته',
+                  icon: Icons.layers_rounded,
+                  soft: ArvinColors.categorySoft,
+                  accent: ArvinColors.category,
+                  active: _categoryFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showCategoryFilterSheet,
+                ),
+              ),
+              const SizedBox(width: 2),
+              Expanded(
+                child: HomeFilterPill(
+                  key: const ValueKey('home-filter-card-tags'),
+                  label: _tagFilters.isEmpty
+                      ? 'برچسب'
+                      : _tagFilters.length == 1
+                          ? _tagFilters.first
+                          : 'برچسب',
+                  icon: Icons.sell_rounded,
+                  soft: ArvinColors.tagSoft,
+                  accent: ArvinColors.tag,
+                  active: _tagFilters.isNotEmpty,
+                  showLabel: true,
+                  onPressed: _showTagFilterSheet,
                 ),
               ),
               const SizedBox(width: 2),
@@ -1061,62 +1115,11 @@ class _HomePageState extends State<HomePage> {
                               : (_centerName(_centerFilters.first) ?? 'مرکز حذف‌شده'))
                           : 'مرکز',
                   icon: Icons.location_city_outlined,
-                  soft: Color.alphaBlend(
-                    Theme.of(context).colorScheme.primary.withAlpha(18),
-                    Theme.of(context).colorScheme.surface,
-                  ),
-                  accent: Theme.of(context).colorScheme.primary,
+                  soft: ArvinColors.primarySoft,
+                  accent: ArvinColors.primary,
                   active: _centerFilters.isNotEmpty,
+                  showLabel: true,
                   onPressed: _showCenterFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-project'),
-                  label: _projectFilters.isEmpty
-                      ? 'پروژه'
-                      : _projectFilters.length == 1
-                          ? (_projectFilters.first == '__no_project__'
-                              ? 'بدون پروژه'
-                              : (_projectTitle(_projectFilters.first) ??
-                                  'پروژه حذف‌شده'))
-                          : 'پروژه',
-                  icon: Icons.folder_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.project,
-                  active: _projectFilters.isNotEmpty,
-                  onPressed: _showProjectFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-category'),
-                  label: _categoryFilters.isEmpty
-                      ? 'دسته'
-                      : _categoryFilters.length == 1
-                          ? _categoryFilters.first
-                          : 'دسته',
-                  icon: Icons.layers_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.category,
-                  active: _categoryFilters.isNotEmpty,
-                  onPressed: _showCategoryFilterSheet,
-                ),
-              ),
-              const SizedBox(width: 2),
-              Expanded(
-                child: HomeFilterPill(
-                  key: const ValueKey('home-filter-card-tags'),
-                  label: _tagFilters.isEmpty
-                      ? 'برچسب'
-                      : 'برچسب',
-                  icon: Icons.sell_rounded,
-                  soft: Color.alphaBlend(Theme.of(context).colorScheme.primary.withAlpha(18), Theme.of(context).colorScheme.surface),
-                  accent: ArvinColors.tag,
-                  active: _tagFilters.isNotEmpty,
-                  onPressed: _showTagFilterSheet,
                 ),
               ),
               const SizedBox(width: 1),
@@ -1529,10 +1532,10 @@ class _HomePageState extends State<HomePage> {
     DateTime? date = switch (id) {
       'today' => today,
       'tomorrow' => today.add(const Duration(days: 1)),
-      'overdue' || 'completed_past' || 'future' => null,
+      'overdue' || 'future' => null,
       _ => null,
     };
-    if (date == null && (id == 'overdue' || id == 'completed_past' || id == 'future')) {
+    if (date == null && (id == 'overdue' || id == 'future')) {
       final dated = items.where((task) => task.dueDate != null).map((task) => DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day)).toList(growable: false);
       if (dated.isNotEmpty) {
         dated.sort();
@@ -1541,7 +1544,7 @@ class _HomePageState extends State<HomePage> {
     }
     if (date == null) return null;
     final formatted = '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
-    return id == 'overdue' || id == 'completed_past'
+    return id == 'overdue'
         ? 'قدیمی‌ترین: $formatted'
         : id == 'future'
             ? 'نزدیک‌ترین: $formatted'
@@ -3813,50 +3816,79 @@ class _HomePageState extends State<HomePage> {
                 children: [
           Padding(
             padding: EdgeInsets.fromLTRB(10, compactHome ? 4 : 8, 10, 5),
-            child: Row(children: [
-              Builder(
-                builder: (buttonContext) => IconButton(
-                  key: const ValueKey('home-drawer-button'),
-                  tooltip: 'منوی آروین',
-                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
-                  icon: const Icon(Icons.menu_rounded),
-                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+            child: Row(
+              textDirection: TextDirection.ltr,
+              children: [
+                IconButton(
+                  key: const ValueKey('home-notifications'),
+                  tooltip: 'اعلان‌ها',
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'),
+                    ),
+                  ),
+                  icon: const Icon(Icons.notifications_none_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colors.surface,
+                    foregroundColor: colors.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Semantics(
-                        key: const ValueKey('home-bismillah'),
-                        label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                        child: SvgPicture.asset(
-                          'assets/images/branding/bismillah.svg',
-                          key: const ValueKey('home-bismillah-svg'),
-                          width: 118,
-                          fit: BoxFit.contain,
-                          colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
-                          excludeFromSemantics: true,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: ArvinColors.primarySoft,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Semantics(
+                            key: const ValueKey('home-bismillah'),
+                            label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                            child: SvgPicture.asset(
+                              'assets/images/branding/bismillah.svg',
+                              key: const ValueKey('home-bismillah-svg'),
+                              width: 118,
+                              fit: BoxFit.contain,
+                              colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
+                              excludeFromSemantics: true,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
-                    Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        'مدیریت کارها و پیگیری آروین',
+                        key: const ValueKey('home-title-block'),
+                        maxLines: 1,
+                        softWrap: false,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: colors.primary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                key: const ValueKey('home-general-filter-button'),
-                tooltip: 'فیلترهای عمومی',
-                onPressed: _showHomeFilterMenu,
-                icon: const Icon(Icons.filter_alt_outlined),
-                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
-              ),
-            ]),
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    key: const ValueKey('home-drawer-button'),
+                    tooltip: 'منوی آروین',
+                    onPressed: () => Scaffold.of(buttonContext).openDrawer(),
+                    icon: const Icon(Icons.menu_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: colors.surface,
+                      foregroundColor: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),

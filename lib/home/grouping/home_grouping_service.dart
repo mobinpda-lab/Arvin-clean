@@ -46,7 +46,6 @@ class HomeGroupingService {
 
     final grouped = <String, List<Task>>{
       'overdue': <Task>[],
-      'completed_past': <Task>[],
       'today': <Task>[],
       'tomorrow': <Task>[],
       'future': <Task>[],
@@ -61,9 +60,7 @@ class HomeGroupingService {
       }
 
       final day = dayOf(due);
-      if (task.completed && day.isBefore(today)) {
-        grouped['completed_past']!.add(task);
-      } else if (TaskDueStatus.isOverdue(task, now: now)) {
+      if (day.isBefore(today) || TaskDueStatus.isOverdue(task, now: now)) {
         grouped['overdue']!.add(task);
       } else if (day == today) {
         grouped['today']!.add(task);
@@ -75,15 +72,15 @@ class HomeGroupingService {
     }
 
     const sorter = TaskListSortService();
-    List<Task> ordered(String key) =>
-        sorter.sortByPriorityThenCreatedAt(grouped[key]!);
+    List<Task> ordered(String key) => key == 'overdue'
+        ? sorter.sortPast(grouped[key]!)
+        : sorter.sortByPriorityThenCreatedAt(grouped[key]!);
 
     return [
-      HomeGroup<Task>(id: 'overdue', title: 'گذشته', items: ordered('overdue')),
       HomeGroup<Task>(
-        id: 'completed_past',
-        title: 'گذشته (انجام‌شده)',
-        items: ordered('completed_past'),
+        id: 'overdue',
+        title: 'تاریخ‌گذشته',
+        items: ordered('overdue'),
       ),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: ordered('today')),
       HomeGroup<Task>(id: 'tomorrow', title: 'فردا', items: ordered('tomorrow')),

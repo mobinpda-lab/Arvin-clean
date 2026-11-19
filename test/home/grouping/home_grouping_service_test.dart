@@ -61,11 +61,7 @@ void main() {
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
           .map((item) => item.id),
-      ['overdue'],
-    );
-    expect(
-      groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
-      isNot(contains('completed-overdue')),
+      ['overdue', 'completed-overdue'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'no_date').items
@@ -112,13 +108,13 @@ void main() {
     );
   });
 
-  test('time groups keep completed past separate and sort by priority then creation time', () {
+  test('time projection has five canonical groups and keeps completed past after active past', () {
     final now = DateTime(2026, 11, 7, 12);
     final groups = service.buildGroups(
       HomeGroupMode.time,
       [
         task('newer', dueDate: DateTime(2026, 11, 6, 10), createdAt: DateTime(2026, 11, 2)),
-        task('older', dueDate: DateTime(2026, 11, 6, 10), createdAt: DateTime(2026, 11, 1)),
+        task('older', dueDate: DateTime(2026, 11, 5, 10), createdAt: DateTime(2026, 11, 1)),
         task('completed', dueDate: DateTime(2026, 11, 6, 10), completed: true),
         task('tomorrow', dueDate: DateTime(2026, 11, 8, 9)),
         task('undated'),
@@ -128,15 +124,11 @@ void main() {
 
     expect(
       groups.map((group) => group.id),
-      ['overdue', 'completed_past', 'today', 'tomorrow', 'future', 'no_date'],
+      ['overdue', 'today', 'tomorrow', 'future', 'no_date'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
-      ['older', 'newer'],
-    );
-    expect(
-      groups.singleWhere((group) => group.id == 'completed_past').items.map((item) => item.id),
-      ['completed'],
+      ['older', 'newer', 'completed'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'no_date').title,
