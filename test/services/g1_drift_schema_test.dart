@@ -74,6 +74,8 @@ void main() {
 
 
   test('v8 to v9 hierarchy migration preserves legacy rows and classifies ambiguous links', () async {
+    // Raw fixture SQL must run only after the Drift executor has been opened.
+    await database.ensureOpen(G1DriftSchema());
     await database.runCustom('PRAGMA foreign_keys = ON');
     await database.runCustom('''
       CREATE TABLE tasks (
