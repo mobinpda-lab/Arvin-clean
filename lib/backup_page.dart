@@ -294,6 +294,8 @@ class _BackupPageState extends State<BackupPage> {
     int taskCount, {
     required bool hasSettings,
     required bool hasCalendarLinks,
+    required bool hasPeople,
+    required bool hasPersonDirectoryExclusions,
   }) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -361,6 +363,8 @@ class _BackupPageState extends State<BackupPage> {
         candidate.tasks.length,
         hasSettings: candidate.settings != null,
         hasCalendarLinks: candidate.calendarLinks != null,
+        hasPeople: candidate.hasPeople,
+        hasPersonDirectoryExclusions: candidate.hasPersonDirectoryExclusions,
       );
       if (!confirmed || !mounted) return;
 
