@@ -3816,50 +3816,79 @@ class _HomePageState extends State<HomePage> {
                 children: [
           Padding(
             padding: EdgeInsets.fromLTRB(10, compactHome ? 4 : 8, 10, 5),
-            child: Row(children: [
-              Builder(
-                builder: (buttonContext) => IconButton(
-                  key: const ValueKey('home-drawer-button'),
-                  tooltip: 'منوی آروین',
-                  onPressed: () => Scaffold.of(buttonContext).openDrawer(),
-                  icon: const Icon(Icons.menu_rounded),
-                  style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
+            child: Row(
+              textDirection: TextDirection.ltr,
+              children: [
+                IconButton(
+                  key: const ValueKey('home-notifications'),
+                  tooltip: 'اعلان‌ها',
+                  onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'),
+                    ),
+                  ),
+                  icon: const Icon(Icons.notifications_none_rounded),
+                  style: IconButton.styleFrom(
+                    backgroundColor: colors.surface,
+                    foregroundColor: colors.onSurfaceVariant,
+                  ),
                 ),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Semantics(
-                        key: const ValueKey('home-bismillah'),
-                        label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
-                        child: SvgPicture.asset(
-                          'assets/images/branding/bismillah.svg',
-                          key: const ValueKey('home-bismillah-svg'),
-                          width: 118,
-                          fit: BoxFit.contain,
-                          colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
-                          excludeFromSemantics: true,
+                Expanded(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: ArvinColors.primarySoft,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Semantics(
+                            key: const ValueKey('home-bismillah'),
+                            label: 'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                            child: SvgPicture.asset(
+                              'assets/images/branding/bismillah.svg',
+                              key: const ValueKey('home-bismillah-svg'),
+                              width: 118,
+                              fit: BoxFit.contain,
+                              colorFilter: ColorFilter.mode(colors.primary, BlendMode.srcIn),
+                              excludeFromSemantics: true,
+                            ),
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text('آروین', key: const ValueKey('home-title-block'), maxLines: 1, softWrap: false, style: TextStyle(color: colors.primary, fontSize: 23, fontWeight: FontWeight.w800)),
-                    const SizedBox(height: 2),
-                    Text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها', key: const ValueKey('home-subtitle'), textAlign: TextAlign.center, style: TextStyle(color: colors.onSurfaceVariant, fontSize: 11.5, fontWeight: FontWeight.w600)),
-                  ],
+                      const SizedBox(height: 4),
+                      Text(
+                        'مدیریت کارها و پیگیری آروین',
+                        key: const ValueKey('home-title-block'),
+                        maxLines: 1,
+                        softWrap: false,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: colors.primary,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              IconButton(
-                key: const ValueKey('home-general-filter-button'),
-                tooltip: 'فیلترهای عمومی',
-                onPressed: _showHomeFilterMenu,
-                icon: const Icon(Icons.filter_alt_outlined),
-                style: IconButton.styleFrom(backgroundColor: colors.surface, foregroundColor: colors.onSurfaceVariant),
-              ),
-            ]),
+                Builder(
+                  builder: (buttonContext) => IconButton(
+                    key: const ValueKey('home-drawer-button'),
+                    tooltip: 'منوی آروین',
+                    onPressed: () => Scaffold.of(buttonContext).openDrawer(),
+                    icon: const Icon(Icons.menu_rounded),
+                    style: IconButton.styleFrom(
+                      backgroundColor: colors.surface,
+                      foregroundColor: colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           Padding(
             padding: EdgeInsets.fromLTRB(16, 0, 16, compactHome ? 6 : 8),
