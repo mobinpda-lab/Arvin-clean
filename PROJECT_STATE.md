@@ -225,3 +225,32 @@ No pass is claimed for this candidate. This state update advances the branch aga
 - Latest tracker update commit: e925bb38eceee8155c8b29b25c375324e951e7fb. This update advances the operational branch; fetch the exact live HEAD and CI status again before accepting any result.
 
 **No merge, release or deploy. RELEASE = NO-GO.**
+
+
+## COMMAND 63-R live checkpoint — 2026-11-19 (final audit pass)
+
+**Exact operational HEAD before this state update:** af524c5dca1d67f8c12e286d87decfc5557e1506  
+**Main:** 45e4202b03a434459e4c021a04efa7e8396359db  
+**PR #3052:** OPEN / DRAFT / UNMERGED; 2,235 commits; 404 changed files.  
+**Protection:** Main remains untouched; no merge, release or deployment.
+
+### Latest tracker and validation state
+- Master Tracker latest commit: af524c5dca1d67f8c12e286d87decfc5557e1506.
+- The tracker now includes the complete 72-failure inventory, root-cause symptom triage, PR #3567–#3575 audit, font metadata, migration/backup evidence, and corrections to the shadow-token and Quick Capture time assertions.
+- Latest exact-head workflows for af524c5: Build 44505528910 PENDING with zero jobs returned; Device Smoke 44505528946 PENDING; Calendar Provider 44505528897 QUEUED; Follow-up Persistence 44505529066 QUEUED; Draft Review APK 44505528908 QUEUED; Parallel Wave 44505528912 QUEUED. No PASS is claimed.
+- Earlier completed six-shard evidence remains the a2825e0 baseline: 72 failures / 1,310 passes. No test correction on the newer operational branch is accepted until the new exact-head Build completes.
+- The latest code/test candidate was 0535e78ff6f271086c259fadcfd088d52efcf79b. Subsequent operational commits in this checkpoint were documentation-only; the Build still must run against the exact current HEAD.
+
+### Confirmed work / remaining blockers
+- Source-grounded test corrections and the task_reminders flag migration are present on the operational branch; they remain unverified by completed CI.
+- PR #3567's shadow tokens now agree at card blur 10 / offset (0,4); the branch correction is documented in the tracker.
+- PR #3571 Quick Capture visible labels and due-time/reminder independence are documented; its Build has six failed shards, so no acceptance.
+- PR #3569 still lacks user-facing selection for all four Home grouping modes.
+- PR #3572 and the operational Task Details page still lack the complete Universal Bottom Sheet, attachment flow and Notebook linkage.
+- PR #3570 is schema v17 and includes file-backed Occurrence/Checklist persistence coverage; its reminder-flag migration must be reconciled with the operational implementation. TaskReminder arbitrary unknown JSON keys still lack a proven opaque-payload round trip.
+- PR #3574 has file-backed Person history/exclusion coverage. PR #3575 has file-backed source/target database backup/restore orchestration, but its backup service is faked; Android SAF file read/write and physical device acceptance remain open.
+- The nine Vazirmatn TTFs are metadata-verified on #3573; the ZIP archive itself was not retrieved. Device glyph/fallback and layout acceptance remain open.
+- Full authoritative REV10 package is not present in repository/Library; current owner instructions and recovered approved constraints are being followed. Full page-by-page visual acceptance remains incomplete.
+- Local P2P Phase 1 remains design-only; pairing/security/transfer/conflict/recovery and two-device testing are not complete.
+
+**Next deterministic action:** poll all workflows for the exact new HEAD created by this state update; inspect Build logs and verify the narrow fixes before proceeding to shared-file integration. Re-fetch Main and branch HEAD before every write. Preserve all 72 failures until each is individually reproduced and closed. **RELEASE = NO-GO.**
