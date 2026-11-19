@@ -956,7 +956,7 @@ class _HomePageState extends State<HomePage> {
     );
     if (!_timeFilters.contains('past')) return groups;
     return groups.map((group) {
-      if (group.id != 'overdue' && group.id != 'completed_past') return group;
+      if (group.id != 'overdue') return group;
       return HomeGroup<Task>(
         id: group.id,
         title: group.title,
@@ -1529,10 +1529,10 @@ class _HomePageState extends State<HomePage> {
     DateTime? date = switch (id) {
       'today' => today,
       'tomorrow' => today.add(const Duration(days: 1)),
-      'overdue' || 'completed_past' || 'future' => null,
+      'overdue' || 'future' => null,
       _ => null,
     };
-    if (date == null && (id == 'overdue' || id == 'completed_past' || id == 'future')) {
+    if (date == null && (id == 'overdue' || id == 'future')) {
       final dated = items.where((task) => task.dueDate != null).map((task) => DateTime(task.dueDate!.year, task.dueDate!.month, task.dueDate!.day)).toList(growable: false);
       if (dated.isNotEmpty) {
         dated.sort();
@@ -1541,7 +1541,7 @@ class _HomePageState extends State<HomePage> {
     }
     if (date == null) return null;
     final formatted = '${_weekdayName(date.weekday)} ${persianDateFormatter.format(date, usePersianDate: true)}';
-    return id == 'overdue' || id == 'completed_past'
+    return id == 'overdue'
         ? 'قدیمی‌ترین: $formatted'
         : id == 'future'
             ? 'نزدیک‌ترین: $formatted'
