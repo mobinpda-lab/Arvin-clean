@@ -94,6 +94,9 @@ class TaskStore {
   ) async {
     final normalized = <String, PersonDirectoryExclusion>{};
     for (final exclusion in exclusions) {
+      if (exclusion.personId.isEmpty) {
+        throw ArgumentError.value(exclusion.personId, 'exclusions', 'Person ID must not be empty');
+      }
       if (normalized.containsKey(exclusion.personId)) {
         throw ArgumentError.value(
           exclusion.personId,
