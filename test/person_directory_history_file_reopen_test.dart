@@ -43,6 +43,11 @@ void main() {
 
         await firstStore.savePeopleDirectory(const <PersonReference>[]);
         expect(await firstStore.loadPeopleDirectory(), isEmpty);
+        expect(await firstStore.loadPersonDirectoryExclusions(), hasLength(1));
+        expect(
+          (await firstStore.loadPersonDirectoryExclusions()).single['personId'],
+          person.id,
+        );
         final retainedBeforeClose = await firstDatabase.runSelect(
           '''SELECT persons.id, persons.name, task_persons.task_id
              FROM persons
@@ -61,6 +66,11 @@ void main() {
       try {
         final reopenedStore = TaskStore(executor: reopenedDatabase);
         expect(await reopenedStore.loadPeopleDirectory(), isEmpty);
+        expect(await reopenedStore.loadPersonDirectoryExclusions(), hasLength(1));
+        expect(
+          (await reopenedStore.loadPersonDirectoryExclusions()).single['personId'],
+          person.id,
+        );
 
         final retainedAfterReopen = await reopenedDatabase.runSelect(
           '''SELECT persons.id, persons.name, task_persons.task_id
@@ -78,6 +88,7 @@ void main() {
           (await reopenedStore.loadPeopleDirectory()).map((value) => value.id),
           contains(person.id),
         );
+        expect(await reopenedStore.loadPersonDirectoryExclusions(), isEmpty);
         final relationAfterReAdd = await reopenedDatabase.runSelect(
           'SELECT task_id, person_id FROM task_persons WHERE task_id = ? AND person_id = ?',
           <Object?>[task.id, person.id],

@@ -2526,6 +2526,8 @@ class _HomePageState extends State<HomePage> {
         categories: await taskStore.loadCategories(),
         tags: await taskStore.loadTags(),
         people: await taskStore.loadPeopleDirectory(),
+        personDirectoryExclusions:
+            await taskStore.loadPersonDirectoryExclusions(),
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -2553,6 +2555,7 @@ class _HomePageState extends State<HomePage> {
     List<String>? previousCategories;
     List<String>? previousTags;
     List<PersonReference>? previousPeople;
+    List<Map<String, dynamic>>? previousPersonDirectoryExclusions;
     Map<String, dynamic>? previousSettings;
     try {
       final candidate = await backupManager.restoreCanonicalBackup();
@@ -2591,6 +2594,8 @@ class _HomePageState extends State<HomePage> {
       previousCategories = await taskStore.loadCategories();
       previousTags = await taskStore.loadTags();
       previousPeople = await taskStore.loadPeopleDirectory();
+      previousPersonDirectoryExclusions =
+          await taskStore.loadPersonDirectoryExclusions();
       final settingsBeforeRestore = await _portableBackupSettings();
       previousSettings = settingsBeforeRestore;
       final emergencyBackup = await backupManager.backupCanonicalTasks(
@@ -2601,6 +2606,7 @@ class _HomePageState extends State<HomePage> {
         categories: previousCategories,
         tags: previousTags,
         people: previousPeople,
+        personDirectoryExclusions: previousPersonDirectoryExclusions,
       );
       if (emergencyBackup == null) {
         if (mounted) {
@@ -2662,6 +2668,16 @@ class _HomePageState extends State<HomePage> {
               backup: candidate.people ?? const <PersonReference>[],
             )
           : previousPeople;
+      final reconciledPersonDirectoryExclusions =
+          candidate.hasPersonDirectoryExclusions
+              ? ArvinBackupManager.reconcilePersonDirectoryExclusionsById(
+                  current: previousPersonDirectoryExclusions,
+                  backup: candidate.personDirectoryExclusions ?? const [],
+                  activePersonIds: reconciledPeople
+                      .map((person) => person.id)
+                      .toSet(),
+                )
+              : previousPersonDirectoryExclusions;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
@@ -2716,6 +2732,14 @@ class _HomePageState extends State<HomePage> {
           if (candidate.hasPeople) {
             await taskStore.savePeopleDirectory(reconciledPeople);
           }
+          if (candidate.hasPersonDirectoryExclusions) {
+            await taskStore.savePersonDirectoryExclusions(
+              reconciledPersonDirectoryExclusions,
+              activePersonIds: reconciledPeople
+                  .map((person) => person.id)
+                  .toSet(),
+            );
+          }
           await widget.restoreStageHook?.call('people-directory');
         },
         rollback: () async {
@@ -2748,6 +2772,12 @@ class _HomePageState extends State<HomePage> {
             }
           }
           await taskStore.savePeopleDirectory(previousPeople ?? const <PersonReference>[]);
+          await taskStore.savePersonDirectoryExclusions(
+            previousPersonDirectoryExclusions ?? const <Map<String, dynamic>>[],
+            activePersonIds: (previousPeople ?? const <PersonReference>[])
+                .map((person) => person.id)
+                .toSet(),
+          );
           // The apply phase may already have replaced the device alarm plan.
           // Reconcile alarms again after restoring the previous canonical Tasks.
           try {

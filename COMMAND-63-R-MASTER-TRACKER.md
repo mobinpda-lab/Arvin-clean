@@ -652,3 +652,154 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - PR #3569 changes completed-past group behavior by merging it into overdue. This is a user-visible product behavior change. Keep current separate completed-past grouping until an owner-approved contract says otherwise; do not accept the child PR's revised expectation as a test-only cleanup.
 
 **COMMAND 66-R disposition:** two assertion-preserving test-fixture/persistence test changes committed; 64 failures across six shards inventoried from PR #3570; one exact-head file-backed alarm persistence workflow passed on code SHA `46d8af4`; current Build/Device Smoke pending and Calendar/Review APK in progress; Backup/Restore active-main integration gap confirmed and not yet fixed; no merge, release or deploy. RELEASE = NO-GO.
+
+
+## 19. COMMAND 68-R — Person Directory exclusion persistence and active Backup/Restore wiring
+
+### 19.1 Exact execution base and review path
+- Operational PR #3052 remains OPEN / DRAFT / unmerged.
+- PR #3052 head at execution start: `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- Main at execution start and final audit: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Independent implementation branch: `command-68-r/backup-restore-integrity`.
+- Review-only dependent PR #3586 targets the operational PR #3052 branch, not Main. PR #3586 remains OPEN / DRAFT / unmerged. Merge is prohibited.
+- Implementation head at tracker update: `c11fa1d6ea55a720e275bf1b92465e83ecded72e`.
+
+### 19.2 Code changes committed on the independent branch
+- `5ab0e1a7662d3b48398c7ff13f39de2286537a00`: additive G1 schema version 18 and `person_directory_exclusions` table with timestamp and unknown-payload storage; initial directory seeding excludes tombstoned IDs.
+- `b0a0d03a9e7c0e41f9436fb657f4a2ace292378d`: TaskStore read/write APIs for exclusions; atomic `BEGIN IMMEDIATE` directory replacement; explicit removals become tombstones; re-added active IDs clear tombstones; stale Task snapshots cannot silently reactivate excluded people.
+- `abfbf4fd42144508cb9e437d7568cd49d6690d15`: canonical backup candidate, serialization, validation, unknown JSON field retention and ID-based tombstone reconciliation.
+- `88066613ce7393343373974ece7e23c882dfa758`: active `main.dart` backup, restore, emergency backup and rollback now carry exclusions.
+- `ca4f1d0c82439d995264381756061f4c988b0886`: file-backed close/reopen test now asserts tombstone persistence and re-add clearing.
+- `c11fa1d6ea55a720e275bf1b92465e83ecded72e`: backup contract tests for round-trip, legacy omitted-vs-explicit-empty distinction, duplicate/malformed rejection, unknown fields and active-directory precedence.
+
+### 19.3 Acceptance status at exact implementation SHA
+- Build run `44517742925` targets exact SHA `c11fa1d6ea55a720e275bf1b92465e83ecded72e`; queued/in progress at last poll. All six test shards, Analyze, Visual and Debug/Release/Staging jobs were created.
+- Device Smoke run `44517742991` targets the same exact SHA; seven smoke scenarios were queued.
+- Follow-up File Persistence run `44517743015` targets the same SHA and was still in progress.
+- Orchestrator run `44517742771` completed successfully; this is routing evidence only, not product acceptance.
+- Draft Review APK run `44517742978` was skipped because the specialized workflow is restricted to the canonical PR #3052 head branch.
+- No test pass is claimed until exact-head job logs and conclusions are retrieved. No physical-device evidence has yet been accepted.
+
+### 19.4 Current product-integrity scope and remaining work
+- Person Directory exclusion is now wired through the active backup/restore path on the independent branch; it is not yet accepted until CI and File-backed restore evidence pass.
+- A full independent-database backup/restore equivalence test covering all Task/Reminder/Follow-up/Occurrence/Checklist/People relationships, explicit NULLs and unknown fields is still required.
+- Current 64 failures on SHA `0cf1792` remain a separate active CI failure inventory: test-0=10, test-1=5, test-2=20, test-3=9, test-4=10, test-5=10. These are not the historical PR #3570 inventory by assumption; compare individual test identities before deduplication.
+- Historical PR #3570 inventory remains 64 unique failures as documented in section 18.1.
+- REV10 page-wide acceptance, PDF/Vazirmatn coverage, complete integration flows and local P2P implementation remain open.
+- Main unchanged; PR #3052 preserved OPEN / DRAFT; PR #3586 review-only OPEN / DRAFT; no merge, release or deploy.
+
+**COMMAND 68-R disposition:** durable Person Directory tombstones and active backup/restore/rollback wiring have been implemented on an isolated branch with new tests. Acceptance remains PENDING exact-SHA CI and independent File-backed restore verification. RELEASE = NO-GO.
+
+
+## 20. COMMAND 69-R — Exact-head CI diagnosis and test-contract correction
+
+### 20.1 Live baseline
+- Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db` (protected; unchanged).
+- Operational PR #3052: OPEN / DRAFT / unmerged; head `0cf1792d52f764c89d0cd9a9411880140e0c67d4`; base `main`.
+- Review PR #3586: OPEN / DRAFT / unmerged; base is the PR #3052 branch at `0cf1792d52f764c89d0cd9a9411880140e0c67d4`; head branch `command-68-r/backup-restore-integrity`.
+- Initial COMMAND 69 head: `cdbcae04b75867acd55459d954e3bf9181f015c8`.
+
+### 20.2 Exact SHA CI result on cdbcae0
+- Build run `44517852469`: COMPLETED / FAILURE.
+- Analyze failed because test override `_RecordingBackupManager.backupCanonicalTasks` did not include new optional `personDirectoryExclusions`; its restore candidate tuple also supplied 9 fields while the new `CanonicalBackupCandidate` contract requires 11.
+- All six shards failed. Final summaries: test-0 236 passed / 12 failed; test-1 187 passed / 11 failed; test-2 307 passed / 21 failed; test-3 152 passed / 11 failed; test-4 242 passed / 10 failed; test-5 196 passed / 6 failed. Total observed in this run: 71 failing test cases across the shards. These are current-run counts, not historical inventories; shard jobs may repeat the same compile failure in each shard and therefore the total is not a count of unique product defects.
+- Debug APK succeeded; Staging APK succeeded including signing/manifest/font audit; Visual smoke succeeded.
+- Release APK failed during Gradle dependency resolution for Kotlin Gradle Plugin `2.2.21` and three additional artifacts with identical resolution cause. This is a build-environment/dependency-resolution failure, not evidence of a Dart compile failure in release-specific source.
+- Follow-up File-backed SQLite run `44517852362` succeeded on exact SHA cdbcae0, including repository persistence and alarm overlay close/reopen tests. It does not prove full cross-database Backup/Restore.
+- Device Smoke run `44517852329` remained PENDING with no jobs returned at the checkpoint.
+
+### 20.3 Assertion-preserving corrections committed
+- `cce825b63dbf78cc8313c79425224914d47e6618`: updated `test/services/project_backup_bridge_test.dart` override to accept and capture `personDirectoryExclusions`; added the two required fields `personDirectoryExclusions` and `hasPersonDirectoryExclusions` to the candidate fixture. No assertions removed or weakened.
+- `a621d4dfdc700da7938c39a06f40390082e59677`: updated `test/services/g1_drift_schema_test.dart` to assert schema version 18 and require the `person_directory_exclusions` table. No assertions removed or weakened.
+- Current branch head after these corrections: `a621d4dfdc700da7938c39a06f40390082e59677`.
+- Acceptance of these corrections is PENDING fresh exact-head Analyze, all six shards and persistence workflows. The prior cdbcae0 failures must not be attributed to the newer SHA until rerun results are available.
+
+### 20.4 Remaining COMMAND 69 gates
+- Full independent database A → backup → close → empty database B → restore → second restore idempotency test covering Task/Reminder/Follow-up/Occurrence/Checklist/People, stable IDs, relationships, explicit NULL, unknown fields, tombstones, SQLite integrity and foreign keys: NOT YET IMPLEMENTED/ACCEPTED.
+- Schema v18 upgrade/re-entry/partial-migration/old-backup/rollback matrix: NOT YET ACCEPTED as a complete matrix.
+- Six-shard test failures outside the two corrected contract mismatches remain to be triaged by exact test name and root cause. No assertion may be weakened.
+- REV10 all-page acceptance, full product flows, PDF, Vazirmatn/RTL, device smoke and Local P2P remain open. Local P2P operational activation remains blocked on Backup/Restore and data-contract acceptance.
+- No merge, release or deploy. Main and PR #3052 preserved. RELEASE = NO-GO.
+
+
+## 21. COMMAND 70-R — Revalidation of COMMAND 69 workflows
+
+### 21.1 Exact live state
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (protected; unchanged).
+- PR #3052: OPEN / DRAFT / unmerged; head `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- PR #3586: OPEN / DRAFT / unmerged; head `b22bfee63f2b79ad8938f548c77daf0ce65a65e2`; base remains PR #3052 branch at `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+
+### 21.2 COMMAND 69 exact-SHA outcomes
+- Build `44521569932`, SHA `b22bfee63f2b79ad8938f548c77daf0ce65a65e2`: COMPLETED / FAILURE.
+- Analyze failed only on four `dead_null_aware_expression` warnings in `lib/main.dart` at lines 2674, 2676, 2680, 2738 (the warning-as-error analyzer policy made the job fail). These were redundant null-aware fallbacks after non-null values had already been established.
+- Six shard summaries on this SHA:
+  - shard 0: 237 passed / 10 failed.
+  - shard 1: 197 passed / 5 failed.
+  - shard 2: 307 passed / 20 failed.
+  - shard 3: 152 passed / 10 failed.
+  - shard 4: 243 passed / 9 failed.
+  - shard 5: 187 passed / 10 failed.
+  - Aggregate: 1,323 passed / 64 failed (aggregate counts are shard executions, not unique test names).
+- Failure inventory includes Home filters/layout, Quick Capture, Task Details, Reminder/time picker, People/Follow-up, Occurrence, Checklist, Notebook, Calendar and Reports/PDF. Exact failed test names and observed assertions were collected from job logs. Examples include missing Home labels/keys, missing Task Details section keys, date/time selection mismatch, Follow-up status absent, recurrence options absent, a PDF Work Agenda event count mismatch, and color/RTL swipe expectation mismatch. These are test failures, not accepted UI behavior. No assertions were changed.
+- Staging APK: SUCCESS; Visual: SUCCESS; Debug APK: SUCCESS; Release APK: SUCCESS on this exact SHA. APK build success does not override Analyze/shard failures.
+- File-backed SQLite Persistence `44521570022`: COMPLETED / SUCCESS on exact SHA `b22bfee...`; job `135551315490`, 2 tests passed. Scope is file-backed persistence and alarm overlay close/reopen, not full database A-to-B Backup/Restore.
+- Device Smoke `44521570120`: still PENDING, zero jobs exposed at last poll; no device result.
+
+### 21.3 COMMAND 70 lint correction
+- Commit `bf4e50e552ce1e51a2295949b134e555c5d1d40d`: `lib/main.dart` only.
+- Removed four redundant null-aware expressions in Restore reconciliation after the relevant lists are assigned and promoted non-null. No behavior or assertions intentionally changed.
+- This commit is a code correction only; Analyze acceptance remains PENDING a new exact-SHA workflow.
+- Current branch head before tracker append: `bf4e50e552ce1e51a2295949b134e555c5d1d40d`.
+
+### 21.4 Remaining acceptance gates
+- Re-run Analyze and all six shards on a stable new head after this tracker update; do not reuse prior results.
+- Investigate and fix UI/product failures by individual test name and owning source. Do not update test expectations merely to match regressions.
+- Full independent database A-to-B Backup/Restore, repeat restore, atomic rollback, explicit NULL/unknown fields, old backup compatibility and SQLite integrity/foreign-key matrix remain NOT PROVEN.
+- Schema v18 legacy/partial/re-entry migration matrix remains NOT ACCEPTED.
+- REV10 full-page audit, device typography/RTL/PDF tests, product end-to-end flow, and Local P2P protocol work remain open. Local P2P activation remains disabled until data and Backup/Restore acceptance.
+- No merge, release or deploy. Main unchanged. PR #3052 and #3586 remain OPEN / DRAFT.
+- Release status: NO-GO.
+
+## 22. COMMAND 70-R continuation — final CI evidence and legacy exclusion migration correction
+
+### 22.1 Governance and exact branch state
+- Main HEAD remains `45e4202b03a434459e4c021a04efa7e8396359db` (verified by latest repository commit listing; no write was made to Main).
+- PR #3052: OPEN / DRAFT / unmerged.
+- PR #3586: OPEN / DRAFT / unmerged; base branch `fix/recovery-calendar-device-smoke-2026-10-31`, base SHA `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- PR #3586 head after implementation commits: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
+- Working branch: `command-68-r/backup-restore-integrity`.
+- No merge, release or deployment was performed.
+
+### 22.2 Completed exact-SHA CI on tracker SHA 7e00f2f
+Build run `44527453895`, exact SHA `7e00f2f9c65bf16ed71db68adc9f2b559f0a66c7`, completed:
+- Analyze: FAILURE; one remaining `dead_null_aware_expression` at `lib/main.dart:2738:53`.
+- Test shards: all six FAILURE. Counts from job logs:
+  - shard 0: 237 passed / 10 failed.
+  - shard 1: 197 passed / 5 failed.
+  - shard 2: 307 passed / 20 failed.
+  - shard 3: 152 passed / 10 failed.
+  - shard 4: 243 passed / 9 failed.
+  - shard 5: 187 passed / 10 failed.
+  - Aggregate: 1,323 passed / 64 failed (shard executions; not deduplicated unique test names).
+- Visual: SUCCESS.
+- Debug APK: SUCCESS.
+- Staging APK: SUCCESS, including staging signature/manifest/font audit and artifact upload.
+- Release APK: FAILURE during Gradle dependency resolution. The log reports missing/unresolvable Kotlin artifacts at version 2.2.21 while configuring `android/settings.gradle.kts:20`; this run does not establish a Dart compile defect in release source.
+- File Persistence run `44527453853`: COMPLETED / SUCCESS on exact SHA 7e00f2f; 2 tests passed (file-backed repository persistence and alarm-overlay SQLite close/reopen).
+- Device Smoke run `44527453910`: no jobs returned at the latest poll; device acceptance remains NOT VERIFIED.
+
+### 22.3 Assertion-preserving code corrections after 7e00f2f
+- `2c78f5c37675cb941af377d4415fa86bcd4eb795`: removed the last redundant null-aware fallback from `lib/main.dart` at the restore active-person ID calculation. This addresses the sole analyzer warning observed on 7e00f2f; fresh Analyze evidence is NOT YET AVAILABLE.
+- `b91bcd72c839225c05aa83a6e8c1801edb2ac310`: updated `lib/services/g1_drift_schema.dart` to inspect `PRAGMA table_info('person_directory_exclusions')` inside the existing schema installation transaction and add nullable `legacy_payload_json` when absent. This is an additive migration; it does not drop or rebuild the legacy table.
+- `44e8810db6188702dd661c8e7cbefd00fc416f16`: added `test/services/g1_drift_schema_test.dart` coverage that creates the earlier two-column exclusion table, inserts a legacy row, runs Schema 18 installation, verifies the row and explicit NULL survive, then reruns installation and verifies idempotency.
+- Implementation head before the tracker-only append: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
+- A subsequent tracker-only commit `6cba55f909289d84144de7430d2ee872d05df1bb` advanced PR #3586 without changing application code. The live PR head must be read from GitHub after any further tracker append.
+- No exact-head Build, Analyze, targeted schema test or persistence workflow result has yet been surfaced for the implementation head or the later tracker-only head. Do not transfer the 7e00f2f results to either SHA.
+
+### 22.4 Remaining acceptance gates
+- Run fresh Analyze and all six test shards on one exact new head after the above commits.
+- Run the new legacy exclusion migration test and full `g1_drift_schema_test.dart` on that same head; then repeat File Persistence.
+- Recheck Device Smoke; zero returned jobs is not a pass.
+- Full independent DB A-to-B production Backup/Restore, repeat restore, rollback atomicity, unknown-field/explicit-NULL parity, legacy backup compatibility, tombstone preservation, `PRAGMA integrity_check` and `PRAGMA foreign_key_check` remain NOT ACCEPTED.
+- The 64 UI/product test failures remain open; each must be diagnosed and corrected without weakening expectations.
+- No merge, release or deploy. PR #3052 and #3586 remain OPEN / DRAFT. RELEASE = NO-GO.
