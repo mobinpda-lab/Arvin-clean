@@ -431,3 +431,13 @@ This addendum is the latest explicit product-owner authority for the Arvin deliv
 
 ### Implementation/acceptance separation
 These decisions authorize the product direction, not an assertion that code is complete. Palette rollout, font packaging/rendering, five-group Home behavior, M2M schema/store/backup migration, and Local P2P security/device tests remain independently subject to exact-SHA evidence. Main remains protected; PR #3052 remains OPEN / DRAFT / UNMERGED; no merge, release or deploy is authorized by this addendum.
+
+### Home identity and editor control details — COMMAND 63-R clarification
+
+- Home identity: retain the Bismillah capsule above the exact title «مدیریت کارها و پیگیری آروین».
+- Header placement: notification action on the physical left; menu action on the physical right; search remains below the identity block.
+- Home filters use the COMMAND 63-R order in RTL: Time → Project → Category → Tag → Center. This order supersedes the older REV8 filter-order row in the historical register; the older row remains preserved as historical evidence.
+- The five filter dimensions must be visible and accessible; a Center pill that only exists in a secondary menu does not satisfy the Home contract.
+- Do not restore legacy Home status cards or labels for کل / فعال / انجام‌شده / عقب‌افتاده / کارهای من / مشاهده همه.
+- In every complete/edit form that exposes scheduling, show the calendar and clock controls side-by-side in the same row. Keep date and time semantics independent; do not collapse Task due date into Reminder date.
+- Implementation status at this checkpoint: Draft PR #3569 restores the Home title, Bismillah capsule, physical header actions and five visible filters. The notification action currently shows an informational message; a full notification inbox is not claimed. Task Editor date/time tests are being aligned to the current unified Persian picker; exact-head CI and device rendering remain pending.
