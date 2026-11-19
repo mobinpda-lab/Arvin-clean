@@ -1097,3 +1097,47 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+# COMMAND 79-R — LIVE EXECUTION UPDATE — 2026-11-19
+
+## Exact-head evidence: PR #3601
+- PR #3601 remains OPEN / DRAFT; branch `fix/home-tag-filter-or-semantics-20261119`; exact HEAD `ad7efb02ce1de1d65a68ca4832c96fdebe4299f2`; base is `main`. No merge was performed.
+- Build run [44576102963](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102963): completed SUCCESS on the exact HEAD. Analyze, test shards 0–5, Debug APK and Release APK succeeded.
+- Device Smoke run [44576102959](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102959): completed SUCCESS on the exact HEAD. All seven selected lanes succeeded: Home, Quick Capture, People, SQL Persistence, SQL Migration, Backup/Restore, Calendar. Every lane's canonical smoke step concluded success.
+- Parallel Wave [44576102814](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102814), Follow-up File Persistence [44576102783](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102783), Orchestrator [44576103141](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576103141), Orchestrator PR Wakeup [44576102803](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102803), Production Loop [44576102877](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102877), and G1 lock sync [44576102981](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44576102981) completed SUCCESS.
+- Artifacts: Debug `14555804753`, Release `14558240343`; both present and not expired at audit time. Staging APK has no run evidence on this SHA. Artifact presence does not prove signature audit or physical-device acceptance.
+- Device Smoke evidence artifacts: Home `14557323424`, Calendar `14558836823`, People `14562550444`, Quick Capture `14555539873`, Persian time picker `14555579817`; not expired at audit time.
+- This evidence is scoped only to SHA `ad7efb02...`; it does not validate PR #3052 or other branches.
+
+## PR #3052 current baseline and active failures
+- PR #3052 remains OPEN / DRAFT, branch `fix/recovery-calendar-device-smoke-2026-10-31`, HEAD `0cf1792d52f764c89d0cd9a9411880140e0c67d4`; main observed at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Exact-head Build [44514942772](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44514942772) completed FAILURE: Analyze SUCCESS; shards 0–5 FAILURE; Debug, Release and Staging APK jobs SUCCESS; Visual SUCCESS.
+- Exact-head Device Smoke [44514942616](https://github.com/mobinpda-lab/Arvin-clean/actions/runs/44514942616) completed CANCELLED; Follow-up Persistence passed; Calendar segmented-view and Reminder/Vazirmatn lanes failed; remaining lanes were cancelled. These are not a full Device Smoke pass.
+- The six shard logs show runtime Flutter test assertions, not a setup/download failure. Representative observed mismatches: missing expected Persian labels/widgets (`امروز`, `پروژه`, `تکرار`, `تماس با علی`, `پیش‌تنظیمات سریع زمان`), duplicate `یادآور` text finder, unexpected event count, color mismatch, missing AboutDialog, and tag/priority assertions. The logs do not by themselves prove whether each is a product regression, stale UI contract, or invalid fixture. No assertion was weakened and no test was removed.
+- Classification at this checkpoint: environment failure is NOT supported by these shard logs; remaining failures require per-test source/contract inspection before classifying as product defect vs stale assertion vs fixture. Do not repeat the historical “64 failures” as current without a fresh exact-head rerun.
+
+## Active workflows and branch safety
+- At the time of this update, one unrelated Device Smoke run was still in progress for PR #3574 SHA `8aca2bd36ea28ae8c291e7418541453d12847de2` (run `44496047759`). Do not update that branch until its run is terminal.
+- No active workflow was observed for PR #3052 at the time this Tracker update was prepared. This update is intentionally committed only to the existing PR #3052 branch, never to main.
+- This documentation commit changes the PR #3052 head. All prior #3052 CI evidence is now historical to parent SHA `0cf1792d...`; fresh CI on the resulting commit is required before any new PASS status.
+
+## Product acceptance ledger
+- Home: IN PROGRESS — #3601 tag OR change has exact-head automated evidence on its own branch; full five-filter/grouping/RTL acceptance on #3052 is not established.
+- Task / Task Details / Checklist / Follow-up: IN PROGRESS — exact-head integrated acceptance not established.
+- Quick Capture / Reminder / Recurrence: IN PROGRESS — smoke evidence on #3601 is branch-scoped; complete lifecycle acceptance not established.
+- People / Tombstone: IN PROGRESS — #3601 People smoke passed; portable backup, restore, legacy migration and historical-link acceptance remain open.
+- SQLite / Migration: IN PROGRESS — #3601 SQL Persistence and Migration smoke passed; full supported-version matrix and independent DB A→Backup→empty DB B restore proof remain open.
+- Backup / Restore: IN PROGRESS — #3601 smoke lane passed; independent external backup file round-trip, second restore, rollback, integrity_check, foreign_key_check, Android SAF and encrypted backup acceptance remain unproven.
+- Notebook / Reports / PDF / Calendar / Settings / Navigation / About / Prayer Cards / Universal Bottom Sheet: IN PROGRESS — complete cross-page product acceptance not established.
+- REV10 / RTL / typography: IN PROGRESS — CI/emulator screenshots are not physical-device acceptance; Vazirmatn and all required weights need exact asset/render evidence.
+- Local P2P: NOT STARTED for operational acceptance — security design and two-device verification remain prerequisites.
+- Android delivery: IN PROGRESS — #3601 Debug/Release artifacts exist; Staging, APK signature audit and physical installation remain unverified.
+- Release / Merge / Deploy: BLOCKED / FORBIDDEN by COMMAND 79-R.
+
+## Next actions
+1. Run and inspect fresh Build + all six shards + Device Smoke for the new PR #3052 Tracker commit SHA.
+2. Classify every current failing test by test name and source contract; fix product defects first, update only genuinely stale expectations without weakening assertions, and repair fixtures where proven invalid.
+3. Wait for PR #3574 Device Smoke to become terminal before touching its branch.
+4. Continue the #3586/#3591 SQLite/Backup path only after full diff/dependency review; require the independent DB A→B acceptance scenario.
+5. Keep all PRs Draft and do not merge, release, or deploy.
