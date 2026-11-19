@@ -141,6 +141,7 @@ class G1DriftSchema implements QueryExecutorUser {
       for (final statement in _statements) {
         await executor.runCustom(statement);
       }
+      await _migrateLegacyTaskReminderFlag(executor);
       final projectTemplateColumns = await executor.runSelect("PRAGMA table_info('project_templates')", const []);
       if (!projectTemplateColumns.any((row) => row['name'] == 'center_id')) {
         await executor.runCustom('ALTER TABLE project_templates ADD COLUMN center_id TEXT NULL');
@@ -259,6 +260,107 @@ class G1DriftSchema implements QueryExecutorUser {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       try { await executor.runCustom('PRAGMA foreign_keys = ON'); } catch (_) {}
       rethrow;
+    }
+  }
+
+  /// Retires the obsolete per-row SQL flag after preserving the stable
+  /// reminder identity that now carries the legacy classification.
+  ///
+  /// The migration is transactional with the rest of schema installation.
+  /// It refuses unknown/missing columns or legacy rows whose IDs cannot
+  /// reconstruct the canonical stable identity; in those cases the outer
+  /// transaction rolls back and the original table remains intact.
+  static Future<void> _migrateLegacyTaskReminderFlag(
+    QueryExecutor executor,
+  ) async {
+    final columns = await executor.runSelect(
+      "PRAGMA table_info('task_reminders')",
+      const [],
+    );
+    final columnNames = columns
+        .map((row) => row['name'] as String)
+        .toSet();
+    if (!columnNames.contains('is_legacy_task_reminder')) return;
+
+    if (!columnNames.contains('is_enabled')) {
+      await executor.runCustom(
+        'ALTER TABLE task_reminders ADD COLUMN is_enabled INTEGER NOT NULL DEFAULT 1',
+      );
+      columnNames.add('is_enabled');
+    }
+
+    const requiredColumns = <String>{
+      'id',
+      'task_id',
+      'title',
+      'remind_at',
+      'is_all_day',
+      'sequence',
+      'is_enabled',
+      'is_legacy_task_reminder',
+    };
+    final missing = requiredColumns.difference(columnNames);
+    if (missing.isNotEmpty) {
+      throw StateError(
+        'Cannot retire legacy reminder flag; required columns are missing: $missing',
+      );
+    }
+
+    final legacyRows = await executor.runSelect(
+      '''SELECT id, task_id FROM task_reminders
+         WHERE COALESCE(is_legacy_task_reminder, 0) != 0
+         ORDER BY id''',
+      const [],
+    );
+    for (final row in legacyRows) {
+      final id = row['id'] as String;
+      final taskId = row['task_id'] as String;
+      if (id != migratedTaskReminderId(taskId)) {
+        throw StateError(
+          'Cannot retire legacy reminder flag for $id: stable ID does not match Task $taskId',
+        );
+      }
+    }
+
+    final beforeRows = await executor.runSelect(
+      '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
+         FROM task_reminders ORDER BY id''',
+      const [],
+    );
+    final beforeColumns = Set<String>.of(columnNames);
+
+    // sqlite3_flutter_libs supplies a modern SQLite runtime. DROP COLUMN
+    // preserves every other known or unknown column, row ID, FK and index.
+    // If the runtime or schema cannot safely perform this operation, fail
+    // closed; the enclosing transaction restores the original table.
+    await executor.runCustom(
+      'ALTER TABLE task_reminders DROP COLUMN is_legacy_task_reminder',
+    );
+
+    final afterRows = await executor.runSelect(
+      '''SELECT id, task_id, title, remind_at, is_all_day, sequence, is_enabled
+         FROM task_reminders ORDER BY id''',
+      const [],
+    );
+    if (jsonEncode(beforeRows) != jsonEncode(afterRows)) {
+      throw StateError(
+        'Legacy reminder flag migration changed canonical reminder rows',
+      );
+    }
+
+    final afterColumns = await executor.runSelect(
+      "PRAGMA table_info('task_reminders')",
+      const [],
+    );
+    final afterNames = afterColumns
+        .map((row) => row['name'] as String)
+        .toSet();
+    beforeColumns.remove('is_legacy_task_reminder');
+    if (afterNames.length != beforeColumns.length ||
+        !afterNames.containsAll(beforeColumns)) {
+      throw StateError(
+        'Legacy reminder flag migration changed unexpected table columns',
+      );
     }
   }
 
