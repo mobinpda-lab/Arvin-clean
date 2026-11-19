@@ -393,3 +393,35 @@ Documentation lane updates:
 - Architecture proposal commit: `c48ebb7d5c81a041990a8c9d65341f8c8c5ca23b`.
 - Issue #3550 clarification comment: `7003269413`.
 - Tracker PR #3564 remains OPEN / DRAFT / UNMERGED; its branch is documentation-only and is not merged into the operational branch.
+
+
+## 25. COMMAND 63-R — next root-cause correction batch
+New operational commits after candidate `542b719efc99c632e09ba070e40388c10a448379`:
+- `24a34d2ab8505350d1d69a56dd39d0376b786419` — Home icon-only filter tests now query their accessible Semantics labels rather than looking for visible text that the compact icon-only control intentionally does not render.
+- `8aac4e69fefaa9682bde106552c53914c9ea697e` — legacy reminder fixture now enters through explicit `Task.fromLegacyJson`, rather than canonical `Task.fromJson`. This matches the explicit migration boundary and preserves the reminder conversion assertion.
+- `f828c66b227a5e83deefe83df61444dde5dbb3dc` — Task Details due-date test now seeds an explicit canonical `TaskReminder`, verifies its stable ID/date after due-date change, and verifies retired Task/Follow-up scheduling values remain in `legacyFollowUpMetadata` as inert data. The deprecated getters are not treated as active scheduling.
+- `6abc38fe5fc9c83d83e675c3c89fc33e84ba4506` — migration writer test asserts canonical Follow-up `completedAt` serialization and explicitly asserts the legacy `dateTime` key is absent.
+- `dab77700f864fee0a753e82b81df0adb1f2e3829` — file-backed SQL migration test now records the production migration-complete marker after the migration transaction and before closing/reopening SQLite. This prevents the reopen test from accidentally re-entering the legacy migration path.
+
+These are test-contract/fixture corrections based on the canonical model, not production code changes. Assertions for retained identity, reminder date, historical Follow-up content and inert legacy metadata were preserved or made more explicit. No production data was deleted.
+
+### Prior exact-head run on SHA `542b719efc99c632e09ba070e40388c10a448379`
+Build run `44482767738` was superseded when the branch advanced:
+- Analyze PASS; Visual PASS; Debug APK PASS.
+- Five completed shards failed: shard 0 = 13, shard 1 = 6, shard 3 = 13, shard 4 = 10, shard 5 = 11 failures (53 reported failure instances across those completed shards).
+- Shard 2 was CANCELLED by the newer candidate before completion.
+- Release and Staging APK jobs were still in progress when superseded; no PASS is recorded for them on this SHA.
+- Follow-up File Persistence `44482767791`: PASS.
+- Draft Review APK `44482767717`: PASS.
+- Device Smoke `44482767749`: no jobs/results before supersession; not accepted.
+This run is historical evidence for SHA 542b only, not for the current candidate.
+
+### Latest candidate at this update
+Operational branch head: `dab77700f864fee0a753e82b81df0adb1f2e3829`.
+Fresh exact-head runs:
+- Build `44484305168` (#11713): Debug APK and two test shards were in progress; other shards queued; Analyze, Visual, Release and Staging not yet completed.
+- Device Smoke `44484305107` (#8872): PENDING, no job result yet.
+- Follow-up File Persistence `44484305216` (#2795): IN PROGRESS.
+- Calendar Provider `44484305315` (#2989): IN PROGRESS.
+- Draft Review APK `44484305327` (#2001): IN PROGRESS.
+No exact-head acceptance gate is PASS yet, except jobs that subsequently report success; do not promote queued or in-progress work to PASS.
