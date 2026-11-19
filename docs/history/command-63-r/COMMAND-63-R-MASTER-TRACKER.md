@@ -340,3 +340,19 @@ The failure logs for these lanes still require per-job extraction and root-cause
 - No merge, release, deploy, branch deletion, force-push, destructive migration or production-user-database operation was performed.
 - No cancelled, queued, pending or in-progress job is counted as PASS.
 - Overall release remains **NO-GO** until all required product gates pass on one exact candidate SHA and explicit owner approval is recorded.
+
+
+## 22. Exact-head validation started for COMMAND 63 Home Center filter
+Operational code/test candidate remains `bc2b3d61ab10e5cd6c9c72f56d522057f9ba5975`.
+Fresh workflows now returned for this exact SHA:
+- Build run `44482485655` (#11703): PENDING at the latest poll.
+- Device Smoke run `44482485567` (#8862): PENDING.
+- Follow-up File Persistence run `44482485720` (#2785): PENDING.
+- Calendar Provider run `44482485593` (#2983): IN PROGRESS.
+- Draft Review APK run `44482485649` (#1991): IN PROGRESS.
+- Parallel Wave, G1 lock sync, Production Loop, Orchestrator and PR Wakeup: completed successfully. These orchestration successes do not replace Build/test/device acceptance.
+PR #3052 remains OPEN / DRAFT / UNMERGED and currently reports `mergeable=true`. No result above is yet a PASS for the new code/test SHA.
+
+Documentation lane:
+- New cumulative tracker branch: `command-63-r/master-tracker`.
+- Tracker PR #3564: OPEN / DRAFT / UNMERGED; base is the operational branch at `bc2b3d61ab10e5cd6c9c72f56d522057f9ba5975`; head is `ccefd74c99242410370a0923b2b224bdcee394db` at creation. It is documentation-only and does not alter Main.
