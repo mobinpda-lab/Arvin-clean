@@ -144,6 +144,19 @@ class G1DriftSchema implements QueryExecutorUser {
       for (final statement in _statements) {
         await executor.runCustom(statement);
       }
+      // Earlier Person Directory Exclusion migrations created this table
+      // without the payload column. CREATE TABLE IF NOT EXISTS cannot evolve
+      // an existing table, so add the nullable column transactionally while
+      // preserving every existing exclusion row.
+      final exclusionColumns = await executor.runSelect(
+        "PRAGMA table_info('person_directory_exclusions')",
+        const [],
+      );
+      if (!exclusionColumns.any((row) => row['name'] == 'legacy_payload_json')) {
+        await executor.runCustom(
+          'ALTER TABLE person_directory_exclusions ADD COLUMN legacy_payload_json TEXT NULL',
+        );
+      }
       await _migrateLegacyTaskReminderFlag(executor);
       final projectTemplateColumns = await executor.runSelect("PRAGMA table_info('project_templates')", const []);
       if (!projectTemplateColumns.any((row) => row['name'] == 'center_id')) {
