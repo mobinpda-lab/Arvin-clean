@@ -9,7 +9,7 @@ void main() {
       final database = NativeDatabase.memory();
       await database.ensureOpen(G1DriftSchema());
       try {
-        await database.runCustom('''CREATE TABLE tasks_legacy_fixture (
+        await database.runCustom('''CREATE TABLE tasks (
           id TEXT NOT NULL PRIMARY KEY,
           storage_ordinal INTEGER NOT NULL DEFAULT 0,
           title TEXT NOT NULL,
@@ -30,7 +30,7 @@ void main() {
           legacy_payload_json TEXT NULL
         )''');
         await database.runCustom('''
-          INSERT INTO tasks_legacy_fixture (
+          INSERT INTO tasks (
             id, title, description, follow_up_enabled, follow_up_date,
             reminder_date, priority, archived, trashed, completed
           ) VALUES (
@@ -40,10 +40,6 @@ void main() {
             'none', 0, 0, 1
           )
         ''');
-        await database.runCustom('DROP TABLE tasks');
-        await database.runCustom(
-          'ALTER TABLE tasks_legacy_fixture RENAME TO tasks',
-        );
 
         await G1DriftSchema.install(database);
 
