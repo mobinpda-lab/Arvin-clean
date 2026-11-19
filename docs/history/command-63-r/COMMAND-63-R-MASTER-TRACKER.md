@@ -691,3 +691,52 @@ The following corrections are authored in Draft branches; none is accepted until
 - Full V7/V19/V20 migration acceptance, Center M2M, independent restore on physical Android, full REV10 page audit, Local P2P threat-model approval and two-device tests remain open.
 
 **Release: NO-GO. Main protected and unchanged. PR #3052 and PRs #3567–#3575 remain OPEN / DRAFT / UNMERGED. No merge, release, deploy, destructive migration or production-database operation was performed.**
+
+
+## 21. COMMAND 63-R live audit refresh — 2026-11-19
+
+This entry records a fresh read-only reconciliation after the previous checkpoint. It does not change the product code or authorize integration.
+
+### Live refs
+- Repository permissions returned by GitHub: read=true, push=true, maintain=true, admin=true; default branch is `main`.
+- Main ref: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Operational branch `fix/recovery-calendar-device-smoke-2026-10-31`: `a2825e003bb9e6b5c2413b0dc74b085273b6148b`.
+- PR #3052: OPEN / DRAFT / UNMERGED, base Main at `45e4202b03a434459e4c021a04efa7e8396359db`, head `a2825e003bb9e6b5c2413b0dc74b085273b6148b`; GitHub reported mergeable=true at this poll. This does not satisfy test or release gates.
+- PR #3564 Master Tracker: OPEN / DRAFT / UNMERGED; branch head `12891e5741f80ea79dbea5da060e3541716c66a1`; captured operational base `bc2b3d61ab10e5cd6c9c72f56d522057f9ba5975`. Its base checkpoint predates the currently observed operational branch head; reconcile before promotion.
+
+### Six-shard evidence — exact SHA a2825e0
+- Build run `44490319550` is tied to the operational head `a2825e003bb9e6b5c2413b0dc74b085273b6148b`.
+- Analyze: PASS; Visual: PASS; Debug APK: PASS; Release APK: PASS; Staging APK: PASS.
+- All six quality shards failed. The six job logs contain 72 failed test instances in total (25, 10, 12, 9, 10 and 6 respectively). This supersedes the older 80-instance baseline only for this exact candidate; the 80-instance run remains historical and must not be silently rewritten.
+- Follow-up file-backed SQLite persistence: PASS in the exact-head check suite. Calendar Provider and contract checks: PASS. Device Smoke was not proven PASS in the inspected exact-head evidence; keep device acceptance PENDING.
+- The earlier Maven Central HTTP 429 was not reproduced in this exact-head run: Debug APK completed PASS. The prior 429 remains a historical infrastructure failure, not a current code diagnosis.
+
+### Root-cause triage from the six exact-head logs
+These are evidence-backed failure clusters, not yet proven root causes. Each still requires source inspection, a minimal reproduction and an exact-SHA regression:
+1. Home / filters / navigation: visible filter dimensions and RTL ordering, lazy menu actions, empty groups, selected-day behavior, combined-filter semantics and widget hit-testing.
+2. Quick Capture / Task Editor: missing or off-screen controls, reminder preset visibility, recurrence choices, Persian date/time picker interaction and due-time/reminder independence.
+3. Task Details / Checklist / People: missing detail keys or sections, lazy content visibility, checklist persistence/reordering, person selection and follow-up history semantics.
+4. Reminder / migration / Task contract: legacy reminder-table migration expectations, independent due/reminder/follow-up timestamps and canonical TaskReminder round-trip.
+5. Notebook / Reports / Calendar: canonical tag taxonomy, report filter/preset visibility, timeline label cardinality and explicit no-auto-export contract.
+6. Harness / animation / fixture: ensureVisible/tap failures, pumpAndSettle timeouts and stale fixture assumptions. Do not classify these as harmless test flakiness until the product behavior and widget tree are inspected.
+
+### Changed-file overlap map for current COMMAND 63-R PRs
+- #3567 ↔ #3569 overlap: `lib/main.dart`, `test/issue_1891_lane_d_rollbox_test.dart`, `test/widgets/home_page_test.dart`. These two PRs must be reconciled file-by-file; do not merge either wholesale.
+- #3570 ↔ #3574 overlap: `lib/services/g1_drift_schema.dart`. Schema migration changes must be reviewed as one ordered contract.
+- #3574 ↔ #3575 overlap: `lib/services/task_store.dart`. Preserve the explicit stack #3575 → #3574 and rebase/reconcile after #3574 changes; do not cherry-pick the overlapping file blindly.
+- #3564, #3571, #3572 and #3573 have no filename overlap with the other listed PRs in the live filename inventory.
+
+### Current PR state and promotion boundary
+- PRs #3564, #3567, #3569, #3570, #3571, #3572, #3573, #3574 and #3575 were observed OPEN / DRAFT / UNMERGED.
+- #3575 is stacked on #3574; its captured base SHA `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d` is older than the current #3574 head `8aca2bd36ea28ae8c291e7418541453d12847de2`. A mergeable=true flag does not remove this stack drift.
+- #3567/#3569 and #3570/#3574/#3575 contain the file overlaps listed above. The PR heads are not a single integrated product candidate.
+- No merge, force-push, branch deletion, release, deploy, Main write or production database operation was performed in this checkpoint.
+
+### Next exact actions
+1. Inspect the full failure sections and source diffs for the 72 failures, beginning with Home/Quick Capture and Task Details/Reminder; record root cause only after reproducing each cluster.
+2. Reconcile #3567 and #3569 shared files into one reviewed change set without dropping either PR's required assertions.
+3. Reconcile #3570 and #3574 schema migration ordering and test the upgrade on a file-backed database with unknown columns, explicit NULL, rollback and reopen.
+4. Refresh the #3575 base against the reviewed #3574 head and re-run backup/restore tests on the resulting exact SHA.
+5. Run all six shards and Device Smoke on the resulting candidate; no prior SHA result transfers.
+
+**Acceptance: FAIL for the six-shard Build; targeted Analyze/APK/Visual and file-backed persistence checks PASS as individually listed; Device Smoke PENDING. Release remains NO-GO. Main remains unchanged.**
