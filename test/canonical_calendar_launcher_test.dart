@@ -590,15 +590,15 @@ void main() {
     expect(editedFromCalendar, isNull);
     expect(find.byKey(const ValueKey('task-detail-page')), findsOneWidget);
 
-    // Editing is available only through the explicit action in the same
-    // Task Details route opened by tapping the calendar card.
-    final detailsEdit = find.byKey(const ValueKey('task-detail-inline-edit-toggle'));
-    expect(detailsEdit, findsOneWidget);
-    await tester.tap(detailsEdit);
-    await tester.pumpAndSettle();
-    await tester.tap(detailsEdit);
+    // Task Details uses the canonical always-editable, auto-save flow.
+    // Editing the title must persist through the same Task identity opened
+    // from the projected occurrence; no separate edit-mode toggle exists.
+    final detailsTitle = find.byKey(const ValueKey('task-detail-title'));
+    expect(detailsTitle, findsOneWidget);
+    await tester.enterText(detailsTitle, 'کار تکرارشونده ویرایش‌شده');
     await tester.pumpAndSettle();
     expect(editedFromDetails?.id, task.id);
+    expect(editedFromDetails?.title, 'کار تکرارشونده ویرایش‌شده');
     navigatorKey.currentState!.pop();
     await _pumpRouteTransition(tester);
     expect(card, findsOneWidget);
