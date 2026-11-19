@@ -462,11 +462,11 @@ class _ArvinAppState extends State<ArvinApp> {
             borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.border, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: brandPrimary, width: 1.8),
           ),
         ),
@@ -491,7 +491,7 @@ class _ArvinAppState extends State<ArvinApp> {
           shadowColor: ArvinColors.shadowDark,
           margin: EdgeInsets.symmetric(vertical: ArvinCardTokens.verticalMargin),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.all(Radius.circular(16)),
+            borderRadius: ArvinTheme.cardBorderRadius,
             side: BorderSide(color: ArvinColors.darkBorder, width: 0.8),
           ),
         ),
@@ -544,15 +544,15 @@ class _ArvinAppState extends State<ArvinApp> {
           filled: true,
           fillColor: ArvinColors.darkSurface,
           border: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           enabledBorder: const OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(14)),
+            borderRadius: BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkOutline, width: 1.2),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(14)),
+            borderRadius: const BorderRadius.all(Radius.circular(ArvinInputTokens.radius)),
             borderSide: BorderSide(color: ArvinColors.darkBrandPrimary, width: 1.8),
           ),
         ),
