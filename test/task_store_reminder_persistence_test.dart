@@ -150,7 +150,7 @@ void main() {
 
     await G1DriftSchema.install(executor);
 
-    Future<void> expectMigratedRows(QueryExecutor database) async {
+    Future<void> expectMigratedRows(NativeDatabase database) async {
       final columns = await database.runSelect(
         "PRAGMA table_info('task_reminders')",
         const [],
