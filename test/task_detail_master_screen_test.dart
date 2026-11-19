@@ -549,7 +549,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('task-detail-description-card')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-independent-reminders')), findsOneWidget);
+    final remindersCard = find.byKey(const ValueKey('task-detail-independent-reminders'));
+    await _scrollTaskDetailUntilVisible(tester, remindersCard, 240);
+    await tester.pumpAndSettle();
+    expect(remindersCard, findsOneWidget);
     expect(
       find.descendant(
         of: find.byKey(const ValueKey('task-detail-summary-card')),
@@ -558,7 +561,7 @@ void main() {
       findsOneWidget,
     );
 
-        final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
+    final addReminder = find.byKey(const ValueKey('task-detail-add-reminder'));
     await _scrollTaskDetailUntilVisible(tester, addReminder, 240);
     await tester.pumpAndSettle();
     expect(addReminder, findsOneWidget);
