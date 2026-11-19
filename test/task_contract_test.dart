@@ -123,7 +123,14 @@ void main() {
       id: 'due-independent-1',
       title: 'استقلال تاریخ‌ها',
       dueDate: due,
-      reminderDate: reminder,
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'reminder-due-independent-1',
+          title: 'یادآوری مستقل',
+          date: reminder,
+          sequence: 1,
+        ),
+      ],
       followUpEnabled: true,
       followUpDate: followUp,
       followUps: [
