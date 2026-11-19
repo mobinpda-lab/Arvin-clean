@@ -445,7 +445,9 @@ void main() {
 
     expect(candidate, isNotNull);
     expect(candidate!.hasPersonDirectoryExclusions, isTrue);
-    expect(candidate.personDirectoryExclusions, <PersonDirectoryExclusion>[exclusion]);
+    expect(candidate.personDirectoryExclusions, hasLength(1));
+    expect(candidate.personDirectoryExclusions!.single.personId, exclusion.personId);
+    expect(candidate.personDirectoryExclusions!.single.excludedAt, exclusion.excludedAt);
     expect(candidate.people, isEmpty);
     expect(candidate.tasks.single.followUps.single.personIds, <String>[exclusion.personId]);
   });
