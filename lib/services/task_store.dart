@@ -71,6 +71,76 @@ class TaskStore {
     });
   }
 
+  /// Returns durable directory tombstones, including preserved unknown JSON fields.
+  Future<List<Map<String, dynamic>>> loadPersonDirectoryExclusions() async {
+    return TaskStorageLock.synchronized<List<Map<String, dynamic>>>(() async {
+      final executor = _database;
+      await _ensureReady();
+      final rows = await executor.runSelect(
+        'SELECT person_id, excluded_at, legacy_payload_json FROM person_directory_exclusions ORDER BY person_id',
+        const [],
+      );
+      return rows.map((row) {
+        final raw = row['legacy_payload_json'];
+        final payload = raw is String && raw.isNotEmpty
+            ? Map<String, dynamic>.from(jsonDecode(raw) as Map)
+            : <String, dynamic>{};
+        payload['personId'] = row['person_id'] as String;
+        payload['excludedAt'] = row['excluded_at'] as String;
+        return payload;
+      }).toList(growable: false);
+    });
+  }
+
+  /// Replaces tombstones atomically. Unknown payload keys survive in the
+  /// legacy JSON column; active directory membership always takes precedence.
+  Future<void> savePersonDirectoryExclusions(
+    Iterable<Map<String, dynamic>> exclusions, {
+    Set<String> activePersonIds = const <String>{},
+  }) async {
+    final normalized = <String, Map<String, dynamic>>{};
+    for (final raw in exclusions) {
+      final value = Map<String, dynamic>.from(raw);
+      final id = value['personId'];
+      final excludedAt = value['excludedAt'];
+      if (id is! String || id.trim().isEmpty ||
+          excludedAt is! String || excludedAt.trim().isEmpty) {
+        throw const FormatException('Invalid Person Directory exclusion');
+      }
+      if (activePersonIds.contains(id)) continue;
+      if (normalized.containsKey(id)) {
+        throw FormatException('Duplicate Person Directory exclusion: $id');
+      }
+      normalized[id] = value;
+    }
+    await TaskStorageLock.synchronized<void>(() async {
+      final executor = _database;
+      await _ensureReady();
+      await executor.runCustom('BEGIN IMMEDIATE');
+      try {
+        await executor.runCustom('DELETE FROM person_directory_exclusions');
+        for (final entry in normalized.entries) {
+          final payload = Map<String, dynamic>.from(entry.value)
+            ..remove('personId')
+            ..remove('excludedAt');
+          await executor.runInsert(
+            '''INSERT INTO person_directory_exclusions
+               (person_id, excluded_at, legacy_payload_json) VALUES (?, ?, ?)''',
+            <Object?>[
+              entry.key,
+              entry.value['excludedAt'],
+              payload.isEmpty ? null : jsonEncode(payload),
+            ],
+          );
+        }
+        await executor.runCustom('COMMIT');
+      } catch (_) {
+        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+        rethrow;
+      }
+    });
+  }
+
   /// Replaces only the active directory membership atomically. Historical
   /// Person rows and Task/Follow-up relations are never deleted.
   Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
@@ -84,14 +154,39 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       final executor = _database;
       await _ensureReady();
-      final oldRows = await executor.runSelect('SELECT id, created_at, updated_at FROM persons', const []);
-      final oldById = <String, Map<String, Object?>>{
-        for (final row in oldRows) row['id'] as String: row,
-      };
-      await executor.runCustom('BEGIN');
+      await executor.runCustom('BEGIN IMMEDIATE');
       try {
-        await executor.runCustom('DELETE FROM person_directory');
+        final oldRows = await executor.runSelect(
+          'SELECT id, created_at, updated_at FROM persons',
+          const [],
+        );
+        final oldById = <String, Map<String, Object?>>{
+          for (final row in oldRows) row['id'] as String: row,
+        };
+        final oldDirectoryRows = await executor.runSelect(
+          'SELECT person_id FROM person_directory',
+          const [],
+        );
+        final oldDirectoryIds = oldDirectoryRows
+            .map((row) => row['person_id'] as String)
+            .toSet();
+        final incomingIds = normalized.keys.toSet();
+        final removedIds = oldDirectoryIds.difference(incomingIds);
         final now = DateTime.now().toIso8601String();
+        for (final personId in removedIds) {
+          await executor.runInsert(
+            '''INSERT OR REPLACE INTO person_directory_exclusions
+               (person_id, excluded_at, legacy_payload_json) VALUES (?, ?, NULL)''',
+            <Object?>[personId, now],
+          );
+        }
+        for (final personId in incomingIds) {
+          await executor.runCustom(
+            'DELETE FROM person_directory_exclusions WHERE person_id = ?',
+            <Object?>[personId],
+          );
+        }
+        await executor.runCustom('DELETE FROM person_directory');
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
@@ -955,7 +1050,11 @@ class TaskStore {
         // Seed directory membership only when this is a genuinely new Person.
         // A stale Task snapshot must not silently re-add someone whose active
         // directory membership was removed after that snapshot was loaded.
-        if (existingPerson.isEmpty) {
+        final exclusion = await executor.runSelect(
+          'SELECT person_id FROM person_directory_exclusions WHERE person_id = ?',
+          <Object?>[person.id],
+        );
+        if (existingPerson.isEmpty && exclusion.isEmpty) {
           await executor.runInsert(
             'INSERT OR IGNORE INTO person_directory (person_id) VALUES (?)',
             <Object?>[person.id],
