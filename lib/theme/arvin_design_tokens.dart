@@ -68,6 +68,8 @@ abstract final class ArvinCardTokens {
   static const double padding = 16;
   static const double radius = ArvinRadii.card;
   static const double compactRadius = ArvinRadii.control;
+  static const double elevation = 1;
+  static const double verticalMargin = 2;
 }
 
 abstract final class ArvinNavigationTokens {
