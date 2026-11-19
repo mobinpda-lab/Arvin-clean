@@ -720,3 +720,42 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - Six-shard test failures outside the two corrected contract mismatches remain to be triaged by exact test name and root cause. No assertion may be weakened.
 - REV10 all-page acceptance, full product flows, PDF, Vazirmatn/RTL, device smoke and Local P2P remain open. Local P2P operational activation remains blocked on Backup/Restore and data-contract acceptance.
 - No merge, release or deploy. Main and PR #3052 preserved. RELEASE = NO-GO.
+
+
+## 21. COMMAND 70-R — Revalidation of COMMAND 69 workflows
+
+### 21.1 Exact live state
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` (protected; unchanged).
+- PR #3052: OPEN / DRAFT / unmerged; head `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- PR #3586: OPEN / DRAFT / unmerged; head `b22bfee63f2b79ad8938f548c77daf0ce65a65e2`; base remains PR #3052 branch at `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+
+### 21.2 COMMAND 69 exact-SHA outcomes
+- Build `44521569932`, SHA `b22bfee63f2b79ad8938f548c77daf0ce65a65e2`: COMPLETED / FAILURE.
+- Analyze failed only on four `dead_null_aware_expression` warnings in `lib/main.dart` at lines 2674, 2676, 2680, 2738 (the warning-as-error analyzer policy made the job fail). These were redundant null-aware fallbacks after non-null values had already been established.
+- Six shard summaries on this SHA:
+  - shard 0: 237 passed / 10 failed.
+  - shard 1: 197 passed / 5 failed.
+  - shard 2: 307 passed / 20 failed.
+  - shard 3: 152 passed / 10 failed.
+  - shard 4: 243 passed / 9 failed.
+  - shard 5: 187 passed / 10 failed.
+  - Aggregate: 1,323 passed / 64 failed (aggregate counts are shard executions, not unique test names).
+- Failure inventory includes Home filters/layout, Quick Capture, Task Details, Reminder/time picker, People/Follow-up, Occurrence, Checklist, Notebook, Calendar and Reports/PDF. Exact failed test names and observed assertions were collected from job logs. Examples include missing Home labels/keys, missing Task Details section keys, date/time selection mismatch, Follow-up status absent, recurrence options absent, a PDF Work Agenda event count mismatch, and color/RTL swipe expectation mismatch. These are test failures, not accepted UI behavior. No assertions were changed.
+- Staging APK: SUCCESS; Visual: SUCCESS; Debug APK: SUCCESS; Release APK: SUCCESS on this exact SHA. APK build success does not override Analyze/shard failures.
+- File-backed SQLite Persistence `44521570022`: COMPLETED / SUCCESS on exact SHA `b22bfee...`; job `135551315490`, 2 tests passed. Scope is file-backed persistence and alarm overlay close/reopen, not full database A-to-B Backup/Restore.
+- Device Smoke `44521570120`: still PENDING, zero jobs exposed at last poll; no device result.
+
+### 21.3 COMMAND 70 lint correction
+- Commit `bf4e50e552ce1e51a2295949b134e555c5d1d40d`: `lib/main.dart` only.
+- Removed four redundant null-aware expressions in Restore reconciliation after the relevant lists are assigned and promoted non-null. No behavior or assertions intentionally changed.
+- This commit is a code correction only; Analyze acceptance remains PENDING a new exact-SHA workflow.
+- Current branch head before tracker append: `bf4e50e552ce1e51a2295949b134e555c5d1d40d`.
+
+### 21.4 Remaining acceptance gates
+- Re-run Analyze and all six shards on a stable new head after this tracker update; do not reuse prior results.
+- Investigate and fix UI/product failures by individual test name and owning source. Do not update test expectations merely to match regressions.
+- Full independent database A-to-B Backup/Restore, repeat restore, atomic rollback, explicit NULL/unknown fields, old backup compatibility and SQLite integrity/foreign-key matrix remain NOT PROVEN.
+- Schema v18 legacy/partial/re-entry migration matrix remains NOT ACCEPTED.
+- REV10 full-page audit, device typography/RTL/PDF tests, product end-to-end flow, and Local P2P protocol work remain open. Local P2P activation remains disabled until data and Backup/Restore acceptance.
+- No merge, release or deploy. Main unchanged. PR #3052 and #3586 remain OPEN / DRAFT.
+- Release status: NO-GO.
