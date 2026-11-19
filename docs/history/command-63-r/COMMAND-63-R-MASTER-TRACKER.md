@@ -1,4 +1,4 @@
-# ARVIN — COMMAND 62-R MASTER TRACKER
+# ARVIN — COMMAND 63-R MASTER TRACKER (Cumulative)
 **Checkpoint:** 2026-11-19 / 28 Aban 1405  
 **Repository:** `mobinpda-lab/Arvin-clean`  
 **Operational PR:** #3052 — OPEN / DRAFT / UNMERGED  
@@ -477,3 +477,55 @@ Exact count reconciliation:
 - test-5: 11
 - Total: 80 — exact match with the Build summary.
 The inventory preserves all 80 test names, shard job IDs and an initial triage category. Categories are not root-cause findings. Six test-contract/fixture corrections already committed are marked with their exact correction status; all remaining rows stay ROOT_CAUSE_PENDING until the full assertion/exception, source line, product contract and exact-SHA regression are documented.
+
+## 28. COMMAND 63-R live checkpoint — 2026-11-19
+
+### Repository and route reconciliation
+- Main remains 45e4202b03a434459e4c021a04efa7e8396359db; no write was made to Main.
+- PR #3052 remains OPEN / DRAFT / UNMERGED on fix/recovery-calendar-device-smoke-2026-10-31. At this checkpoint its exact HEAD is a2825e003bb9e6b5c2413b0dc74b085273b6148b, base Main SHA 45e4202b03a434459e4c021a04efa7e8396359db, and GitHub reports mergeable=true.
+- The branch advanced through the reviewed sequence from e9a74921... → e378ae0... → 422ecc1... → 4b2a2ef... → Center-filter commits 4f551ef..., e8506f9..., bc2b3d6..., canonical-contract test commits through dab7770..., and Vazirmatn commits efc11cb..., 34c4611..., then this asset-manifest correction a2825e0.... This history is fast-forward; no force-push or rewrite was observed.
+- Current #3052 is 2,214 commits ahead and 0 behind Main. PR #3495 remains OPEN / DRAFT / UNMERGED at 1b1534924db9f251df83c36cabff30285194784e and is reference-only. #3547, #3548, #3549 remain OPEN / DRAFT / UNMERGED on their separate #3495-based lineage. #3556, #3557 and #3558 remain OPEN / DRAFT / UNMERGED against stale #3052 base e9a74921...; no lane has been merged.
+- Documentation PR #3564 remains OPEN / DRAFT / UNMERGED. Its branch command-63-r/master-tracker is documentation-only relative to its base checkpoint and is not merged into #3052.
+
+### Exact-head CI findings — SHA 34c4611
+- Build run 44485072875: Analyze PASS, Visual PASS, Debug/Release/Staging APK PASS; all six shards FAIL with 74 failed test instances (26, 10, 12, 11, 6, 9 by shard). This is a newer run than the historical 80-instance baseline; the two counts must remain separately identified.
+- Follow-up File Persistence 44485073034: PASS. Calendar Provider 44485073037: PASS. Draft Review APK 44485073188: PASS. Device Smoke 44485072815: PENDING, not PASS.
+- APK artifacts exist on this SHA, but they are review artifacts only and do not constitute release acceptance.
+- The 74 test names, job IDs and shard totals are appended in COMMAND-63-R-80-SHARD-FAILURE-INVENTORY.md in this same documentation branch.
+
+### First correction after the 34c failure
+The font asset regression test failed because Flutter could not load assets/fonts/ui/vazirmatn/LICENSE.txt; the file existed in the repository but was not in the built asset bundle through the broad directory declaration. Updated pubspec.yaml to explicitly include:
+- assets/fonts/ui/vazirmatn/LICENSE.txt
+- assets/fonts/ui/vazirmatn/AUTHORS.txt
+Commit: a2825e003bb9e6b5c2413b0dc74b085273b6148b.
+This is a focused asset-manifest fix, not a font-binary change. Exact-SHA retest is still running; no PASS is claimed yet.
+
+### Exact-SHA validation in progress — SHA a2825e0
+- Build run 44490319550: Analyze PASS; Visual PASS; Staging APK FAIL due Gradle dependency resolution (org.jetbrains.kotlin:kotlin-stdlib, kotlin-gradle-plugin and BOM 2.2.21 unavailable from Plugin Portal in this run). This is currently classified as dependency-service/environment failure pending controlled retry; it is not yet a source compilation diagnosis. Other APK jobs and six test shards were IN PROGRESS at the last poll.
+- Follow-up File Persistence run 44490319367: PASS.
+- G1 lock sync run 44490319577: PASS.
+- Calendar Provider run 44490319483: IN PROGRESS.
+- Draft Review APK run 44490319361: IN PROGRESS.
+- Device Smoke run 44490319359: PENDING.
+No cancelled, skipped, queued, pending or in-progress job is counted as PASS. A failed dependency-resolution job may be rerun only after the complete workflow result is captured and the external cause is confirmed.
+
+### Product source findings
+- Center filter is now present in the compact Home row and its test coverage was updated to five dimensions. Issue #3550 received an evidence-based comment (comment ID 7004253676) describing remaining gaps.
+- #3052 active schema is still v17. It has centers, scalar projects.center_id, legacy project_items, and no center_projects or project_categories tables. Task model carries centerId in its serialized envelope, but there is no relational tasks.center_id column. Center↔Project / Project↔Category M2M acceptance remains OPEN. The schema-18 additive design proposal is retained in COMMAND-63-R-CENTER-M2M-AND-SCHEMA-18-PLAN.md; it is design-only, not implementation authorization.
+- Current ArvinTheme still defines Blue palette tokens (#4169A1, #355782, #E5EDF8, #F0F5FC, #F4F6F9, #E5E7F0), conflicting with COMMAND 63-R's approved teal palette (#078B91, #066F75, #DDF7F5, #F0FAF9, #D9ECEA). Path C remains P0 and unimplemented.
+- Issue #2682 is CLOSED in live metadata. Its latest comment says the current #3052 backup path includes peopleDirectory, validation and rollback candidates, but independent SQLite-file restore/reopen parity and physical-device evidence are still not accepted. Do not reopen solely from stale body text; keep product gate open until proof is complete.
+- Local P2P remains DESIGN ONLY. No pairing, cryptographic transport or sync implementation has been accepted; security review and two-device testing remain outstanding.
+
+### Updated dispositions
+| Path | Status | Next acceptance |
+|---|---|---|
+| A — CI / six shards | BLOCKED | Finish exact SHA a2825e0 run; classify every current failed test; rerun only infrastructure failures after diagnosis |
+| B — REV10 UI / Home | PARTIAL | Full route/page inventory, state-by-state redesign and device evidence; Center pill now visible |
+| C — Design System | NOT ACCEPTED | Replace blue tokens with approved teal palette after token-consumer audit; validate all pages and dark mode |
+| D — Vazirmatn | PARTIAL | Explicit asset bundle fix awaits exact-SHA test; verify packaged APK and rendering; five static weights only are registered |
+| E — Data / migration | IN PROGRESS | V7/V19/V20 lineage, schema 17→18 design, explicit NULL/unknown fields, rollback and independent restore |
+| F — People / entities | PARTIAL | Adapt tombstone behavior to #3052 persons/person_directory/task_persons lineage; prove independent restore/reopen |
+| G — Device | BLOCKED | Exact-SHA seven-lane Device Smoke and physical-device evidence |
+| H — P2P | DESIGN ONLY | Security review, protocol decisions and two-device test plan before implementation |
+
+**Release remains NO-GO. Main protected. PR #3052 and all source/documentation PRs remain OPEN / DRAFT / UNMERGED. No merge, release, deploy, destructive migration or production-database operation was performed.**
