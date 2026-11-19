@@ -328,3 +328,53 @@ At the last lookup, the latest operational candidate was 0535e78ff6f271086c259fa
 - The current TaskReminder model's JSON serialization contains only declared fields and has no opaque unknown-field envelope. TaskStore's reminder relation mapping likewise serializes the known SQL columns. The schema migration above preserves unknown SQL columns and explicit NULL during that migration, but this does not prove arbitrary unknown TaskReminder JSON fields survive a later load/save cycle.
 - Do not claim complete unknown-field preservation for TaskReminder until a canonical opaque-payload contract and a round-trip test are added. This is a data-contract issue requiring controlled design, not a reason to drop unknown data.
 
+
+
+## 12. Exact failure-log triage and live workflow refresh — 2026-11-19
+
+### 12.1 Operational branch moved during audit
+- Main was re-read from GitHub: `45e4202b03a434459e4c021a04efa7e8396359db`, protected=true.
+- PR #3052 remained OPEN / DRAFT / UNMERGED, base Main SHA unchanged.
+- Operational branch HEAD at this checkpoint: `760cc7a4e4ff9f08d08f2a84a1e474137889a466`, commit message: `docs(command-63-r): correct schema and backup evidence`.
+- The prior `0535e78` observation is no longer the branch head. Do not treat its pending Build as current-head evidence.
+- Exact-head workflow runs associated with `760cc7a`: Build #11807 PENDING; Device Smoke #8966 PENDING; Calendar Provider #3010 QUEUED; Follow-up Persistence #2889 QUEUED; Draft Review APK #2095 QUEUED; orchestration/parallel jobs QUEUED. No current-head acceptance result exists yet.
+
+### 12.2 Confirmed six-shard failure inventory on Build #11720 / SHA a2825e0
+The six actual job logs were downloaded and parsed. The failed test counts are exactly 25 + 10 + 12 + 9 + 10 + 6 = 72. The 72 test names remain recorded in Sections 3.1–3.6. Distinct, directly observed failure signatures include:
+- Settings / Quick Capture / Task Editor / Today actions: missing Persian labels or controls (e.g. `انتخاب تم و رنگ اصلی برنامه`, `یادآور`, `تکرار`, `پروژه`, `اعمال`).
+- Quick Capture scheduling: selected time finder returned one match where the test expected two; this requires checking the due/reminder display contract, not mechanically changing the assertion.
+- Home / Follow-up / Task Details: missing real-record labels, missing selected-person key, missing filter/group labels and incomplete detail sections.
+- Task contract and due-date preservation: actual dueDate was null or differed from the expected canonical date/time.
+- Reminder migration: obsolete marker column remained in the observed database on that SHA.
+- Widget harness failures: casts of SizedBox/ListView/KeyedSubtree to Scrollable/Container and pumpAndSettle timeouts. These are harness/runtime tree symptoms; each needs its own reproduction and must not be dismissed as flaky.
+- Notebook / Reports / Calendar / PDF: taxonomy mismatch, missing report controls, export-contract and PDF output mismatches.
+- Other exact failures include unexpected report filter output, swipe result false, wrong Home overdue color and missing expected prayer-card presentation.
+These are confirmed symptoms. Root cause is NOT YET PROVEN for every test. No tests or assertions were removed.
+
+### 12.3 Child PR exact-head workflow refresh
+- #3567 head `6d9cb754`: Build #11776 QUEUED; Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3569 head `19a65750`: Build #11781 QUEUED; Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3570 head `fd4954d7`: Build #11782 QUEUED; Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3571 head `60de06ec`: Build #11774 FAILED; all six shards failed (11, 8, 23, 4, 9, 9 tests respectively); Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3572 head `be9248d7`: Build #11770 FAILED; all six shards failed (25, 12, 10, 10, 8, 6 respectively); Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3573 head `6d0dc85e`: Build #11743 FAILED; all six shards failed (25, 9, 6, 10, 10, 12 respectively); Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3574 head `8aca2bd3`: Build #11748 QUEUED; Device Smoke PENDING; Follow-up Persistence SUCCESS.
+- #3575 head `6b1a03f5`: Build #11747 IN PROGRESS at last poll; Device Smoke PENDING; Follow-up Persistence SUCCESS.
+Child PR Build failures include the same inherited broad product/test failures and are not evidence that the narrow child change caused all failures. Their branches are based on older operational SHA a2825e0 and are not an integrated candidate.
+
+### 12.4 Source-diff findings requiring correction before acceptance
+- #3567: the new token file defines card shadow blur=8 and offset=(0,2), while the existing theme-token test still asserts blur=10 and offset=(0,4); the newly added design-token test separately asserts offset=(0,2). This is an internal token/test contradiction. Preserve the existing visual contract unless a new owner-approved shadow value is documented; reconcile code and tests without deleting assertions.
+- #3569: grouping service supports Time/Projects/Categories/Tags, but the inspected app wiring still selects Time only. A user-facing grouping-mode selector and persisted/accessible selection are not evidenced; four-mode grouping is not accepted.
+- #3571: adding `showLabel: true` to Quick Capture roll boxes addresses missing labels. However, its test patch changes the expected number of visible selected-time matches from 2 to 1. This is a potentially weaker assertion and is NOT ACCEPTED until the intended independent due-date/reminder presentation is explicitly verified.
+- #3572: the page adds a Task Details section heading and scrolls tests to off-screen content. This is a narrow presentation improvement, not the complete Task Details contract; Universal Bottom Sheet, attachments and Notebook linkage remain absent in the inspected PR.
+- #3570: its `_dropLegacyTaskReminderFlag` uses SQLite 3.35+ DROP COLUMN. Reconcile with the operational branch's more defensive stable-ID and row-parity migration; do not combine two independent implementations or silently assume every supported Android SQLite version meets 3.35.
+- #3574/#3575: retain the explicit dependency and file-overlap controls recorded above. Their fake backup-service tests do not prove Android SAF file IO.
+
+### 12.5 Next controlled actions
+1. Wait for and inspect all jobs of current operational HEAD `760cc7a`; collect exact six-shard logs before claiming any test resolved.
+2. Fix narrow, proven source/test contradictions in their own authorized child branches; do not bulk merge stale branches.
+3. Reconcile the #3567/#3569 shared Home/theme files and #3570/#3574 schema overlap by diff, then validate one candidate SHA.
+4. Keep all 72 baseline failures tracked until each has a reproduced root cause, minimal fix, focused rerun and full-shard evidence.
+5. Preserve Device Smoke, Android file backup/restore, full REV10 page review, Local P2P implementation/security and owner acceptance as independent release gates.
+
+**Checkpoint disposition:** six-shard baseline remains FAILED; current operational Build is PENDING; child PRs #3571/#3572/#3573 have failed Builds; no child PR is integration-accepted. Main unchanged; no merge/release/deploy. RELEASE = NO-GO.
