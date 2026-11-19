@@ -759,3 +759,46 @@ All five runs are associated with commit `b86d402a9928cc7dfa09ce4a22ea14b3866d9f
 - REV10 full-page audit, device typography/RTL/PDF tests, product end-to-end flow, and Local P2P protocol work remain open. Local P2P activation remains disabled until data and Backup/Restore acceptance.
 - No merge, release or deploy. Main unchanged. PR #3052 and #3586 remain OPEN / DRAFT.
 - Release status: NO-GO.
+
+## 22. COMMAND 70-R continuation — final CI evidence and legacy exclusion migration correction
+
+### 22.1 Governance and exact branch state
+- Main HEAD remains `45e4202b03a434459e4c021a04efa7e8396359db` (verified by latest repository commit listing; no write was made to Main).
+- PR #3052: OPEN / DRAFT / unmerged.
+- PR #3586: OPEN / DRAFT / unmerged; base branch `fix/recovery-calendar-device-smoke-2026-10-31`, base SHA `0cf1792d52f764c89d0cd9a9411880140e0c67d4`.
+- PR #3586 head after implementation commits: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
+- Working branch: `command-68-r/backup-restore-integrity`.
+- No merge, release or deployment was performed.
+
+### 22.2 Completed exact-SHA CI on tracker SHA 7e00f2f
+Build run `44527453895`, exact SHA `7e00f2f9c65bf16ed71db68adc9f2b559f0a66c7`, completed:
+- Analyze: FAILURE; one remaining `dead_null_aware_expression` at `lib/main.dart:2738:53`.
+- Test shards: all six FAILURE. Counts from job logs:
+  - shard 0: 237 passed / 10 failed.
+  - shard 1: 197 passed / 5 failed.
+  - shard 2: 307 passed / 20 failed.
+  - shard 3: 152 passed / 10 failed.
+  - shard 4: 243 passed / 9 failed.
+  - shard 5: 187 passed / 10 failed.
+  - Aggregate: 1,323 passed / 64 failed (shard executions; not deduplicated unique test names).
+- Visual: SUCCESS.
+- Debug APK: SUCCESS.
+- Staging APK: SUCCESS, including staging signature/manifest/font audit and artifact upload.
+- Release APK: FAILURE during Gradle dependency resolution. The log reports missing/unresolvable Kotlin artifacts at version 2.2.21 while configuring `android/settings.gradle.kts:20`; this run does not establish a Dart compile defect in release source.
+- File Persistence run `44527453853`: COMPLETED / SUCCESS on exact SHA 7e00f2f; 2 tests passed (file-backed repository persistence and alarm-overlay SQLite close/reopen).
+- Device Smoke run `44527453910`: no jobs returned at the latest poll; device acceptance remains NOT VERIFIED.
+
+### 22.3 Assertion-preserving code corrections after 7e00f2f
+- `2c78f5c37675cb941af377d4415fa86bcd4eb795`: removed the last redundant null-aware fallback from `lib/main.dart` at the restore active-person ID calculation. This addresses the sole analyzer warning observed on 7e00f2f; fresh Analyze evidence is NOT YET AVAILABLE.
+- `b91bcd72c839225c05aa83a6e8c1801edb2ac310`: updated `lib/services/g1_drift_schema.dart` to inspect `PRAGMA table_info('person_directory_exclusions')` inside the existing schema installation transaction and add nullable `legacy_payload_json` when absent. This is an additive migration; it does not drop or rebuild the legacy table.
+- `44e8810db6188702dd661c8e7cbefd00fc416f16`: added `test/services/g1_drift_schema_test.dart` coverage that creates the earlier two-column exclusion table, inserts a legacy row, runs Schema 18 installation, verifies the row and explicit NULL survive, then reruns installation and verifies idempotency.
+- Current PR #3586 head at this checkpoint: `44e8810db6188702dd661c8e7cbefd00fc416f16`.
+- No exact-head Build, Analyze, targeted schema test or persistence workflow result has yet been surfaced for the new head. Do not transfer the 7e00f2f results to 44e8810.
+
+### 22.4 Remaining acceptance gates
+- Run fresh Analyze and all six test shards on one exact new head after the above commits.
+- Run the new legacy exclusion migration test and full `g1_drift_schema_test.dart` on that same head; then repeat File Persistence.
+- Recheck Device Smoke; zero returned jobs is not a pass.
+- Full independent DB A-to-B production Backup/Restore, repeat restore, rollback atomicity, unknown-field/explicit-NULL parity, legacy backup compatibility, tombstone preservation, `PRAGMA integrity_check` and `PRAGMA foreign_key_check` remain NOT ACCEPTED.
+- The 64 UI/product test failures remain open; each must be diagnosed and corrected without weakening expectations.
+- No merge, release or deploy. PR #3052 and #3586 remain OPEN / DRAFT. RELEASE = NO-GO.
