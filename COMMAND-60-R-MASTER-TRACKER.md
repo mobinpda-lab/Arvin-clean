@@ -99,3 +99,54 @@ Canonical branch baseline for lane PRs: `7951a9331e7c3e5e9004ea3007cf21685827b75
 - Lane D PR #3547 remains OPEN; its exact-head test-2 failure proved Person Directory rehydration. Lane A carries the fix and regression test.
 - Lane C P0 Issue #3550 created for Center model/store, M2M graph and missing Home Center filter.
 - Canonical branch latest governance commit before this update: `d3f83e906f156e5120b07b66fedd2850cf904a3b`. Main unchanged: `45e4202b03a434459e4c021a04efa7e8396359db`.
+
+
+---
+
+## COMMAND 60-R.1 — evidence-based correction and acceptance — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+
+**Canonical route:** PR #3495 / `recovery-02/main-based-integration`
+**Canonical SHA at inspection:** `6d806125e91056fedb74b0644d77a273ee4b675f`
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged/read-only.
+**PR #3495:** OPEN / DRAFT / UNMERGED.
+**Governance:** Historical lane PRs remain evidence sources. New development/integration stays on the single canonical PR #3495; no new parallel feature PR or direct Main write.
+
+### Lane A — Person Directory
+- PR #3547 exact head `1c83db84145675aa31e67feef95c23ddd84c181c`: Analyze, five shards, Debug/Release APK and selected Device Smoke passed; test-2 failed because repeated `migrateTaskPeople` rehydrated a Person explicitly removed from the active directory. Not accepted.
+- PR #3549 exact head `ce9ce1d755ae994d1f2567285304dc23b07aa823`: Analyze, all six shards, Debug/Release APK, seven emulator smoke scenarios and Follow-up File Persistence passed on that exact SHA.
+- PR #3549 is 8 commits ahead / 30 behind canonical SHA (DIVERGED); no direct merge/cherry-pick.
+- Its tombstone/exclusion design is promising and file-backed, but backup/restore and explicit duplicate SQL-row count acceptance remain missing. Port the reviewed change only to #3495 and test there.
+
+### Lane B — UI / Design System
+- PR #3548 current exact head `e040eab4bba72b615b0641cb95549982a73a4d18`, 20 commits ahead / 30 behind canonical (DIVERGED).
+- Build `44421110716`: Analyze, Debug APK and Release APK passed; all six test shards failed.
+- Device Smoke `44421110586`: six scenarios passed; Home scenario failed. Follow-up Persistence `44421111448` passed.
+- Logged root failures include old Home header/finders not matching new header text, old notification key removed, old Project label mismatch, and the known v8→v9 executor-open fixture defect. Do not change expectations merely to silence these failures.
+- Preserve the ArvinColors adjustments present in the UI candidate; candidate palette values are primary `#078B91`, primaryDark/header `#066F75`, primarySoft `#DDF7F5`, background `#F0FAF9`, border `#D9ECEA`. Keep the token candidate as evidence, but do not accept PR #3548 while its six shards and Home smoke fail.
+- The candidate token file covers Spacing, Radius, Motion, Touch Targets and Typography. A shared Components layer and a complete cross-page literal audit remain open.
+
+### Lane C — REV10 Home / Center
+- Five due-date groups already exist in canonical Home source: overdue, today, tomorrow, future, no_date.
+- Home still exposes only four filter dimensions: Time, Project, Category and Tags. Center is missing from UI state and active filter semantics.
+- Schema 9 includes Center/M2M tables, but Center model, CenterStore, management page, Home integration and Backup/Restore acceptance are not present on canonical SHA.
+- Issue #3550 remains the active tracking issue. Center capability is NOT ACCEPTED.
+
+### Lane D — PR #3547 independent acceptance
+- Shard 2 remains a recorded FAIL on the exact #3547 head.
+- Passing tests on PR #3549 do not transfer to PR #3547.
+- Re-run all six shards on the final canonical candidate after the fix is ported; never delete, skip or weaken tests.
+
+### Lane E — Typography / other pages
+- Actual ZIP `vazirmatn-v33.003 (2).zip` re-inspected: 13,047,191 bytes, SHA-256 `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`, 387 entries, ZIP CRC clean, SIL OFL 1.1, Vazirmatn static weights 100–900.
+- Canonical repository still registers only 400/500/700 and contains only those three TTF files.
+- Existing Settings text-size Slider is present, persists via AppSettingsService and is wired to root MediaQuery.textScaler; preserve it and verify app-wide behavior instead of recreating it.
+- Other-page visual and accessibility acceptance remains open.
+
+### Current acceptance vocabulary
+- Person tombstone fix: CI TESTED on PR #3549 SHA; NOT INTEGRATED / NOT ACCEPTED.
+- PR #3547: BLOCKED by test-2.
+- PR #3548: BLOCKED by six failed shards and Home smoke.
+- REV10 Home: five groups present; Center filter missing.
+- Center: schema present; feature path incomplete.
+- Vazirmatn: archive/license verified; repository weight registration and visual tests incomplete.
+- Release: NO-GO. No merge, release or deployment authorized.

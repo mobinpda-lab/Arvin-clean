@@ -552,3 +552,23 @@ No product decision in REV10 is changed by this consolidation checkpoint. The ap
 Implementation acceptance remains separate from decision approval. The live Main schema is v7; the v19/v20 candidate chain is not yet integrated or accepted on the Main-based delivery branch. No production migration may run until the complete v7→v19→v20 dependency chain, data parity, rollback/retry, file-backed fixtures, and Backup/Restore gates are proven.
 
 The canonical delivery candidate is PR #3495. NIRA remains separate and must not become an Arvin runtime dependency.
+
+
+---
+
+## OWNER DIRECTION — COMMAND 60-R.1 design-token preservation — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+
+The Product Owner explicitly instructed that the ArvinColors changes already made in the COMMAND 60-R UI candidate be preserved. The current candidate values are:
+- Primary: `#078B91`
+- Primary dark / header: `#066F75`
+- Primary soft: `#DDF7F5`
+- Background: `#F0FAF9`
+- Border: `#D9ECEA`
+- Dark primary: `#78D4D0`
+- Dark surface: `#1D2B2F`
+
+These values supersede the older indigo color literals as the preservation target for the pending Design System integration. Keep `ArvinColors` as the sole color-token authority; do not create a second palette. This owner direction does not mean PR #3548 is accepted: its exact-head Build failed all six test shards and its Home Device Smoke failed. Port and validate the approved token values through canonical PR #3495 without discarding existing product behavior.
+
+The current design-token candidate covers spacing, radii, motion, touch targets and typography. A central Components token layer and a full cross-page audit remain incomplete.
+
+The existing Settings font-size preference is retained as-is: it is persisted by `AppSettingsService` and applied through the root `MediaQuery.textScaler`. Do not remove, reset or rebuild it as a parallel setting.

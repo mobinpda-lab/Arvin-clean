@@ -1086,3 +1086,19 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Confirmed the migration dependency blocker: Main v7, #3384 candidate v19, #3463 candidate v20; #3384 is stacked on a base 2,200 commits ahead of Main, and #3463 is stacked on #3384. No schema transplant or production migration was performed.
 - Enumerated 1,439 branches. Identified 121 open PRs through date-partitioned search. Closed-unmerged inventory is still being partitioned; no PRs or branches were closed/deleted in this pass.
 - Main remains unchanged. No merge, release, deployment, history rewrite or production database mutation occurred.
+
+
+---
+
+## COMMAND 60-R.1 — evidence review and acceptance gates — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+
+- Re-fetched live PR #3495 and canonical branch; all work remains on `recovery-02/main-based-integration`, parent SHA `6d806125e91056fedb74b0644d77a273ee4b675f`. Main was not modified.
+- Reviewed PR #3549 source: marker-versioned exclusion table, migration guard, tombstone-aware hydration and explicit same-ID re-add. Its file-backed close/reopen test passes on the PR head. Backup/Restore and duplicate SQL relation counts remain unproven.
+- Reviewed PR #3547 exact-head CI: test-2 remains failed due to directory rehydration. No test was removed or weakened.
+- Reviewed PR #3548 exact-head CI: all six test shards and Home Device Smoke fail. Analyze and APK jobs pass; Follow-up Persistence passes. The candidate's ArvinColors changes are retained as evidence and must not be lost during future integration.
+- Verified canonical Home has five due-date groups and four filter dimensions. Center is absent from Home.
+- Verified Schema 9 Center/M2M DDL exists but no Center model/store/management UI was found on the canonical tree.
+- Re-inspected the actual Vazirmatn v33.003 ZIP and its OFL 1.1 license. Existing repository weight registration remains 400/500/700.
+- Verified existing Settings font-size persistence and root MediaQuery textScaler; no duplicate setting was introduced.
+- Added six focused acceptance reports and updated the Master Tracker. No application code, historical data, schema or tests were changed in this documentation checkpoint.
+- Exact-SHA CI must be re-fetched after this documentation commit; prior run conclusions do not transfer to the new canonical HEAD.

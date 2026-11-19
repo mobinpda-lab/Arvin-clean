@@ -1817,3 +1817,19 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Full UI/RTL/typography acceptance: NOT ACCEPTED.
 - Exact-head CI for the documentation-updated branch: pending.
 - Merge, release, deployment, and production-data operations: NOT AUTHORIZED.
+
+
+---
+
+## COMMAND 60-R.1 — live evidence checkpoint — 2026-11-19 / ۲۸ آبان ۱۴۰۵
+
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db`, read-only.
+- Canonical PR #3495 / branch `recovery-02/main-based-integration` was inspected at `6d806125e91056fedb74b0644d77a273ee4b675f`; OPEN / DRAFT / UNMERGED.
+- PR #3547 test-2 failure is a confirmed Person Directory rehydration defect, not a flaky or obsolete assertion.
+- PR #3549's exact SHA passes Build (all six shards), Device Smoke and Follow-up Persistence, but remains unintegrated, diverged from canonical, and lacks dedicated Backup/Restore and duplicate-row acceptance.
+- PR #3548's exact SHA fails all six test shards and the Home Device Smoke scenario. Its ArvinColors and shared token changes are preserved as a candidate, not accepted.
+- Canonical Home has five due-date groups but only four filter dimensions; Center is missing.
+- Schema 9 has Center relational tables; model/store/management/Home/Backup integration remains missing.
+- Vazirmatn ZIP and OFL license have been independently re-inspected. Repository still has only weights 400/500/700.
+- Existing Settings text-size slider and root textScaler are present; preserve them.
+- See the six additive COMMAND 60-R.1 reports under `docs/history/command-60-r/`. Earlier history and failed results are retained.
