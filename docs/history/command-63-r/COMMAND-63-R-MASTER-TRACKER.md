@@ -356,3 +356,40 @@ PR #3052 remains OPEN / DRAFT / UNMERGED and currently reports `mergeable=true`.
 Documentation lane:
 - New cumulative tracker branch: `command-63-r/master-tracker`.
 - Tracker PR #3564: OPEN / DRAFT / UNMERGED; base is the operational branch at `bc2b3d61ab10e5cd6c9c72f56d522057f9ba5975`; head is `ccefd74c99242410370a0923b2b224bdcee394db` at creation. It is documentation-only and does not alter Main.
+
+
+## 23. Follow-up COMMAND 63 source audit — relationships and backup
+### Center / Project / Category storage
+The operational #3052 source is schema v17. The inspected `g1_drift_schema.dart` creates `centers`, `projects`, `project_items` and `taxonomy_categories`; it does not create `center_projects` or `project_categories`.
+- `ProjectPlan.centerId` is scalar.
+- `projects.center_id` is a nullable scalar FK.
+- `ProjectStore.save` rebuilds Project rows and `project_items` in a transaction; any future relation tables must be explicitly preserved/restored in this transaction.
+- Task categories remain Task-level strings; no Project↔Category relation is currently proven.
+The safe additive design proposal is on the COMMAND 63 documentation branch:
+`docs/architecture/COMMAND-63-R-CENTER-M2M-AND-SCHEMA-18-PLAN.md`
+Commit: `c48ebb7d5c81a041990a8c9d65341f8c8c5ca23b`.
+No schema migration or production code was changed for M2M. The issue #3550 source distinction and missing acceptance evidence were posted as comment ID `7003269413`; issue remains OPEN.
+
+### Person Directory backup
+Source review found the current #3052 portable backup code already has a `peopleDirectory` field in backup format v1:
+- `ArvinBackupManager.backupCanonicalTasks` accepts standalone Person records and serializes them into the same existing document.
+- `restoreCanonicalBackup` decodes and validates Person IDs and Follow-up person references; old backups without `peopleDirectory` remain distinguishable/backward-compatible.
+- Tests include standalone Person + Follow-up association coverage in `test/canonical_backup_manager_test.dart`, and `test/backup_service_test.dart` validates optional People-directory round-trip.
+- Issue #2682 is CLOSED in live metadata, while its description body still contains a stale “P1 OPEN” line.
+Disposition: the serialization/restore-candidate layer is source-backed; independent SQLite-file restore, full apply/rollback integration and post-reopen relation parity still require exact tests/artifacts. Do not claim the complete backup/restore gate PASS from JSON candidate tests alone.
+
+## 24. Latest operational code candidate and fresh exact-SHA runs
+Operational branch head: `542b719efc99c632e09ba070e40388c10a448379`.
+This includes the Home Center pill, updated five-filter widget assertions, Center-selector test and the canonical Reminder compatibility-getter test correction.
+Fresh exact-head workflows:
+- Build run `44482767738` (#11706): Analyze PASS, Visual PASS; Release APK, Debug APK, Staging APK and all six test shards IN PROGRESS at the last poll.
+- Device Smoke run `44482767749` (#8865): PENDING; no job results yet.
+- Follow-up File Persistence run `44482767791` (#2788): PENDING at the run poll; job fetch subsequently reported its single file-backed SQLite job SUCCESS.
+- Calendar Provider run `44482767767` (#2984): IN PROGRESS.
+- Draft Review APK run `44482767717` (#1994): QUEUED / IN PROGRESS.
+No overall Build or Device Smoke result is accepted yet. The earlier exact-head result on `4b2a2ef...` remains FAIL with 80 failed test instances and a Debug dependency download HTTP 429.
+
+Documentation lane updates:
+- Architecture proposal commit: `c48ebb7d5c81a041990a8c9d65341f8c8c5ca23b`.
+- Issue #3550 clarification comment: `7003269413`.
+- Tracker PR #3564 remains OPEN / DRAFT / UNMERGED; its branch is documentation-only and is not merged into the operational branch.
