@@ -85,7 +85,7 @@ void main() {
     }
 
     // Reopen and repeat schema installation. The excluded identity must not be
-    // silently rehydrated from task_people or follow_up_people.
+    // silently re-added by canonical Task/Follow-up relation migration.
     database = NativeDatabase(file);
     try {
       await G1DriftSchema.install(database);
