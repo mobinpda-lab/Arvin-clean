@@ -2671,13 +2671,13 @@ class _HomePageState extends State<HomePage> {
       final reconciledPersonDirectoryExclusions =
           candidate.hasPersonDirectoryExclusions
               ? ArvinBackupManager.reconcilePersonDirectoryExclusionsById(
-                  current: previousPersonDirectoryExclusions ?? const [],
+                  current: previousPersonDirectoryExclusions,
                   backup: candidate.personDirectoryExclusions ?? const [],
-                  activePersonIds: (reconciledPeople ?? const <PersonReference>[])
+                  activePersonIds: reconciledPeople
                       .map((person) => person.id)
                       .toSet(),
                 )
-              : previousPersonDirectoryExclusions ?? const <Map<String, dynamic>>[];
+              : previousPersonDirectoryExclusions;
 
       await runRestoreWithRollback<void>(
         recoveryBackup: emergencyBackup,
