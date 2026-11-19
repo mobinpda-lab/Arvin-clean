@@ -244,7 +244,7 @@ void main() {
     expect(find.text('دوم'), findsOneWidget);
     expect(find.text('سوم'), findsNothing);
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.text('برچسب')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-tags')), matching: find.bySemanticsLabel('برچسب')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 
@@ -268,7 +268,7 @@ void main() {
     await tester.tap(find.text('تأیید / اعمال فیلتر'));
     await tester.pumpAndSettle();
     expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('2')), findsNothing);
-    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.text('زمان')), findsOneWidget);
+    expect(find.descendant(of: find.byKey(const ValueKey('home-filter-card-time')), matching: find.bySemanticsLabel('زمان')), findsOneWidget);
     expect(find.text('کار گذشته'), findsOneWidget);
     expect(find.text('کار امروز'), findsOneWidget);
     expect(find.text('کار فردا'), findsNothing);
