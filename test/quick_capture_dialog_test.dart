@@ -948,7 +948,10 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('universal-time-save')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    final reminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(reminderControl);
+    await tester.pumpAndSettle();
+    await tester.tap(reminderControl);
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('۱۵ دقیقه قبل'));
     await tester.tap(find.text('۱۵ دقیقه قبل'));
@@ -1383,7 +1386,10 @@ void main() {
     await _openQuickCaptureDueTimePicker(tester);
     await tester.tap(find.byKey(const ValueKey('universal-time-no-time')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
+    final allDayReminderControl = find.byKey(const ValueKey('quick-capture-reminder-rollbox'));
+    await tester.ensureVisible(allDayReminderControl);
+    await tester.pumpAndSettle();
+    await tester.tap(allDayReminderControl);
     await tester.pumpAndSettle();
     expect(find.text('۱۵ دقیقه قبل'), findsNothing);
     await tester.tapAt(const Offset(12, 12));
