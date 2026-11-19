@@ -25,13 +25,19 @@ void main() {
       title: 'تحویل قرارداد',
       description: 'نسخه نهایی',
       dueDate: DateTime(2026, 8, 29, 10),
-      reminderDate: DateTime(2026, 8, 29, 9),
+      taskReminders: <TaskReminder>[
+        TaskReminder(
+          id: 'task-reminder-1',
+          title: 'یادآوری کار',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
+        ),
+      ],
+      nextReminderSequence: 2,
       followUps: [
         FollowUp(
           id: 'fu-1',
           dateTime: DateTime(2026, 8, 28, 12),
-          nextFollowUp: DateTime(2026, 8, 29, 11),
-          reminderDate: DateTime(2026, 8, 29, 10, 30),
         ),
       ],
     );
@@ -42,6 +48,7 @@ void main() {
     );
     expect(report.days, hasLength(1));
     expect(report.days.single.items.single.events, hasLength(2));
+    expect(report.days.single.items.single.entry.followUps, hasLength(1));
 
     final renderer = TaskReportPdfRenderer(
       fontLoader: () async => TaskReportFonts(
