@@ -130,7 +130,6 @@ void main() {
       groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
       ['older', 'newer', 'completed'],
     );
-    );
     expect(
       groups.singleWhere((group) => group.id == 'no_date').title,
       'فاقد زمان',
