@@ -1,3 +1,39 @@
+String _extractMethodBody(String source, String signature) {
+  final start = source.indexOf(signature);
+  if (start < 0) throw StateError('Missing method signature: $signature');
+  final openBrace = source.indexOf('{', start);
+  if (openBrace < 0) throw StateError('Missing method body: $signature');
+
+  var depth = 0;
+  int? quote;
+  var escaped = false;
+  for (var index = openBrace; index < source.length; index++) {
+    final code = source.codeUnitAt(index);
+    if (quote != null) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (code == 92) {
+        escaped = true;
+        continue;
+      }
+      if (code == quote) quote = null;
+      continue;
+    }
+    if (code == 39 || code == 34) {
+      quote = code;
+      continue;
+    }
+    if (code == 123) depth++;
+    if (code == 125) {
+      depth--;
+      if (depth == 0) return source.substring(openBrace + 1, index);
+    }
+  }
+  throw StateError('Unterminated method body: $signature');
+}
+
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,10 +65,7 @@ void main() {
   });
   test('normal Task save, capture, edit and completion contain no outbound sync', () {
     final main = File('lib/main.dart').readAsStringSync();
-    final save = main.substring(
-      main.indexOf('Future<void> _save()'),
-      main.indexOf('DateTime? _homeLastFollowUpDate'),
-    );
+    final save = _extractMethodBody(main, 'Future<void> _save() async');
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('calendarOutboundSyncService')));
     expect(main, isNot(contains('_syncCalendarAfterTaskMutation')));
