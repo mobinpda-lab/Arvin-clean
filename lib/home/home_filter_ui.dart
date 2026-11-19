@@ -34,7 +34,7 @@ class HomeFilterPill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final selectedSurface = Color.alphaBlend(accent.withAlpha(18), colors.surface);
+    final selectedSurface = active ? soft : colors.surface;
     return Semantics(
       button: true,
       label: selectedCount > 0 ? '$label، $selectedCount انتخاب' : label,
