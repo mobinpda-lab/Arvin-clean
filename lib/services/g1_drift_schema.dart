@@ -9,7 +9,7 @@ import 'recurrence_sql_codec.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 17;
+  static const int version = 18;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -36,6 +36,9 @@ class G1DriftSchema implements QueryExecutorUser {
   created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
     '''CREATE TABLE IF NOT EXISTS person_directory (
   person_id TEXT NOT NULL PRIMARY KEY REFERENCES persons(id))''',
+    '''CREATE TABLE IF NOT EXISTS person_directory_exclusions (
+  person_id TEXT NOT NULL PRIMARY KEY, excluded_at TEXT NOT NULL,
+  legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS follow_up_record_people (
   follow_up_id TEXT NOT NULL REFERENCES follow_up_records(id), person_id TEXT NOT NULL REFERENCES persons(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
@@ -237,7 +240,12 @@ class G1DriftSchema implements QueryExecutorUser {
       );
       if (directorySeed.isEmpty) {
         await executor.runCustom(
-          'INSERT OR IGNORE INTO person_directory (person_id) SELECT id FROM persons',
+          '''INSERT OR IGNORE INTO person_directory (person_id)
+             SELECT persons.id FROM persons
+             WHERE NOT EXISTS (
+               SELECT 1 FROM person_directory_exclusions
+               WHERE person_id = persons.id
+             )''',
         );
         await executor.runCustom(
           "INSERT INTO arvin_storage_meta (key, value) VALUES ('person_directory_seeded_v1', '1') "
