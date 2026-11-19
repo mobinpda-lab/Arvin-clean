@@ -137,6 +137,18 @@ void main() {
     expect(rows.single['remind_at'], '2026-10-20T09:30:00.000');
     expect(rows.single['sequence'], 1);
     expect(rows.single['is_enabled'], 1);
+
+    await G1DriftSchema.markLegacyMigrationComplete(executor);
+    final restored = (await TaskStore(executor: executor).load()).single;
+    expect(restored.taskReminders, hasLength(1));
+    expect(
+      restored.taskReminders.single.id,
+      'legacy-task-reminder-schema-v15-task',
+    );
+    expect(
+      isMigratedTaskReminder(restored, restored.taskReminders.single),
+      isTrue,
+    );
   });
 
   test('TaskStore stores All-Day due dates as date-only SQLite values', () async {
