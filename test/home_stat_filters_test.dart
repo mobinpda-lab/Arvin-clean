@@ -26,7 +26,7 @@ void main() {
     await CenterStore.resetTestDatabase();
   });
 
-  testWidgets('Home exposes the four canonical REV5 filter controls', (tester) async {
+  testWidgets('Home exposes the five canonical REV10 filter controls', (tester) async {
     tester.view.physicalSize = const Size(390, 844);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -37,6 +37,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -45,6 +46,7 @@ void main() {
     }
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -124,6 +126,7 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
+      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -273,7 +276,7 @@ void main() {
   });
 
 
-  testWidgets('four REV5 icon filters fit 360, 390 and 412dp without overlap',
+  testWidgets('five REV10 icon filters fit 360, 390 and 412dp without overlap',
       (tester) async {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
