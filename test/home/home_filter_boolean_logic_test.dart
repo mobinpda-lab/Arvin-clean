@@ -30,11 +30,18 @@ void main() {
     await tester.pumpAndSettle();
     final personalOption = find.byKey(const ValueKey('multi-select-option-شخصی'));
     await tester.ensureVisible(personalOption);
+    await tester.pumpAndSettle();
     await tester.tap(personalOption);
+    await tester.pumpAndSettle();
     final workOption = find.byKey(const ValueKey('multi-select-option-کاری'));
     await tester.ensureVisible(workOption);
+    await tester.pumpAndSettle();
     await tester.tap(workOption);
-    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    final categoryApply = find.text('تأیید / اعمال فیلتر');
+    await tester.ensureVisible(categoryApply);
+    await tester.pumpAndSettle();
+    await tester.tap(categoryApply);
     await tester.pumpAndSettle();
 
     final tagFilter = find.byKey(const ValueKey('home-filter-card-tags'));
@@ -43,11 +50,18 @@ void main() {
     await tester.pumpAndSettle();
     final homeOption = find.byKey(const ValueKey('multi-select-option-خانه'));
     await tester.ensureVisible(homeOption);
+    await tester.pumpAndSettle();
     await tester.tap(homeOption);
+    await tester.pumpAndSettle();
     final officeOption = find.byKey(const ValueKey('multi-select-option-اداری'));
     await tester.ensureVisible(officeOption);
+    await tester.pumpAndSettle();
     await tester.tap(officeOption);
-    await tester.tap(find.text('تأیید / اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    final tagApply = find.text('تأیید / اعمال فیلتر');
+    await tester.ensureVisible(tagApply);
+    await tester.pumpAndSettle();
+    await tester.tap(tagApply);
     await tester.pumpAndSettle();
 
     expect(find.text('شخصی خانه'), findsOneWidget);
