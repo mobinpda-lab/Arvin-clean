@@ -627,3 +627,67 @@ Documentation lane #3564 now carries:
 - Obtain physical-device screenshots and exact-SHA evidence.
 
 **Disposition: Source identity and nine-weight source assets are verified on PR #3573; app-wide visual and device acceptance remains OPEN.**
+
+## 32. COMMAND 63-R — live implementation and failure-triage checkpoint (2026-11-19)
+
+### Live repository state
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db` — unchanged / protected.
+- Operational PR #3052: OPEN / DRAFT / UNMERGED, branch `fix/recovery-calendar-device-smoke-2026-10-31`, HEAD `a2825e003bb9e6b5c2413b0dc74b085273b6148b`. No direct Main write, merge, release or deploy.
+- #3052 Build run `44490319550`: Analyze PASS; Debug APK PASS; Release APK PASS; Visual PASS; all six test shards FAIL with 72 failed test instances. The original Staging APK job failed on external Kotlin 2.2.21 dependency resolution; isolated retry job `135449076966` completed SUCCESS on the same SHA. The aggregate Build remains FAIL because the six shards fail.
+- #3052 Follow-up File Persistence `44490319367`: PASS. Calendar Provider `44490319483`: PASS. G1 Lock Sync `44490319577`: PASS. Draft Review APK `44490319361`: PASS. Device Smoke `44490319359`: PENDING; no device acceptance.
+
+### Current independent Draft PRs
+All remain OPEN / DRAFT / UNMERGED; none has been merged or promoted.
+
+| PR | Lane / scope | Branch HEAD | Latest workflow state at poll |
+|---|---|---|---|
+| #3567 | Path C — approved teal palette, shared design tokens, app-wide Material theme and navigation | `6d9cb754cd5bade41dac130653d03e852774cbb1` | Build PENDING; Device Smoke PENDING; Orchestrator IN_PROGRESS; Follow-up Persistence PENDING |
+| #3569 | Path B — five Home groups, REV10 header identity, five visible filters and RTL order | `19a657503bd7b1a28576a5a0676a0a48af7ffa34` | Build PENDING; Device Smoke PENDING; Follow-up Persistence QUEUED; Orchestrator QUEUED |
+| #3570 | Path A — canonical TaskReminder contracts, reminder migration, Occurrence/Checklist persistence and report fixture | `fd4954d773e039cb56ed31806fd2b4790b82d3b5` | Build PENDING; Device Smoke PENDING; Follow-up Persistence QUEUED |
+| #3571 | Path B — Quick Capture labels, Center inline creation and scroll-aware interaction tests | `60de06ecb0dae94fdbe3ebc6a4c0d93ce81f156e` | Build PENDING; Device Smoke PENDING; Follow-up Persistence PASS; PR Wakeup PASS |
+| #3572 | Path B — Task Details metadata heading and lazy timeline visibility | `be9248d77348421bd044e2480634e804f5782aba` | Build QUEUED; Device Smoke PENDING; Follow-up Persistence QUEUED; Orchestrator PASS |
+| #3573 | Path D — Vazirmatn v33.003 nine static TTF weights, official license/authors and bundle manifest test | `6d0dc85ed2ce8bb144c157e39aabd94fe7a049ba` | Build QUEUED; Device Smoke PENDING; Follow-up Persistence PASS; Production Loop PASS |
+| #3574 | Path F — Person directory exclusion tombstones in schema 17 and TaskStore | `8aca2bd36ea28ae8c291e7418541453d12847de2` | Build PENDING; Device Smoke PENDING; Follow-up Persistence PASS; Production Loop PASS |
+| #3575 | Path F — backup/restore of Person exclusions, rollback and independent SQLite round-trip | `6b1a03f502d5c642ba28a8884186f4a348b0e572` | Build PENDING; Device Smoke PENDING; Follow-up Persistence PASS; Production Loop PASS |
+
+PR #3575 is stacked on PR #3574. Its captured base SHA is `90a8100c0e58fe0b6cedc9e1df3b234adf951b5d`; #3574 has since advanced to `8aca2bd36ea28ae8c291e7418541453d12847de2` by a documentation/test-comment commit. GitHub currently reports #3575 mergeable=true, but the stack is one base commit behind; do not merge or force-update. Reconcile the base before promotion.
+
+### Actual code/test work recorded in these lanes
+- #3567: fixed brand palette is now teal (#078B91 / #066F75 / #DDF7F5 / #F0FAF9 / #D9ECEA); added spacing, radius, typography, shadow, motion, touch-target, button, input, card, navigation and dialog tokens; applied them to app-wide light/dark Material themes and primary navigation; corrected the dark selected-navigation surface. This is a token foundation, not full-page REV10 acceptance.
+- #3569: Home uses the five due-date groups; completed prior-day tasks remain in the historical group after active overdue work. Header is restored to the approved Bismillah capsule, title «مدیریت کارها و پیگیری آروین», physical-left notifications action and physical-right menu. Five visible filters use RTL order Time → Project → Category → Tag → Center. The notification action is informational only; a full notification inbox is not claimed.
+- #3570: added file-backed schema-install/reopen coverage for Occurrence and Checklist, including explicit NULL and unknown nested fields; canonical TaskReminder fixtures replace legacy constructor-only reminderDate fixtures; Task Editor date-picker tests follow the current unified picker; swipe test now asserts the deprecated followUpEnabled getter reflects canonical Follow-up history; Work Agenda PDF fixture uses canonical TaskReminder and verifies Follow-up history remains in the report entry.
+- #3571: Quick Capture Project/Category/Tags/Reminder/Recurrence labels are visible; Center inline creation has stable-ID selection/persistence coverage; tests scroll controls into view and settle before tapping; due-time test no longer expects an unconfigured reminder to mirror the due time; the Wave 2 wiring guard now verifies six legitimate canonical editor paths.
+- #3572: Task Details metadata now has a «مشخصات کار» heading; the lazy latest-Follow-up and timeline sections are scrolled into view before assertions.
+- #3573: all nine static upstream TTF weights 100–900 are registered; five existing weights were matched by Git blob SHA, and four missing weights were added from the official v33.003 tag. OFL and AUTHORS assets are explicit in pubspec. The font files are static TTFs, not variable-font registrations. APK packaging and device rendering remain unverified.
+- #3574: adds `person_directory_exclusions` with idempotent schema migration; removal from the directory does not delete Task/Follow-up relations; explicit re-add of the same stable ID clears the exclusion; seed and stale Task writes cannot silently resurrect an excluded Person.
+- #3575: adds optional `personDirectoryExclusions` to the existing backup v1 payload; validates IDs, timestamps, duplicates and active/excluded overlap; includes exclusions in normal/emergency backups and exact rollback; adds independent source/target SQLite round-trip tests for Task/Follow-up links, row cardinality, integrity and foreign keys.
+
+### 72-instance failure triage corrections
+The following corrections are authored in Draft branches; none is accepted until exact-head Build runs finish:
+- Home filter Boolean test now scrolls category/tag options and the Apply action into view; it does not suppress hit-test warnings.
+- Home More-menu tests scroll lazy Today actions into view.
+- Home owner/widget tests assert the REV10 title, Bismillah capsule, both physical header actions and visible five-filter labels.
+- Home filter contract asserts visible labels and exact RTL order.
+- Tag roll-box contract explicitly enables its visible selected-count label; the teal branch asserts the approved primary token.
+- Overdue status icon assertion now references `ArvinColors.primary` rather than a stale hard-coded blue value.
+- Quick Capture tests locate reminder/recurrence controls by stable keys, scroll them into view and pump animations before tapping.
+- Quick Capture scheduling-time assertion expects one due-time value when no reminder is selected.
+- Task Editor tests follow the current unified date/time picker instead of an obsolete intermediate «انتخاب تاریخ و ساعت» action.
+- Task Editor preservation fixture uses canonical TaskReminder rather than the legacy-only Task.reminderDate constructor.
+- Follow-up swipe test asserts the compatibility getter from canonical Follow-up history.
+- Task Details test scrolls lazy timeline content before asserting it; metadata section heading is now present.
+- Work Agenda PDF fixture uses canonical TaskReminder and separately verifies Follow-up history in the report entry.
+- Home Restore orchestration now injects failure after the People-directory stage and asserts exact Person-exclusion rollback and emergency snapshot coverage.
+- A new file-backed independent SQLite backup/restore test validates Person exclusions and retained historical relations.
+
+### Issue disposition
+- #3550 remains OPEN / IN PROGRESS. Draft PR #3569 supplies the visible Center filter in the five-filter Home row, but schema 17 still has scalar `projects.center_id` and no accepted `center_projects`, `project_categories` or `task_centers` relation contract. The schema-18 proposal is design-only. No inferred legacy relationships or destructive migration.
+- #2682 remains CLOSED in live GitHub metadata. Existing `peopleDirectory` serialization/candidate/apply/rollback path exists on #3052. New #3575 extends explicit exclusion/tombstone backup semantics and adds independent-file test coverage; exact-head Build and real Android file import/export/device acceptance remain pending. A status comment was added; issue was not reopened.
+
+### Release and acceptance disposition
+- No PR is PASS solely because a commit, test file or workflow trigger exists.
+- Exact-head Build results for #3567–#3575 remain pending/queued at this checkpoint; the isolated Follow-up File Persistence and Production Loop successes do not replace the full Build or Device Smoke.
+- The 72 failures from #3052 SHA a2825e0 remain the active baseline until the new PR heads finish their own exact-SHA runs. The earlier 80-instance baseline remains preserved as historical evidence.
+- Full V7/V19/V20 migration acceptance, Center M2M, independent restore on physical Android, full REV10 page audit, Local P2P threat-model approval and two-device tests remain open.
+
+**Release: NO-GO. Main protected and unchanged. PR #3052 and PRs #3567–#3575 remain OPEN / DRAFT / UNMERGED. No merge, release, deploy, destructive migration or production-database operation was performed.**
