@@ -1,3 +1,39 @@
+String _extractMethodBody(String source, String signature) {
+  final start = source.indexOf(signature);
+  if (start < 0) throw StateError('Missing method signature: $signature');
+  final openBrace = source.indexOf('{', start);
+  if (openBrace < 0) throw StateError('Missing method body: $signature');
+
+  var depth = 0;
+  int? quote;
+  var escaped = false;
+  for (var index = openBrace; index < source.length; index++) {
+    final code = source.codeUnitAt(index);
+    if (quote != null) {
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (code == 92) {
+        escaped = true;
+        continue;
+      }
+      if (code == quote) quote = null;
+      continue;
+    }
+    if (code == 39 || code == 34) {
+      quote = code;
+      continue;
+    }
+    if (code == 123) depth++;
+    if (code == 125) {
+      depth--;
+      if (depth == 0) return source.substring(openBrace + 1, index);
+    }
+  }
+  throw StateError('Unterminated method body: $signature');
+}
+
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -10,10 +46,7 @@ void main() {
     expect(source, contains('List<Task> tasks = [];'));
     expect(source, contains('final TaskStore taskStore = TaskStore();'));
     expect(source, contains('await taskStore.save(snapshot);'));
-    final save = source.substring(
-      source.indexOf('Future<void> _save()'),
-      source.indexOf('DateTime? _homeLastFollowUpDate'),
-    );
+    final save = _extractMethodBody(source, 'Future<void> _save() async');
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('syncTaskLifecycle')));
     expect(source, isNot(contains('TaskMigrationWriter')));
@@ -21,10 +54,7 @@ void main() {
   });
   test('normal save, Quick Capture, edit and completion never export automatically', () {
     final source = File('lib/main.dart').readAsStringSync();
-    final save = source.substring(
-      source.indexOf('Future<void> _save()'),
-      source.indexOf('DateTime? _homeLastFollowUpDate'),
-    );
+    final save = _extractMethodBody(source, 'Future<void> _save() async');
     expect(save, isNot(contains('CalendarOutboundSyncService')));
     expect(save, isNot(contains('calendarOutboundSyncService')));
     expect(source, isNot(contains('_syncCalendarAfterTaskMutation')));
