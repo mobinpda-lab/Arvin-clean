@@ -151,6 +151,13 @@ class TaskStore {
   Future<void> savePeopleDirectory(Iterable<PersonReference> people) async {
     final normalized = <String, PersonReference>{};
     for (final person in people) {
+      if (person.isDeleted) {
+        throw ArgumentError.value(
+          person.id,
+          'people',
+          'Deleted historical Persons cannot be added to the active directory',
+        );
+      }
       if (normalized.containsKey(person.id)) {
         throw ArgumentError.value(person.id, 'people', 'Duplicate person id');
       }
