@@ -1097,3 +1097,18 @@ This entry supersedes older statements that the owner decision is pending or tha
 - Prior exact-head build `2d04631dd9d1939bd3feafa12aa7d68bec349b58` produced Debug and Release APK artifacts but multiple test shards failed. Affected tests were updated; exact-head validation is still required. Do not infer success from old runs.
 - Current release status: **NO-GO / NOT VALIDATED** until the final resulting SHA has passing analyzer, all test shards with zero skipped tests, Debug/Release artifacts, all six Device Smoke lanes, Calendar Provider Acceptance, and artifact inspection.
 - Font gap remains open: project bundles VazirHarf; Vazirmatn is not present in declared assets and is not claimed applied. Physical-device acceptance is still separate.
+
+
+---
+
+# AUTHORITATIVE LIVE UPDATE — 2026-11-19 — COMMAND 76-R
+
+This checkpoint records only directly observed GitHub state. It supersedes older status statements above where they conflict.
+
+- Repository: `mobinpda-lab/Arvin-clean`; observed `main` SHA: `45e4202b03a434459e4c021a04efa7e8396359db`. Main was not modified.
+- PR #3598, `fix/command-76-home-filter-test-scroll-20261119`, head `26feb55be5877994ea4c52ed4a7f8a69d33baf56`, remains OPEN/DRAFT and unmerged. Its Build run `44556983938` completed FAILURE: Analyze and Debug/Release/Staging APK jobs succeeded, but all six test shards failed. Device Smoke run `44556983815` remained QUEUED at the latest poll. Follow-up File Persistence `44556983754`, Production Loop `44556983940`, and Orchestrator `44556983786` succeeded. This does not constitute acceptance.
+- Failure evidence on #3598 includes product-facing regressions or stale expectations across Home, Quick Capture, Settings, Task Details, Task Timeline and swipe RTL. Examples include the missing independent-reminder section key in Task Details and missing Quick Capture reminder/recurrence controls in widget tests. The failures must be triaged against exact source and intended behavior; do not blanket-update expectations or suppress tests.
+- PR #3572, Task Details clarity/history, remains OPEN/DRAFT, head `be9248d77348421bd044e2480634e804f5782aba`. Its Build `44498204462` failed all six test shards while Analyze and Debug/Release/Staging APK jobs passed; Device Smoke `44498204623` remained QUEUED. Do not modify its branch while its validation is active; review its diff before any integration.
+- New independent product fix is being developed from the exact main SHA above on `fix/home-tag-filter-or-semantics-20261119`. Root cause: Home tag filtering used `_tagFilters.every(tags.contains)`, requiring a task to contain every selected tag. The product contract is OR within one filter dimension and AND across dimensions; multiple selected tags must therefore match any selected tag. The code now uses `any`, and a widget regression test covers two single-tag tasks, one task with both tags, and one unrelated task. No tests were removed or weakened.
+- Commits on the independent branch: `861b9e581747a56ef829f6634db345c2b0c63ecc` (product filter correction), followed by `1de7a83ab3f7c730f0314a241c450e90845894a1` (OR behavior regression test). CI must validate the final PR head before claiming success.
+- Next: finish the independent branch tracker update and PR creation; inspect exact-head Build and Device Smoke results for both #3598 and the new PR. Continue product fixes from current, source-verified failures without changing branches under active validation. MAIN PROTECTED; no merge, release, or deployment.

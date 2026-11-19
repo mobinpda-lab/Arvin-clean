@@ -82,4 +82,35 @@ void main() {
       88,
     );
   });
+
+  testWidgets('Home tag filters use OR within the selected tag dimension', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'arvin.tasks',
+      '[{"id":"tag-home","title":"کار خانه","tags":["خانه"]},'
+      '{"id":"tag-office","title":"کار اداری","tags":["اداری"]},'
+      '{"id":"tag-both","title":"کار مشترک","tags":["خانه","اداری"]},'
+      '{"id":"tag-other","title":"کار شخصی","tags":["شخصی"]}]',
+    );
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+    final homeTag = find.widgetWithText(CheckboxListTile, 'خانه');
+    await tester.ensureVisible(homeTag);
+    await tester.tap(homeTag);
+    await tester.pumpAndSettle();
+    final officeTag = find.widgetWithText(CheckboxListTile, 'اداری');
+    await tester.ensureVisible(officeTag);
+    await tester.tap(officeTag);
+    await tester.pumpAndSettle();
+
+    expect(find.text('کار خانه'), findsOneWidget);
+    expect(find.text('کار اداری'), findsOneWidget);
+    expect(find.text('کار مشترک'), findsOneWidget);
+    expect(find.text('کار شخصی'), findsNothing);
+  });
 }

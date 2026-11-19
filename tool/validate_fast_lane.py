@@ -84,14 +84,19 @@ for token in (
     'run_sql_persistence:',
     'run_sql_migration:',
     'RUN_SQL_MIGRATION: ${{ inputs.run_sql_migration }}',
-    'ref: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.sha }}',
+    # TARGET_SHA resolves the requested manual SHA, the PR head SHA, or push SHA.
+    'TARGET_SHA: ${{ github.event_name == \'workflow_dispatch\' && inputs.target_sha || github.event_name == \'pull_request\' && github.event.pull_request.head.sha || github.sha }}',
+    'ref: ${{ env.TARGET_SHA }}',
     'name: Record and verify checkout revision',
     'actual="$(git rev-parse HEAD)"',
-    'echo "CHECKOUT_SHA=$actual"',
+    'git cat-file -e "$TARGET_SHA^{commit}"',
+    'echo "EXPECTED_TARGET_SHA=$TARGET_SHA"',
+    'echo "CHECKED_OUT_SHA=$actual"',
     'echo "EXACT_TARGET_SHA=$actual"',
     'CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual',
 ):
     require(device, token, str(device_path))
+require(device, 'if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then', str(device_path))
 require(device, 'if [ "$actual" != "$TARGET_SHA" ]; then', str(device_path))
 require(device, 'exit 1', str(device_path))
 

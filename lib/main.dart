@@ -656,7 +656,7 @@ class _HomePageState extends State<HomePage> {
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where((task) {
           final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
+          return _tagFilters.any(tags.contains);
         });
       }
     }
