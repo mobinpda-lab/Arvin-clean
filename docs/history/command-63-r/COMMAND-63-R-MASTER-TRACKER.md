@@ -596,3 +596,34 @@ Documentation lane #3564 now carries:
 6. Local P2P is authorized for Phase 1 but remains design-only pending concrete protocol/security review and two-device acceptance.
 
 **Release remains NO-GO. Main remains protected and unchanged. No source PR is merged; no release or deployment is authorized.**
+
+## 31. COMMAND 63-R — Vazirmatn v33.003 source reconciliation and nine-weight completion
+
+### Official source verification
+- Official upstream repository/tag: rastikerdar/vazirmatn, v33.003.
+- SourceForge mirror release page reports archive SHA-256 0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb, matching the digest specified by COMMAND 63-R. The archive itself was not downloaded in this execution; the mirror's published digest was checked.
+- The upstream fonts/ttf directory contains nine static TTF files: Thin, ExtraLight, Light, Regular, Medium, SemiBold, Bold, ExtraBold and Black.
+- All five existing app weights (300–700) were fetched as upstream blobs and compared by Git blob SHA; all five matched exactly.
+- Four missing weights (100, 200, 800, 900) were added to the Path D branch from the exact upstream tag. Their blob SHAs match upstream exactly:
+  - Thin 100: b7a7d233e2a78b48d2eaa6733dd4ba683a92d847
+  - ExtraLight 200: b7b947e6acda06dd5c545a2fcd506900500afaa8
+  - ExtraBold 800: 380bd15866f3364d7c34af1cbd3c15a2e209dfee
+  - Black 900: 4b9bd66179952e5b2edcfd97acbdef6d4acd0ea2
+- Upstream OFL.txt and app LICENSE.txt are byte-identical (blob SHA be66b3824e9772e75141e631695c5256f105fb57). App AUTHORS.txt was synchronized to the exact upstream AUTHORS.txt (blob SHA 6efd2e62407e08b482647e134f9098b44e5ae5ec).
+- The font binaries are static TTF weights, not a variable-font registration.
+
+### Implementation lane
+- PR #3573 — OPEN / DRAFT / UNMERGED, branch command-63-r/path-d-vazirmatn, head 160be20b6ac416d7cccc49859d5d597e9dacfba6.
+- Added all four missing binary TTFs, registered all nine weights (100–900) in pubspec.yaml, preserved explicit LICENSE/AUTHORS asset entries, synchronized AUTHORS, documented the upstream source/archive digest, and extended the test to verify FontManifest.json plus successful rootBundle loading of every weight.
+- Current PR #3052 branch itself still has the five-weight set until PR #3573 is independently accepted and integrated. Do not report nine weights as present in the operational PR #3052 source.
+- Exact-head workflows for #3573: Build 44494245892 QUEUED; Device Smoke 44494246051 QUEUED; Follow-up File Persistence 44494246494 QUEUED; Draft Review APK 44494245954 SKIPPED. None is PASS.
+- PR #3573 was created as draft and GitHub initially returned mergeable=false; recheck after GitHub computes mergeability. No merge performed.
+
+### Remaining font acceptance
+- Verify the generated FontManifest test on the exact PR head.
+- Verify Debug, Release and Staging APKs package all nine weights.
+- Verify actual Android rendering for Persian and Latin numerals, Arabic diacritics, punctuation, spacing, line height and every key page.
+- Verify text-size Settings continue to work and no previous font dependency remains.
+- Obtain physical-device screenshots and exact-SHA evidence.
+
+**Disposition: Source identity and nine-weight source assets are verified on PR #3573; app-wide visual and device acceptance remains OPEN.**
