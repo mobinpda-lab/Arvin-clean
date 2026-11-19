@@ -18,6 +18,7 @@ class _RecordingBackupManager extends ArvinBackupManager {
   List<String>? capturedCategories;
   List<String>? capturedTags;
   List<PersonReference>? capturedPeople;
+  List<Map<String, dynamic>>? capturedPersonDirectoryExclusions;
 
   @override
   Future<String?> backupCanonicalTasks(
@@ -28,6 +29,7 @@ class _RecordingBackupManager extends ArvinBackupManager {
     Iterable<String>? categories,
     Iterable<String>? tags,
     Iterable<PersonReference>? people,
+    Iterable<Map<String, dynamic>>? personDirectoryExclusions,
     String? encryptionPassphrase,
   }) async {
     capturedTasks = List<Task>.of(tasks);
@@ -38,6 +40,9 @@ class _RecordingBackupManager extends ArvinBackupManager {
     capturedCategories = categories == null ? null : List<String>.of(categories);
     capturedTags = tags == null ? null : List<String>.of(tags);
     capturedPeople = people == null ? null : List<PersonReference>.of(people);
+    capturedPersonDirectoryExclusions = personDirectoryExclusions == null
+        ? null
+        : List<Map<String, dynamic>>.of(personDirectoryExclusions);
     return 'arvin-test-backup.json';
   }
 }
@@ -98,6 +103,8 @@ void main() {
       tags: null,
       people: null,
       hasPeople: false,
+      personDirectoryExclusions: null,
+      hasPersonDirectoryExclusions: false,
     );
 
     await bridge.restoreProjects(candidate);
