@@ -8,31 +8,34 @@ import 'package:arvin/core/theme/app_theme_manager.dart';
 void main() {
   group('Arvin design tokens', () {
     test('matches the owner-approved light card palette and typography', () {
-      expect(ArvinTheme.primaryBlue, const Color(0xFF4169A1));
+      expect(ArvinTheme.primaryBlue, const Color(0xFF078B91));
       expect(ArvinTheme.primaryTeal, ArvinTheme.primaryBlue);
       expect(ArvinTheme.primaryBlue, ArvinTheme.primaryTeal);
       expect(ArvinTheme.primaryPurple, ArvinTheme.primaryBlue);
-      expect(ArvinTheme.headerBlue, const Color(0xFF355782));
+      expect(ArvinTheme.headerBlue, const Color(0xFF066F75));
       expect(ArvinTheme.headerTeal, ArvinTheme.headerBlue);
       expect(ArvinTheme.headerBlue, ArvinTheme.headerTeal);
       expect(ArvinTheme.headerPurple, ArvinTheme.headerBlue);
-      expect(ArvinTheme.backgroundLight, const Color(0xFFF4F6F9));
-      expect(ArvinTheme.iceBlue, const Color(0xFFF0F5FC));
+      expect(ArvinTheme.backgroundLight, const Color(0xFFF0FAF9));
+      expect(ArvinTheme.iceBlue, const Color(0xFFDDF7F5));
       expect(ArvinTheme.cardBackground, const Color(0xFFFFFFFF));
-  expect(ArvinTheme.primaryGlow, const Color(0x404169A1));
-      expect(ArvinTheme.brandGlow, const Color(0x404169A1));
-  expect(ArvinTheme.shadowStyle.color, const Color(0x404169A1));
-  expect(ArvinColors.shadowSoft, const Color(0x404169A1));
-  expect(ArvinColors.shadowDark, const Color(0x404169A1));
+      expect(ArvinTheme.cardBorder, const Color(0xFFD9ECEA));
+  expect(ArvinTheme.primaryGlow, const Color(0x40078B91));
+      expect(ArvinTheme.brandGlow, const Color(0x40078B91));
+  expect(ArvinTheme.shadowStyle.color, const Color(0x40078B91));
+  expect(ArvinColors.shadowSoft, const Color(0x40078B91));
+  expect(ArvinColors.shadowDark, const Color(0x40078B91));
       expect(ArvinTheme.cardBorderRadius, BorderRadius.circular(16));
       expect(ArvinTheme.shadowStyle.blurRadius, 10);
       expect(ArvinTheme.shadowStyle.offset, const Offset(0, 4));
       expect(ArvinTheme.fontFamily, 'Vazirmatn');
       expect(ArvinColors.primary, ArvinTheme.primaryBlue);
       expect(ArvinColors.primaryDark, ArvinTheme.headerBlue);
+      expect(ArvinColors.background, const Color(0xFFF0FAF9));
+      expect(ArvinColors.border, const Color(0xFFD9ECEA));
       expect(ArvinColors.darkBrandPrimary, ArvinTheme.primaryBlue);
       expect(ArvinColors.darkPrimary, ArvinTheme.primaryBlue);
-      expect(ArvinColors.primarySoft, const Color(0xFFE5EDF8));
+      expect(ArvinColors.primarySoft, const Color(0xFFDDF7F5));
     });
 
     test('retains the nine-color palette as secondary accents, separate from brand identity', () {
@@ -48,7 +51,7 @@ void main() {
       expect(ArvinColors.priorityP3, const Color(0xFF2563EB));
       expect(ArvinColors.priorityP4, const Color(0xFF80829C));
       expect(ArvinColors.time, const Color(0xFF008080));
-      expect(ArvinColors.primary, const Color(0xFF4169A1));
+      expect(ArvinColors.primary, const Color(0xFF078B91));
       expect(ArvinColors.reminder, const Color(0xFFD97706));
       expect(ArvinColors.project, const Color(0xFF7C3AED));
       expect(ArvinColors.category, const Color(0xFF2563EB));
