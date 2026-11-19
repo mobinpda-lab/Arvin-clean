@@ -36,6 +36,7 @@ void main() {
             body: ArvinTagRollBox(
               tags: const <String>['مهم', 'مشتری'],
               selectedTags: selected,
+              showLabel: true,
               onChanged: (value) => setState(() => selected = List<String>.of(value)),
             ),
           ),
