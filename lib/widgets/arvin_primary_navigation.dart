@@ -81,7 +81,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         top: false,
         minimum: const EdgeInsets.fromLTRB(10, 7, 10, 7),
         child: SizedBox(
-          height: 60,
+          height: ArvinTouchTargets.minimum + ArvinSpacing.x3,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
