@@ -889,3 +889,13 @@ The same Analyze log also reports an unused import in `test/person_directory_exc
 3. Continue the 64-test inventory by individual root cause, prioritizing Home filter semantics, Quick Capture date/time persistence, Task Details/checklist, and Follow-up Office settling/interaction.
 4. Add one combined real-file A-to-B Backup/Restore test that includes a second restore and rollback; keep SAF physical-device validation separate and explicit.
 5. Keep all PRs OPEN / DRAFT / UNMERGED. Main remains unchanged. RELEASE = NO-GO.
+
+
+### 23.9 Post-audit updates — exact jobs and remediation branch
+
+- **Correction to 23.6:** the Schema 18 legacy-exclusion migration test passed on #3591 shard 0, job `135643942478` (not shard 3). The raw log also confirms `person_directory_history_file_reopen_test.dart` PASS on shard 2, job `135643942346`; contract tests pass on shards 0, 2 and 3; the serializer byte-path test passes on shard 5, job `135643942520`.
+- **Release retry:** the isolated rerun of the original #3591 Release job succeeded. New job `135651236282` completed `flutter build apk --release -t lib/main.dart`, produced `app-release.apk` (78.7 MB), and uploaded artifact digest `2152264977d0b2bfb18fd7d58e945801bd602976ba22303cb3573292cc807916`. This confirms the original Kotlin artifact-resolution failure was transient. APK signing verification remains NOT VERIFIED; the rerun log contains no `apksigner` / certificate verification step.
+- **Tracker PR validation:** this documentation-only PR #3594 commit `a2b99a3e1c4ed85ff01ed27d1960fe2be8356e82` completed Build run `44550399224`: Analyze PASS, Visual PASS, Debug/Release/Staging APK jobs PASS, all six inherited test shards FAIL. No application source changed in that commit.
+- **First test-contract correction:** PR #3595 `fix/command-73-r-stale-widget-test-contracts`, commit `fa6ae438d0ed3721e7e0d5f8ae0ec534023025c7`, changes only `test/widget_test.dart`. It replaces visible-text finders with exact accessibility-label finders for the five compact Home filters and enables semantics in the two affected tests. Build run `44551014462`: Analyze PASS (job `135654417226`), Visual PASS (job `135654416247`); at this checkpoint test shards 0 and 3 were IN PROGRESS, shards 1, 2, 4 and 5 QUEUED, and Debug/Release/Staging APK jobs IN PROGRESS. No result is yet attributed to this SHA.
+- #3591 Device Smoke remains IN PROGRESS (boot job `135644080866`; six scenarios queued). #3052 Device Smoke remains IN PROGRESS (boot job `135647376720`; six scenarios queued).
+- No merge, release, deploy, Main write, signing acceptance or device acceptance occurred.
