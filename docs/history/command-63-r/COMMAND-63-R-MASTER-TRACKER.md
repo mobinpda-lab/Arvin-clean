@@ -425,3 +425,40 @@ Fresh exact-head runs:
 - Calendar Provider `44484305315` (#2989): IN PROGRESS.
 - Draft Review APK `44484305327` (#2001): IN PROGRESS.
 No exact-head acceptance gate is PASS yet, except jobs that subsequently report success; do not promote queued or in-progress work to PASS.
+
+
+## 26. COMMAND 63-R — Vazirmatn binary and licensing reconciliation
+The original Library archive was materialized and rechecked in the current runtime:
+- File: `vazirmatn-v33.003 (2).zip`
+- Size: 13,047,191 bytes
+- ZIP entries: 387
+- CRC test: clean
+- SHA-256: `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`
+- Main family includes nine static TTF weights (100, 200, 300, 400, 500, 600, 700, 800, 900) and one variable `Vazirmatn[wght].ttf`.
+- Archive includes SIL OFL 1.1 `OFL.txt` and upstream `AUTHORS.txt`.
+
+Exact binary reconciliation:
+- All five static fonts currently registered in #3052 `pubspec.yaml` match the source archive byte-for-byte by Git blob SHA:
+  - Light 300: `2dfd5c35ed4c26f7ce9f3ba753f11d9a38356c42`
+  - Regular 400: `64e4a8189557a17b63fd7a77794207483e592972`
+  - Medium 500: `1e08dd54d90a4879451ef0f80fe0d8068fb7462f`
+  - SemiBold 600: `6b3842aca6055c8258404b1758133b81c961a13f`
+  - Bold 700: `efa9b095da01d299310bdcae293e24e657fe6da9`
+- The repository does not contain the other four static weights (Thin 100, ExtraLight 200, ExtraBold 800, Black 900) or the variable font. They are not registered in `pubspec.yaml`; the current product typography uses only the five registered weights. No extra font binary has been added because there is no current UI token/use for those additional weights.
+- Existing repository `assets/fonts/ui/vazirmatn/LICENSE.txt` has Git blob SHA `be66b3824e9772e75141e631695c5256f105fb57`, exactly matching the archive's `OFL.txt` blob. The license was already present; adding a duplicate `OFL.txt` would be unnecessary.
+- The archive's exact `AUTHORS.txt` was missing. Added it to the operational branch, and added a rootBundle test against the existing `LICENSE.txt` plus new `AUTHORS.txt`.
+- The app central family is `AppFonts.vazirmatnFamily = 'Vazirmatn'`; `ArvinTheme.fontFamily` and light/dark ThemeData also use Vazirmatn. Five weights in pubspec are 300/400/500/600/700. Font size remains user-scalable.
+- The README under `assets/fonts` still describes optional proprietary IRANSansX assets; the audited central UI theme does not use that family. It is a documentation cleanup candidate, not proof of a runtime dependency.
+
+Font commits on operational branch:
+- `efc11cb7d37c11faeb185b87519d3304ebbee1de` — add upstream archive AUTHORS.txt.
+- `34c461107b8cb758715d08d1b7aef5e34a2d1c30` — add bundled-license/author rootBundle regression test.
+The #3557 branch's duplicate `OFL.txt` was not copied; its existing upstream Authors text was also not used because it differed from the archive's exact AUTHORS.txt. No font binary or registered weight changed.
+
+Fresh workflows for candidate `34c461107b8cb758715d08d1b7aef5e34a2d1c30`:
+- Build `44485072875` (#11716): PENDING.
+- Device Smoke `44485072815` (#8875): PENDING.
+- Follow-up File Persistence `44485073034` (#2798): IN PROGRESS.
+- Calendar Provider `44485073037` (#2991): QUEUED.
+- Draft Review APK `44485073188` (#2004): QUEUED.
+No acceptance result is inferred from the pending runs.
