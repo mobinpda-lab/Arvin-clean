@@ -34,6 +34,8 @@ void main() {
   });
 
   testWidgets('Home exposes the canonical workflow controls', (tester) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -47,11 +49,11 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('مرکز'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('برچسب'), findsOneWidget);
+    expect(find.bySemanticsLabel('زمان'), findsOneWidget);
+    expect(find.bySemanticsLabel('مرکز'), findsOneWidget);
+    expect(find.bySemanticsLabel('پروژه'), findsOneWidget);
+    expect(find.bySemanticsLabel('دسته'), findsOneWidget);
+    expect(find.bySemanticsLabel('برچسب'), findsOneWidget);
     expect(find.text('خانه'), findsOneWidget);
     expect(find.text('تقویم'), findsOneWidget);
     expect(find.text('دفترچه'), findsOneWidget);
@@ -97,6 +99,8 @@ void main() {
 
   testWidgets('HomePage shows the empty-state message after loading',
       (tester) async {
+    final semantics = tester.ensureSemantics();
+    addTearDown(semantics.dispose);
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -107,10 +111,10 @@ void main() {
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-category')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-tags')), findsOneWidget);
-    expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('مرکز'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
-    expect(find.text('برچسب'), findsOneWidget);
+    expect(find.bySemanticsLabel('زمان'), findsOneWidget);
+    expect(find.bySemanticsLabel('مرکز'), findsOneWidget);
+    expect(find.bySemanticsLabel('پروژه'), findsOneWidget);
+    expect(find.bySemanticsLabel('دسته'), findsOneWidget);
+    expect(find.bySemanticsLabel('برچسب'), findsOneWidget);
   });
 }
