@@ -2,9 +2,9 @@
 
 | ID | Conflict | Evidence | Current classification | Safe action |
 |---|---|---|---|---|
-| CR-027 | VazirHarf v34.003 vs Vazirmatn | Direct owner instruction 2026-09-06: VazirHarf v34.003, replace all Vazirmatn references; current PRODUCT_DECISIONS.md claims later Vazirmatn approvals on 2026-11-05/08 without Decision ID or linked primary source. Code uses Vazirmatn. | NEEDS OWNER-SOURCE RECONCILIATION | Preserve both histories; do not alter font assets/code until the latest direct decision is traceable. |
+| CR-027 | VazirHarf v34.003 vs Vazirmatn | 2026-09-06 VazirHarf directive vs explicit COMMAND 63-R (2026-11-19) naming Vazirmatn v33.003 as Arvin's official font and requiring it throughout the product | Active Arvin font: Vazirmatn v33.003 per COMMAND 63-R; VazirHarf remains a preserved historical instruction, not current Arvin authority | RESOLVED by latest explicit owner command; asset/weight/APK/rendering verification remains open |
 
-Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/theme/arvin_theme.dart`; `test/vazirharf_settings_convergence_test.dart` currently asserts Vazirmatn despite its VazirHarf-oriented filename. Open font-related PRs include #2975, #2918 and #2932; review their scope against the final owner decision. No font code or tests were changed.
+Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/theme/arvin_theme.dart`; `test/vazirharf_settings_convergence_test.dart` currently asserts Vazirmatn despite its VazirHarf-oriented filename. Open font-related PRs include #2975, #2918 and #2932; review their scope against the final owner decision. COMMAND 63-R now resolves the owner decision; current code and font tests are being validated on exact PR heads.
 
 ---
 
@@ -28,7 +28,7 @@ Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/the
 | ID | Conflict | Sources / evidence | Active decision | Status / action |
 |---|---|---|---|---|
 | CR-001 | Governance revision | REV7.2 master vs REV8 execution order | REV8 is current audit authority; preserve REV7.2 history | RESOLVED — docs addendum |
-| CR-002 | Blue / Teal / Sky Blue | REV7.1 owner direction `#4169A1`; 2026-11-08 contract `#3A86EF`; 2026-11-09 Persian Teal `#0F766E` ledger entry | Active primary remains Blue `#4169A1` per latest explicit owner direction | RESOLVED for active token; historical entries retained |
+| CR-002 | Blue / Teal / Sky Blue | Historical Blue `#4169A1`, Sky Blue `#3A86EF`, Persian Teal `#0F766E` entries vs explicit COMMAND 63-R palette | Active palette per COMMAND 63-R: `#078B91`, `#066F75`, `#DDF7F5`, `#F0FAF9`, `#D9ECEA`; earlier palettes are superseded for current Arvin UI | RESOLVED by latest explicit owner command; token rollout and visual acceptance remain open |
 | CR-003 | Task Details Edit Mode vs Auto-Save | Older Task Details specs and REV7.2 `ARVIN-DEC-2026-11-10-001` | Always-editable Task Details with Auto-Save; no independent edit mode/button | APPROVED; implementation/verification PARTIAL |
 | CR-004 | Filter order | Older specs vs REV8 | Time → Center → Project → Category → Tags | REV8 supersedes older order |
 | CR-005 | Single-select vs multi-select | Reusable filter supports both modes; product contract distinguishes dimensions | Center, Project, Category single-select; Tags multi-select | APPROVED; UI/test acceptance PARTIAL |
@@ -50,3 +50,11 @@ Source implementation: `pubspec.yaml`, `lib/theme/app_fonts.dart`, `lib/core/the
 | CR-021 | NIRA state-sync PR churn | 292 of 381 closed PRs share title/branch nira/state-sync; 289 unmerged | Do not close/merge automatically; repair scheduler/PR idempotency | OPEN — NIRA governance |
 
 No conflict was hidden by deleting historical records. No code or test was changed in this audit.
+
+
+## COMMAND 63-R conflict resolution addendum — 2026-11-19
+
+| ID | Conflict | Latest owner evidence | Active decision | Status |
+|---|---|---|---|---|
+| CR-028 | Local P2P suspended vs re-authorized | COMMAND 63-R explicitly includes Local P2P Phase 1 as an active P1 workstream, following the earlier COMMAND 62-R authorization | Local phone↔tablet P2P on shared Wi-Fi/hotspot is authorized; cloud/Dropbox remains deferred Phase 2. Security review precedes implementation. | RESOLVED for scope authority; protocol/security acceptance remains OPEN |
+| CR-029 | Six Home time groups vs REV10 five groups | COMMAND 63-R explicitly lists five groups and supersedes the historical separate completed_past group | تاریخ‌گذشته، امروز، فردا، آینده، فاقد زمان; completed prior-date Tasks stay visible inside تاریخ‌گذشته after active overdue Tasks. | RESOLVED for product contract; code/test/device acceptance remains OPEN |
