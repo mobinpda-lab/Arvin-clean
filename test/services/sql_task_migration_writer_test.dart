@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:arvin/follow_up_repository.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/sql_task_migration_writer.dart';
 import 'package:arvin/services/task_store.dart';
 
@@ -452,6 +453,9 @@ void main() {
       executor: database,
       preferences: preferences,
     );
+    // Mirror the production cutover boundary: mark completion only after the
+    // migration transaction has succeeded and before the next process opens it.
+    await G1DriftSchema.markLegacyMigrationComplete(database);
     await database.close();
 
     database = NativeDatabase(databaseFile);
