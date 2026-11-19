@@ -462,3 +462,18 @@ Fresh workflows for candidate `34c461107b8cb758715d08d1b7aef5e34a2d1c30`:
 - Calendar Provider `44485073037` (#2991): QUEUED.
 - Draft Review APK `44485073188` (#2004): QUEUED.
 No acceptance result is inferred from the pending runs.
+
+
+## 27. Full 80-instance baseline inventory
+All six shard logs from Build run `44476625119` were re-read and every failed test instance was extracted. The supporting inventory is:
+`docs/history/command-63-r/COMMAND-63-R-80-SHARD-FAILURE-INVENTORY.md`
+Commit: `180806f87bb12f9ca1259d281552571bf66eb3ab`.
+Exact count reconciliation:
+- test-0: 14
+- test-1: 6
+- test-2: 26
+- test-3: 12
+- test-4: 11
+- test-5: 11
+- Total: 80 — exact match with the Build summary.
+The inventory preserves all 80 test names, shard job IDs and an initial triage category. Categories are not root-cause findings. Six test-contract/fixture corrections already committed are marked with their exact correction status; all remaining rows stay ROOT_CAUSE_PENDING until the full assertion/exception, source line, product contract and exact-SHA regression are documented.
