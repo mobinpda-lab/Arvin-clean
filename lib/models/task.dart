@@ -261,18 +261,21 @@ class Task {
   static bool _isOmittedOptionalJsonField(String key, Object? value) {
     switch (key) {
       case 'notebookKind':
+        return value == null || value is! String ||
+            !NotebookItemKind.values.any((item) => item.name == value);
       case 'recurrence':
-        return value == null || (key == 'recurrence' && value is! Map);
+        return value == null || value is! Map;
       case 'taskReminders':
+        return value == null || value is! List || (value is List && value.isEmpty);
       case 'people':
         return value == null || (value is List && value.isEmpty);
       case 'checklistOccurrences':
       case 'occurrenceHistory':
         return value == null || (value is Map && value.isEmpty);
       case 'nextReminderSequence':
-        return value == null || (value is num && value.toInt() <= 1);
+        return value == null || value is! num || value.toInt() <= 1;
       case 'legacyTaskReminderMigrationVersion':
-        return value == null || (value is num && value.toInt() <= 0);
+        return value == null || value is! num || value.toInt() <= 0;
       case 'priority':
         return value == null || value == 'none' ||
             !TaskPriority.values.any((item) => item.name == value);
