@@ -8,7 +8,21 @@ classify_evidence_file() {
     [[ -n "$start_marker" ]] && grep -Fq "$start_marker" "$file" && has_start=true
     [[ -n "$pass_marker" ]] && grep -Fq "$pass_marker" "$file" && has_pass=true
     [[ -n "$failure_marker" ]] && grep -Fq "$failure_marker" "$file" && has_failure=true
-    grep -Eq 'TEST_STATUS=NOT TESTED|NOT TESTED' "$file" && has_not_tested=true
+    grep -Eq '^TEST_STATUS=NOT TESTED$|^CLEANUP_STATUS=NOT TESTED$|^Calendar .* NOT TESTED\\.?$|^Cleanup verification NOT TESTED\\.?
+    if [[ "$has_not_tested" == true ]]; then printf 'NOT TESTED'; return; fi
+    if [[ "$has_pass" == true && "$has_failure" == true ]]; then printf 'INCOMPLETE EVIDENCE'; return; fi
+    if grep -Fq 'TEST_STATUS=FAILURE' "$file" && grep -Eq 'FAILURE_REASON=.+|TEST_FAILURE=.+|FAILURE_EVIDENCE=.+ ' "$file"; then
+      printf 'FAILURE'; return
+    fi
+    if [[ "$has_pass" == true && "$execution_state" == COMPLETED ]]; then printf 'PASS'; return; fi
+    if [[ "$has_start" == true || "$execution_state" == STARTED || "$execution_state" == COMPLETED ]]; then
+      printf 'INCOMPLETE EVIDENCE'; return
+    fi
+    printf 'NOT TESTED'; return
+  fi
+  if [[ "$execution_state" == NOT_STARTED ]]; then printf 'NOT TESTED'; else printf 'INCOMPLETE EVIDENCE'; fi
+}
+ "$file" && has_not_tested=true
     if [[ "$has_not_tested" == true ]]; then printf 'NOT TESTED'; return; fi
     if [[ "$has_pass" == true && "$has_failure" == true ]]; then printf 'INCOMPLETE EVIDENCE'; return; fi
     if grep -Fq 'TEST_STATUS=FAILURE' "$file" && grep -Eq 'FAILURE_REASON=.+|TEST_FAILURE=.+|FAILURE_EVIDENCE=.+ ' "$file"; then
