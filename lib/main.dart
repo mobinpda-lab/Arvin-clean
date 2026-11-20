@@ -656,7 +656,9 @@ class _HomePageState extends State<HomePage> {
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where((task) {
           final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
+          // Tags are one filter dimension: any selected Tag may match.
+          // Different dimensions remain AND-combined by the surrounding projection.
+          return _tagFilters.any(tags.contains);
         });
       }
     }
@@ -681,12 +683,16 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (!task.completed && day.isBefore(today)) grouped['overdue']!.add(task);
+        if (day.isBefore(today)) grouped['overdue']!.add(task);
         else if (day == today) grouped['today']!.add(task);
         else if (day == tomorrow) grouped['tomorrow']!.add(task);
         else grouped['future']!.add(task);
       }
     }
+    grouped['overdue']!.sort((a, b) {
+      if (a.completed != b.completed) return a.completed ? 1 : -1;
+      return a.dueDate!.compareTo(b.dueDate!);
+    });
     return [
       HomeGroup<Task>(id: 'overdue', title: 'تاریخ‌گذشته', items: grouped['overdue']!),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
