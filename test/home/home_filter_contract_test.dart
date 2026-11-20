@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../support/canonical_sqlite_fixture.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/theme/app_fonts.dart';
 import 'package:arvin/arvin_colors.dart';
@@ -32,7 +34,7 @@ void main() {
     final tomorrow = today.add(const Duration(days: 1));
     final future = today.add(const Duration(days: 4));
     final past = today.subtract(const Duration(days: 1));
-    SharedPreferences.setMockInitialValues({});
+    await setCanonicalSqliteFixture({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
       '[{"id":"past","title":"کار عقب‌افتاده","dueDate":"${past.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"completed-past","title":"کار گذشته انجام‌شده","dueDate":"${past.toIso8601String()}","completed":true,"completedAt":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}","category":"کاری","tags":["اداری"]},{"id":"today-personal","title":"کار امروز شخصی","dueDate":"${today.toIso8601String()}","category":"شخصی","tags":["خانه"]},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}","category":"شخصی"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}","category":"کاری"},{"id":"none","title":"بی‌زمان","category":"کاری"}]');
@@ -362,7 +364,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
 
     final actualFollowUpAt = DateTime.now().subtract(const Duration(hours: 2));
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"accordion-real","title":"کار آکاردئونی","description":"شرح دقیق کار","dueDate":"2026-11-02T12:30:00.000","followUps":[{"id":"follow-up-real","dateTime":"${actualFollowUpAt.toIso8601String()}","note":"تماس واقعی","completed":true}]},{"id":"legacy-only","title":"بدون سابقه واقعی","followUpDate":"2026-11-02T09:00:00.000"}]',
     });
 
@@ -409,7 +411,7 @@ void main() {
         'dueDate': DateTime(2030, 11, 2, 9 + index).toIso8601String(),
       },
     );
-    SharedPreferences.setMockInitialValues({'arvin.tasks': jsonEncode(tasks)});
+    await setCanonicalSqliteFixture({'arvin.tasks': jsonEncode(tasks)});
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
