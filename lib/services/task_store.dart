@@ -954,6 +954,25 @@ class TaskStore {
         preserved[entry.key] = null;
       }
     }
+    // Relations are normalized into SQLite tables, so their known fields
+    // must stay SQL-authoritative. Keep only unknown nested fields in the
+    // legacy envelope, keyed by stable relation ID, so hydration can merge
+    // them back without reviving stale relation values.
+    final preservedTaskReminderFields = task.taskReminders
+        .map((reminder) => <String, dynamic>{
+              'id': reminder.id,
+              ...reminder.preservedUnknownFields,
+            })
+        .where((fields) => fields.length > 1)
+        .toList(growable: false);
+    final preservedFollowUpFields = task.followUps
+        .map((followUp) => <String, dynamic>{
+              'id': followUp.id,
+              ...followUp.preservedUnknownFields,
+            })
+        .where((fields) => fields.length > 1)
+        .toList(growable: false);
+
     final canonical = Map<String, dynamic>.from(task.toJson())
       ..remove('id')
       ..remove('title')
@@ -978,6 +997,12 @@ class TaskStore {
       ..remove('occurrenceHistory')
       ..remove('checklistOccurrences');
     preserved.addAll(canonical);
+    if (preservedTaskReminderFields.isNotEmpty) {
+      preserved['taskReminders'] = preservedTaskReminderFields;
+    }
+    if (preservedFollowUpFields.isNotEmpty) {
+      preserved['followUps'] = preservedFollowUpFields;
+    }
     return preserved;
   }
 
