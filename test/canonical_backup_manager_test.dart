@@ -145,6 +145,41 @@ void main() {
     expect(restored.completedAt, completedAt);
   });
 
+  test('canonical backup and restore preserve explicit NULL Task fields', () async {
+    final service = _FakeBackupService();
+    final manager = ArvinBackupManager(service: service);
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'explicit-null-backup-task',
+      'title': 'پشتیبان NULL صریح',
+      'notebookKind': null,
+      'templateTaskId': null,
+      'focusDate': null,
+      'recurrence': null,
+    });
+
+    await manager.backupCanonicalTasks([task]);
+
+    final rawTasks = service.writtenPayload?['tasks'] as List<dynamic>;
+    final raw = Map<String, dynamic>.from(rawTasks.single as Map);
+    for (final key in const ['notebookKind', 'templateTaskId', 'focusDate', 'recurrence']) {
+      expect(raw.containsKey(key), isTrue, reason: '$key omitted from backup');
+      expect(raw[key], isNull, reason: '$key changed in backup');
+    }
+
+    service.restoreDocument = <String, dynamic>{
+      'type': ArvinBackupService.backupType,
+      'formatVersion': ArvinBackupService.backupFormatVersion,
+      'tasks': rawTasks,
+    };
+    final candidate = await manager.restoreCanonicalBackup();
+    expect(candidate, isNotNull);
+    final restoredJson = candidate!.tasks.single.toJson();
+    for (final key in const ['notebookKind', 'templateTaskId', 'focusDate', 'recurrence']) {
+      expect(restoredJson.containsKey(key), isTrue, reason: '$key omitted after restore');
+      expect(restoredJson[key], isNull, reason: '$key changed after restore');
+    }
+  });
+
   test('canonical backup round-trips retired Follow-up dates as inert metadata', () async {
     final service = _FakeBackupService();
     final manager = ArvinBackupManager(service: service);
