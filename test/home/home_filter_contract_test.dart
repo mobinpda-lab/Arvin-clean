@@ -8,6 +8,8 @@ import 'package:arvin/services/task_store.dart';
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
+    await TaskStore.resetTestDatabase();
+    addTearDown(() => TaskStore.resetTestDatabase());
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day, 10);
     final tomorrow = today.add(const Duration(days: 1));
