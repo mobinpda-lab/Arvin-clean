@@ -1,65 +1,23 @@
-import 'dart:convert';
-
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'package:arvin/models/task.dart';
-import 'package:arvin/services/project_plan_codec.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/center_store.dart';
 
-/// Seeds UI tests through Arvin's canonical SQLite stores.
+/// Seeds UI tests through the supported one-time legacy-to-SQLite migration.
 ///
-/// Legacy preference-shaped fixtures remain convenient to author, but they
-/// must not be mistaken for the app's live storage after the one-time
-/// SharedPreferences migration has completed.
+/// Preference-shaped fixtures are installed before the stores are initialized.
+/// Each store then migrates the fixture into its own test SQLite executor,
+/// matching the production read path without treating SharedPreferences as
+/// live storage during the widget assertions.
 Future<void> setCanonicalSqliteFixture(Map<String, Object?> values) async {
-  final preferences = await SharedPreferences.getInstance();
-  await preferences.clear();
-
   await TaskStore.resetTestDatabase();
   await ProjectStore.resetTestDatabase();
   await CenterStore.resetTestDatabase();
 
-  // Initialize an empty canonical database before inserting fixture data.
-  // This prevents a previous test's one-time legacy migration marker or
-  // cached preferences from deciding which rows the UI sees.
-  await TaskStore().save(const <Task>[]);
-
-  final rawTasks = values['arvin.tasks'];
-  if (rawTasks is String && rawTasks.trim().isNotEmpty) {
-    final decoded = jsonDecode(rawTasks);
-    if (decoded is! List) {
-      throw const FormatException('UI test Task fixture must be a JSON list');
-    }
-    final tasks = decoded.map((raw) {
-      if (raw is! Map) {
-        throw const FormatException('UI test Task fixture entries must be objects');
-      }
-      return Task.fromLegacyJson(Map<String, dynamic>.from(raw));
-    }).toList(growable: false);
-    await TaskStore().save(tasks);
-  }
-
-  final rawProjects = values['arvin.projects'];
-  if (rawProjects is String && rawProjects.trim().isNotEmpty) {
-    final decoded = jsonDecode(rawProjects);
-    final projects = const ProjectPlanCodec().decodeList(decoded);
-    await ProjectStore().save(projects);
-  } else {
-    await ProjectStore().save(const []);
-  }
-
-  // Keep ordinary preference fixtures (theme, onboarding, settings, etc.)
-  // while keeping canonical task/project payloads in their SQLite stores.
-  const canonicalKeys = <String>{
-    'arvin.tasks',
-    'arvin.projects',
-    'arvin.categories',
-    'arvin.tags',
-  };
+  final preferences = await SharedPreferences.getInstance();
+  await preferences.clear();
   for (final entry in values.entries) {
-    if (canonicalKeys.contains(entry.key)) continue;
     final value = entry.value;
     if (value is String) {
       await preferences.setString(entry.key, value);
@@ -72,7 +30,18 @@ Future<void> setCanonicalSqliteFixture(Map<String, Object?> values) async {
     } else if (value is List<String>) {
       await preferences.setStringList(entry.key, value);
     } else {
-      throw ArgumentError.value(value, entry.key, 'Unsupported UI test preference value');
+      throw ArgumentError.value(
+        value,
+        entry.key,
+        'Unsupported UI test preference value',
+      );
     }
   }
+
+  // Initialize/migrate both canonical stores before mounting the widget. The
+  // stores have separate in-memory test executors, so each must migrate from
+  // the same fixture to preserve Task and Project identity consistently.
+  await TaskStore().load();
+  await ProjectStore().load();
+  await CenterStore().load();
 }
