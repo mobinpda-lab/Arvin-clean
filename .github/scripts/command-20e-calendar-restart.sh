@@ -14,6 +14,8 @@ mkdir -p "$EVIDENCE"
 for file in calendar_restart_stage_a.log calendar_restart_stage_b.log cleanup_verification.log calendar_value_comparison.json; do
   : > "$EVIDENCE/$file"
 done
+echo "TEST_STARTED=1" >> "$EVIDENCE/calendar_restart_stage_a.log"
+trap 'rc=$?; trap - ERR; if [[ $rc -ne 0 ]]; then printf "TEST_STATUS=FAILURE\\nFAILURE_REASON=calendar restart command failed with exit %s at %s\\n" "$rc" "$BASH_COMMAND" >> "$EVIDENCE/calendar_restart_stage_b.log"; if grep -Fq "CLEANUP_TEST_STARTED=1" "$EVIDENCE/cleanup_verification.log"; then printf "TEST_STATUS=FAILURE\\nFAILURE_REASON=cleanup command failed with exit %s at %s\\n" "$rc" "$BASH_COMMAND" >> "$EVIDENCE/cleanup_verification.log"; fi; fi; exit "$rc"' ERR
 
 if [[ -z "$DEVICE" ]]; then
   echo ANDROID_EMULATOR_DEVICE=NOT_FOUND | tee "$EVIDENCE/cleanup_verification.log"
@@ -150,6 +152,7 @@ pathlib.Path(sys.argv[3]).write_text(json.dumps(result, ensure_ascii=False, inde
 PY
 
 stage="cleanup disposable emulator app"
+echo "CLEANUP_TEST_STARTED=1" | tee -a "$EVIDENCE/cleanup_verification.log"
 adb -s "$DEVICE" shell am force-stop "$APP_ID" >/dev/null 2>&1 || true
 pid_final=""
 for attempt in $(seq 1 30); do
@@ -168,4 +171,6 @@ if adb -s "$DEVICE" shell pm path "$APP_ID" 2>/dev/null | grep -q "$APP_ID"; the
 fi
 echo "EMULATOR_FIXTURE_UNINSTALL=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
 echo "CALENDAR_TEST_KEY_CLEANUP=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
+echo "TEST_STATUS=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
 echo "CALENDAR_LINK_PROCESS_RESTART=PASS" | tee -a "$EVIDENCE/calendar_restart_stage_b.log"
+echo "TEST_STATUS=PASS" | tee -a "$EVIDENCE/calendar_restart_stage_b.log"
