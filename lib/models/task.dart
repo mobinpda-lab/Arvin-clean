@@ -193,10 +193,14 @@ class Task {
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
+    Map<String, dynamic> extensionData = const <String, dynamic>{},
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders);
+        taskReminders = List<TaskReminder>.of(taskReminders),
+        extensionData = Map<String, dynamic>.unmodifiable(
+          Map<String, dynamic>.from(extensionData),
+        );
 
   final String id;
   String title;
@@ -239,6 +243,52 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+  /// Unknown and explicitly omitted optional JSON fields retained for forward compatibility.
+  final Map<String, dynamic> extensionData;
+
+  /// Canonical Task JSON keys. TaskStore uses this same contract when retaining
+  /// fields from an older SQLite envelope, preventing stale known values from
+  /// being mistaken for unknown metadata after an edit.
+  static const Set<String> jsonFieldNames = <String>{
+    'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate', 'allDay',
+    'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
+    'checklistEnabled', 'checklistOccurrences', 'occurrenceHistory',
+    'notebookKind', 'reminderDate', 'taskReminders', 'nextReminderSequence',
+    'legacyTaskReminderMigrationVersion', 'priority', 'archived', 'trashed',
+    'completed', 'completedAt', 'followUps', 'recurrence', 'people',
+  };
+
+  static bool _isOmittedOptionalJsonField(String key, Object? value) {
+    switch (key) {
+      case 'notebookKind':
+      case 'recurrence':
+        return value == null || (key == 'recurrence' && value is! Map);
+      case 'taskReminders':
+      case 'people':
+        return value == null || (value is List && value.isEmpty);
+      case 'checklistOccurrences':
+      case 'occurrenceHistory':
+        return value == null || (value is Map && value.isEmpty);
+      case 'nextReminderSequence':
+        return value == null || (value is num && value.toInt() <= 1);
+      case 'legacyTaskReminderMigrationVersion':
+        return value == null || (value is num && value.toInt() <= 0);
+      case 'priority':
+        return value == null || value == 'none' ||
+            !TaskPriority.values.any((item) => item.name == value);
+      default:
+        return false;
+    }
+  }
+
+  static Map<String, dynamic> _decodeExtensionData(
+    Map<String, dynamic> json,
+  ) => <String, dynamic>{
+        for (final entry in json.entries)
+          if (!jsonFieldNames.contains(entry.key) ||
+              _isOmittedOptionalJsonField(entry.key, entry.value))
+            entry.key: entry.value,
+      };
 
   /// First completion records a timestamp; repeated completion is idempotent.
   /// Explicit reopening clears it so the next completion records a fresh time.
@@ -343,6 +393,7 @@ class Task {
   }
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'title': title,
         'description': description,
@@ -504,6 +555,7 @@ class Task {
             )
           : null,
       people: loadedPeople,
+      extensionData: _decodeExtensionData(json),
     );
   }
 
