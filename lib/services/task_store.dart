@@ -919,8 +919,8 @@ class TaskStore {
       };
       for (final entry in currentNullableValues.entries) {
         if (entry.value == null &&
-            previous.containsKey(entry.key) &&
-            previous[entry.key] == null) {
+            (task.explicitNullFields.contains(entry.key) ||
+                (previous.containsKey(entry.key) && previous[entry.key] == null))) {
           preserved[entry.key] = null;
         }
       }
