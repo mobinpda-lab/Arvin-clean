@@ -98,6 +98,22 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
 }
 
 class FollowUpRecord {
+  static const Set<String> jsonFieldNames = <String>{
+    'id',
+    'completedAt',
+    'dateTime',
+    'title',
+    'note',
+    'result',
+    'reminderDate',
+    'reminderAllDay',
+    'nextFollowUp',
+    'nextFollowUpAllDay',
+    'completed',
+    'waitingForResponse',
+    'personIds',
+  };
+
   final String id;
 
   /// Canonical historical timestamp for this record.
@@ -112,6 +128,9 @@ class FollowUpRecord {
   final bool completed;
   final bool waitingForResponse;
   final List<String> personIds;
+
+  /// Forward-compatible fields retained across SQLite and backup round-trips.
+  final Map<String, dynamic> preservedUnknownFields;
 
   /// Retained only to serialize legacy dates as inert Task metadata.
   /// Never read by Reminder projection, delivery, Calendar, or alarm scheduling.
@@ -140,10 +159,14 @@ class FollowUpRecord {
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
+    Map<String, dynamic> preservedUnknownFields = const <String, dynamic>{},
   })  : completedAt = completedAt ?? dateTime!,
-        _legacyNextFollowUp = nextFollowUp;
+        _legacyNextFollowUp = nextFollowUp,
+        preservedUnknownFields =
+            Map<String, dynamic>.unmodifiable(preservedUnknownFields);
 
   Map<String, dynamic> toJson() => {
+        ...preservedUnknownFields,
         'id': id,
         'completedAt': completedAt.toIso8601String(),
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
@@ -155,6 +178,10 @@ class FollowUpRecord {
       };
 
   factory FollowUpRecord.fromJson(Map<String, dynamic> json) {
+    final preservedUnknownFields = <String, dynamic>{
+      for (final entry in json.entries)
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
+    };
     return FollowUp(
       id: json['id'] as String? ?? '',
       completedAt: DateTime.parse(
@@ -173,6 +200,7 @@ class FollowUpRecord {
           .where((id) => id.isNotEmpty)
           .toSet()
           .toList(growable: false),
+      preservedUnknownFields: preservedUnknownFields,
     );
   }
 }
@@ -190,6 +218,15 @@ extension FollowUpLegacyDate on FollowUp {
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.
 class TaskReminder {
+  static const Set<String> jsonFieldNames = <String>{
+    'id',
+    'title',
+    'date',
+    'isAllDay',
+    'sequence',
+    'isEnabled',
+  };
+
   const TaskReminder({
     required this.id,
     required this.title,
@@ -197,6 +234,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isEnabled = true,
+    this.preservedUnknownFields = const <String, dynamic>{},
   });
 
   final String id;
@@ -209,6 +247,9 @@ class TaskReminder {
   /// Missing values in older JSON payloads default to enabled.
   final bool isEnabled;
 
+  /// Forward-compatible fields retained across SQLite and backup round-trips.
+  final Map<String, dynamic> preservedUnknownFields;
+
   /// Date-only reminders are serialized as YYYY-MM-DD, never synthetic midnight.
   String get storageDateValue =>
       isAllDay ? _dateOnlyStorageValue(date) : date.toIso8601String();
@@ -219,6 +260,7 @@ class TaskReminder {
     DateTime? date,
     bool? isAllDay,
     bool? isEnabled,
+    Map<String, dynamic>? preservedUnknownFields,
   }) => TaskReminder(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -226,9 +268,11 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isEnabled: isEnabled ?? this.isEnabled,
+        preservedUnknownFields: preservedUnknownFields ?? this.preservedUnknownFields,
       );
 
   Map<String, dynamic> toJson() => {
+        ...preservedUnknownFields,
         'id': id,
         'title': title,
         'date': storageDateValue,
@@ -237,17 +281,62 @@ class TaskReminder {
         if (!isEnabled) 'isEnabled': false,
       };
 
-  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
-        id: json['id'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        date: DateTime.parse(json['date'] as String),
-        isAllDay: json['isAllDay'] as bool? ?? false,
-        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
-        isEnabled: json['isEnabled'] as bool? ?? true,
-      );
+  factory TaskReminder.fromJson(Map<String, dynamic> json) {
+    final preservedUnknownFields = <String, dynamic>{
+      for (final entry in json.entries)
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
+    };
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      isEnabled: json['isEnabled'] as bool? ?? true,
+      preservedUnknownFields: Map<String, dynamic>.unmodifiable(preservedUnknownFields),
+    );
+  }
 }
 
 class Task {
+  static const Set<String> _knownJsonKeys = <String>{
+    'id',
+    'title',
+    'description',
+    'createdAt',
+    'updatedAt',
+    'dueDate',
+    'centerId',
+    'allDay',
+    'followUpEnabled',
+    'followUpDate',
+    'tags',
+    'category',
+    'checklist',
+    'checklistEnabled',
+    'checklistOccurrences',
+    'occurrenceHistory',
+    'notebookKind',
+    'reminderDate',
+    'reminderAllDay',
+    'taskReminders',
+    'nextReminderSequence',
+    'legacyTaskReminderMigrationVersion',
+    'legacyFollowUpMetadata',
+    'priority',
+    'isFavorite',
+    'isSelectedForToday',
+    'focusDate',
+    'archived',
+    'trashed',
+    'completed',
+    'completedAt',
+    'templateTaskId',
+    'followUps',
+    'recurrence',
+    'people',
+  };
+
   Task({
     required this.id,
     required this.title,
@@ -289,7 +378,10 @@ class Task {
     this.recurrence,
     Iterable<PersonReference> people = const [],
     Iterable<String> explicitNullFields = const <String>[],
+    Map<String, dynamic> preservedUnknownFields = const <String, dynamic>{},
   }) : explicitNullFields = Set<String>.unmodifiable(explicitNullFields),
+       preservedUnknownFields =
+           Map<String, dynamic>.unmodifiable(preservedUnknownFields),
        focusDate = focusDate == null
             ? (isSelectedForToday
                 ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
@@ -417,6 +509,10 @@ class Task {
   /// This metadata keeps omission distinct from NULL across backup/sync serializers.
   final Set<String> explicitNullFields;
 
+  /// Forward-compatible Task envelope fields not understood by this version.
+  /// They remain inert and are re-emitted by JSON/backup serialization.
+  final Map<String, dynamic> preservedUnknownFields;
+
   /// Legacy compatibility view only. No Follow-up scheduling state is stored.
   @Deprecated('Use followUps.isNotEmpty.')
   bool get followUpEnabled => followUps.isNotEmpty;
@@ -538,6 +634,7 @@ class Task {
   }
 
   Map<String, dynamic> toJson() => {
+        ...preservedUnknownFields,
         'id': id,
         'title': title,
         'description': description,
@@ -707,6 +804,10 @@ class Task {
       }
     }
 
+    final preservedUnknownFields = <String, dynamic>{
+      for (final entry in json.entries)
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
+    };
     final nextReminderSequence = [
       sequenceFromJson,
       if (loadedTaskReminders.isNotEmpty)
@@ -787,6 +888,7 @@ class Task {
         'focusDate',
         'recurrence',
       ].where((key) => json.containsKey(key) && json[key] == null),
+      preservedUnknownFields: preservedUnknownFields,
     );
   }
 

@@ -68,6 +68,7 @@ void main() {
       const taskId = 'independent-backup-task';
       const personId = 'independent-backup-person';
       const followUpId = 'independent-backup-follow-up';
+      const reminderId = 'independent-backup-reminder';
       final task = Task.fromJson(<String, dynamic>{
         'id': taskId,
         'title': 'داده مستقل پایگاه A',
@@ -76,8 +77,25 @@ void main() {
         'tags': <String>['پشتیبان'],
         'checklist': <String>['مرحله اول', 'مرحله دوم'],
         'notebookKind': null,
+        'futureTaskField': <String, dynamic>{
+          'preserve': true,
+          'revision': 7,
+        },
         'templateTaskId': null,
         'focusDate': null,
+        'taskReminders': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': reminderId,
+            'title': 'یادآور مستقل',
+            'date': '2026-11-20T08:00:00.000',
+            'isAllDay': false,
+            'sequence': 1,
+            'futureReminderField': <String, dynamic>{
+              'preserve': 'reminder',
+              'revision': 2,
+            },
+          },
+        ],
         'recurrence': null,
         'people': <Map<String, dynamic>>[
           <String, dynamic>{
@@ -89,6 +107,10 @@ void main() {
           <String, dynamic>{
             'id': followUpId,
             'completedAt': '2026-11-20T07:00:00.000',
+            'futureFollowUpField': <String, dynamic>{
+              'preserve': 'historical-record',
+              'revision': 3,
+            },
             'title': 'پیگیری ثبت‌شده',
             'note': 'تاریخچه و رابطه شخص',
             'completed': false,
@@ -107,6 +129,22 @@ void main() {
       expect(sourceTasks, hasLength(1));
       expect(sourceTasks.single.id, taskId);
       expect(sourceTasks.single.followUps.single.id, followUpId);
+      expect(
+        sourceTasks.single.toJson()['futureTaskField'],
+        <String, dynamic>{'preserve': true, 'revision': 7},
+      );
+      expect(
+        sourceTasks.single.followUps.single.toJson()['futureFollowUpField'],
+        <String, dynamic>{
+          'preserve': 'historical-record',
+          'revision': 3,
+        },
+      );
+      expect(sourceTasks.single.taskReminders.single.id, reminderId);
+      expect(
+        sourceTasks.single.taskReminders.single.toJson()['futureReminderField'],
+        <String, dynamic>{'preserve': 'reminder', 'revision': 2},
+      );
 
       final backupService = _FileBackedBackupService(backupFile);
       final manager = ArvinBackupManager(service: backupService);
@@ -156,6 +194,22 @@ void main() {
         expect(restored.followUps.single.id, followUpId);
         expect(restored.followUps.single.personIds, <String>[personId]);
         expect(restored.people.map((person) => person.id), <String>[personId]);
+        expect(restored.taskReminders.single.id, reminderId);
+        expect(
+          restored.taskReminders.single.toJson()['futureReminderField'],
+          <String, dynamic>{'preserve': 'reminder', 'revision': 2},
+        );
+        expect(
+          restored.toJson()['futureTaskField'],
+          <String, dynamic>{'preserve': true, 'revision': 7},
+        );
+        expect(
+          restored.followUps.single.toJson()['futureFollowUpField'],
+          <String, dynamic>{
+            'preserve': 'historical-record',
+            'revision': 3,
+          },
+        );
 
         // Compare the complete canonical Task envelope, not only selected
         // fields, so unknown/nullable/model-owned data cannot silently drift.
