@@ -134,7 +134,7 @@ void main() {
       expect(find.byKey(const ValueKey('calendar-selected-day-list')), findsOneWidget);
 
       final cardKey = const ValueKey(
-        'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
+        'calendar-pastel-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
       );
       final card = find.byKey(cardKey);
       final calendarList = find.byKey(
