@@ -164,10 +164,16 @@ jobs:
           # sdkmanager emits the final acceptance marker without a trailing period.
           # Keep the raw log as an artifact and record package/acceptance counts separately.
           python3 - "$license_log" "$evidence/android-sdk-license-status.json" <<'PY'
-          import json, pathlib, re, sys
+          import json, pathlib, sys
           log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
-          package_prompts = len(re.findall(r"^\\s*\\d+\\s*/\\s*\\d+\\s*:\\s*License\\s+", log, re.M))
-          individual_acceptances = len(re.findall(r"^\\s*License\\s+.+\\s+accepted\\.\\s*$", log, re.M))
+          package_prompts = sum(
+              1 for line in log.splitlines()
+              if ": License " in line and line.strip().split(":", 1)[0].replace("/", "").isdigit()
+          )
+          individual_acceptances = sum(
+              1 for line in log.splitlines()
+              if line.strip().startswith("License ") and line.strip().endswith(" accepted.")
+          )
           final_marker = "All SDK package licenses accepted" in log
           pathlib.Path(sys.argv[2]).write_text(json.dumps({
               "sdkmanager_exit_code": 0,
@@ -175,7 +181,7 @@ jobs:
               "individual_acceptance_lines": individual_acceptances,
               "all_packages_accepted_marker": final_marker,
               "raw_log": "android-sdk-license.log"
-          }, indent=2) + "\\n", encoding="utf-8")
+          }, indent=2) + chr(10), encoding="utf-8")
           PY
           if ! grep -Fq "All SDK package licenses accepted" "$license_log"; then
             echo "ANDROID_SDK_LICENSE_ACCEPTANCE=INCOMPLETE evidence_marker_missing" >&2
