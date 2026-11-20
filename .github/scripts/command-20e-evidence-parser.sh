@@ -137,7 +137,17 @@ if data.get("links_compared") != 8 or data.get("total_values_compared") != 32:
     raise SystemExit(1)
 if len(data.get("comparisons", [])) != 32:
     raise SystemExit(1)
-if any(row.get("status") != "PASS" for row in data["comparisons"]):
+if any(row.get("status") != "PASS" or "value" not in row for row in data["comparisons"]):
+    raise SystemExit(1)
+expected_fields = {"reminderId", "calendarId", "eventId", "lastSyncedFingerprint"}
+by_link = {}
+for row in data["comparisons"]:
+    link_id = row.get("link_id")
+    field = row.get("field")
+    if not isinstance(link_id, str) or not link_id or field not in expected_fields:
+        raise SystemExit(1)
+    by_link.setdefault(link_id, set()).add(field)
+if len(by_link) != 8 or any(fields != expected_fields for fields in by_link.values()):
     raise SystemExit(1)
 pid_a, pid_b = sys.argv[2], sys.argv[3]
 if not re.fullmatch(r"[1-9][0-9]*", pid_a) or not re.fullmatch(r"[1-9][0-9]*", pid_b) or pid_a == pid_b:
