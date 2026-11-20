@@ -42,6 +42,12 @@ void main() {
         date: secondReminderDate,
         isAllDay: true,
         sequence: 2,
+        extensionData: const <String, dynamic>{
+          'futureReminderField': <String, dynamic>{
+            'retained': true,
+            'revision': 2,
+          },
+        },
       ),
     );
     task.nextReminderSequence = 3;
@@ -73,6 +79,10 @@ void main() {
       expect(loaded.taskReminders[0].isAllDay, isFalse);
       expect(loaded.taskReminders[1].date, secondReminderDate);
       expect(loaded.taskReminders[1].isAllDay, isTrue);
+      expect(loaded.taskReminders[1].extensionData['futureReminderField'], {
+        'retained': true,
+        'revision': 2,
+      });
 
       final editedFirstDate = DateTime(2026, 10, 28, 9, 35);
       loaded.taskReminders[0] = loaded.taskReminders[0].copyWith(
@@ -98,6 +108,10 @@ void main() {
       expect(afterEdit.taskReminders[1].id, 'reminder-second');
       expect(afterEdit.taskReminders[1].date, secondReminderDate);
       expect(afterEdit.taskReminders[1].isAllDay, isTrue);
+      expect(afterEdit.taskReminders[1].extensionData['futureReminderField'], {
+        'retained': true,
+        'revision': 2,
+      });
 
       afterEdit.taskReminders.removeWhere((r) => r.id == 'reminder-second');
       await reopenedStore.save(<Task>[afterEdit]);
