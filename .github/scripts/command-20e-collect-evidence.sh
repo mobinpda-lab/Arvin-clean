@@ -92,11 +92,13 @@ if grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$EVIDENCE/project_store_persistence.lo
 project="$(classify_evidence_file "$EVIDENCE/project_store_persistence.log" "$project_state" 'TEST_STARTED=1' 'TEST_STATUS=PASS' 'TEST_STATUS=FAILURE')"
 
 cat "$EVIDENCE/calendar_restart_stage_a.log" "$EVIDENCE/calendar_restart_stage_b.log" > "$EVIDENCE/calendar-combined-status.log"
-calendar="$(classify_calendar_restart_evidence \
-  "$EVIDENCE/calendar_restart_stage_a.log" \
-  "$EVIDENCE/calendar_restart_stage_b.log" \
-  "$EVIDENCE/cleanup_verification.log" \
-  "$EVIDENCE/calendar_value_comparison.json")"
+calendar_state=NOT_STARTED
+if grep -q 'TEST_STARTED=1' "$EVIDENCE/calendar-combined-status.log"; then calendar_state=STARTED; fi
+if grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$EVIDENCE/calendar-combined-status.log"; then calendar_state=COMPLETED; fi
+calendar="$(classify_evidence_file "$EVIDENCE/calendar-combined-status.log" "$calendar_state" 'TEST_STARTED=1' 'CALENDAR_LINK_PROCESS_RESTART=PASS' 'TEST_STATUS=FAILURE')"
+if [[ "$calendar" == PASS ]] && ! jq -e '.status == "PASS" and .links_compared == 8 and .total_values_compared == 32 and .independent_processes == true and (.comparisons|length == 32) and ([.comparisons[].status]|all(. == "PASS"))' "$EVIDENCE/calendar_value_comparison.json" >/dev/null 2>&1; then
+  calendar="INCOMPLETE EVIDENCE"
+fi
 
 cleanup_state=NOT_STARTED
 if grep -q 'CLEANUP_TEST_STARTED=1' "$EVIDENCE/cleanup_verification.log"; then cleanup_state=STARTED; fi

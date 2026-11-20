@@ -143,6 +143,20 @@ jobs:
           # Provision and verify the SDK component before testing KVM acceleration.
           evidence=".github/command-20e-evidence"
           mkdir -p "$evidence"
+          # Android Emulator's QEMU host binary requires libpulse at runtime.
+          if ! sudo apt-get update -qq; then
+            echo "EMULATOR_HOST_DEPENDENCY=FAILURE apt_update" >&2
+            exit 1
+          fi
+          if ! sudo apt-get install -y libpulse0; then
+            echo "EMULATOR_HOST_DEPENDENCY=FAILURE libpulse0_install" >&2
+            exit 1
+          fi
+          if ! ldconfig -p | grep -Fq "libpulse.so.0"; then
+            echo "EMULATOR_HOST_DEPENDENCY=FAILURE libpulse0_not_registered" >&2
+            exit 1
+          fi
+          echo "EMULATOR_HOST_DEPENDENCY=PASS libpulse0"
           sdkmanager_path="$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
           if [[ -z "$sdkmanager_path" || ! -x "$sdkmanager_path" ]]; then
             echo "ANDROID_SDK_INSTALL=FAILURE sdkmanager_not_found sdk_root=$sdk_root" >&2
@@ -174,14 +188,45 @@ jobs:
               1 for line in log.splitlines()
               if line.strip().startswith("License ") and line.strip().endswith(" accepted.")
           )
+          initial_unaccepted = None
+          total_packages = None
+          for line in log.splitlines():
+              parts = line.strip().split()
+              if (len(parts) >= 8 and parts[1] == "of" and parts[3] == "SDK"
+                      and parts[4] == "package" and parts[5] == "licenses"
+                      and parts[6] == "not" and parts[7].startswith("accepted")):
+                  initial_unaccepted, total_packages = int(parts[0]), int(parts[2])
+                  break
           final_marker = "All SDK package licenses accepted" in log
+          counts_consistent = (
+              initial_unaccepted is None or package_prompts == initial_unaccepted
+          )
+          accepted_before = (
+              total_packages - initial_unaccepted
+              if total_packages is not None and initial_unaccepted is not None
+              else None
+          )
+          accepted_after = (
+              total_packages if final_marker and total_packages is not None
+              else accepted_before + individual_acceptances
+              if accepted_before is not None else None
+          )
+          status = "PASS" if final_marker and counts_consistent else "INCOMPLETE"
           pathlib.Path(sys.argv[2]).write_text(json.dumps({
               "sdkmanager_exit_code": 0,
-              "package_license_prompts": package_prompts,
+              "total_license_packages": total_packages,
+              "initially_unaccepted": initial_unaccepted,
+              "already_accepted_before": accepted_before,
+              "license_prompts_answered": package_prompts,
               "individual_acceptance_lines": individual_acceptances,
+              "accepted_packages_after": accepted_after,
               "all_packages_accepted_marker": final_marker,
+              "counts_consistent": counts_consistent,
+              "status": status,
               "raw_log": "android-sdk-license.log"
           }, indent=2) + chr(10), encoding="utf-8")
+          if status != "PASS":
+              raise SystemExit(2)
           PY
           if ! grep -Fq "All SDK package licenses accepted" "$license_log"; then
             echo "ANDROID_SDK_LICENSE_ACCEPTANCE=INCOMPLETE evidence_marker_missing" >&2
@@ -276,6 +321,9 @@ jobs:
           set -u
           evidence=".github/command-20e-evidence"
           source .github/scripts/command-20e-evidence-parser.sh
+          touch "$evidence/calendar_restart_stage_a.log" \
+            "$evidence/calendar_restart_stage_b.log" \
+            "$evidence/cleanup_verification.log"
           project_state=NOT_STARTED
           grep -q 'TEST_STARTED=1' "$evidence/project_store_persistence.log" 2>/dev/null && project_state=STARTED
           grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$evidence/project_store_persistence.log" 2>/dev/null && project_state=COMPLETED
