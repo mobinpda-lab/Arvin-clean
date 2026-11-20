@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/models/task.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
@@ -135,6 +136,18 @@ void main() {
         }
         expect(envelope['unknownFutureField'], unknownValue);
 
+        // The same decoded Task object is the source for portable backup JSON.
+        final backupJson = reopened.single.toJson();
+        for (final key in const [
+          'notebookKind',
+          'templateTaskId',
+          'focusDate',
+          'recurrence',
+        ]) {
+          expect(backupJson.containsKey(key), isTrue, reason: '$key lost from backup JSON');
+          expect(backupJson[key], isNull, reason: '$key changed in backup JSON');
+        }
+
         final integrity = await database.runSelect('PRAGMA integrity_check', const []);
         expect(integrity.single.values.single, 'ok');
         final foreignKeys =
@@ -146,4 +159,51 @@ void main() {
       }
     },
   );
+
+  test('Task JSON preserves explicit NULL keys and never restores stale non-NULL values', () {
+    const keys = <String>[
+      'notebookKind',
+      'templateTaskId',
+      'focusDate',
+      'recurrence',
+    ];
+    final explicitNullTask = Task.fromJson(<String, dynamic>{
+      'id': 'explicit-null-json-task',
+      'title': 'NULL صریح',
+      for (final key in keys) key: null,
+    });
+    final explicitNullJson = explicitNullTask.toJson();
+    for (final key in keys) {
+      expect(explicitNullJson.containsKey(key), isTrue, reason: '$key was omitted');
+      expect(explicitNullJson[key], isNull, reason: '$key was not NULL');
+    }
+
+    final populatedTask = Task.fromJson(<String, dynamic>{
+      'id': 'populated-json-task',
+      'title': 'مقادیر معتبر',
+      'notebookKind': 'note',
+      'templateTaskId': 'template-original',
+      'focusDate': '2026-11-20',
+      'recurrence': <String, dynamic>{
+        'frequency': 'weekly',
+        'interval': 2,
+      },
+    });
+    final populatedJson = populatedTask.toJson();
+    expect(populatedJson['notebookKind'], 'note');
+    expect(populatedJson['templateTaskId'], 'template-original');
+    expect(populatedJson['focusDate'], '2026-11-20');
+    expect((populatedJson['recurrence'] as Map)['frequency'], 'weekly');
+    expect((populatedJson['recurrence'] as Map)['interval'], 2);
+
+    // Clearing a formerly populated field must not resurrect the old value.
+    populatedTask.notebookKind = null;
+    populatedTask.templateTaskId = null;
+    populatedTask.focusDate = null;
+    populatedTask.recurrence = null;
+    final clearedJson = populatedTask.toJson();
+    for (final key in keys) {
+      expect(clearedJson.containsKey(key), isFalse, reason: '$key was restored after clear');
+    }
+  });
 }
