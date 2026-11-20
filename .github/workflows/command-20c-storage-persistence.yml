@@ -11,6 +11,7 @@ on:
       - 'integration_test/command20e_calendar_restart_fixture.dart'
       - '.github/scripts/command-20e-evidence-parser.sh'
       - '.github/scripts/test-command-20e-evidence-parser.sh'
+      - 'COMMAND-60-R-MASTER-TRACKER.md'
       - '.github/workflows/command-20c-storage-persistence.yml'
       - '.github/scripts/command-20e-calendar-restart.sh'
       - '.github/scripts/command-20e-collect-evidence.sh'
