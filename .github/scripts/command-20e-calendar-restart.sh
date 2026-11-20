@@ -61,6 +61,7 @@ echo "CALENDAR_STAGE_A_BEGIN" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 adb -s "$DEVICE" logcat -c
 adb -s "$DEVICE" shell monkey -p "$APP_ID" 1 >/dev/null
 wait_for_marker "CALENDAR_LINK_STAGE_A_WRITE=PASS" "$EVIDENCE/calendar_restart_stage_a.log"
+echo "TEST_STARTED=1" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
 pid_before="$(adb -s "$DEVICE" shell pidof "$APP_ID" 2>/dev/null | tr -d '\r' | awk '{print $1}' || true)"
 test -n "$pid_before"
 echo "PROCESS_PID_BEFORE_STOP=$pid_before" | tee -a "$EVIDENCE/calendar_restart_stage_a.log"
@@ -161,7 +162,7 @@ for attempt in $(seq 1 30); do
   sleep 1
 done
 test -z "$pid_final"
-echo "FINAL_APP_PROCESS_STOP=PASS" | tee "$EVIDENCE/cleanup_verification.log"
+echo "FINAL_APP_PROCESS_STOP=PASS" | tee -a "$EVIDENCE/cleanup_verification.log"
 echo "APP_DATA_CLEAR=NOT_PERFORMED" | tee -a "$EVIDENCE/cleanup_verification.log"
 grep -F 'CALENDAR_LINK_TEST_KEY_CLEANUP=PASS' "$EVIDENCE/calendar_restart_stage_b.log" >/dev/null
 adb -s "$DEVICE" uninstall "$APP_ID" 2>&1 | tee -a "$EVIDENCE/cleanup_verification.log"
