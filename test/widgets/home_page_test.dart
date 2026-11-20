@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/canonical_sqlite_fixture.dart';
+
 import 'package:arvin/main.dart';
 import 'package:arvin/task_detail_page.dart';
 import 'package:arvin/home/home_filter_ui.dart';
@@ -49,7 +51,7 @@ void main() {
   });
 
   testWidgets('tapping a Home task card opens details for that same Task', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"home-card-detail","title":"جزئیات همین کار"}]',
     });
@@ -78,7 +80,7 @@ void main() {
   });
 
   testWidgets('home task card uses compact controls without shrinking readable text', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"compact-home","title":"کار فشرده","dueDate":"2030-09-20T10:00:00.000"}]',
     });
@@ -104,7 +106,7 @@ void main() {
   testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"overdue-preserved","title":"کار عقب‌افتادهٔ مهم","completed":false,"dueDate":"$dueDate"}]',
     });
@@ -130,7 +132,7 @@ void main() {
   });
 
   testWidgets('Home hides disabled checklist progress but keeps its saved rows', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"disabled-checklist-home","title":"کار با چک‌لیست خاموش","checklist":["[ ] کیف"],"checklistEnabled":false}]',
     });
@@ -155,7 +157,7 @@ void main() {
   });
 
   testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active","title":"کار انجام‌نشده","completed":false}]',
     });
@@ -188,12 +190,12 @@ void main() {
   });
 
 
-  testWidgets('Home uses the five checkbox filters as combined filters and preserves time grouping',
+  testWidgets('Home combines checkbox filters and preserves time grouping',
       (tester) async {
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
     });
@@ -255,7 +257,7 @@ void main() {
 
   testWidgets('Home search scopes the active Home task set',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"active","title":"جستجوی مشترک فعال"},{"id":"completed","title":"جستجوی مشترک انجام‌شده","completed":true},{"id":"archived","title":"جستجوی مشترک بایگانی","archived":true},{"id":"trashed","title":"جستجوی مشترک حذف‌شده","trashed":true}]',
     });
@@ -274,7 +276,7 @@ void main() {
 
   testWidgets('Home search uses canonical Persian and FollowUp text',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"persian","title":"يادداشت كاری"},{"id":"followup","title":"کار دوم","followUps":[{"id":"f1","dateTime":"2026-08-25T10:00:00.000","note":"تماس با مشتری","result":"موفق"}]},{"id":"other","title":"خرید"}]',
     });
@@ -296,7 +298,7 @@ void main() {
 
   testWidgets('default rightward swipe still moves an active task to trash',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
     });
 
@@ -321,7 +323,7 @@ void main() {
 
   testWidgets('permanent delete from trash requires explicit confirmation',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"trashed","title":"حذف آزمایشی","trashed":true}]',
     });
@@ -361,7 +363,7 @@ void main() {
 
   testWidgets('drawer opens archive and restores archived task to active',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"archived","title":"کار بایگانی","archived":true}]',
     });
@@ -386,7 +388,7 @@ void main() {
 
   testWidgets('drawer opens trash and restores trashed task to active',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"trashed-restore","title":"کار سطل","trashed":true}]',
     });
@@ -441,7 +443,7 @@ void main() {
 
   testWidgets('RTL swipe directions honor independently configured archive and trash actions',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"right-task","title":"بایگانی راست"},{"id":"left-task","title":"سطل چپ"}]',
     });
@@ -498,7 +500,7 @@ void main() {
 
   testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-26T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
     });
@@ -557,7 +559,7 @@ void main() {
     const description =
         'توضیح طولانی چندخطی برای بررسی اینکه متن توضیحات نیز بدون برش اجباری در کارت خانه نمایش داده شود';
 
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"long-card","title":"$title","description":"$description"}]',
     });
 
@@ -579,7 +581,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetViewInsets);
 
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"a","title":"کار الف","category":"مشتری","tags":["مهم","تماس"]},{"id":"b","title":"کار ب","category":"فروش","tags":["مهم"]}]',
       'arvin.projects': '[{"id":"active-project","title":"پروژه فعال","isArchived":false,"itemIds":[]},{"id":"archived-project","title":"پروژه بایگانی","isArchived":true,"itemIds":[]}]',
     });
@@ -655,7 +657,7 @@ void main() {
   });
 
   testWidgets('canonical empty Home offers the real Quick Capture action', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    await setCanonicalSqliteFixture({});
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
@@ -675,7 +677,7 @@ void main() {
       now.day - daysAgo,
       hour,
     ).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"done-newer","title":"گذشته انجام‌شده جدیدتر","completed":true,"dueDate":"${due(1, 9)}"},'
           '{"id":"open-newer","title":"گذشته باز جدیدتر","completed":false,"dueDate":"${due(1, 10)}"},'
@@ -712,7 +714,7 @@ void main() {
       (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"red-overdue","title":"کار با موعد گذشته","completed":false,"dueDate":"$dueDate"}]',
     });
@@ -747,7 +749,7 @@ void main() {
       (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 3));
     final dueDate = DateTime(past.year, past.month, past.day, 9).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"archive-on-complete","title":"کار برای آرشیو فوری","description":"توضیح محفوظ","completed":false,"dueDate":"$dueDate","checklist":["[ ] مورد اول"],"followUps":[{"id":"history-1","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}],"reminderDate":"2026-11-05T08:00:00.000"}]',
     });
@@ -778,7 +780,7 @@ void main() {
       (tester) async {
     final past = IranClock.now().subtract(const Duration(days: 4));
     final dueDate = DateTime(past.year, past.month, past.day, 11).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"past-archive","title":"کار گذشته برای بایگانی","completed":false,"dueDate":"$dueDate"}]',
     });
@@ -810,7 +812,7 @@ void main() {
   testWidgets('completed Home task remains available in Archive after app reopen',
       (tester) async {
     await TaskStore.resetTestDatabase();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"reopen-archive","title":"کار بایگانی پس از بازگشایی","description":"اطلاعات محفوظ","completed":false,"checklist":["[ ] مورد"],"followUps":[{"id":"reopen-history","dateTime":"2026-10-20T09:00:00.000","note":"سابقه محفوظ"}]}]',
     });
@@ -847,7 +849,7 @@ void main() {
 
 
   testWidgets('Home More Today shortcut remains a task filter, not calendar navigation', (tester) async {
-    SharedPreferences.setMockInitialValues({});
+    await setCanonicalSqliteFixture({});
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
@@ -866,7 +868,7 @@ void main() {
     final today = IranClock.now();
     final todayIso = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final later = DateTime(today.year, today.month, today.day + 4, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"calendar-today-only","title":"موعد امروز بدون انتخاب","dueDate":"$todayIso","isFavorite":false},{"id":"focus-later","title":"برگزیده با موعد آینده","dueDate":"$later","isSelectedForToday":true,"isFavorite":false}]',
     });
@@ -940,7 +942,7 @@ void main() {
   for (final width in [360.0, 390.0, 412.0]) {
     testWidgets('Home focus control remains accessible at ${width.toInt()}dp width', (tester) async {
       await tester.binding.setSurfaceSize(Size(width, 820));
-      SharedPreferences.setMockInitialValues({
+      await setCanonicalSqliteFixture({
         'arvin.tasks':
             '[{"id":"focus-width","title":"کار برگزیده در عرض محدود","isSelectedForToday":true}]',
       });
@@ -962,7 +964,7 @@ void main() {
 
   testWidgets('Focus Today is reachable from drawer More and global funnel with one result set',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"focus-route-selected","title":"کار برگزیده با موعد آینده","dueDate":"2030-04-12T10:30:00.000","isSelectedForToday":true},{"id":"focus-route-unselected","title":"کار انتخاب‌نشده با موعد آینده","dueDate":"2030-04-13T10:30:00.000"}]',
     });
@@ -1011,7 +1013,7 @@ void main() {
 
   testWidgets('Home task card shows category, priority dot, centered date and Focus marker only',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"focus-card-contract","title":"کار نمایشی","category":"شخصی","tags":["محرمانه"],"centerId":"center-hidden","dueDate":"2030-09-20T10:00:00.000","isSelectedForToday":true,"isFavorite":false,"followUps":[{"id":"follow-up-summary","dateTime":"2026-11-08T10:00:00.000","note":"خلاصه آخرین پیگیری"}]},{"id":"no-category-priority","title":"بدون دسته"}]',
     });

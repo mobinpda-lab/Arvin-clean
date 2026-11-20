@@ -428,6 +428,9 @@ void main() {
   testWidgets('editor tag picker replaces tags on the same canonical note',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 19, 0));
+    await repository.createTag('قدیمی');
+    await repository.createTag('مهم');
+    await repository.createTag('مشتری');
     await repository.createNote(id: 'tag-note', title: 'یادداشت برچسب');
     await repository.updateTags(id: 'tag-note', tags: const ['قدیمی', 'مهم', 'مشتری']);
 
@@ -438,9 +441,13 @@ void main() {
     expect(find.byKey(const ValueKey('notebook-tags-picker')), findsOneWidget);
     expect(find.text('#قدیمی #مهم #مشتری'), findsOneWidget);
 
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
+    final tagsPicker = find.byKey(const ValueKey('notebook-tags-picker'));
+    await tester.ensureVisible(tagsPicker);
+    await tester.tap(tagsPicker);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    final tagsRollBox = find.byKey(const ValueKey('notebook-tags-rollbox'));
+    await tester.ensureVisible(tagsRollBox);
+    await tester.tap(tagsRollBox);
     await tester.pumpAndSettle();
     await tester.tap(find.text('قدیمی').last);
     await tester.pumpAndSettle();
@@ -476,6 +483,7 @@ void main() {
   testWidgets('category selection immediately moves the same canonical note',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 8, 28, 0));
+    await repository.createCategory('اداری');
     final first = await repository.createNote(
       id: 'first',
       title: 'یادداشت اول',
@@ -563,6 +571,8 @@ void main() {
   testWidgets('bulk tag assignment preserves same Notebook ids and unrelated data',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 13));
+    await repository.createTag('مهم');
+    await repository.createTag('فوری');
     await repository.createNote(id: 'bulk-tag-1', title: 'اول');
     await repository.createNote(id: 'bulk-tag-2', title: 'دوم');
     await repository.updateTags(id: 'bulk-tag-1', tags: const ['مهم', 'فوری']);
@@ -593,6 +603,8 @@ void main() {
   testWidgets('bulk category move preserves Notebook identities across reload',
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 8, 14));
+    await repository.createCategory('مشتریان');
+    await repository.createCategory('قدیمی');
     await repository.createNote(id: 'bulk-cat-1', title: 'اول', category: 'مشتریان');
     await repository.createNote(id: 'bulk-cat-2', title: 'دوم', category: 'قدیمی');
 
@@ -906,6 +918,8 @@ void main() {
       (tester) async {
     final repository = repositoryAt(DateTime.utc(2026, 9, 30, 10));
     final taskStore = TaskStore(executor: database);
+    await taskStore.createCategory('کاری');
+    await taskStore.createTag('مهم');
     await taskStore.save([
       Task(
         id: 'taxonomy-source-task',
@@ -940,9 +954,13 @@ void main() {
     await tester.tap(find.text('کاری').last);
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-picker')));
+    final tagsPicker = find.byKey(const ValueKey('notebook-tags-picker'));
+    await tester.ensureVisible(tagsPicker);
+    await tester.tap(tagsPicker);
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('notebook-tags-rollbox')));
+    final tagsRollBox = find.byKey(const ValueKey('notebook-tags-rollbox'));
+    await tester.ensureVisible(tagsRollBox);
+    await tester.tap(tagsRollBox);
     await tester.pumpAndSettle();
     expect(find.text('مهم'), findsOneWidget);
     await tester.tap(find.text('مهم').last);

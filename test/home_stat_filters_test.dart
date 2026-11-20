@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/canonical_sqlite_fixture.dart';
 import 'package:arvin/services/iran_clock.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
@@ -15,7 +17,7 @@ void main() {
     await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
     await CenterStore.resetTestDatabase();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[\n        {"id":"active","title":"کار فعال","category":"اداری","tags":["مهم"],"completed":false},\n        {"id":"done","title":"کار انجام شده","category":"شخصی","completed":true},\n        {"id":"late","title":"کار عقب افتاده","completed":false,"dueDate":"2020-01-01T08:00:00.000"},\n        {"id":"archived","title":"کار بایگانی","archived":true}\n      ]',
     });
   });
@@ -187,7 +189,7 @@ void main() {
   });
 
   testWidgets('category checkbox selection applies OR only after confirmation', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"one","title":"اداری","category":"اداری"},{"id":"two","title":"شخصی","category":"شخصی"},{"id":"three","title":"مالی","category":"مالی"}]',
     });
     await tester.pumpWidget(const ArvinApp());
@@ -215,7 +217,7 @@ void main() {
   });
 
   testWidgets('tag choices are OR within Tags and AND with Category', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"one","title":"اول","category":"اداری","tags":["مهم","فوری"]},{"id":"two","title":"دوم","category":"اداری","tags":["فوری"]},{"id":"three","title":"سوم","category":"شخصی","tags":["مهم"]}]',
     });
     await tester.pumpWidget(const ArvinApp());
@@ -250,7 +252,7 @@ void main() {
     final now = DateTime(iranNow.year, iranNow.month, iranNow.day, 12);
     final yesterday = now.subtract(const Duration(days: 1));
     final tomorrow = now.add(const Duration(days: 1));
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"past-time","title":"کار گذشته","dueDate":"${yesterday.toIso8601String()}"},{"id":"today-time","title":"کار امروز","dueDate":"${now.toIso8601String()}"},{"id":"future-time","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"}]',
     });
     await tester.pumpWidget(const ArvinApp());
@@ -315,7 +317,7 @@ void main() {
     final tomorrow = DateTime(now.year, now.month, now.day)
         .add(const Duration(days: 1))
         .add(const Duration(hours: 10));
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"calendar-today","title":"موعد امروز","dueDate":"${today.toIso8601String()}"},{"id":"calendar-overdue","title":"کار عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"calendar-completed-overdue","title":"گذشته انجام‌شده","dueDate":"${yesterday.toIso8601String()}","completed":true},{"id":"calendar-focus-future","title":"فقط برگزیدهٔ آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });
@@ -343,7 +345,7 @@ void main() {
     final tomorrow = DateTime(now.year, now.month, now.day)
         .add(const Duration(days: 1))
         .add(const Duration(hours: 10));
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"time-today-open","title":"کار باز امروز","dueDate":"${today.toIso8601String()}"},{"id":"time-overdue-open","title":"کار باز عقب‌افتاده","dueDate":"${yesterday.toIso8601String()}"},{"id":"time-today-done","title":"کار انجام‌شده امروز","dueDate":"${today.toIso8601String()}","completed":true},{"id":"time-focus-future","title":"فقط تمرکز آینده","dueDate":"${tomorrow.toIso8601String()}","isSelectedForToday":true}]',
     });

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/canonical_sqlite_fixture.dart';
+
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
@@ -31,7 +33,7 @@ void main() {
       swipeLeftAction: TaskSwipeAction.trash,
     );
 
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"rtl-right","title":"حرکت به راست"}]',
     });
 
@@ -72,7 +74,7 @@ void main() {
       swipeLeftAction: TaskSwipeAction.none,
     );
 
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"move-today","title":"$taskTitle","dueDate":"2026-09-20T10:00:00.000Z"}]',
     });
@@ -106,7 +108,7 @@ void main() {
       swipeLeftAction: TaskSwipeAction.trash,
     );
 
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"rtl-left","title":"حرکت به چپ"}]',
     });
 
@@ -147,7 +149,7 @@ void main() {
       swipeRightAction: TaskSwipeAction.convertToFollowUp,
       swipeLeftAction: TaskSwipeAction.convertToFollowUp,
     );
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"$taskId","title":"$taskTitle"}]',
     });
     await tester.pumpWidget(
@@ -206,7 +208,7 @@ void main() {
       swipeLeftAction: TaskSwipeAction.focusToday,
     );
     const dueDate = '2030-04-12T10:30:00.000';
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"$taskId","title":"$taskTitle","dueDate":"$dueDate","isFavorite":true,"completed":false}]',
     });
