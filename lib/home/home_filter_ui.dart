@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
+import '../theme/arvin_design_tokens.dart';
 
 enum HomeFilterDimension { time, project, category, tags }
 
@@ -29,71 +30,72 @@ class HomeFilterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final selected = value != 'همه';
-    final compact = MediaQuery.sizeOf(context).height < 700;
-    return Expanded(
-      child: Semantics(
-        button: true,
-        label: title + ': ' + value,
-        child: Material(
-          color: selected ? Color.alphaBlend(accent.withAlpha(22), soft) : soft,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            key: ValueKey('home-filter-card-' + dimension.name),
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 160),
-              curve: Curves.easeOutCubic,
-              height: compact ? 72 : 88,
-              padding: EdgeInsets.symmetric(horizontal: 4, vertical: compact ? 4 : 7),
-              decoration: BoxDecoration(
-                color: selected
-                    ? Color.alphaBlend(accent.withAlpha(18), soft)
-                    : soft,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
-                  width: selected ? 1.5 : 1,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(selected ? 13 : 7),
-                    blurRadius: selected ? 9 : 6,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
+    return Semantics(
+      button: true,
+      label: '$title: $value',
+      child: Material(
+        color: selected ? Color.alphaBlend(accent.withAlpha(22), soft) : soft,
+        borderRadius: BorderRadius.circular(ArvinRadii.control),
+        child: InkWell(
+          key: ValueKey('home-filter-card-${dimension.name}'),
+          borderRadius: BorderRadius.circular(ArvinRadii.control),
+          onTap: onTap,
+          child: Container(
+            constraints: const BoxConstraints(
+              minWidth: 104,
+              maxWidth: 156,
+              minHeight: 46,
+            ),
+            padding: const EdgeInsets.symmetric(
+              horizontal: ArvinSpacing.x2,
+              vertical: ArvinSpacing.x1,
+            ),
+            decoration: BoxDecoration(
+              color: selected
+                  ? Color.alphaBlend(accent.withAlpha(18), soft)
+                  : soft,
+              borderRadius: BorderRadius.circular(ArvinRadii.control),
+              border: Border.all(
+                color: selected ? accent.withAlpha(150) : accent.withAlpha(45),
+                width: selected ? 1.5 : 1,
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(icon, color: accent, size: compact ? 18 : 20),
-                  SizedBox(height: compact ? 3 : 5),
-                  Text(
-                    title,
-                    maxLines: 1,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: accent.withAlpha(235),
-                      fontSize: compact ? 10 : 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  SizedBox(height: compact ? 1 : 2),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      value,
-                      maxLines: 1,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: accent,
-                        fontSize: compact ? 10.5 : 11.5,
-                        fontWeight: FontWeight.w700,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: accent, size: 17),
+                const SizedBox(width: ArvinSpacing.x1),
+                Flexible(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: accent.withAlpha(235),
+                          fontSize: ArvinTypography.caption,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
+                      Text(
+                        value,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: accent,
+                          fontSize: ArvinTypography.label,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 2),
+                Icon(Icons.expand_more_rounded, color: accent, size: 16),
+              ],
             ),
           ),
         ),

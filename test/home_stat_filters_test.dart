@@ -12,13 +12,13 @@ void main() {
     });
   });
 
-  testWidgets('Home exposes the four final grouping controls', (tester) async {
+  testWidgets('Home exposes four implemented filters while the REV10 Center filter is pending', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
 
     final scrollable = find.byType(Scrollable).last;
@@ -32,17 +32,69 @@ void main() {
     expect(find.text('کار بایگانی'), findsNothing);
   });
 
-  testWidgets('Home notification remains physically left of menu in RTL',
+  testWidgets('Home general filter is physically left of menu in RTL',
       (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final notificationCenter = tester.getCenter(
-      find.byKey(const ValueKey('home-notifications')),
+    final filterCenter = tester.getCenter(
+      find.byKey(const ValueKey('home-global-filter')),
     );
     final menuCenter = tester.getCenter(find.byKey(const ValueKey('home-menu')));
 
-    expect(notificationCenter.dx, greaterThan(menuCenter.dx));
+    expect(filterCenter.dx, lessThan(menuCenter.dx));
+  });
+
+  testWidgets('Home general filter exposes Today, Timeless, Archive and Trash views', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('home-global-filter')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('کارهای فاقد زمان'), findsOneWidget);
+    expect(find.text('بایگانی'), findsOneWidget);
+    expect(find.text('سطل زباله'), findsOneWidget);
+  });
+
+  testWidgets('Home sort defaults to Follow-up Date and exposes all approved sort keys', (tester) async {
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+
+    final filterWrap = tester.widget<Wrap>(
+      find.byKey(const ValueKey('home-filter-sort-wrap')),
+    );
+    expect(filterWrap.textDirection, TextDirection.rtl);
+    expect(find.byKey(const ValueKey('home-filter-sort-scroll')), findsNothing);
+    expect(find.byKey(const ValueKey('home-sort')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('تاریخ پیگیری'), findsOneWidget);
+    expect(find.text('موعد کار'), findsOneWidget);
+    expect(find.text('آخرین تغییرات'), findsOneWidget);
+    expect(find.text('عنوان'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selected-lastFollowUp')), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort-option-date')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('home-sort-selected-date')), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-sort-selected-lastFollowUp')), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('home-sort-descending')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<SwitchListTile>(
+        find.byKey(const ValueKey('home-sort-descending')),
+      ).value,
+      isTrue,
+    );
+
+    await tester.tap(find.text('بستن'));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('Home keeps core controls reachable on a short Android viewport',
@@ -55,11 +107,14 @@ void main() {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    expect(find.text('بسم الله الرحمن الرحیم'), findsOneWidget);
+    expect(find.text('بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ'), findsOneWidget);
+    expect(find.text('آروین'), findsOneWidget);
+    expect(find.text('مدیریت کارها، یادداشت‌ها و پیگیری‌ها'), findsOneWidget);
+    expect(find.byKey(const ValueKey('home-global-filter')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-search')), findsOneWidget);
     expect(find.text('زمان'), findsOneWidget);
-    expect(find.text('پروژه'), findsOneWidget);
-    expect(find.text('دسته'), findsOneWidget);
+    expect(find.text('پروژه‌ها'), findsOneWidget);
+    expect(find.text('دسته‌ها'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-canonical-add')), findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -73,7 +128,7 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final before = prefs.getString('arvin.tasks');
 
-    await tester.tap(find.text('دسته'));
+    await tester.tap(find.text('دسته‌ها'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب‌ها'));
     await tester.pumpAndSettle();
