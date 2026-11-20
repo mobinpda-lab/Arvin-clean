@@ -8,6 +8,7 @@ classify_evidence_file() {
     if [[ -n "$start_marker" ]] && grep -Fq "$start_marker" "$file"; then has_start=true; fi
     if [[ -n "$pass_marker" ]] && grep -Fq "$pass_marker" "$file"; then has_pass=true; fi
     if [[ -n "$failure_marker" ]] && grep -Fq "$failure_marker" "$file"; then has_failure=true; fi
+    if grep -Fq 'TEST_STATUS=FAILURE' "$file"; then has_failure=true; fi
     if grep -Fxq 'TEST_STATUS=NOT TESTED' "$file" ||
        grep -Fxq 'Cleanup verification NOT TESTED.' "$file" ||
        grep -Fxq 'Calendar stage A NOT TESTED.' "$file" ||
