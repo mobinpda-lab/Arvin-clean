@@ -624,7 +624,12 @@ class TaskStore {
     envelope['updatedAt'] = row['updated_at'];
     envelope['dueDate'] = row['due_date'];
     envelope['category'] = row['category'];
-    envelope['notebookKind'] = row['notebook_kind'];
+    // Preserve omission versus explicit NULL for nullable canonical fields.
+    if (row['notebook_kind'] != null || envelope.containsKey('notebookKind')) {
+      envelope['notebookKind'] = row['notebook_kind'];
+    } else {
+      envelope.remove('notebookKind');
+    }
     envelope['priority'] = row['priority'];
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
@@ -648,8 +653,10 @@ class TaskStore {
         envelope['recurrence'] = jsonDecode(recurrence);
       } else if (envelope['recurrence'] is Map) {
         envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
-      } else {
+      } else if (envelope.containsKey('recurrence')) {
         envelope['recurrence'] = null;
+      } else {
+        envelope.remove('recurrence');
       }
     }
 
