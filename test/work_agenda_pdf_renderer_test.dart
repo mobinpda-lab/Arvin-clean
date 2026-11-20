@@ -25,7 +25,16 @@ void main() {
       title: 'تحویل قرارداد',
       description: 'نسخه نهایی',
       dueDate: DateTime(2026, 8, 29, 10),
+      // The deprecated Task-level date remains inert compatibility data.
       reminderDate: DateTime(2026, 8, 29, 9),
+      taskReminders: [
+        TaskReminder(
+          id: 'agenda-reminder-1',
+          title: 'یادآوری تحویل قرارداد',
+          date: DateTime(2026, 8, 29, 9),
+          sequence: 1,
+        ),
+      ],
       followUps: [
         FollowUp(
           id: 'fu-1',
@@ -41,7 +50,16 @@ void main() {
       generatedAt: DateTime(2026, 8, 29, 8),
     );
     expect(report.days, hasLength(1));
-    expect(report.days.single.items.single.events, hasLength(2));
+    final events = report.days.single.items.single.events;
+    expect(events, hasLength(2));
+    expect(events.map((event) => event.kind), [
+      WorkAgendaEventKind.taskReminder,
+      WorkAgendaEventKind.taskDue,
+    ]);
+    expect(events.map(TaskReportPdfRenderer.agendaEventLabel), [
+      'یادآوری کار: ۱۴۰۵/۰۶/۰۷ ۰۹:۰۰',
+      'موعد کار: ۱۴۰۵/۰۶/۰۷ ۱۰:۰۰',
+    ]);
 
     final renderer = TaskReportPdfRenderer(
       fontLoader: () async => TaskReportFonts(
