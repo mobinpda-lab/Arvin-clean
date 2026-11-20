@@ -299,7 +299,7 @@ class TaskReminder {
 }
 
 class Task {
-  static const Set<String> _knownJsonKeys = <String>{
+  static const Set<String> jsonFieldNames = <String>{
     'id',
     'title',
     'description',
