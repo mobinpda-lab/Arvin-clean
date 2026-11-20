@@ -68,6 +68,7 @@ void main() {
       const taskId = 'independent-backup-task';
       const personId = 'independent-backup-person';
       const followUpId = 'independent-backup-follow-up';
+      const reminderId = 'independent-backup-reminder';
       final task = Task.fromJson(<String, dynamic>{
         'id': taskId,
         'title': 'داده مستقل پایگاه A',
@@ -82,6 +83,19 @@ void main() {
         },
         'templateTaskId': null,
         'focusDate': null,
+        'taskReminders': <Map<String, dynamic>>[
+          <String, dynamic>{
+            'id': reminderId,
+            'title': 'یادآور مستقل',
+            'date': '2026-11-20T08:00:00.000',
+            'isAllDay': false,
+            'sequence': 1,
+            'futureReminderField': <String, dynamic>{
+              'preserve': 'reminder',
+              'revision': 2,
+            },
+          },
+        ],
         'recurrence': null,
         'people': <Map<String, dynamic>>[
           <String, dynamic>{
@@ -125,6 +139,11 @@ void main() {
           'preserve': 'historical-record',
           'revision': 3,
         },
+      );
+      expect(sourceTasks.single.taskReminders.single.id, reminderId);
+      expect(
+        sourceTasks.single.taskReminders.single.toJson()['futureReminderField'],
+        <String, dynamic>{'preserve': 'reminder', 'revision': 2},
       );
 
       final backupService = _FileBackedBackupService(backupFile);
@@ -175,6 +194,11 @@ void main() {
         expect(restored.followUps.single.id, followUpId);
         expect(restored.followUps.single.personIds, <String>[personId]);
         expect(restored.people.map((person) => person.id), <String>[personId]);
+        expect(restored.taskReminders.single.id, reminderId);
+        expect(
+          restored.taskReminders.single.toJson()['futureReminderField'],
+          <String, dynamic>{'preserve': 'reminder', 'revision': 2},
+        );
         expect(
           restored.toJson()['futureTaskField'],
           <String, dynamic>{'preserve': true, 'revision': 7},
