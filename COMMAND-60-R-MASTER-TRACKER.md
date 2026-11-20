@@ -187,3 +187,62 @@ Schema 9 tables are present; Center model, CenterStore, management page, Home se
 Actual archive SHA-256 `0a9afd41967e6f57096a56a181a23f81a2b999b62f1f2a4e4b26736580854fdb`; 387 ZIP entries; CRC clean; Vazirmatn weights 100–900; SIL OFL 1.1. Canonical repo still packages only 400/500/700. Build font packaging audit PASS applies only to those currently registered assets, not to the full family. Settings text-size Slider remains persisted and applied by root MediaQuery.textScaler. Full font weight registration, Persian/Latin digit visual checks and cross-page typography acceptance remain open.
 
 **Overall release:** NO-GO. No merge, deployment or release authorized.
+
+
+---
+
+## COMMAND 106-R — Root-cause repair and P0-A acceptance checkpoint
+**Updated:** 2026-11-20  
+**Repository:** `mobinpda-lab/Arvin-clean`  
+**Canonical PR:** #3495 — OPEN / DRAFT / UNMERGED  
+**Canonical branch:** `recovery-02/main-based-integration`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — read-only  
+**Implementation checkpoint before this tracker-only update:** `7cbbb16fb30f137ea690bbc5f4ca066c8051ca3a`  
+**P0-A:** BLOCKED — RELEASE NO-GO
+
+### COMMAND 20-E repairs committed on the canonical branch
+- `bc3d10d65df631f3c9573739b392a5c0161c958a`: KVM setup and hardware-acceleration configuration aligned with Device Smoke; no forced `-accel off`.
+- `de0278d5e4ba0c2fa1b077547f4db7fc06dc32eb`: Calendar fixture expanded from two to eight independently identified ExternalCalendarEventLink records.
+- `a18af7c2b8aa5fb002653624b850b9587d442dec`: restart comparison changed to eight Link IDs and 32 individual field comparisons; Process A/B PID identity is required.
+- `92b0dfb86f86b744f0ef9d87eba4da7eff654be2`, `a7f381c60315068fa07a81dda0165d45b9dffbd8`, `b86554baf708a18f1b75ed1eb9eb92b293377049`, `8cd7c6ff3e208a5b943e82d1359792e19b8118d3`: explicit evidence-state parser and unit coverage for PASS, FAILURE, NOT TESTED, INCOMPLETE EVIDENCE, empty/missing files, incomplete reports and contradictory reports.
+- `e1696b499fe08b346382e3283b05ba51ae6e35ef`, `53ab4cde2b3cb7a48c8d76bb3c152896210bff48`, `0f6b583ca552998cc3e9ffe76e368d118e3486ed`, `b1f212a00c18ec890eab6fb35f9ec05913193605`, `7cbbb16fb30f137ea690bbc5f4ca066c8051ca3a`: explicit test outcomes, SDK/ADB/API/ABI evidence, KVM availability enforcement, prevention of emulator launch without KVM, and tracker-change workflow trigger.
+
+### Evidence classification and exact-SHA gate matrix
+All implementation statuses below remain unaccepted until exact-SHA workflow evidence completes. Historical results do not transfer to the new candidate.
+
+| Gate | Status | SHA | PR / Issue | Run ID | Test / Evidence | Remaining work |
+|---|---|---|---|---|---|---|
+| Emulator KVM configuration | TESTING | `7cbbb16fb30f137ea690bbc5f4ca066c8051ca3a` | #3495 | Pending for this SHA | `command-20c-storage-persistence.yml`; KVM required and recorded | Verify actual `/dev/kvm`, Emulator boot and ADB device |
+| Calendar eight-Link fixture | TESTING | same | #3495 | Pending | `command20e_calendar_restart_fixture.dart` | Execute on Android; confirm 8 IDs and all 32 values |
+| Process A/B persistence | TESTING | same | #3495 | Pending | force-stop, PID absence, fresh launch and PID comparison in `command-20e-calendar-restart.sh` | Prove distinct PIDs and compare all restored values |
+| Evidence parser | TESTING | same | #3495 | Pending | `command-20e-evidence-parser.sh` and independent eight-case test script | Execute unit tests in workflow; inspect output |
+| Cleanup classification | TESTING | same | #3495 | Pending | explicit execution/result markers | Verify cleanup PASS/FAILURE/NOT TESTED semantics |
+| ProjectStore file persistence | NOT TESTED | same | #3495 | Pending | file-backed test | Execute on same candidate SHA |
+| Build Analyze, shards 0–5, Debug/Release APK | NOT TESTED | same | #3495 | Pending | exact-SHA Build | All jobs must complete successfully |
+| Device Smoke | NOT TESTED | same | #3495 | Pending | exact-SHA Android emulator scenarios | All seven scenarios must pass |
+| Follow-up File Persistence | NOT TESTED | same | #3495 | Pending | exact-SHA workflow | Complete and verify artifact |
+| P0-A / COMMAND 20-E acceptance | BLOCKED | same | #3495 | Pending | all above gates | No acceptance until every required gate passes |
+
+The previously observed run `44739076355` targeted SHA `aec1e9c328b3555ee1328f9c7f02e73fafdae4a1`; it is not evidence for this checkpoint. Runs on earlier SHAs were cancelled or remain non-transferable.
+
+### Product and data-safety blockers
+| Capability | Status | Issue | Remaining work |
+|---|---|---|---|
+| Four-action Floating Reminder | BLOCKED | #3646 OPEN | Implement dedicated Arvin full-screen/floating Activity, four canonical actions, visual-reference match and Android lifecycle/device acceptance |
+| Sequential migration v7→v20 | BLOCKED | #3495 | Prove ordered, file-backed migrations and full historical data parity |
+| NULL / unknown-field preservation | NOT TESTED | #3495 | Verify every required model and relationship |
+| Backup A/B, repeated restore and rollback | NOT TESTED | #3495 | Physical file-backed backup/restore and failure-injection evidence |
+| SQLite Integrity / Foreign Keys | NOT TESTED | #3495 | Execute on migrated and restored databases |
+| Argon2id / AES-256-GCM | NOT TESTED | #3495 | Wrong password, tampered file and key derivation tests |
+| Android SAF | NOT TESTED | #3495 | Real Android document-provider export/import |
+| Center / Project / Category / Tag unified management | BLOCKED | #3495 | SQLite M2M integration, CRUD UI and relation integrity |
+| Five Home filters and OR/AND contract | NOT TESTED | #3495 | Real SQL-backed filter and sort acceptance |
+| Task, Quick Capture, People, Follow-up, Checklist, Recurrence, Calendar, Notebook, Reports, PDF, Settings, typography, RTL and Accessibility | NOT TESTED | #3495 | Independent user scenarios, tests, artifacts and exact SHA per capability |
+
+### Governance
+- Main remains read-only.
+- PR #3495 remains OPEN / DRAFT / UNMERGED.
+- No merge, release, deployment or production database operation.
+- No test was intentionally removed or weakened.
+- P0-A is still BLOCKED. The implementation commits are not acceptance evidence.
+- The tracker-only update creates a new HEAD; all required exact-SHA workflows must be rerun on that resulting HEAD before any gate can move to ACCEPTED.
