@@ -85,15 +85,38 @@ jq -n --arg sha "$TARGET_SHA" \
 analyze=NOT_TESTED
 if grep -q 'No issues found!' "$EVIDENCE/flutter_analyze.log"; then analyze=success
 elif grep -q -E 'issues found|error •|warning •|info •' "$EVIDENCE/flutter_analyze.log"; then analyze=failure; fi
-project=NOT_TESTED
-if grep -q 'PROJECT_STORE_FILE_PERSISTENCE=PASS' "$EVIDENCE/project_store_persistence.log"; then project=success
-elif [[ -s "$EVIDENCE/project_store_persistence.log" ]]; then project=failure; fi
-calendar=NOT_TESTED
-if grep -q 'CALENDAR_LINK_PROCESS_RESTART=PASS' "$EVIDENCE/calendar_restart_stage_b.log" && jq -e '.status == "PASS" and .total_values_compared == 8' "$EVIDENCE/calendar_value_comparison.json" >/dev/null 2>&1; then calendar=success
-elif grep -q 'CALENDAR_LINK_STAGE_A_WRITE=PASS' "$EVIDENCE/calendar_restart_stage_a.log" || grep -q 'CALENDAR_STAGE_A_BEGIN' "$EVIDENCE/calendar_restart_stage_a.log"; then calendar=failure; fi
-cleanup_status=NOT_TESTED
-if grep -q 'CALENDAR_TEST_KEY_CLEANUP=PASS' "$EVIDENCE/cleanup_verification.log" && grep -q 'FINAL_APP_PROCESS_STOP=PASS' "$EVIDENCE/cleanup_verification.log" && grep -q 'APP_DATA_CLEAR=NOT_PERFORMED' "$EVIDENCE/cleanup_verification.log"; then cleanup_status=success
-elif [[ -s "$EVIDENCE/cleanup_verification.log" ]]; then cleanup_status=failure; fi
+source .github/scripts/command-20e-evidence-parser.sh
+project_state=NOT_STARTED
+if grep -q 'TEST_STARTED=1' "$EVIDENCE/project_store_persistence.log"; then project_state=STARTED; fi
+if grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$EVIDENCE/project_store_persistence.log"; then project_state=COMPLETED; fi
+project="$(classify_evidence_file "$EVIDENCE/project_store_persistence.log" "$project_state" 'TEST_STARTED=1' 'TEST_STATUS=PASS' 'TEST_STATUS=FAILURE')"
+
+cat "$EVIDENCE/calendar_restart_stage_a.log" "$EVIDENCE/calendar_restart_stage_b.log" > "$EVIDENCE/calendar-combined-status.log"
+calendar_state=NOT_STARTED
+if grep -q 'TEST_STARTED=1' "$EVIDENCE/calendar-combined-status.log"; then calendar_state=STARTED; fi
+if grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$EVIDENCE/calendar-combined-status.log"; then calendar_state=COMPLETED; fi
+calendar="$(classify_evidence_file "$EVIDENCE/calendar-combined-status.log" "$calendar_state" 'TEST_STARTED=1' 'CALENDAR_LINK_PROCESS_RESTART=PASS' 'TEST_STATUS=FAILURE')"
+if [[ "$calendar" == PASS ]] && ! jq -e '.status == "PASS" and .links_compared == 8 and .total_values_compared == 32 and .independent_processes == true and (.comparisons|length == 32) and ([.comparisons[].status]|all(. == "PASS"))' "$EVIDENCE/calendar_value_comparison.json" >/dev/null 2>&1; then
+  calendar="INCOMPLETE EVIDENCE"
+fi
+
+cleanup_state=NOT_STARTED
+if grep -q 'CLEANUP_TEST_STARTED=1' "$EVIDENCE/cleanup_verification.log"; then cleanup_state=STARTED; fi
+if grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$EVIDENCE/cleanup_verification.log"; then cleanup_state=COMPLETED; fi
+cleanup_status="$(classify_evidence_file "$EVIDENCE/cleanup_verification.log" "$cleanup_state" 'CLEANUP_TEST_STARTED=1' 'CALENDAR_TEST_KEY_CLEANUP=PASS' 'TEST_STATUS=FAILURE')"
+
+normalize_status() {
+  case "$1" in
+    PASS) printf success ;;
+    FAILURE) printf failure ;;
+    NOT\ TESTED) printf not_tested ;;
+    *) printf incomplete_evidence ;;
+  esac
+}
+project="$(normalize_status "$project")"
+calendar="$(normalize_status "$calendar")"
+cleanup_status="$(normalize_status "$cleanup_status")"
+
 gates="$(jq -n --arg analyze "$analyze" --arg build_analyze "$build_analyze" --arg debug "$apk_debug" --arg release "$apk_release" --arg followup "$followup_status" --arg project "$project" --arg calendar "$calendar" --arg cleanup "$cleanup_status" --argjson shards "$shards" --argjson smokes "$smokes" '{target_sha:env.TARGET_SHA,gates:{flutter_analyze:{dedicated:$analyze,build:$build_analyze},test_shards:$shards,apk_debug:$debug,apk_release:$release,project_store_file_persistence:$project,calendar_process_restart:$calendar,cleanup:$cleanup,follow_up_persistence:$followup,device_smoke:$smokes}}')"
 overall=PASS
 jq -e '(.gates.flutter_analyze.dedicated=="success") and (.gates.flutter_analyze.build=="success") and ([.gates.test_shards[].conclusion]|all(.=="success")) and (.gates.apk_debug=="success") and (.gates.apk_release=="success") and (.gates.project_store_file_persistence=="success") and (.gates.calendar_process_restart=="success") and (.gates.cleanup=="success") and (.gates.follow_up_persistence=="success") and ([.gates.device_smoke[].conclusion]|all(.=="success"))' <<< "$gates" >/dev/null 2>&1 || overall=NO-GO
