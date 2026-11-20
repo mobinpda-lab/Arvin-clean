@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
+import '../theme/arvin_design_tokens.dart';
 
 enum ArvinPrimaryDestination {
   home,
@@ -80,7 +81,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
         top: false,
         minimum: const EdgeInsets.fromLTRB(10, 7, 10, 7),
         child: SizedBox(
-          height: 60,
+          height: ArvinTouchTargets.minimum + ArvinSpacing.x3,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -137,16 +138,16 @@ class _NavigationItem extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(ArvinRadii.navigation),
         onTap: onTap,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
+          duration: ArvinMotion.standard,
           curve: Curves.easeOutCubic,
           margin: const EdgeInsets.symmetric(horizontal: 3),
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 3),
           decoration: BoxDecoration(
             color: selected ? selectedSurface : Colors.transparent,
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(ArvinRadii.navigation),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -156,14 +157,14 @@ class _NavigationItem extends StatelessWidget {
                 size: 22,
                 color: iconColor,
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: ArvinSpacing.x1),
               Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
                   color: selected ? primary : muted,
-                  fontSize: 10.5,
+                  fontSize: ArvinTypography.caption,
                   fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
                 ),
               ),
