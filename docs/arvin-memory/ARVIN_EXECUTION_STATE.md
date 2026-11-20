@@ -1,3 +1,78 @@
+# COMMAND 84-R — LIVE EXECUTION STATE — 2026-11-20 07:59 IRST
+This entry is the authoritative checkpoint for COMMAND 84-R. Older entries below are retained as history only and must not override the live evidence recorded here.
+## Repository and governance
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Main: `45e4202b03a434459e4c021a04efa7e8396359db`; protected.
+- No direct Main commit, merge, release or deploy was performed.
+- Release status: **NO-GO**. No physical-device install or production-signature proof is available.
+## Current PR graph
+| PR | State | Base | Head SHA | Current result |
+|---|---|---|---|---|
+| #3052 | OPEN / DRAFT | historical integration base | `c0cc38374943d72b6d6f7f17bdcb0b9b20dd06d5` | Build run 44589112958 had 64 failures across six shards; APK artifacts exist; not accepted |
+| #3601 | OPEN / DRAFT | main | `ad7efb02ce1de1d65a68ca4832c96fdebe4299f2` | Six shards and seven Device Smoke stages passed on its own SHA; OR-tag behavior already exists in #3052, so no blind cherry-pick |
+| #3609 | OPEN / DRAFT | #3052-derived branch | `a437b6768dd0226505bdf8cd0364ee983c0fa5eb` | Explicit-NULL regression reproduced; focused assertion failed; Build 44671521688 failed six shards |
+| #3611 | OPEN / DRAFT | `fix/command-82-task-envelope-explicit-null` | `f674df30749875d365efc46f14091c5c21243441` | Focused explicit-NULL file-backed test PASS; Analyze and File Persistence PASS; six shards FAILED; Device Smoke 44672803661 still queued/in progress |
+| #3613 | OPEN / DRAFT | #3611 branch | `d84ad4c668a526d7824f071c06d71914d7d8ad53` | Expanded model/SQLite/migration/backup NULL preservation; Analyze and File Persistence PASS; Build 44674427973 IN PROGRESS; Device Smoke 44674427966 queued |
+| #3614 | OPEN / DRAFT | #3613 branch | pre-tracker head `62ac426223705e5681a0ee44f5bf8c07279b2a6c` | Test-harness corrections only; no exact-head workflow result observed before this tracker update |
+## P0 — SQLite and explicit NULL preservation
+### PR #3609 — reproduction
+- Exact SHA: `a437b6768dd0226505bdf8cd0364ee983c0fa5eb`.
+- File-backed SQLite regression failed: explicit `notebookKind: null` was absent from the canonical envelope after mutation/reopen.
+- This is verified defect evidence, not a speculative failure.
+### PR #3611 — first storage fix
+- Exact SHA: `f674df30749875d365efc46f14091c5c21243441`.
+- Focused test `TaskStore preserves explicit NULL envelope fields through mutation and SQLite reopen`: PASS.
+- Analyze: PASS; Visual: PASS; File Persistence: PASS.
+- Six Shards: FAILED with 10, 20, 11, 11, 10 and 4 failed tests respectively.
+- Build run: 44672803666, conclusion FAILURE.
+- Device Smoke run: 44672803661; boot job observed IN_PROGRESS, remaining six jobs QUEUED; workflow not terminal.
+- Artifacts: Debug APK 14600599236; Release APK 14601250997; Staging APK 14601115969; Staging audit candidate 14600863758; Staging verification 14601490040. These prove artifact creation only, not physical install or production signing.
+### PR #3613 — serializer/migration extension
+- Base SHA: `f674df30749875d365efc46f14091c5c21243441`.
+- Current HEAD before this tracker commit: `d84ad4c668a526d7824f071c06d71914d7d8ad53`.
+- Adds explicit-NULL provenance to Task JSON serialization; retains omitted-vs-null distinction when decoding SQL-owned fields; preserves NULLs on fresh SQLite writes and legacy JSON migration; prevents stale non-NULL resurrection after clearing a field.
+- Adds tests for JSON/backup serialization, fresh file-backed SQLite insert/reopen, Task/Person/Follow-up relation IDs, migration envelope, unknown fields, integrity and foreign-key checks.
+- Analyze: PASS (job 136082746367); Visual: PASS (job 136082746042); File Persistence: PASS (run 44674427964).
+- Six Shards: IN PROGRESS at latest poll; APK Debug/Release/Staging: IN PROGRESS.
+- Device Smoke run 44674427966: boot job IN_PROGRESS, other six jobs QUEUED. No terminal result.
+- No artifacts had been published at the latest artifact query.
+- Important: this branch remains unaccepted until all focused tests, migration and backup gates pass on one exact SHA.
+## Core Product — diagnosis and regression-harness corrections
+- Home tag matcher in #3052 already implements OR within a dimension and AND across dimensions. Do not reimplement or blindly cherry-pick #3601.
+- Home boolean-filter test failure: the test tapped the second option without scrolling it into view. #3614 adds `ensureVisible` while retaining all OR/AND assertions.
+- Task Details Person persistence test failure: `scrollUntilVisible` received a ListView finder rather than the descendant Scrollable. #3614 scopes the finder to the actual vertical Scrollable; product assertion is unchanged.
+- Follow-up Person selection test: created-person/apply interaction did not reveal the apply control before tapping. #3614 makes the apply action visible before confirmation; selection assertions remain.
+- People page UI test: Person row was absent after UI-triggered add, while TaskPeopleService unit tests passed. Root cause is not yet proven. #3614 adds a bounded asynchronous wait for the SQLite-backed UI callback; this is a diagnostic/test synchronization correction, not acceptance of People.
+- Work Agenda PDF test fixture used deprecated Task/Follow-up reminder dates, which are inert under the canonical TaskReminder contract, while expecting two scheduled events. #3614 now uses a canonical TaskReminder and asserts exact Persian event labels/order; legacy dates remain inert.
+- No assertion has been removed or relaxed. PR #3614 itself still requires exact-head CI.
+## People / Follow-up
+- TaskPeopleService unit tests pass in the observed #3611 Build logs.
+- Task Details UI persistence test had a test API type error; corrected only in #3614.
+- Follow-up created-person selection UI test still requires exact-head validation after the visibility correction.
+- Person tombstone/restore feature remains unaccepted; history preservation and restore identity must be proven on a real database.
+## Notebook / Reports / Calendar / REV10
+- PDF renderer loads Vazirmatn Regular/Bold assets. PDF byte creation alone is not content acceptance.
+- Work Agenda event projection consumes canonical due dates and enabled TaskReminder records; legacy Follow-up reminder/nextFollowUp dates do not create scheduled events.
+- Calendar Provider acceptance source test exercises create/no-op/update/delete and asserts provider visibility, but no current terminal exact-head provider/device result was recorded in this checkpoint.
+- REV10 across all pages, RTL, typography, universal bottom sheet, keyboard/overflow and visual/device acceptance remain NOT ACCEPTED.
+## SQLite Migration and Backup/Restore
+- Operational Candidate #3052 schema version observed: v17.
+- PR #3586 introduces schema v18 and an additive Person Directory exclusion migration; it is based on stale SHA `0cf1792d52f764c89d0cd9a9411880140e0c67d4` and overlaps TaskStore, schema and backup code. Do not merge wholesale.
+- PR #3574 is based on the old recovery branch and remains v17; PR #3575 is stacked on #3574; PR #3591 is stacked on #3586 and changes backup byte serialization. These PRs remain OPEN / DRAFT and are not accepted.
+- PR #3586 Build 44545499523 and PR #3591 Build 44548064208 each had six-shard failures; Device Smoke was cancelled.
+- Existing Android SQL smoke uses an in-memory/runtime backup service for part of the flow; it is not proof of Database A → file → independent Database B → restore.
+- No complete real-old-database migration matrix, repeated restore, emergency backup, rollback-after-mid-stage-failure on an independent target DB, Android SAF or encrypted-file end-to-end acceptance is recorded.
+## Immediate next actions
+1. Do not mutate branches #3611 or #3613 while their exact-SHA Device Smoke/Build jobs are active.
+2. Finish #3613 exact-head six-shard, APK and Device Smoke results; inspect the four-field explicit-NULL tests and any failures.
+3. Validate #3614 corrections on its final SHA; then classify any remaining People/Follow-up failures as product vs test-harness issues using logs, without weakening assertions.
+4. Triage remaining Core Product failures by root cause and assign one bounded owner per shared failure family.
+5. Reconcile PR #3574/#3575/#3586/#3591 by full diff and base ancestry; do not integrate a stale branch wholesale.
+6. Implement real independent A→B backup/restore and old-version migration tests before declaring P0 or Backup/Restore ACCEPTED.
+7. Refresh this tracker after each terminal Wave checkpoint. The tracker commit itself changes the PR #3614 head and requires fresh CI.
+8. Keep MAIN PROTECTED, MERGE FORBIDDEN, RELEASE FORBIDDEN, DEPLOY FORBIDDEN, NO DATA LOSS and NO TEST WEAKENING.
+---
+
 # AUTHORITATIVE LIVE UPDATE — 2026-10-14 — Exact-head CI recovery correction
 
 This entry supersedes prior claims that the exact-head recovery root cause was wholly unknown.

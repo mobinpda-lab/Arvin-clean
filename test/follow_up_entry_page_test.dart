@@ -216,7 +216,9 @@ void main() {
     );
     await tester.tap(find.text('+ ایجاد مورد جدید'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ثبت انتخاب اشخاص'));
+    final applyPeople = find.text('ثبت انتخاب اشخاص');
+    await tester.ensureVisible(applyPeople);
+    await tester.tap(applyPeople);
     await tester.pumpAndSettle();
 
     expect(people, hasLength(2));
