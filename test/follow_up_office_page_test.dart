@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'support/canonical_sqlite_fixture.dart';
 import 'package:arvin/services/task_store.dart';
 
 import 'package:arvin/follow_up_entry_page.dart';
@@ -22,7 +24,7 @@ void main() {
   }
 
   testWidgets('shows dedicated follow-up office shell', (tester) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await setCanonicalSqliteFixture(<String, Object>{});
     await tester.pumpWidget(
       const MaterialApp(home: FollowUpOfficePage()),
     );
@@ -33,7 +35,7 @@ void main() {
   });
 
   testWidgets('follow-up office exposes the shared five filter dimensions', (tester) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await setCanonicalSqliteFixture(<String, Object>{});
     await tester.pumpWidget(const MaterialApp(home: FollowUpOfficePage()));
     await tester.pumpAndSettle();
 
@@ -49,7 +51,7 @@ void main() {
 
   testWidgets('adds and persists a follow-up for the only task',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 't1',
@@ -86,7 +88,7 @@ void main() {
 
   testWidgets('marks a new follow-up as waiting and persists canonical token',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 't1',
@@ -127,7 +129,7 @@ void main() {
 
   testWidgets('selects one of multiple tasks and persists only to that task',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 't1',
@@ -177,7 +179,7 @@ void main() {
 
   testWidgets('waiting filter uses only each task latest follow-up result',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 'waiting',
@@ -247,7 +249,7 @@ void main() {
   });
 
   testWidgets('legacy Next Follow-up dates never create an automatic due filter', (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 'due',
@@ -318,7 +320,7 @@ void main() {
 
   testWidgets('edits an existing follow-up without creating a duplicate',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 't1',
@@ -381,7 +383,7 @@ void main() {
 
   testWidgets('shows a retry message and keeps data unchanged on write error',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': jsonEncode([
         {
           'id': 't1',
@@ -423,7 +425,7 @@ void main() {
 
   testWidgets('asks the user to create a task when the list is empty',
       (tester) async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
+    await setCanonicalSqliteFixture(<String, Object>{});
     await tester.pumpWidget(
       const MaterialApp(home: FollowUpOfficePage()),
     );
