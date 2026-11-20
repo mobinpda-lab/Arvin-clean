@@ -660,27 +660,61 @@ class TaskStore {
       }
     }
 
+    final previousTaskRemindersById = <String, Map<String, dynamic>>{};
+    final rawPreviousTaskReminders = envelope['taskReminders'];
+    if (rawPreviousTaskReminders is List) {
+      for (final raw in rawPreviousTaskReminders) {
+        if (raw is Map && raw['id'] is String) {
+          previousTaskRemindersById[raw['id'] as String] =
+              Map<String, dynamic>.from(raw);
+        }
+      }
+    }
     final reminderRows = await executor.runSelect(
       'SELECT * FROM task_reminders WHERE task_id = ? ORDER BY sequence, id',
       <Object?>[row['id']],
     );
-    envelope['taskReminders'] = reminderRows.map((reminder) => <String, dynamic>{
-      'id': reminder['id'],
-      'title': reminder['title'],
-      'date': reminder['remind_at'],
-      'isAllDay': (reminder['is_all_day'] as num?)?.toInt() == 1,
-      'sequence': reminder['sequence'],
-      'isEnabled': (reminder['is_enabled'] as num?)?.toInt() != 0,
+    envelope['taskReminders'] = reminderRows.map((reminder) {
+      final id = reminder['id'] as String;
+      final previous = previousTaskRemindersById[id];
+      return <String, dynamic>{
+        if (previous != null)
+          for (final entry in previous.entries)
+            if (!TaskReminder.jsonFieldNames.contains(entry.key))
+              entry.key: entry.value,
+        'id': id,
+        'title': reminder['title'],
+        'date': reminder['remind_at'],
+        'isAllDay': (reminder['is_all_day'] as num?)?.toInt() == 1,
+        'sequence': reminder['sequence'],
+        'isEnabled': (reminder['is_enabled'] as num?)?.toInt() != 0,
+      };
     }).toList(growable: false);
 
+    final previousFollowUpsById = <String, Map<String, dynamic>>{};
+    final rawPreviousFollowUps = envelope['followUps'];
+    if (rawPreviousFollowUps is List) {
+      for (final raw in rawPreviousFollowUps) {
+        if (raw is Map && raw['id'] is String) {
+          previousFollowUpsById[raw['id'] as String] =
+              Map<String, dynamic>.from(raw);
+        }
+      }
+    }
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_up_records WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
     final followUpJson = <Map<String, dynamic>>[];
     for (final followUpRow in followUps) {
+      final id = followUpRow['id'] as String;
+      final previous = previousFollowUpsById[id];
       final value = <String, dynamic>{
-        'id': followUpRow['id'],
+        if (previous != null)
+          for (final entry in previous.entries)
+            if (!FollowUpRecord.jsonFieldNames.contains(entry.key))
+              entry.key: entry.value,
+        'id': id,
         'completedAt': followUpRow['completed_at'],
         'title': followUpRow['title'],
         'note': followUpRow['note'],
@@ -894,13 +928,7 @@ class TaskStore {
     Task task, {
     Map<String, dynamic>? previousPayload,
   }) {
-    final knownKeys = <String>{
-      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
-      'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'isFavorite', 'isSelectedForToday', 'focusDate', 'templateTaskId', 'followUps', 'recurrence', 'people',
-      'taskReminders', 'legacyFollowUpMetadata',
-    };
+    final knownKeys = Task.jsonFieldNames;
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
     if (previous != null) {
