@@ -56,6 +56,12 @@ void main() {
     await tester.pump();
 
     expect(createdTitle, 'پروژه آزمایشی');
-    expect(find.text('پروژه آزمایشی', skipOffstage: false), findsWidgets);
+    expect(
+      find.descendant(
+        of: projectPill,
+        matching: find.bySemanticsLabel('پروژه آزمایشی'),
+      ),
+      findsOneWidget,
+    );
   });
 }
