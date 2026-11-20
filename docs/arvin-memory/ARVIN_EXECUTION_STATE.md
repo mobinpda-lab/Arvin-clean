@@ -1,3 +1,33 @@
+# COMMAND 84-R — LIVE UPDATE — 2026-11-20 08:03 IRST
+This update supersedes earlier live status in this file where it conflicts. Older checkpoints remain historical.
+## New evidence since the previous checkpoint
+- Main remains protected at `45e4202b03a434459e4c021a04efa7e8396359db`. No merge, release or deploy.
+- PR #3613 exact SHA `d84ad4c668a526d7824f071c06d71914d7d8ad53`: Build run 44674427973 is terminal FAILURE. Analyze and Visual PASS; six shards FAIL; Debug, Release and Staging APK jobs PASS. File Persistence run 44674427964 PASS.
+- PR #3613 focused tests that passed: TaskStore explicit NULL through mutation/reopen; fresh file-backed SQLite insert with four NULLs, Task ID, Person/Follow-up links, integrity_check and foreign_key_check; canonical backup/restore JSON preserves all four explicit NULL fields.
+- PR #3613 Migration regression failed with `Task envelope/unknown-field conflict` at `SqlTaskMigrationWriter._assertExistingTaskParity`. Root cause: parity comparison removed SQL-owned `notebookKind` and `recurrence` from the actual envelope even when the source explicitly contained NULL, while the expected envelope correctly retained those NULLs.
+- Device Smoke run 44674427966 is not terminal. Boot lane job 136082779636 FAILED because Maven Central returned HTTP 429 while resolving Kotlin Gradle artifacts; this is a verified infrastructure rate-limit failure, not an app assertion failure. A screenshot artifact was uploaded (14601152949), but app installation/boot did not complete. Navigation lane was still in progress and five other lanes queued at latest poll.
+## Migration parity repair
+- New branch: `fix/command-84-migration-null-parity`, based on PR #3614 head `9e29eae5781bb2ec5a08a87f4bcc345a1e524697`.
+- Commit: `fd3c7c17bddb8911939f86e4970f4d79b435b914`.
+- Change: parity validation now retains explicit NULL `notebookKind` and `recurrence` keys from the original source while still excluding ordinary SQL-owned fields from envelope comparison.
+- This is a targeted correction to the proven migration failure. It is not yet in a PR and has no CI evidence. The regression test remains unchanged and must pass on the resulting PR SHA.
+## PR #3614 — Core regression harness
+- Current head: `9e29eae5781bb2ec5a08a87f4bcc345a1e524697`; base is PR #3613 branch at `d84ad4c668a526d7824f071c06d71914d7d8ad53`.
+- Tracker update changed the branch from prior head `62ac426223705e5681a0ee44f5bf8c07279b2a6c` to current head `9e29eae...`.
+- On current head, File Persistence run 44674993256 PASS; Build run 44674993232 PENDING; Device Smoke run 44674993266 PENDING.
+- Earlier Build run 44674928165 for superseded SHA `62ac426...` had test/analyze jobs CANCELLED while APK lanes were still in progress. Do not use those results for current head.
+- Test-only changes retain all assertions: Home filter options are revealed before tapping; Task Details uses the actual descendant Scrollable; Follow-up apply action is revealed; People UI test waits for asynchronous SQLite callback; PDF fixture uses canonical TaskReminder and asserts Persian event labels/order.
+- No acceptance claim until exact-head Build, six shards and Device Smoke complete on current SHA.
+## Next actions
+1. Keep PR #3613 branch unchanged while its Device Smoke run remains active.
+2. Open a Draft PR from `fix/command-84-migration-null-parity` targeting `test/command-84-core-regression-harness`; validate the migration parity correction on its exact head.
+3. Allow PR #3614 current SHA `9e29eae...` Build and Device Smoke to reach terminal status; do not change that branch during validation.
+4. Treat HTTP 429 in Device Smoke as infrastructure failure; retry only the affected lane after current workflow reaches a safe terminal point. Do not infer app failure from Maven throttling.
+5. Continue People UI investigation if its wait-corrected test still fails; do not mask an actual service or persistence failure.
+6. Complete independent database A→backup→database B→restore, repeated restore, rollback, Emergency Backup, SAF, encrypted backup and real legacy migration matrix.
+7. Keep MAIN PROTECTED, MERGE FORBIDDEN, RELEASE FORBIDDEN, DEPLOY FORBIDDEN, NO DATA LOSS, NO TEST WEAKENING and NO FALSE ACCEPTANCE.
+---
+
 # COMMAND 84-R — LIVE EXECUTION STATE — 2026-11-20 07:59 IRST
 This entry is the authoritative checkpoint for COMMAND 84-R. Older entries below are retained as history only and must not override the live evidence recorded here.
 ## Repository and governance
