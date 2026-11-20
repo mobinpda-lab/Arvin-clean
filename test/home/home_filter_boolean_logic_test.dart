@@ -2,13 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/canonical_sqlite_fixture.dart';
+
 import 'package:arvin/main.dart';
 
 void main() {
   testWidgets('Home filters combine OR within each dimension and AND across dimensions', (tester) async {
     final today = DateTime(2026, 11, 5, 10);
     final due = today.toIso8601String();
-    SharedPreferences.setMockInitialValues(<String, Object>{
+    await setCanonicalSqliteFixture(<String, Object>{
       'arvin.tasks': '''
 [
   {"id":"personal-home","title":"شخصی خانه","dueDate":"$due","category":"شخصی","tags":["خانه"]},
