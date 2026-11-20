@@ -4,11 +4,13 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/canonical_sqlite_fixture.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    SharedPreferences.setMockInitialValues({});
+    await setCanonicalSqliteFixture({});
   });
 
   testWidgets('Home keeps backup in the More menu instead of the header',
@@ -56,7 +58,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"compact-task","title":"کار جمع‌وجور"}]',
     });
 
@@ -97,7 +99,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"normal-task","title":"کار عادی"}]',
     });
 
@@ -116,7 +118,7 @@ void main() {
 
   testWidgets('RTL swipe mapping remains configurable and data-safe',
       (tester) async {
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"archive-me","title":"برای بایگانی"},{"id":"trash-me","title":"برای حذف"}]',
     });
@@ -169,7 +171,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetViewInsets);
     addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks': '[{"id":"fractional-home","title":"کار در اندازه باریک"}]',
     });
 
