@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/home/home_filter_ui.dart';
 import 'package:arvin/services/iran_clock.dart';
+import 'package:arvin/services/task_store.dart';
 
 void main() {
   testWidgets('Home renders five collapsible time groups and hides empty filtered groups', (tester) async {
@@ -15,12 +16,13 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('arvin.tasks',
-      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}"},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}"},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}"},{"id":"none","title":"بی‌زمان"}]');
+      '[{"id":"past","title":"گذشته","dueDate":"${past.toIso8601String()}"},{"id":"completed-past","title":"گذشته تکمیل‌شده","dueDate":"${past.toIso8601String()}","completed":true},{"id":"today","title":"امروز","dueDate":"${today.toIso8601String()}"},{"id":"tomorrow","title":"کار فردا","dueDate":"${tomorrow.toIso8601String()}"},{"id":"future","title":"آینده","dueDate":"${future.toIso8601String()}"},{"id":"none","title":"بی‌زمان"}]');
 
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
     expect(find.text('تاریخ‌گذشته'), findsOneWidget);
+    expect(find.text('گذشته تکمیل‌شده'), findsOneWidget);
     expect(find.text('امروز'), findsAtLeastNWidgets(1));
     expect(find.byKey(const ValueKey('home-filter-card-time')), findsOneWidget);
     expect(find.byKey(const ValueKey('home-filter-card-project')), findsOneWidget);
@@ -81,5 +83,36 @@ void main() {
       tester.getSize(find.byKey(const ValueKey('home-filter-card-time'))).height,
       88,
     );
+  });
+
+  testWidgets('Home multi-tag selection is OR within Tags and excludes unmatched tasks', (tester) async {
+    await TaskStore.resetTestDatabase();
+    addTearDown(() => TaskStore.resetTestDatabase());
+    SharedPreferences.setMockInitialValues({});
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+      'arvin.tasks',
+      '[{"id":"tag-first","title":"فقط برچسب اول","tags":["برچسب اول"]},'
+      '{"id":"tag-second","title":"فقط برچسب دوم","tags":["برچسب دوم"]},'
+      '{"id":"tag-both","title":"هر دو برچسب","tags":["برچسب اول","برچسب دوم"]},'
+      '{"id":"tag-other","title":"برچسب نامرتبط","tags":["برچسب دیگر"]}]',
+    );
+
+    await tester.pumpWidget(const ArvinApp());
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-tags')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('برچسب اول'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('برچسب دوم'));
+    await tester.pumpAndSettle();
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    expect(find.text('فقط برچسب اول'), findsOneWidget);
+    expect(find.text('فقط برچسب دوم'), findsOneWidget);
+    expect(find.text('هر دو برچسب'), findsOneWidget);
+    expect(find.text('برچسب نامرتبط'), findsNothing);
   });
 }
