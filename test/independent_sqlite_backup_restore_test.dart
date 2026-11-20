@@ -126,21 +126,24 @@ void main() {
       expect(await storeB.load(), isEmpty);
       final candidate = await manager.restoreCanonicalBackup();
       expect(candidate, isNotNull);
-      expect(candidate!.tasks, hasLength(1));
-      expect(candidate.tasks.single.id, taskId);
+      final firstCandidate = candidate!;
+      expect(firstCandidate.tasks, hasLength(1));
+      expect(firstCandidate.tasks.single.id, taskId);
 
-      Future<void> applyCandidate() async {
-        await storeB.save(candidate.tasks);
+      Future<void> applyCandidate(
+        CanonicalBackupCandidate candidateToApply,
+      ) async {
+        await storeB.save(candidateToApply.tasks);
         await storeB.mergeCatalogs(
-          categories: candidate.categories ?? const <String>[],
-          tags: candidate.tags ?? const <String>[],
+          categories: candidateToApply.categories ?? const <String>[],
+          tags: candidateToApply.tags ?? const <String>[],
         );
-        if (candidate.people != null) {
-          await storeB.savePeopleDirectory(candidate.people!);
+        if (candidateToApply.people != null) {
+          await storeB.savePeopleDirectory(candidateToApply.people!);
         }
       }
 
-      await applyCandidate();
+      await applyCandidate(firstCandidate);
 
       Future<void> verifyDatabaseB() async {
         final restoredTasks = await storeB.load();
@@ -154,6 +157,9 @@ void main() {
         expect(restored.followUps.single.personIds, <String>[personId]);
         expect(restored.people.map((person) => person.id), <String>[personId]);
 
+        // Compare the complete canonical Task envelope, not only selected
+        // fields, so unknown/nullable/model-owned data cannot silently drift.
+        expect(restored.toJson(), sourceTasks.single.toJson());
         final portable = restored.toJson();
         for (final key in const <String>[
           'notebookKind',
@@ -200,7 +206,7 @@ void main() {
       // must not duplicate Tasks, Follow-ups, or relation rows.
       final secondCandidate = await manager.restoreCanonicalBackup();
       expect(secondCandidate, isNotNull);
-      await applyCandidate();
+      await applyCandidate(secondCandidate!);
       await verifyDatabaseB();
       final taskCount = await databaseB.runSelect(
         'SELECT COUNT(*) AS count FROM tasks',
@@ -212,6 +218,16 @@ void main() {
       );
       expect((taskCount.single['count'] as num).toInt(), 1);
       expect((followUpCount.single['count'] as num).toInt(), 1);
+      final taskPersonCount = await databaseB.runSelect(
+        'SELECT COUNT(*) AS count FROM task_persons',
+        const [],
+      );
+      final followUpPersonCount = await databaseB.runSelect(
+        'SELECT COUNT(*) AS count FROM follow_up_record_people',
+        const [],
+      );
+      expect((taskPersonCount.single['count'] as num).toInt(), 1);
+      expect((followUpPersonCount.single['count'] as num).toInt(), 1);
 
       // Inject a failure after a real write to Database B and require the
       // rollback path to restore the complete prior Task snapshot.
