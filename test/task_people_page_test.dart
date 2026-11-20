@@ -56,6 +56,13 @@ void main() {
     );
     await tester.tap(find.byKey(const ValueKey('people-add-save')));
     await tester.pumpAndSettle();
+    // The button callback awaits two SQLite operations before publishing the
+    // new Task snapshot. Let that asynchronous persistence complete rather
+    // than treating an idle frame queue as a completed Future.
+    await tester.runAsync(() async {
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    });
+    await tester.pumpAndSettle();
 
     expect(find.text('علی رضایی'), findsOneWidget);
     var reloaded = (await store.load()).single;
