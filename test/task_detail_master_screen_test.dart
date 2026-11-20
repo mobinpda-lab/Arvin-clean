@@ -411,7 +411,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(persisted?.checklist, ['[ ] مرحله دوم', '[ ] مرحله اول']);
 
-    final add = find.byKey(const ValueKey('task-detail-checklist-add'));
+    final add = find.byKey(const ValueKey('task-detail-add-checklist'));
     await tester.ensureVisible(add);
     await tester.tap(add);
     await tester.pumpAndSettle();
@@ -643,7 +643,9 @@ void main() {
     );
     expect(find.text('افزودن مرحله جدید'), findsOneWidget);
     expect(find.byKey(const ValueKey('task-detail-latest-followup')), findsOneWidget);
-    expect(find.byKey(const ValueKey('task-detail-timeline')), findsOneWidget);
+    final timeline = find.byKey(const ValueKey('task-detail-timeline'));
+    await _scrollTaskDetailUntilVisible(tester, timeline, 240);
+    expect(timeline, findsOneWidget);
   });
 
   testWidgets('Task Details converts a Task to a persisted template without mutating source', (tester) async {
