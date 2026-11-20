@@ -247,6 +247,14 @@ class SqlTaskMigrationWriter {
       for (final entry in record.sourceJson.entries)
         if (!known.contains(entry.key)) entry.key: entry.value,
     };
+    // SQL-owned fields are removed from the envelope, but explicit legacy
+    // NULLs must remain distinguishable from omitted fields in the source.
+    for (final key in const <String>['notebookKind', 'recurrence']) {
+      if (record.sourceJson.containsKey(key) &&
+          record.sourceJson[key] == null) {
+        canonical[key] = null;
+      }
+    }
     return <String, dynamic>{...unknown, ...canonical};
   }
 

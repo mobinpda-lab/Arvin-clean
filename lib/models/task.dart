@@ -288,7 +288,9 @@ class Task {
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
-  }) : focusDate = focusDate == null
+    Iterable<String> explicitNullFields = const <String>[],
+  }) : explicitNullFields = Set<String>.unmodifiable(explicitNullFields),
+       focusDate = focusDate == null
             ? (isSelectedForToday
                 ? DateTime(DateTime.now().year, DateTime.now().month, DateTime.now().day)
                 : null)
@@ -411,6 +413,9 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+  /// Nullable canonical fields that were explicitly NULL in the source JSON.
+  /// This metadata keeps omission distinct from NULL across backup/sync serializers.
+  final Set<String> explicitNullFields;
 
   /// Legacy compatibility view only. No Follow-up scheduling state is stored.
   @Deprecated('Use followUps.isNotEmpty.')
@@ -555,7 +560,8 @@ class Task {
           'occurrenceHistory': occurrenceHistory.map(
             (key, value) => MapEntry(key, Map<String, dynamic>.from(value)),
           ),
-        if (notebookKind != null) 'notebookKind': notebookKind!.name,
+        if (notebookKind != null || explicitNullFields.contains('notebookKind'))
+          'notebookKind': notebookKind?.name,
         if (taskReminders.isNotEmpty)
           'taskReminders': taskReminders.map((item) => item.toJson()).toList(),
         if (nextReminderSequence > 1)
@@ -566,14 +572,17 @@ class Task {
           'legacyFollowUpMetadata': Map<String, dynamic>.from(legacyFollowUpMetadata),
         'priority': priority.name,
         'isFavorite': isFavorite,
-        if (focusDate != null) 'focusDate': _dateOnlyStorageValue(focusDate!),
+        if (focusDate != null || explicitNullFields.contains('focusDate'))
+          'focusDate': focusDate == null ? null : _dateOnlyStorageValue(focusDate!),
         'archived': archived,
         'trashed': trashed,
         'completed': completed,
         'completedAt': completedAt?.toIso8601String(),
-        if (templateTaskId != null) 'templateTaskId': templateTaskId,
+        if (templateTaskId != null || explicitNullFields.contains('templateTaskId'))
+          'templateTaskId': templateTaskId,
         'followUps': followUps.map((e) => e.toJson()).toList(),
-        if (recurrence != null) 'recurrence': recurrence!.toJson(),
+        if (recurrence != null || explicitNullFields.contains('recurrence'))
+          'recurrence': recurrence?.toJson(),
         if (people.isNotEmpty)
           'people': people.map((person) => person.toJson()).toList(),
       };
@@ -772,6 +781,12 @@ class Task {
             )
           : null,
       people: loadedPeople,
+      explicitNullFields: const <String>[
+        'notebookKind',
+        'templateTaskId',
+        'focusDate',
+        'recurrence',
+      ].where((key) => json.containsKey(key) && json[key] == null),
     );
   }
 

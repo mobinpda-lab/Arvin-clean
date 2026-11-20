@@ -624,7 +624,12 @@ class TaskStore {
     envelope['updatedAt'] = row['updated_at'];
     envelope['dueDate'] = row['due_date'];
     envelope['category'] = row['category'];
-    envelope['notebookKind'] = row['notebook_kind'];
+    // Preserve omission versus explicit NULL for nullable canonical fields.
+    if (row['notebook_kind'] != null || envelope.containsKey('notebookKind')) {
+      envelope['notebookKind'] = row['notebook_kind'];
+    } else {
+      envelope.remove('notebookKind');
+    }
     envelope['priority'] = row['priority'];
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
@@ -648,8 +653,10 @@ class TaskStore {
         envelope['recurrence'] = jsonDecode(recurrence);
       } else if (envelope['recurrence'] is Map) {
         envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
-      } else {
+      } else if (envelope.containsKey('recurrence')) {
         envelope['recurrence'] = null;
+      } else {
+        envelope.remove('recurrence');
       }
     }
 
@@ -900,22 +907,23 @@ class TaskStore {
       for (final entry in previous.entries) {
         if (!knownKeys.contains(entry.key)) preserved[entry.key] = entry.value;
       }
+    }
 
-      // Task.toJson intentionally omits nullable values. Preserve an explicit
-      // legacy NULL only when the loaded canonical Task still has NULL for that
-      // field. Never copy a previous non-NULL value back over a current edit.
-      final currentNullableValues = <String, Object?>{
-        'notebookKind': task.notebookKind?.name,
-        'templateTaskId': task.templateTaskId,
-        'focusDate': task.focusDate?.toIso8601String(),
-        'recurrence': task.recurrence?.toJson(),
-      };
-      for (final entry in currentNullableValues.entries) {
-        if (entry.value == null &&
-            previous.containsKey(entry.key) &&
-            previous[entry.key] == null) {
-          preserved[entry.key] = null;
-        }
+    // Preserve explicit NULLs from either the decoded Task or its previous
+    // envelope. Never copy a previous non-NULL value over a current edit.
+    final currentNullableValues = <String, Object?>{
+      'notebookKind': task.notebookKind?.name,
+      'templateTaskId': task.templateTaskId,
+      'focusDate': task.focusDate?.toIso8601String(),
+      'recurrence': task.recurrence?.toJson(),
+    };
+    for (final entry in currentNullableValues.entries) {
+      if (entry.value == null &&
+          (task.explicitNullFields.contains(entry.key) ||
+              (previous != null &&
+                  previous.containsKey(entry.key) &&
+                  previous[entry.key] == null))) {
+        preserved[entry.key] = null;
       }
     }
     final canonical = Map<String, dynamic>.from(task.toJson())
