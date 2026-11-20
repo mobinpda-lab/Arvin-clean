@@ -246,3 +246,59 @@ The previously observed run `44739076355` targeted SHA `aec1e9c328b3555ee1328f9c
 - No test was intentionally removed or weakened.
 - P0-A is still BLOCKED. The implementation commits are not acceptance evidence.
 - The tracker-only update creates a new HEAD; all required exact-SHA workflows must be rerun on that resulting HEAD before any gate can move to ACCEPTED.
+
+---
+
+## COMMAND 107-R — live audit and COMMAND 20-E KVM probe correction
+**Updated:** 2026-11-20 / ۲۹ آبان ۱۴۰۵  
+**Canonical route:** PR #3495 / recovery-02/main-based-integration  
+**Main SHA:** 45e4202b03a434459e4c021a04efa7e8396359db  
+**Starting exact SHA:** 3a71b06420cb72399f2664a5bafd0764ed52d8af  
+**KVM correction commit:** 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51  
+**Current tracker update:** pending commit SHA; all exact-SHA gates must be rechecked on the resulting HEAD.
+
+### Starting-SHA evidence (3a71b06420cb72399f2664a5bafd0764ed52d8af)
+| Workflow | Run ID | Status | Scope |
+|---|---:|---|---|
+| Build | 44739337119 | PASS | Analyze, shards 0–5, Debug/Release APK, font audit, APK verification |
+| Device Smoke | 44739337203 | PASS | Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore, People, Calendar |
+| Follow-up Persistence | 44739337210 | PASS | File-backed SQLite persistence |
+| COMMAND 20-E | 44739337105 | FAILURE | KVM probe rejected access; emulator/process/calendar stages not executed |
+
+### COMMAND 20-E failure evidence
+- Parser unit tests passed.
+- File-backed ProjectStore test passed, including close/reopen and SQLite integrity/foreign-key checks.
+- /dev/kvm existed with displayed mode crw-rw-rw-, but the shell -r/-w check returned false.
+- Process A/B was skipped because the workflow correctly gates emulator execution on KVM verification.
+- Calendar Stage A/B and cleanup logs were absent; Collector classified these as NOT TESTED and the overall result was NO-GO.
+- Device Smoke's KVM step applied udev rules but did not independently verify KVM API access. Its seven passing scenarios do not replace COMMAND 20-E evidence.
+
+### Code correction
+Commit 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51 changes only .github/workflows/command-20c-storage-persistence.yml:
+- requires the KVM character device and Android Emulator executable;
+- opens /dev/kvm read/write and checks KVM_GET_API_VERSION == 12 using ioctl;
+- runs Emulator -accel-check and records its output;
+- fails closed; no TCG/software-emulation fallback;
+- preserves API 35, x86_64 and the independent Process A/B procedure.
+
+**Correction status:** IN PROGRESS / NOT TESTED on the corrected SHA. This is a more direct hardware-access probe, not an acceptance result. The GitHub connector currently exposes no workflow-dispatch action; exact-SHA CI dispatch/confirmation remains pending and no run is claimed for this correction.
+
+### Product and architecture status
+| Capability | Status | Issue | Evidence / next action |
+|---|---|---|---|
+| COMMAND 20-E / P0-A | BLOCKED | #3495 | Corrected KVM probe requires exact-SHA run; then prove real Process A/B, eight Links, 32 assertions and cleanup |
+| Four-action Floating Reminder | BLOCKED | #3646 | Current branch audit found notification service only; no dedicated full-screen Activity or four-action controller. Implement canonical Task/Reminder actions and obtain owner visual reference if not in repository |
+| Center / Project / Category M2M and Home | BLOCKED | #3550, #3458 | Center model/store/management and five-filter Home integration remain incomplete; preserve approved M2M semantics |
+| v7→v20 migration | BLOCKED | #3495 | Build auditable sequential file-backed migrations; do not conflate v9 hierarchy migration with historical v7→v19 path |
+| NULL / unknown fields / relationship parity | NOT TESTED | #3495 | Per-model round-trip and identity/relationship fixtures |
+| Independent Backup/Restore, rollback and integrity | NOT TESTED | #3495 | Independent A/B databases, failure injection, repeated restore, integrity and FK checks |
+| Argon2id / AES-256-GCM | NOT TESTED | #3495 | Wrong password, tampering, truncation, unknown envelope and invalid KDF tests |
+| Android SAF | NOT TESTED | #3495 | Real document-provider tests on Android; mocks are insufficient |
+| Remaining product features / RTL / accessibility | NOT TESTED | #3495 | End-to-end persistence, restart, edit/delete, error recovery and visual evidence |
+
+### Governance
+- Main remains read-only at 45e4202b03a434459e4c021a04efa7e8396359db.
+- Development remains on the existing canonical branch and PR #3495; no parallel branch or PR created.
+- No merge, release, deployment, production database operation or branch deletion.
+- No status is ACCEPTED without evidence on one exact candidate SHA.
+- **Release: NO-GO.**
