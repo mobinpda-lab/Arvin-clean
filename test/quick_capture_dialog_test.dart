@@ -805,7 +805,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('یادآور'));
+    await tester.tap(find.byKey(const ValueKey('quick-capture-reminder-rollbox')));
     await tester.pumpAndSettle();
 
     expect(find.text('همان زمان موعد'), findsOneWidget);
