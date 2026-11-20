@@ -76,6 +76,10 @@ void main() {
         'tags': <String>['پشتیبان'],
         'checklist': <String>['مرحله اول', 'مرحله دوم'],
         'notebookKind': null,
+        'futureTaskField': <String, dynamic>{
+          'preserve': true,
+          'revision': 7,
+        },
         'templateTaskId': null,
         'focusDate': null,
         'recurrence': null,
@@ -89,6 +93,10 @@ void main() {
           <String, dynamic>{
             'id': followUpId,
             'completedAt': '2026-11-20T07:00:00.000',
+            'futureFollowUpField': <String, dynamic>{
+              'preserve': 'historical-record',
+              'revision': 3,
+            },
             'title': 'پیگیری ثبت‌شده',
             'note': 'تاریخچه و رابطه شخص',
             'completed': false,
@@ -107,6 +115,17 @@ void main() {
       expect(sourceTasks, hasLength(1));
       expect(sourceTasks.single.id, taskId);
       expect(sourceTasks.single.followUps.single.id, followUpId);
+      expect(
+        sourceTasks.single.toJson()['futureTaskField'],
+        <String, dynamic>{'preserve': true, 'revision': 7},
+      );
+      expect(
+        sourceTasks.single.followUps.single.toJson()['futureFollowUpField'],
+        <String, dynamic>{
+          'preserve': 'historical-record',
+          'revision': 3,
+        },
+      );
 
       final backupService = _FileBackedBackupService(backupFile);
       final manager = ArvinBackupManager(service: backupService);
@@ -156,6 +175,17 @@ void main() {
         expect(restored.followUps.single.id, followUpId);
         expect(restored.followUps.single.personIds, <String>[personId]);
         expect(restored.people.map((person) => person.id), <String>[personId]);
+        expect(
+          restored.toJson()['futureTaskField'],
+          <String, dynamic>{'preserve': true, 'revision': 7},
+        );
+        expect(
+          restored.followUps.single.toJson()['futureFollowUpField'],
+          <String, dynamic>{
+            'preserve': 'historical-record',
+            'revision': 3,
+          },
+        );
 
         // Compare the complete canonical Task envelope, not only selected
         // fields, so unknown/nullable/model-owned data cannot silently drift.
