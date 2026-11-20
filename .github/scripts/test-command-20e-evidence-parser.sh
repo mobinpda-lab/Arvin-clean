@@ -17,7 +17,7 @@ printf 'TEST_STARTED=1\nTEST_STATUS=PASS\n' > "$tmp/pass"
 assert_status "PASS" "PASS" "$tmp/pass" COMPLETED TEST_STARTED 'TEST_STATUS=PASS' TEST_FAILURE
 printf 'TEST_STARTED=1\nTEST_STATUS=FAILURE\nFAILURE_REASON=assertion mismatch\n' > "$tmp/failure"
 assert_status "FAILURE" "FAILURE" "$tmp/failure" COMPLETED TEST_STARTED 'TEST_STATUS=PASS' TEST_FAILURE
-printf 'Cleanup verification NOT TESTED\n' > "$tmp/not-tested"
+printf 'Cleanup verification NOT TESTED.\n' > "$tmp/not-tested"
 assert_status "NOT TESTED" "NOT TESTED" "$tmp/not-tested" NOT_STARTED TEST_STARTED 'TEST_STATUS=PASS' TEST_FAILURE
 printf 'TEST_STARTED=1\n' > "$tmp/incomplete"
 assert_status "INCOMPLETE EVIDENCE" "INCOMPLETE EVIDENCE" "$tmp/incomplete" STARTED TEST_STARTED 'TEST_STATUS=PASS' TEST_FAILURE
