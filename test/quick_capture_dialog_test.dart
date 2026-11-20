@@ -855,7 +855,15 @@ void main() {
     await tester.tap(find.text('ثبت'));
     await tester.pump();
 
-    expect(find.text('هر ۵ دقیقه'), findsOneWidget);
+    final recurrenceControl =
+        find.byKey(const ValueKey('quick-capture-recurrence-rollbox'));
+    expect(
+      find.descendant(
+        of: recurrenceControl,
+        matching: find.bySemanticsLabel('هر ۵ دقیقه'),
+      ),
+      findsOneWidget,
+    );
   });
 
 
