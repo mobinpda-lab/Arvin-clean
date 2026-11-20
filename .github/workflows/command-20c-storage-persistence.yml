@@ -140,8 +140,24 @@ jobs:
           ls -l /dev/kvm 2>&1 || true
           sdk_root="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
           emulator_bin="$sdk_root/emulator/emulator"
-          if [[ ! -c /dev/kvm || ! -x "$emulator_bin" ]]; then
-            echo "KVM_DEVICE_ACCESS=UNAVAILABLE — KVM device or Android Emulator binary missing" >&2
+          # Match Device Smoke's emulator provisioning before validating acceleration.
+          # The prior gate checked for emulator before installing the SDK component,
+          # so it failed even though /dev/kvm was present and accessible.
+          if [[ ! -x "$emulator_bin" ]]; then
+            sdkmanager_path="$(find "$sdk_root/cmdline-tools" -type f -name sdkmanager -print -quit 2>/dev/null || true)"
+            if [[ -z "$sdkmanager_path" || ! -x "$sdkmanager_path" ]]; then
+              echo "ANDROID_EMULATOR_INSTALL=BLOCKED sdkmanager_not_found sdk_root=$sdk_root" >&2
+              exit 1
+            fi
+            yes | "$sdkmanager_path" --licenses >/dev/null
+            "$sdkmanager_path" --install "emulator" --sdk_root="$sdk_root" 2>&1 | tee .github/command-20e-evidence/android-emulator-install.log
+          fi
+          if [[ ! -c /dev/kvm ]]; then
+            echo "KVM_DEVICE_ACCESS=UNAVAILABLE reason=KVM_character_device_missing" >&2
+            exit 1
+          fi
+          if [[ ! -x "$emulator_bin" ]]; then
+            echo "ANDROID_EMULATOR_INSTALL=FAILURE path=$emulator_bin" >&2
             exit 1
           fi
           # Verify the KVM API itself, not only shell permission bits on the device node.
@@ -177,13 +193,13 @@ jobs:
           disable-animations: true
           cores: 4
           emulator-boot-timeout: 600
-          disable-linux-hw-accel: auto
+          disable-linux-hw-accel: false
           script: |
             set -euo pipefail
             echo "EMULATOR_API_LEVEL=35"
             echo "EMULATOR_ARCH=x86_64"
             echo "EMULATOR_TARGET=default"
-            echo "EMULATOR_ACCELERATION=auto"
+            echo "EMULATOR_ACCELERATION=HARDWARE_KVM_REQUIRED"
             test -e /dev/kvm && test -r /dev/kvm && test -w /dev/kvm && echo "KVM_DEVICE_ACCESS=PASS" || echo "KVM_DEVICE_ACCESS=UNAVAILABLE"
             adb devices -l
             bash .github/scripts/command-20e-calendar-restart.sh
