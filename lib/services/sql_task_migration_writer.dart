@@ -304,7 +304,11 @@ class SqlTaskMigrationWriter {
     }
     final existingEnvelope = Map<String, dynamic>.from(jsonDecode(rawEnvelope) as Map);
     for (final key in _sqlOwnedTaskKeys) {
-      existingEnvelope.remove(key);
+      final explicitNullableNull =
+          const <String>{'notebookKind', 'recurrence'}.contains(key) &&
+          record.sourceJson.containsKey(key) &&
+          record.sourceJson[key] == null;
+      if (!explicitNullableNull) existingEnvelope.remove(key);
     }
     existingEnvelope.remove('legacyTaskReminderMigrationVersion');
     final expectedEnvelope = _storageEnvelope(record)
