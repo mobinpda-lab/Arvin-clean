@@ -59,7 +59,21 @@ void main() {
       await TaskStore(executor: database).save(<Task>[task]);
       await G1DriftSchema.install(database); // Install #2 on the same file.
       final loaded = (await TaskStore(executor: database).load()).single;
-      expect(loaded.toJson(), task.toJson());
+      final expectedJson = task.toJson();
+      final actualJson = loaded.toJson();
+      for (final entry in expectedJson.entries) {
+        expect(
+          actualJson[entry.key],
+          entry.value,
+          reason: 'Persisted Task field changed: ${entry.key}',
+        );
+      }
+      // Canonical decoding exposes model defaults in addition to the original
+      // sparse constructor JSON. These are expected defaults, not data loss.
+      expect(actualJson['notebookKind'], isNull);
+      expect(actualJson['priority'], 'none');
+      expect(actualJson['recurrence'], isNull);
+      expect(actualJson['people'], isEmpty);
     } finally {
       await database.close();
     }

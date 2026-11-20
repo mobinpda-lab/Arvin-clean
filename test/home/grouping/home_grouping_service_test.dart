@@ -50,9 +50,13 @@ void main() {
       ['late-today'],
     );
     expect(
-      groups.singleWhere((group) => group.id == 'future').items
+      groups.singleWhere((group) => group.id == 'tomorrow').items
           .map((item) => item.id),
       ['tomorrow'],
+    );
+    expect(
+      groups.singleWhere((group) => group.id == 'future').items,
+      isEmpty,
     );
     expect(
       groups.singleWhere((group) => group.id == 'overdue').items
