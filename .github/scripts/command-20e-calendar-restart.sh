@@ -104,25 +104,47 @@ stage_a_text = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
 stage_b_text = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
 stage_a = [json.loads(m.group(1)) for m in re.finditer(r"CALENDAR_LINK_STAGE_A_VALUE=(\{.*\})", stage_a_text)]
 stage_b = [json.loads(m.group(1)) for m in re.finditer(r"CALENDAR_LINK_STAGE_B_VALUE=(\{.*\})", stage_b_text)]
-fields = {"reminderId", "calendarId", "eventId", "lastSyncedFingerprint"}
-if len(stage_a) != 2 or len(stage_b) != 2:
-    raise SystemExit(f"Expected two stage-A and stage-B Link records; got {len(stage_a)} and {len(stage_b)}")
-for i in range(2):
-    if stage_a[i].get("index") != i or stage_b[i].get("index") != i:
-        raise SystemExit(f"Unexpected Link order at index {i}")
-    if set(stage_a[i].get("actual", {})) != fields or set(stage_b[i].get("actual", {})) != fields:
-        raise SystemExit(f"Four-field evidence incomplete at index {i}")
-    if stage_a[i]["actual"] != stage_b[i]["actual"]:
-        raise SystemExit(f"Calendar Link value mismatch at index {i}")
+fields = ("reminderId", "calendarId", "eventId", "lastSyncedFingerprint")
+def index_rows(rows, stage):
+    indexed = {}
+    for row in rows:
+        link_id = row.get("linkId")
+        actual = row.get("actual")
+        if not link_id or not isinstance(actual, dict):
+            raise SystemExit(f"{stage}: incomplete Link evidence: {row!r}")
+        if link_id in indexed:
+            raise SystemExit(f"{stage}: duplicate Link ID {link_id}")
+        indexed[link_id] = actual
+    return indexed
+a = index_rows(stage_a, "STAGE_A")
+b = index_rows(stage_b, "STAGE_B")
+if len(a) != 8 or len(b) != 8:
+    raise SystemExit(f"Expected eight independent Link records; got stage A={len(a)}, stage B={len(b)}")
+comparisons = []
+for link_id in sorted(a):
+    if link_id not in b:
+        raise SystemExit(f"Missing restored Calendar Link ID: {link_id}")
+    for field in fields:
+        if field not in a[link_id] or field not in b[link_id]:
+            raise SystemExit(f"INCOMPLETE EVIDENCE: Link {link_id} missing field {field}")
+        if a[link_id][field] != b[link_id][field]:
+            raise SystemExit(f"FAILURE: Link {link_id} field {field} mismatch: "
+                             f"before={a[link_id][field]!r} after={b[link_id][field]!r}")
+        comparisons.append({"link_id": link_id, "field": field, "status": "PASS",
+                            "value": a[link_id][field]})
+pid_a = pathlib.Path(sys.argv[1]).read_text().split("PROCESS_PID_BEFORE_STOP=")[-1].splitlines()[0]
+pid_b = pathlib.Path(sys.argv[2]).read_text().split("PROCESS_PID_AFTER_RESTART=")[-1].splitlines()[0]
+if not pid_a or not pid_b or pid_a == pid_b:
+    raise SystemExit(f"Independent process proof failed: Process A={pid_a!r}, Process B={pid_b!r}")
 result = {
     "status": "PASS",
-    "links_compared": 2,
-    "fields_per_link": sorted(fields),
-    "total_values_compared": 8,
-    "process_pid_before_stop": pathlib.Path(sys.argv[1]).read_text().split("PROCESS_PID_BEFORE_STOP=")[-1].splitlines()[0],
-    "process_pid_after_restart": pathlib.Path(sys.argv[2]).read_text().split("PROCESS_PID_AFTER_RESTART=")[-1].splitlines()[0],
-    "stage_a_saved_values": [row["actual"] for row in stage_a],
-    "stage_b_restored_values": [row["actual"] for row in stage_b],
+    "links_compared": 8,
+    "fields_per_link": list(fields),
+    "total_values_compared": len(comparisons),
+    "process_a_pid": pid_a,
+    "process_b_pid": pid_b,
+    "independent_processes": True,
+    "comparisons": comparisons,
 }
 pathlib.Path(sys.argv[3]).write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 PY
