@@ -98,7 +98,7 @@ Map<String, dynamic> _decodeLegacyFollowUpMetadata(
 }
 
 class FollowUpRecord {
-  static const Set<String> _knownJsonKeys = <String>{
+  static const Set<String> jsonFieldNames = <String>{
     'id',
     'completedAt',
     'dateTime',
@@ -180,7 +180,7 @@ class FollowUpRecord {
   factory FollowUpRecord.fromJson(Map<String, dynamic> json) {
     final preservedUnknownFields = <String, dynamic>{
       for (final entry in json.entries)
-        if (!_knownJsonKeys.contains(entry.key)) entry.key: entry.value,
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
     };
     return FollowUp(
       id: json['id'] as String? ?? '',
@@ -218,6 +218,15 @@ extension FollowUpLegacyDate on FollowUp {
 /// an Item can behave as a simple note until follow-up is enabled.
 /// These fields are additive and remain backward-compatible with legacy data.
 class TaskReminder {
+  static const Set<String> jsonFieldNames = <String>{
+    'id',
+    'title',
+    'date',
+    'isAllDay',
+    'sequence',
+    'isEnabled',
+  };
+
   const TaskReminder({
     required this.id,
     required this.title,
@@ -225,6 +234,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isEnabled = true,
+    this.preservedUnknownFields = const <String, dynamic>{},
   });
 
   final String id;
@@ -237,6 +247,9 @@ class TaskReminder {
   /// Missing values in older JSON payloads default to enabled.
   final bool isEnabled;
 
+  /// Forward-compatible fields retained across SQLite and backup round-trips.
+  final Map<String, dynamic> preservedUnknownFields;
+
   /// Date-only reminders are serialized as YYYY-MM-DD, never synthetic midnight.
   String get storageDateValue =>
       isAllDay ? _dateOnlyStorageValue(date) : date.toIso8601String();
@@ -247,6 +260,7 @@ class TaskReminder {
     DateTime? date,
     bool? isAllDay,
     bool? isEnabled,
+    Map<String, dynamic>? preservedUnknownFields,
   }) => TaskReminder(
         id: id ?? this.id,
         title: title ?? this.title,
@@ -254,6 +268,7 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isEnabled: isEnabled ?? this.isEnabled,
+        preservedUnknownFields: preservedUnknownFields ?? this.preservedUnknownFields,
       );
 
   Map<String, dynamic> toJson() => {
@@ -266,14 +281,21 @@ class TaskReminder {
         if (!isEnabled) 'isEnabled': false,
       };
 
-  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
-        id: json['id'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        date: DateTime.parse(json['date'] as String),
-        isAllDay: json['isAllDay'] as bool? ?? false,
-        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
-        isEnabled: json['isEnabled'] as bool? ?? true,
-      );
+  factory TaskReminder.fromJson(Map<String, dynamic> json) {
+    final preservedUnknownFields = <String, dynamic>{
+      for (final entry in json.entries)
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
+    };
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      isEnabled: json['isEnabled'] as bool? ?? true,
+      preservedUnknownFields: Map<String, dynamic>.unmodifiable(preservedUnknownFields),
+    );
+  }
 }
 
 class Task {
@@ -612,6 +634,7 @@ class Task {
   }
 
   Map<String, dynamic> toJson() => {
+        ...preservedUnknownFields,
         'id': id,
         'title': title,
         'description': description,
@@ -783,7 +806,7 @@ class Task {
 
     final preservedUnknownFields = <String, dynamic>{
       for (final entry in json.entries)
-        if (!_knownJsonKeys.contains(entry.key)) entry.key: entry.value,
+        if (!jsonFieldNames.contains(entry.key)) entry.key: entry.value,
     };
     final nextReminderSequence = [
       sequenceFromJson,
