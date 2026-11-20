@@ -11,6 +11,7 @@ import 'package:arvin/services/center_store.dart';
 /// matching the production read path without treating SharedPreferences as
 /// live storage during the widget assertions.
 Future<void> setCanonicalSqliteFixture(Map<String, Object?> values) async {
+  SharedPreferences.setMockInitialValues(<String, Object>{});
   await TaskStore.resetTestDatabase();
   await ProjectStore.resetTestDatabase();
   await CenterStore.resetTestDatabase();
