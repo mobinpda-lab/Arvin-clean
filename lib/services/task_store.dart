@@ -419,9 +419,15 @@ class TaskStore {
         (row['follow_up_enabled'] as num?)?.toInt() == 1;
     envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
-    envelope['notebookKind'] = row['notebook_kind'];
+    final notebookKind = row['notebook_kind'];
+    if (notebookKind != null) {
+      envelope['notebookKind'] = notebookKind;
+    }
     envelope['reminderDate'] = row['reminder_date'];
-    envelope['priority'] = row['priority'];
+    final priority = row['priority'];
+    if (priority is String && priority != 'none') {
+      envelope['priority'] = priority;
+    }
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
@@ -439,9 +445,9 @@ class TaskStore {
       envelope['recurrence'] = jsonDecode(recurrence);
     } else if (envelope['recurrence'] is Map) {
       envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
-    } else {
-      envelope['recurrence'] = null;
     }
+    // When the dedicated column is NULL, keep the legacy envelope untouched.
+    // It distinguishes an omitted optional field from an explicitly stored NULL.
 
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
@@ -478,8 +484,10 @@ class TaskStore {
       'SELECT person_json FROM task_people WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
-    envelope['people'] =
-        people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    if (people.isNotEmpty) {
+      envelope['people'] =
+          people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    }
 
     return Task.fromJson(envelope);
   }

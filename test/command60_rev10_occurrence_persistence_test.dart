@@ -52,28 +52,30 @@ void main() {
       nextReminderSequence: 2,
     );
 
+    final explicitOptionalTask = Task(
+      id: 'rev10-explicit-optional-null-task',
+      title: 'آزمون حفظ NULL و فیلد خالی',
+      extensionData: const <String, dynamic>{
+        'notebookKind': null,
+        'priority': null,
+        'recurrence': null,
+        'people': <Object?>[],
+      },
+    );
+
     // Install #1 and initial file-backed write.
     var database = NativeDatabase(file);
     try {
       await G1DriftSchema.install(database);
-      await TaskStore(executor: database).save(<Task>[task]);
+      await TaskStore(executor: database).save(<Task>[task, explicitOptionalTask]);
       await G1DriftSchema.install(database); // Install #2 on the same file.
-      final loaded = (await TaskStore(executor: database).load()).single;
-      final expectedJson = task.toJson();
-      final actualJson = loaded.toJson();
-      for (final entry in expectedJson.entries) {
-        expect(
-          actualJson[entry.key],
-          entry.value,
-          reason: 'Persisted Task field changed: ${entry.key}',
-        );
-      }
-      // Canonical decoding exposes model defaults in addition to the original
-      // sparse constructor JSON. These are expected defaults, not data loss.
-      expect(actualJson['notebookKind'], isNull);
-      expect(actualJson['priority'], 'none');
-      expect(actualJson['recurrence'], isNull);
-      expect(actualJson['people'], isEmpty);
+      final loadedTasks = await TaskStore(executor: database).load();
+      final loaded = loadedTasks.singleWhere((value) => value.id == task.id);
+      expect(loaded.toJson(), task.toJson());
+      final loadedExplicitOptional = loadedTasks.singleWhere(
+        (value) => value.id == explicitOptionalTask.id,
+      );
+      expect(loadedExplicitOptional.toJson(), explicitOptionalTask.toJson());
     } finally {
       await database.close();
     }
@@ -86,8 +88,14 @@ void main() {
     try {
       await G1DriftSchema.install(database);
       final store = TaskStore(executor: database);
-      final restored = (await store.load()).single;
+      final restoredTasks = await store.load();
+      final restored = restoredTasks.singleWhere((value) => value.id == task.id);
+      final restoredExplicitOptional = restoredTasks.singleWhere(
+        (value) => value.id == explicitOptionalTask.id,
+      );
 
+      expect(restored.toJson(), task.toJson());
+      expect(restoredExplicitOptional.toJson(), explicitOptionalTask.toJson());
       expect(restored.id, task.id);
       expect(restored.checklistOccurrences, task.checklistOccurrences);
       expect(restored.occurrenceHistory, task.occurrenceHistory);
