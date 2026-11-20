@@ -98,6 +98,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.extensionData = const <String, dynamic>{},
   });
 
   final String id;
@@ -110,10 +111,14 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Forward-compatible fields retained across SQLite and backup round-trips.
+  final Map<String, dynamic> extensionData;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
     bool? isAllDay,
+    Map<String, dynamic>? extensionData,
   }) => TaskReminder(
         id: id,
         title: title ?? this.title,
@@ -121,9 +126,11 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        extensionData: extensionData ?? this.extensionData,
       );
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'title': title,
         'date': date.toIso8601String(),
@@ -132,14 +139,28 @@ class TaskReminder {
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
 
-  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
-        id: json['id'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        date: DateTime.parse(json['date'] as String),
-        isAllDay: json['isAllDay'] as bool? ?? false,
-        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
-        isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
-      );
+  factory TaskReminder.fromJson(Map<String, dynamic> json) {
+    const knownKeys = <String>{
+      'id',
+      'title',
+      'date',
+      'isAllDay',
+      'sequence',
+      'isLegacyTaskReminder',
+    };
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+      extensionData: <String, dynamic>{
+        for (final entry in json.entries)
+          if (!knownKeys.contains(entry.key)) entry.key: entry.value,
+      },
+    );
+  }
 }
 
 class Task {
