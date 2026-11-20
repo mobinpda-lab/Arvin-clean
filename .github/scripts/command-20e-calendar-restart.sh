@@ -23,11 +23,20 @@ if [[ -z "$DEVICE" ]]; then
 fi
 
 {
+  echo "ADB_DEVICES_BEGIN"
+  adb devices -l
   echo "ADB_DEVICE=$DEVICE"
+  boot_completed="$(adb -s "$DEVICE" shell getprop sys.boot_completed | tr -d '\r')"
+  echo "ANDROID_BOOT_COMPLETED=$boot_completed"
+  test "$boot_completed" = "1"
+  echo "ANDROID_EMULATOR_RELEASE=$(adb -s "$DEVICE" shell getprop ro.build.version.release | tr -d '\r')"
   echo "ANDROID_EMULATOR_API=$(adb -s "$DEVICE" shell getprop ro.build.version.sdk | tr -d '\r')"
+  echo "ANDROID_EMULATOR_ABI=$(adb -s "$DEVICE" shell getprop ro.product.cpu.abi | tr -d '\r')"
+  echo "ANDROID_EMULATOR_MODEL=$(adb -s "$DEVICE" shell getprop ro.product.model | tr -d '\r')"
+  echo "KVM_DEVICE_ACCESS=$(if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then echo PASS; else echo UNAVAILABLE; fi)"
   echo "ANDROID_APP_ID=$APP_ID"
   echo "SHARED_PREFERENCES_KEY=arvin.calendar.externalLinks.command20e"
-  echo "PROCESS_TEST_MODE=ALTERNATE_DEBUG_ENTRYPOINT"
+  echo "PROCESS_TEST_MODE=ALTERNATE_DEBUG_ENTRYPOINT_WITH_FORCE_STOP_AND_FRESH_LAUNCH"
   echo "APP_DATA_CLEAR=NOT_PERFORMED"
 } > "$EVIDENCE/calendar-restart-environment.txt"
 
