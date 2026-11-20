@@ -110,6 +110,21 @@ jobs:
           set -o pipefail
           flutter test test/project_store_file_persistence_test.dart 2>&1 | tee .github/command-20e-evidence/project_store_persistence.log
 
+      - name: Enable KVM
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+          if [[ -e /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
+            echo "KVM_DEVICE_ACCESS=PASS"
+            ls -l /dev/kvm
+          else
+            echo "KVM_DEVICE_ACCESS=UNAVAILABLE"
+            ls -l /dev/kvm 2>&1 || true
+          fi
       - name: Run real SharedPreferences write, stop, and fresh-process read
         if: always()
         uses: reactivecircus/android-emulator-runner@v2
@@ -119,9 +134,17 @@ jobs:
           target: default
           disable-animations: true
           cores: 4
-          emulator-boot-timeout: 1800
-          disable-linux-hw-accel: true
-          script: bash .github/scripts/command-20e-calendar-restart.sh
+          emulator-boot-timeout: 600
+          disable-linux-hw-accel: auto
+          script: |
+            set -euo pipefail
+            echo "EMULATOR_API_LEVEL=35"
+            echo "EMULATOR_ARCH=x86_64"
+            echo "EMULATOR_TARGET=default"
+            echo "EMULATOR_ACCELERATION=auto"
+            test -e /dev/kvm && test -r /dev/kvm && test -w /dev/kvm && echo "KVM_DEVICE_ACCESS=PASS" || echo "KVM_DEVICE_ACCESS=UNAVAILABLE"
+            adb devices -l
+            bash .github/scripts/command-20e-calendar-restart.sh
 
       - name: Write initial acceptance results
         if: always()
