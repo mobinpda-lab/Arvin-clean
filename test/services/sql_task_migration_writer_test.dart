@@ -595,4 +595,59 @@ void main() {
     await directory.delete(recursive: true);
   });
 
+
+  test('migration preserves explicit NULL nullable fields in the canonical envelope', () async {
+    const raw = '''
+      [{
+        "id": "migration-explicit-null-task",
+        "title": "مهاجرت با NULL صریح",
+        "notebookKind": null,
+        "templateTaskId": null,
+        "focusDate": null,
+        "recurrence": null,
+        "futureField": {"preserve": true}
+      }]
+    ''';
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('arvin.tasks', raw);
+
+    await const SqlTaskMigrationWriter().migrateFromPreferences(
+      executor: database,
+      preferences: preferences,
+    );
+
+    var row = (await database.runSelect(
+      'SELECT notebook_kind, recurrence_json, legacy_payload_json FROM tasks WHERE id = ?',
+      const ['migration-explicit-null-task'],
+    )).single;
+    expect(row['notebook_kind'], isNull);
+    expect(row['recurrence_json'], isNull);
+    var envelope = jsonDecode(row['legacy_payload_json'] as String) as Map<String, dynamic>;
+    for (final key in const ['notebookKind', 'templateTaskId', 'focusDate', 'recurrence']) {
+      expect(envelope.containsKey(key), isTrue, reason: '$key lost during migration');
+      expect(envelope[key], isNull, reason: '$key changed during migration');
+    }
+    expect(envelope['futureField'], {'preserve': true});
+
+    final store = TaskStore(executor: database);
+    final loaded = await store.load();
+    expect(loaded.single.id, 'migration-explicit-null-task');
+    for (final key in const ['notebookKind', 'templateTaskId', 'focusDate', 'recurrence']) {
+      expect(loaded.single.toJson().containsKey(key), isTrue, reason: '$key lost on load');
+      expect(loaded.single.toJson()[key], isNull, reason: '$key changed on load');
+    }
+
+    await store.save(loaded);
+    row = (await database.runSelect(
+      'SELECT legacy_payload_json FROM tasks WHERE id = ?',
+      const ['migration-explicit-null-task'],
+    )).single;
+    envelope = jsonDecode(row['legacy_payload_json'] as String) as Map<String, dynamic>;
+    for (final key in const ['notebookKind', 'templateTaskId', 'focusDate', 'recurrence']) {
+      expect(envelope.containsKey(key), isTrue, reason: '$key lost after migration save');
+      expect(envelope[key], isNull, reason: '$key changed after migration save');
+    }
+    expect(envelope['futureField'], {'preserve': true});
+  });
+
 }
