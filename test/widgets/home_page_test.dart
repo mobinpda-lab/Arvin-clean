@@ -36,7 +36,6 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -573,7 +572,7 @@ void main() {
   });
 
 
-  testWidgets('Home five filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
+  testWidgets('Home four primary filters stay in one RTL row without horizontal scrolling at phone widths and with keyboard',
       (tester) async {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
@@ -618,7 +617,7 @@ void main() {
         of: filterStrip,
         matching: find.byType(HomeFilterPill),
       );
-      expect(controls, findsNWidgets(5));
+      expect(controls, findsNWidgets(4));
       for (final control in controls.evaluate()) {
         final size = tester.getSize(find.byWidget(control.widget));
         expect(size.height, greaterThanOrEqualTo(48));

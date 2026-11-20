@@ -37,7 +37,6 @@ void main() {
     expect(find.byKey(const ValueKey('home-compact-filter-wrap')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -46,7 +45,6 @@ void main() {
     }
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -126,7 +124,6 @@ void main() {
     expect(find.byKey(const ValueKey('home-search-button')), findsOneWidget);
     for (final key in [
       'home-filter-card-time',
-      'home-filter-card-center',
       'home-filter-card-project',
       'home-filter-card-category',
       'home-filter-card-tags',
@@ -365,12 +362,16 @@ void main() {
     expect(find.text('فقط تمرکز آینده'), findsNothing);
   });
 
-  testWidgets('Home Center filter opens the canonical selector', (tester) async {
+  testWidgets('Home Center filter remains available from More navigation', (tester) async {
     await tester.pumpWidget(const ArvinApp());
     await tester.pumpAndSettle();
 
-    final centerFilter = find.byKey(const ValueKey('home-filter-card-center'));
-    expect(centerFilter, findsOneWidget);
+    final moreNavigation = find.byKey(const ValueKey('primary-nav-more'));
+    await tester.ensureVisible(moreNavigation);
+    await tester.tap(moreNavigation);
+    await tester.pumpAndSettle();
+
+    final centerFilter = find.byKey(const ValueKey('home-more-center-filter'));
     await tester.ensureVisible(centerFilter);
     await tester.tap(centerFilter);
     await tester.pumpAndSettle();
