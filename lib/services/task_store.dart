@@ -614,13 +614,7 @@ class TaskStore {
     Task task, {
     Map<String, dynamic>? previousPayload,
   }) {
-    final knownKeys = <String>{
-      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
-      'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
-      'taskReminders',
-    };
+    final knownKeys = Task.jsonFieldNames;
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
     if (previous != null) {
