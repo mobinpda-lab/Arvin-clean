@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/models/task.dart';
-import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/services/task_store.dart';
 
 void main() {
