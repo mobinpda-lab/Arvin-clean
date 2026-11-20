@@ -103,12 +103,26 @@ jobs:
           set -o pipefail
           flutter analyze 2>&1 | tee .github/command-20e-evidence/flutter_analyze.log
 
+      - name: Run COMMAND 20-E evidence parser unit tests
+        if: always()
+        shell: bash
+        run: bash .github/scripts/test-command-20e-evidence-parser.sh
+
       - name: Run file-backed ProjectStore test
         if: always()
         shell: bash
         run: |
-          set -o pipefail
-          flutter test test/project_store_file_persistence_test.dart 2>&1 | tee .github/command-20e-evidence/project_store_persistence.log
+          set -uo pipefail
+          echo "TEST_STARTED=1" | tee .github/command-20e-evidence/project_store_persistence.log
+          if flutter test test/project_store_file_persistence_test.dart 2>&1 | tee -a .github/command-20e-evidence/project_store_persistence.log; then
+            echo "PROJECT_STORE_FILE_PERSISTENCE=PASS" | tee -a .github/command-20e-evidence/project_store_persistence.log
+            echo "TEST_STATUS=PASS" | tee -a .github/command-20e-evidence/project_store_persistence.log
+          else
+            result=$?
+            echo "TEST_STATUS=FAILURE" | tee -a .github/command-20e-evidence/project_store_persistence.log
+            echo "FAILURE_REASON=flutter test exited with code $result" | tee -a .github/command-20e-evidence/project_store_persistence.log
+            exit "$result"
+          fi
 
       - name: Enable KVM
         if: always()
