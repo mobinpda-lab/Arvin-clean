@@ -266,7 +266,7 @@ class Task {
       case 'recurrence':
         return value == null || value is! Map;
       case 'taskReminders':
-        return value == null || value is! List || (value is List && value.isEmpty);
+        return value == null || value is! List || value.isEmpty;
       case 'people':
         return value == null || (value is List && value.isEmpty);
       case 'checklistOccurrences':

@@ -109,7 +109,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('برچسب دوم'));
     await tester.pumpAndSettle();
-    await tester.pageBack();
+    expect(find.byTooltip('بستن'), findsOneWidget);
+    await tester.tap(find.byTooltip('بستن'));
     await tester.pumpAndSettle();
 
     expect(find.text('فقط برچسب اول'), findsOneWidget);
