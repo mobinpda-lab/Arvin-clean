@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../support/canonical_sqlite_fixture.dart';
+
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
@@ -24,7 +26,7 @@ void main() {
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
     final dueToday = DateTime(now.year, now.month, now.day, 10).toIso8601String();
-    SharedPreferences.setMockInitialValues({
+    await setCanonicalSqliteFixture({
       'arvin.tasks':
           '[{"id":"task-a","title":"کار واقعی الف","category":"فروش","tags":["مهم","مشتری"],"dueDate":"$dueToday"},{"id":"task-b","title":"کار واقعی ب","category":"اداری","tags":["مهم"]}]',
       'arvin.projects':
