@@ -301,8 +301,14 @@ class SqlTaskMigrationWriter {
     existingEnvelope.remove('legacyTaskReminderMigrationVersion');
     final expectedEnvelope = _storageEnvelope(record)
       ..remove('legacyTaskReminderMigrationVersion');
-    if (_canonicalJson(existingEnvelope) != _canonicalJson(expectedEnvelope)) {
-      throw StateError('Task envelope/unknown-field conflict for ${task.id}.');
+    final existingEnvelopeJson = _canonicalJson(existingEnvelope);
+    final expectedEnvelopeJson = _canonicalJson(expectedEnvelope);
+    if (existingEnvelopeJson != expectedEnvelopeJson) {
+      final envelopeKeys = <String>{...existingEnvelope.keys, ...expectedEnvelope.keys}.toList()..sort();
+      final mismatchedKeys = envelopeKeys.where((key) =>
+        _canonicalJson(existingEnvelope[key]) != _canonicalJson(expectedEnvelope[key])
+      ).toList(growable: false);
+      throw StateError('Task envelope/unknown-field conflict; mismatched keys: ${mismatchedKeys.join(', ')}.');
     }
 
     final reminders = task.taskReminders.toList()
