@@ -166,12 +166,20 @@ jobs:
         run: |
           set -u
           evidence=".github/command-20e-evidence"
-          project="NOT TESTED"
-          calendar="NOT TESTED"
-          cleanup="NOT TESTED"
-          if grep -q 'PROJECT_STORE_FILE_PERSISTENCE=PASS' "$evidence/project_store_persistence.log" 2>/dev/null; then project="PASS"; elif [ -s "$evidence/project_store_persistence.log" ]; then project="FAIL"; fi
-          if grep -q 'CALENDAR_LINK_PROCESS_RESTART=PASS' "$evidence/calendar_restart_stage_b.log" 2>/dev/null; then calendar="PASS"; elif [ -s "$evidence/calendar_restart_stage_a.log" ]; then calendar="FAIL"; fi
-          if grep -q 'CALENDAR_TEST_KEY_CLEANUP=PASS' "$evidence/cleanup_verification.log" 2>/dev/null; then cleanup="PASS"; elif [ -s "$evidence/cleanup_verification.log" ]; then cleanup="FAIL"; fi
+          source .github/scripts/command-20e-evidence-parser.sh
+          project_state=NOT_STARTED
+          grep -q 'TEST_STARTED=1' "$evidence/project_store_persistence.log" 2>/dev/null && project_state=STARTED
+          grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$evidence/project_store_persistence.log" 2>/dev/null && project_state=COMPLETED
+          project="$(classify_evidence_file "$evidence/project_store_persistence.log" "$project_state" 'TEST_STARTED=1' 'TEST_STATUS=PASS' 'TEST_STATUS=FAILURE')"
+          cat "$evidence/calendar_restart_stage_a.log" "$evidence/calendar_restart_stage_b.log" > "$evidence/calendar-combined-status.log"
+          calendar_state=NOT_STARTED
+          grep -q 'TEST_STARTED=1' "$evidence/calendar-combined-status.log" && calendar_state=STARTED
+          grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$evidence/calendar-combined-status.log" && calendar_state=COMPLETED
+          calendar="$(classify_evidence_file "$evidence/calendar-combined-status.log" "$calendar_state" 'TEST_STARTED=1' 'CALENDAR_LINK_PROCESS_RESTART=PASS' 'TEST_STATUS=FAILURE')"
+          cleanup_state=NOT_STARTED
+          grep -q 'CLEANUP_TEST_STARTED=1' "$evidence/cleanup_verification.log" 2>/dev/null && cleanup_state=STARTED
+          grep -Eq 'TEST_STATUS=(PASS|FAILURE)' "$evidence/cleanup_verification.log" 2>/dev/null && cleanup_state=COMPLETED
+          cleanup="$(classify_evidence_file "$evidence/cleanup_verification.log" "$cleanup_state" 'CLEANUP_TEST_STARTED=1' 'CALENDAR_TEST_KEY_CLEANUP=PASS' 'TEST_STATUS=FAILURE')"
           {
             printf 'PROJECT_STORE_FILE_PERSISTENCE=%s\n' "$project"
             printf 'CALENDAR_LINK_PROCESS_RESTART=%s\n' "$calendar"
