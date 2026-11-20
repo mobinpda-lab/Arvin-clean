@@ -143,4 +143,85 @@ void main() {
       await finalDatabase.close();
     }
   });
+
+  test('unknown and explicit-null Task envelope fields survive file-backed SQLite reopen and edit', () async {
+    final directory =
+        await Directory.systemTemp.createTemp('arvin-task-envelope-sqlite-');
+    addTearDown(() => directory.delete(recursive: true));
+    final file = File('${directory.path}/arvin.sqlite');
+    final original = Task.fromJson(<String, dynamic>{
+      'id': 'unknown-task-envelope',
+      'title': 'حفظ فیلدهای آینده',
+      'templateTaskId': null,
+      'focusDate': null,
+      'futureTaskField': <String, dynamic>{
+        'retained': true,
+        'revision': 7,
+      },
+      'notebookKind': null,
+      'recurrence': null,
+      'taskReminders': <dynamic>[],
+      'people': <dynamic>[],
+      'checklistOccurrences': <String, dynamic>{},
+      'occurrenceHistory': <String, dynamic>{},
+      'nextReminderSequence': 1,
+      'legacyTaskReminderMigrationVersion': 0,
+      'priority': 'none',
+    });
+
+    final firstDatabase = NativeDatabase(file);
+    try {
+      await TaskStore(executor: firstDatabase).save(<Task>[original]);
+    } finally {
+      await firstDatabase.close();
+    }
+
+    final reopenedDatabase = NativeDatabase(file);
+    try {
+      final store = TaskStore(executor: reopenedDatabase);
+      final loaded = (await store.load()).single;
+      expect(loaded.extensionData['futureTaskField'], {
+        'retained': true,
+        'revision': 7,
+      });
+      expect(loaded.toJson().containsKey('templateTaskId'), isTrue);
+      expect(loaded.toJson()['templateTaskId'], isNull);
+      expect(loaded.toJson().containsKey('focusDate'), isTrue);
+      expect(loaded.toJson()['focusDate'], isNull);
+      expect(loaded.toJson().containsKey('notebookKind'), isTrue);
+      expect(loaded.toJson()['notebookKind'], isNull);
+      expect(loaded.toJson().containsKey('recurrence'), isTrue);
+      expect(loaded.toJson()['recurrence'], isNull);
+      expect(loaded.toJson()['taskReminders'], isEmpty);
+      expect(loaded.toJson()['people'], isEmpty);
+      expect(loaded.toJson()['checklistOccurrences'], isEmpty);
+      expect(loaded.toJson()['occurrenceHistory'], isEmpty);
+      expect(loaded.toJson()['nextReminderSequence'], 1);
+      expect(loaded.toJson()['legacyTaskReminderMigrationVersion'], 0);
+      expect(loaded.toJson()['priority'], 'none');
+
+      loaded.title = 'ویرایش بدون حذف اطلاعات آینده';
+      await store.save(<Task>[loaded]);
+      final afterEdit = (await store.load()).single;
+      expect(afterEdit.title, 'ویرایش بدون حذف اطلاعات آینده');
+      expect(afterEdit.extensionData['futureTaskField'], {
+        'retained': true,
+        'revision': 7,
+      });
+      expect(afterEdit.toJson().containsKey('templateTaskId'), isTrue);
+      expect(afterEdit.toJson()['templateTaskId'], isNull);
+      expect(afterEdit.toJson().containsKey('focusDate'), isTrue);
+      expect(afterEdit.toJson()['focusDate'], isNull);
+      expect(afterEdit.toJson().containsKey('notebookKind'), isTrue);
+      expect(afterEdit.toJson()['notebookKind'], isNull);
+      expect(afterEdit.toJson().containsKey('recurrence'), isTrue);
+      expect(afterEdit.toJson()['recurrence'], isNull);
+      expect(afterEdit.toJson()['taskReminders'], isEmpty);
+      expect(afterEdit.toJson()['people'], isEmpty);
+      expect(afterEdit.toJson()['checklistOccurrences'], isEmpty);
+      expect(afterEdit.toJson()['occurrenceHistory'], isEmpty);
+    } finally {
+      await reopenedDatabase.close();
+    }
+  });
 }
