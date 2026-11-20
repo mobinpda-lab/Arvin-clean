@@ -496,7 +496,10 @@ void main() {
 
     final rollBox = find.byKey(const ValueKey('task-editor-recurrence'));
     expect(rollBox, findsOneWidget);
-    expect(find.text('روزانه'), findsWidgets);
+    expect(
+      find.descendant(of: rollBox, matching: find.bySemanticsLabel('روزانه')),
+      findsOneWidget,
+    );
 
     await tester.ensureVisible(rollBox);
     await tester.tap(rollBox);
@@ -508,7 +511,10 @@ void main() {
 
     await tester.tap(find.text('هفتگی').last);
     await tester.pumpAndSettle();
-    expect(find.text('هفتگی'), findsOneWidget);
+    expect(
+      find.descendant(of: rollBox, matching: find.bySemanticsLabel('هفتگی')),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
     await tester.pumpAndSettle();
