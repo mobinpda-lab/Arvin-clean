@@ -27,7 +27,7 @@ class G1DriftSchema implements QueryExecutorUser {
     '''CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0,
-  legacy_payload_json TEXT NULL)''',
+  legacy_center_id TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS project_items (
   project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
