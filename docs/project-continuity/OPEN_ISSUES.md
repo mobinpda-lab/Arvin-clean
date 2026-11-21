@@ -611,3 +611,11 @@ Current candidate 26c8d6e449a2204edd95728e739dd07983263eb6: SQLite run 435976891
 - **P1 — repository cleanup:** 1,439 branch refs and 121 open PRs were inventoried; full closed-unmerged PR and branch-to-commit reconciliation remains incomplete. No destructive cleanup yet.
 - **P1 — workflow security/duplication:** inventory all workflow definitions, permissions, third-party action pinning, triggers, and redundant automation before retiring anything.
 - **NIRA boundary:** no runtime dependency has been established; maintain repository independence and verify any proposed shared tooling separately.
+
+
+## COMMAND 103-R — owner-locked governance
+
+- **Issue #3653 — P0:** enforce ARVIN-DEC-OWNER-001, REV10 canonical baseline and Primary Blue `#4169A1`; exact-SHA governance CI and full test evidence pending.
+- **Issue #3646 — P0:** four-action Task reminder window remains NOT ACCEPTED; see issue for foreground/background/closed-app, reboot and device requirements.
+- **Issue #3619 — P1:** independent SQLite Database A→B restore, repeat restore and rollback proof remains an independent acceptance gate.
+- **Repository rules:** Branch Protection, Rulesets, required checks and bypass restrictions are UNVERIFIED until directly inspected through an authoritative GitHub settings endpoint.
