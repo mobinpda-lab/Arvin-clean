@@ -277,3 +277,12 @@ This directory is the single active continuity location for Arvin. The only acti
 Other documents, ADRs, ledgers, reports and historical PR notes are evidence/archive material. They may be consulted to recover a contribution, but they do not independently authorize implementation when they conflict with these active documents or REV10.
 
 **Canonical delivery candidate:** PR #3495 — `recovery-02/main-based-integration` → `main`. Re-fetch the live SHA before every operation. Main is read-only; merge, release and deployment require explicit owner approval.
+
+
+## Latest owner-locked baseline — 2026-11-21
+
+- Active product baseline: REV10.
+- Immutable owner decision: ARVIN-DEC-OWNER-001.
+- Canonical brand token: Primary Blue `#4169A1`, sourced from `lib/arvin_colors.dart`.
+- Governance execution tracker: [Issue #3653](https://github.com/mobinpda-lab/Arvin-clean/issues/3653).
+- Exact-SHA verification remains mandatory; implementation is not product acceptance.
