@@ -127,16 +127,16 @@ void main() {
       final cases = <Task>[];
       for (final entry in validValues.entries) {
         cases.add(Task.fromJson(<String, dynamic>{
-          'id': entry.key + '-missing',
-          'title': entry.key + ' missing',
+          'id': '${entry.key}-missing',
+          'title': '${entry.key} missing',
           'futureEnvelopeField': <String, dynamic>{
             'nested': <Object?>['preserve', 7],
             'flag': true,
           },
         }));
         cases.add(Task.fromJson(<String, dynamic>{
-          'id': entry.key + '-null',
-          'title': entry.key + ' explicit null',
+          'id': '${entry.key}-null',
+          'title': '${entry.key} explicit null',
           entry.key: null,
           'futureEnvelopeField': <String, dynamic>{
             'nested': <Object?>['preserve', 7],
@@ -144,8 +144,8 @@ void main() {
           },
         }));
         cases.add(Task.fromJson(<String, dynamic>{
-          'id': entry.key + '-valid',
-          'title': entry.key + ' valid',
+          'id': '${entry.key}-valid',
+          'title': '${entry.key} valid',
           entry.key: entry.value,
           'futureEnvelopeField': <String, dynamic>{
             'nested': <Object?>['preserve', 7],
@@ -273,8 +273,7 @@ Future<void> main(List<String> args) async {
       expect(
         result.exitCode,
         0,
-        reason: 'Fresh process stage ' + stage + ' failed. stdout: ' +
-            result.stdout.toString() + ' stderr: ' + result.stderr.toString(),
+        reason: 'Fresh process stage $stage failed. stdout: ${result.stdout} stderr: ${result.stderr}',
       );
     }
 
