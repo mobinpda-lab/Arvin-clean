@@ -352,3 +352,35 @@ Commit 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51 changes only .github/workflows/c
 - Run `44890531184` on `1facd26252157f79904d09794eb9b0ee35f0f9a1` confirmed the shared AVD home and generated `.ini` / `config.ini` successfully.
 - Emulator 37.3.10 then failed because KVM was unavailable and `-accel off` requires `ANDROID_I_WANT_MY_TCG=yes`; exact error preserved in artifact `14702045917`.
 - Issue #3654 updated with this root cause. Next fix exports `ANDROID_I_WANT_MY_TCG=yes`; rerun required. Product smoke not reached; do not classify as product failure.
+
+
+## MASTER EXECUTION 148-R — implementation checkpoint (2026-11-21)
+
+- Starting Candidate: `026f1cdaeb63fe804b685cbffa0ff9da3579de0d`.
+- Main baseline: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Final checkpoint in this entry: `6ac6ead1d18d3d4915a4861dc8b1b4c9273f6e8b`.
+- PR #3495 remains OPEN / DRAFT / UNMERGED; branch `recovery-02/main-based-integration`; compare 451 ahead / 0 behind.
+- No Main write, merge, release or deployment.
+
+### Commits
+1. `bc983d1fa21575dc26b4122545b6a6ea3e010f59` — Missing historical Center reference is recorded through the existing migration exception engine.
+2. `512444b8661ba64023ed892ace0b6ffcec9b0358` — targeted migration test for missing Center reference.
+3. `eb387c701875204bd219cc505866f39b21d31959` — preserve orphaned historical Center ID in `projects.legacy_center_id`, clear only the invalid FK edge, and retain the exception record.
+4. `543130858812d195bba9270bf5c7930dd85cb694` — assert Project preservation, exception metadata and FK check in the targeted test.
+5. `a89c6853df206c41c3193bb373ce38b295157282` — add independent historical v8 DDL fixture with all 16 source CREATE TABLE statements and the one source-defined partial unique index.
+6. `540bd15e486f015a188f5deb9c0b34a3192665fc` — add an isolated SQLite fixture test and deterministic SHA-256 DDL fingerprint assertion.
+7. `40f2ee47b776f715ca27353a8a0c75e60ac2471b` — document fixture scope and remaining acceptance work.
+8. `6ac6ead1d18d3d4915a4861dc8b1b4c9273f6e8b` — correct the fixture test reference in the README.
+
+### Source-backed results and limitations
+- Historical source commit `874dd8b567fdceae7ed62f01a93804dcea1a5473`, blob `f4d488fa3f972c4ce123df6089b66569b9c8849c`, was fetched directly. It contains 16 CREATE TABLE definitions and one explicit partial unique index: `idx_projects_active_template_center`.
+- DDL file SHA-256: `9a11f8952cf1d11bebd020a785021e7f051410580762a6b78276b7b0f89dc2ba`.
+- Historical DDL fixture and a structural test have been committed. The test has NOT yet been executed; the fixture does not yet contain the full requested deterministic historical data set. Historical fixture acceptance remains PARTIAL.
+- Missing Center handling now records `PROJECT_CENTER_REFERENCE_MISSING` in the existing `arvin_migration_exceptions.details_json`, with source entity/record, original Center ID, migration version, exception type, reason, original field reference and pending recovery status. The orphaned ID is retained in `legacy_center_id`; `center_id` is nulled only to remove the invalid FK edge. This code and its test are NOT YET RUN; migration acceptance remains NOT ACCEPTED.
+- People source trace confirms awaited TaskPeopleService→TaskStore.mutate→transactional TaskStore persistence. The actual disappearance mechanism remains unconfirmed; no People code correction is claimed.
+- Existing independent backup test uses distinct Database A/B files and covers Task/People/Follow-up payload, repeated restore and rollback. Full Center/Project/M2M/Calendar/exception parity and close/reopen acceptance remain PARTIAL.
+- On final checkpoint `6ac6ead1d18d3d4915a4861dc8b1b4c9273f6e8b`, the available PR-triggered workflow-run query returned no runs and combined commit status returned no status checks. This is NOT RUN / UNVERIFIED, not PASS.
+- COMMAND 20-E, Build, Analyze, six shards and Device Smoke have not been verified on this exact SHA. Historical run results are not transferable.
+
+### Mission 148-R disposition
+IN PROGRESS / BLOCKED ON EXECUTION EVIDENCE. The available GitHub integration can read and commit repository files but this execution did not provide a local Flutter/Android runner or an Actions dispatch operation. Do not accept the migration, fixture, People, Backup/Restore or overall mission until exact-SHA tests and CI complete.
