@@ -286,3 +286,5 @@ Other documents, ADRs, ledgers, reports and historical PR notes are evidence/arc
 - Canonical brand token: Primary Blue `#4169A1`, sourced from `lib/arvin_colors.dart`.
 - Governance execution tracker: [Issue #3653](https://github.com/mobinpda-lab/Arvin-clean/issues/3653).
 - Exact-SHA verification remains mandatory; implementation is not product acceptance.
+
+- COMMAND 103-R Governance Validation exposed and drove correction of a duplicate hard-coded Home primary token; see `CURRENT_STATE.md` and `IMPLEMENTATION_LOG.md` for exact-SHA evidence.
