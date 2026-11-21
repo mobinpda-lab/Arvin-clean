@@ -962,3 +962,10 @@ A test result is valid only for the SHA it actually checked out. The successful 
 5. Audit Branch Protection, Rulesets, required status checks, CODEOWNERS enforcement and bypass actors using authoritative repository settings. If unavailable, leave UNVERIFIED.
 6. Continue Issue #3619 (independent SQLite A-to-B restore) and Issue #3646 (four-action Reminder window) as separate product gates.
 7. Keep PR #3495 Draft and unmerged. Do not modify Main, release, deploy or perform production data operations.
+
+### COMMAND 103-R follow-up
+
+- Governance CI found one real duplicate Primary Blue definition in `lib/home/home_visual_integration.dart`; it was corrected to reference `ArvinColors.primary`.
+- CODEOWNERS now covers the canonical token source, duplicate consumer, contract test and governance workflow.
+- Preserve the failing run `44871858882` as evidence of the detector working. Confirm a fresh pass on the final SHA; do not treat the correction commit itself as verification.
+- Repository Branch Protection and Rulesets still require a direct settings audit; current status is UNVERIFIED.
