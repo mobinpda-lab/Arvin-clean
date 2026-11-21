@@ -201,19 +201,28 @@ void main() {
            FROM arvin_migration_exceptions
            WHERE migration_key = 'rev10_hierarchy_schema_version'
              AND entity_type = 'project'
-             AND entity_id = 'project-v8-missing-center'""",
+             AND code = 'PROJECT_CENTER_REFERENCE_MISSING'
+           ORDER BY entity_id""",
         const [],
       );
-      expect(missingCenterExceptions, hasLength(1));
-      final exception = missingCenterExceptions.single;
-      expect(exception['code'], 'PROJECT_CENTER_REFERENCE_MISSING');
-      final details = jsonDecode(exception['details_json'] as String) as Map;
-      expect(details['sourceEntity'], 'projects');
-      expect(details['sourceRecordId'], 'project-v8-missing-center');
-      expect(details['historicalCenterId'], 'center-v8-missing');
-      expect(details['migrationVersion'], 9);
-      expect(details['exceptionType'], 'MissingHistoricalCenter');
-      expect(details['recoveryStatus'], 'pending');
+      expect(missingCenterExceptions, hasLength(2));
+      expect(
+        missingCenterExceptions.map((row) => row['entity_id']).toList(),
+        <String>['project-v8-missing-center', 'project-v8-missing-center-b'],
+      );
+      final exceptionDetails = <String, Map<String, dynamic>>{
+        for (final row in missingCenterExceptions)
+          row['entity_id'] as String:
+              jsonDecode(row['details_json'] as String) as Map<String, dynamic>,
+      };
+      expect(exceptionDetails['project-v8-missing-center']!['historicalCenterId'], 'center-v8-missing');
+      expect(exceptionDetails['project-v8-missing-center-b']!['historicalCenterId'], 'center-v8-missing-b');
+      for (final details in exceptionDetails.values) {
+        expect(details['sourceEntity'], 'projects');
+        expect(details['migrationVersion'], 9);
+        expect(details['exceptionType'], 'MissingHistoricalCenter');
+        expect(details['recoveryStatus'], 'pending');
+      }
       expect(
         await database!.runSelect('PRAGMA foreign_key_check', const []),
         isEmpty,
@@ -261,14 +270,40 @@ void main() {
         'SELECT id, center_id FROM projects ORDER BY id',
         const [],
       );
-      // All four source Projects survive. The orphaned historical Center
-      // edge is cleared, while its original identifier remains in
-      // legacy_center_id and the migration exception ledger.
-      expect(oldProjectLinks, hasLength(4));
+      // All six source Projects survive. Only the two orphaned FK edges
+      // are cleared; their original IDs remain in legacy_center_id and the
+      // exception ledger. An explicitly NULL Center remains NULL.
+      expect(oldProjectLinks, hasLength(6));
       final orphanedProject = oldProjectLinks.singleWhere(
         (row) => row['id'] == 'project-v8-missing-center',
       );
       expect(orphanedProject['center_id'], isNull);
+      final secondOrphanedProject = oldProjectLinks.singleWhere(
+        (row) => row['id'] == 'project-v8-missing-center-b',
+      );
+      expect(secondOrphanedProject['center_id'], isNull);
+      final noCenterProject = oldProjectLinks.singleWhere(
+        (row) => row['id'] == 'project-v8-null-center',
+      );
+      expect(noCenterProject['center_id'], isNull);
+      final preservedIds = await database!.runSelect(
+        "SELECT id, legacy_center_id FROM projects WHERE id IN ('project-v8-missing-center', 'project-v8-missing-center-b', 'project-v8-null-center') ORDER BY id",
+        const [],
+      );
+      expect(
+        preservedIds.map((row) => row['legacy_center_id']).toList(),
+        <Object?>['center-v8-missing', 'center-v8-missing-b', null],
+      );
+      final archivedProject = await database!.runSelect(
+        "SELECT is_archived FROM projects WHERE id = 'project-v8-c'",
+        const [],
+      );
+      expect((archivedProject.single['is_archived'] as num).toInt(), 1);
+      final activeProject = await database!.runSelect(
+        "SELECT is_archived FROM projects WHERE id = 'project-v8-a'",
+        const [],
+      );
+      expect((activeProject.single['is_archived'] as num).toInt(), 0);
 
       final membership = await database!.runSelect(
         'SELECT ordinal FROM project_items WHERE project_id = ? AND task_id = ?',
@@ -310,11 +345,21 @@ void main() {
         'ok',
       );
       expect(await database!.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
-      final reopenedLegacyId = await database!.runSelect(
-        "SELECT legacy_center_id FROM projects WHERE id = 'project-v8-missing-center'",
+      final reopenedLegacyIds = await database!.runSelect(
+        "SELECT id, legacy_center_id FROM projects WHERE id IN ('project-v8-missing-center', 'project-v8-missing-center-b') ORDER BY id",
         const [],
       );
-      expect(reopenedLegacyId.single['legacy_center_id'], 'center-v8-missing');
+      expect(
+        reopenedLegacyIds.map((row) => row['legacy_center_id']).toList(),
+        <String>['center-v8-missing', 'center-v8-missing-b'],
+      );
+      final exceptionsAfterDuplicateInstall = await database!.runSelect(
+        """SELECT entity_id FROM arvin_migration_exceptions
+           WHERE migration_key = 'rev10_hierarchy_schema_version'
+             AND code = 'PROJECT_CENTER_REFERENCE_MISSING'""",
+        const [],
+      );
+      expect(exceptionsAfterDuplicateInstall, hasLength(2));
       final marker = await database!.runSelect(
         "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_hierarchy_schema_version'",
         const [],
