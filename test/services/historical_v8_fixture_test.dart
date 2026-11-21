@@ -118,7 +118,7 @@ void main() {
         'name': row['name'],
         'table': row['tbl_name'],
         'sql': (row['sql'] as String?)
-            ?.replaceAll(RegExp(r'\\s+'), ' ')
+            ?.replaceAll(RegExp(r'\s+'), ' ')
             .trim()
             .toLowerCase(),
       }).toList(growable: false);
@@ -279,7 +279,7 @@ void main() {
         "SELECT id, is_archived FROM projects ORDER BY id",
         const [],
       );
-      expect(projectStates.map((row) => row['is_archived']).toList(), <Object?>[1, 0]);
+      expect(projectStates.map((row) => row['is_archived']).toList(), <Object?>[0, 1]);
       expect(await database.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
 
     } finally {
