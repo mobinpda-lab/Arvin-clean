@@ -176,6 +176,9 @@ class Task {
     this.followUpDate,
     this.tags = const [],
     this.category,
+    this.centerId,
+    this.projectId,
+    this.categoryId,
     this.checklist = const [],
     bool? checklistEnabled,
     this.checklistOccurrences = const {},
@@ -215,6 +218,10 @@ class Task {
   DateTime? followUpDate;
   List<String> tags;
   String? category;
+  /// Optional direct REV10 hierarchy links; independent from legacy project_items.
+  final String? centerId;
+  final String? projectId;
+  final String? categoryId;
   List<String> checklist;
   /// Whether the Task editor checklist mode is enabled. Disabled checklists
   /// retain their rows so toggling the feature off never deletes user data.
@@ -251,7 +258,8 @@ class Task {
   /// being mistaken for unknown metadata after an edit.
   static const Set<String> jsonFieldNames = <String>{
     'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate', 'allDay',
-    'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
+    'followUpEnabled', 'followUpDate', 'tags', 'category',
+    'centerId', 'projectId', 'categoryId', 'checklist',
     'checklistEnabled', 'checklistOccurrences', 'occurrenceHistory',
     'notebookKind', 'reminderDate', 'taskReminders', 'nextReminderSequence',
     'legacyTaskReminderMigrationVersion', 'priority', 'archived', 'trashed',
@@ -408,6 +416,9 @@ class Task {
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
+        if (centerId != null) 'centerId': centerId,
+        if (projectId != null) 'projectId': projectId,
+        if (categoryId != null) 'categoryId': categoryId,
         'checklist': checklist,
         'checklistEnabled': checklistEnabled,
         if (checklistOccurrences.isNotEmpty)
@@ -526,6 +537,9 @@ class Task {
           .whereType<String>()
           .toList(),
       category: json['category'] as String?,
+      centerId: json['centerId'] as String?,
+      projectId: json['projectId'] as String?,
+      categoryId: json['categoryId'] as String?,
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),

@@ -419,6 +419,12 @@ class TaskStore {
         (row['follow_up_enabled'] as num?)?.toInt() == 1;
     envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
+    final centerId = row['center_id'];
+    if (centerId is String) envelope['centerId'] = centerId;
+    final projectId = row['project_id'];
+    if (projectId is String) envelope['projectId'] = projectId;
+    final categoryId = row['category_id'];
+    if (categoryId is String) envelope['categoryId'] = categoryId;
     final notebookKind = row['notebook_kind'];
     if (notebookKind != null) {
       envelope['notebookKind'] = notebookKind;
@@ -563,9 +569,10 @@ class TaskStore {
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
-            follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            follow_up_enabled, follow_up_date, category, center_id, project_id, category_id,
+            notebook_kind, reminder_date, priority, archived, trashed, completed,
+            completed_at, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -577,6 +584,9 @@ class TaskStore {
             task.followUpEnabled ? 1 : 0,
             task.followUpDate?.toIso8601String(),
             task.category,
+            task.centerId,
+            task.projectId,
+            task.categoryId,
             task.notebookKind?.name,
             task.reminderDate?.toIso8601String(),
             task.priority.name,
