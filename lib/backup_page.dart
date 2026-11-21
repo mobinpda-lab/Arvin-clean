@@ -418,7 +418,7 @@ class _BackupPageState extends State<BackupPage> {
           );
           await widget.restoreStageHook?.call('tasks');
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await ProjectStore().replaceAll(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -461,7 +461,7 @@ class _BackupPageState extends State<BackupPage> {
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await ProjectStore().replaceAll(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];

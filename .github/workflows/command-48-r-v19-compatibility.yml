@@ -1,0 +1,363 @@
+name: COMMAND 48-R — Historical V7 to V19 Compatibility
+
+on:
+  push:
+    branches:
+      - recovery-02/main-based-integration
+    paths:
+      - '.github/workflows/command-48-r-v19-compatibility.yml'
+      - 'docs/history/command-48-r/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: command-48-r-v19-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  FLUTTER_VERSION: '3.47.0'
+  FIXTURE_SOURCE_SHA: 'f211326e7615f1c907494232dd3aec8d4732c83c'
+  FIXTURE_ARCHIVE: 'test/fixtures/database/historical/main_v7_fixture.sqlite.gz'
+  EXPECTED_FIXTURE_SHA256: '68752dcafcbe84abe399d71ac3411ec9832084fb888e84158d8a3b4a819913f0'
+  V19_SOURCE_SHA: '310c0e20e3447c488c1e1c102c38bea5040708ca'
+  V19_SCHEMA_BLOB: '9f0243dff6d8ffa13649ca7fd2ee33ac4d3a2c21'
+
+jobs:
+  v7-to-v19-direct-install:
+    name: Execute exact historical v19 installer on isolated v7 fixture copy
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout exact historical v19 source
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.V19_SOURCE_SHA }}
+          fetch-depth: 0
+
+      - name: Verify exact installer source identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "${V19_SOURCE_SHA}"
+          actual_blob="$(git rev-parse HEAD:lib/services/g1_drift_schema.dart)"
+          test "${actual_blob}" = "${V19_SCHEMA_BLOB}"
+          {
+            echo "V19_SOURCE_SHA=${V19_SOURCE_SHA}"
+            echo "V19_SCHEMA_PATH=lib/services/g1_drift_schema.dart"
+            echo "V19_SCHEMA_BLOB=${actual_blob}"
+            echo "V19_SCHEMA_VERSION=$(grep -m1 'static const int version' lib/services/g1_drift_schema.dart | sed -E 's/[^0-9]//g')"
+          } | tee command48-source-identity.txt
+
+      - name: Install native SQLite prerequisites
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y libsqlite3-dev gzip jq
+
+      - name: Install historical Flutter runtime
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve exact historical dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter --version
+          dart --version
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+
+      - name: Extract and independently copy the immutable v7 fixture
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin "${FIXTURE_SOURCE_SHA}"
+          mkdir -p build/command-48-r
+          git show "${FIXTURE_SOURCE_SHA}:${FIXTURE_ARCHIVE}" > build/command-48-r/main-v7-fixture.sqlite.gz
+          gzip -dc build/command-48-r/main-v7-fixture.sqlite.gz > build/command-48-r/source-fixture.sqlite
+          source_sha="$(sha256sum build/command-48-r/source-fixture.sqlite | awk '{print $1}')"
+          test "${source_sha}" = "${EXPECTED_FIXTURE_SHA256}"
+          cp build/command-48-r/source-fixture.sqlite build/command-48-r/working-copy.sqlite
+          working_sha="$(sha256sum build/command-48-r/working-copy.sqlite | awk '{print $1}')"
+          test "${working_sha}" = "${EXPECTED_FIXTURE_SHA256}"
+          {
+            echo "FIXTURE_SOURCE_SHA=${FIXTURE_SOURCE_SHA}"
+            echo "FIXTURE_SHA256=${source_sha}"
+            echo "WORKING_COPY_SHA256_BEFORE=${working_sha}"
+            stat -c 'FIXTURE_SIZE_BYTES=%s' build/command-48-r/working-copy.sqlite
+          } | tee build/command-48-r/fixture-verification.txt
+
+      - name: Generate historical installer execution test
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > test/command48_v7_to_v19_execution_test.dart <<'DART'
+          import 'dart:convert';
+          import 'dart:io';
+          import 'dart:typed_data';
+
+          import 'package:arvin/services/g1_drift_schema.dart';
+          import 'package:drift/drift.dart';
+          import 'package:drift/native.dart';
+          import 'package:flutter_test/flutter_test.dart';
+
+          class _ReadOnlyV7FixtureUser implements QueryExecutorUser {
+            @override
+            int get schemaVersion => 7;
+
+            @override
+            Future<void> beforeOpen(
+              QueryExecutor executor,
+              OpeningDetails details,
+            ) async {}
+          }
+
+          Object? _normalize(Object? value) {
+            if (value == null || value is String || value is num || value is bool) {
+              return value;
+            }
+            if (value is Uint8List) return <String, Object?>{'base64': base64Encode(value)};
+            if (value is List<int>) return <String, Object?>{'base64': base64Encode(value)};
+            if (value is DateTime) return value.toIso8601String();
+            if (value is Map) {
+              return value.map((key, item) => MapEntry(key.toString(), _normalize(item)));
+            }
+            if (value is List) return value.map(_normalize).toList();
+            return value.toString();
+          }
+
+          Future<Map<String, Object?>> _snapshot(QueryExecutor executor) async {
+            final tableRows = await executor.runSelect(
+              "SELECT name, sql FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
+              const [],
+            );
+            final tables = <String, Object?>{};
+            for (final tableRow in tableRows) {
+              final name = tableRow['name'] as String;
+              final escaped = name.replaceAll('"', '""');
+              final rows = await executor.runSelect('SELECT * FROM "$escaped"', const []);
+              final normalized = rows.map((row) => row.map(
+                (key, value) => MapEntry(key, _normalize(value)),
+              )).toList();
+              normalized.sort((a, b) => jsonEncode(a).compareTo(jsonEncode(b)));
+              tables[name] = <String, Object?>{
+                'ddl': tableRow['sql'],
+                'rows': normalized,
+              };
+            }
+            final indexRows = await executor.runSelect(
+              "SELECT name, tbl_name, sql FROM sqlite_master WHERE type='index' ORDER BY name",
+              const [],
+            );
+            final integrity = await executor.runSelect('PRAGMA integrity_check', const []);
+            final foreignKeys = await executor.runSelect('PRAGMA foreign_key_check', const []);
+            final userVersion = await executor.runSelect('PRAGMA user_version', const []);
+            return <String, Object?>{
+              'installer_code_version': G1DriftSchema.version,
+              'pragma_user_version': userVersion.single.values.first,
+              'integrity_check': integrity.single.values.first,
+              'foreign_key_violations': foreignKeys.length,
+              'indexes': indexRows.map((row) => row.map((k,v)=>MapEntry(k,_normalize(v)))).toList(),
+              'tables': tables,
+            };
+          }
+
+
+          List<Map<String, Object?>> _rows(Map<String, Object?> snapshot, String table) {
+            final tables = snapshot['tables'] as Map<String, Object?>;
+            final value = tables[table] as Map<String, Object?>;
+            return (value['rows'] as List).cast<Map<String, Object?>>();
+          }
+
+          List<Object?> _columnValues(List<Map<String, Object?>> rows, String column) {
+            final values = rows.map((row) => row[column]).toList();
+            values.sort((a, b) => a.toString().compareTo(b.toString()));
+            return values;
+          }
+
+          List<Map<String, Object?>> _projection(
+            List<Map<String, Object?>> rows,
+            List<String> columns,
+          ) {
+            final values = rows.map((row) => <String, Object?>{
+              for (final column in columns) column: row[column],
+            }).toList();
+            values.sort((a, b) => jsonEncode(a).compareTo(jsonEncode(b)));
+            return values;
+          }
+
+          void main() {
+            TestWidgetsFlutterBinding.ensureInitialized();
+            test('runs the original v19 installer on a separate physical copy of Main v7', () async {
+              expect(G1DriftSchema.version, 19);
+              final path = Platform.environment['ARVIN_V7_WORKING_COPY']!;
+              final beforeFile = File(path);
+              expect(await beforeFile.exists(), isTrue);
+
+              final beforeDb = NativeDatabase(beforeFile);
+              late final Map<String, Object?> before;
+              try {
+                await beforeDb.ensureOpen(_ReadOnlyV7FixtureUser());
+                before = await _snapshot(beforeDb);
+                expect(before['integrity_check'], 'ok');
+                expect(before['foreign_key_violations'], 0);
+                final beforeTables = before['tables'] as Map<String, Object?>;
+                expect(beforeTables.keys, containsAll(<String>[
+                  'tasks','projects','follow_ups','people','tags',
+                  'checklist_items','task_people','follow_up_people',
+                  'task_tags','project_items','taxonomy_categories',
+                  'arvin_storage_meta',
+                ]));
+              } finally {
+                await beforeDb.close();
+              }
+
+              // This is the unmodified historical production entry point.
+              // No SQL replacement, schema-version write, or synthetic table is used.
+              final migrationDb = NativeDatabase(beforeFile);
+              late final Map<String, Object?> after;
+              try {
+                await G1DriftSchema.install(migrationDb);
+                after = await _snapshot(migrationDb);
+                expect(after['integrity_check'], 'ok');
+                expect(after['foreign_key_violations'], 0);
+                final afterTables = after['tables'] as Map<String, Object?>;
+                expect(afterTables.keys, containsAll(<String>[
+                  'tasks','projects','follow_up_records','persons',
+                  'task_reminders','task_persons','follow_up_record_people',
+                  'task_occurrences','occurrence_checklist_items',
+                  'task_recurrence_rules','person_directory',
+                ]));
+                final beforeTaskIds = (((before['tables'] as Map)['tasks'] as Map)['rows'] as List)
+                    .map((row) => (row as Map)['id']).toList()..sort();
+                final afterTaskIds = (((after['tables'] as Map)['tasks'] as Map)['rows'] as List)
+                    .map((row) => (row as Map)['id']).toList()..sort();
+                expect(afterTaskIds, beforeTaskIds);
+                expect(before['pragma_user_version'], 7);
+                expect(after['installer_code_version'], 19);
+                expect(after['pragma_user_version'], 19);
+
+                // Stable Task identity and all canonical SQL-owned Task values.
+                final taskColumns = <String>[
+                  'id','storage_ordinal','title','description','created_at',
+                  'updated_at','due_date','category','notebook_kind','priority',
+                  'archived','trashed','completed','completed_at','recurrence_json',
+                ];
+                expect(
+                  _projection(_rows(after, 'tasks'), taskColumns),
+                  _projection(_rows(before, 'tasks'), taskColumns),
+                );
+
+                // Legacy source tables that v19 deliberately retains must remain byte-value equivalent.
+                for (final table in <String>[
+                  'follow_ups','people','task_people','follow_up_people',
+                  'tags','checklist_items','task_tags','project_items',
+                  'taxonomy_categories',
+                ]) {
+                  expect(_rows(after, table), _rows(before, table), reason: 'legacy source table changed: $table');
+                }
+                expect(
+                  _projection(_rows(after, 'projects'), <String>[
+                    'id','name','color_value','is_archived','legacy_payload_json',
+                  ]),
+                  _projection(_rows(before, 'projects'), <String>[
+                    'id','name','color_value','is_archived','legacy_payload_json',
+                  ]),
+                );
+
+                // Stable canonical identities and migrated relation parity.
+                expect(
+                  _columnValues(_rows(after, 'follow_up_records'), 'id'),
+                  _columnValues(_rows(before, 'follow_ups'), 'id'),
+                );
+                final expectedPersonIds = <Object?>{
+                  ..._columnValues(_rows(before, 'people'), 'id'),
+                  ..._columnValues(_rows(before, 'task_people'), 'person_id'),
+                  ..._columnValues(_rows(before, 'follow_up_people'), 'person_id'),
+                }.toList()..sort((a,b)=>a.toString().compareTo(b.toString()));
+                expect(_columnValues(_rows(after, 'persons'), 'id'), expectedPersonIds);
+                expect(
+                  _projection(_rows(after, 'task_persons'), <String>['task_id','person_id','ordinal']),
+                  _projection(_rows(before, 'task_people'), <String>['task_id','person_id','ordinal']),
+                );
+                expect(
+                  _projection(_rows(after, 'follow_up_record_people'), <String>['follow_up_id','person_id','ordinal']),
+                  _projection(_rows(before, 'follow_up_people'), <String>['follow_up_id','person_id','ordinal']),
+                );
+                expect(_rows(after, 'checklist_items'), _rows(before, 'checklist_items'));
+                expect(_rows(after, 'task_tags'), _rows(before, 'task_tags'));
+                expect(_rows(after, 'project_items'), _rows(before, 'project_items'));
+
+                // Reminder and recurrence transformations must materialize their canonical records.
+                expect(_rows(after, 'task_reminders'), hasLength(1));
+                expect(_rows(after, 'task_reminders').single['id'], 'legacy-task-reminder-task-active-001');
+                expect(_rows(after, 'task_recurrence_rules'), hasLength(1));
+                expect(_rows(after, 'task_recurrence_rules').single['task_id'], 'task-active-001');
+
+                // Unknown development fields remain in their original or compatibility envelopes.
+                final migratedTask = _rows(after, 'tasks').singleWhere((row) => row['id'] == 'task-active-001');
+                final taskEnvelope = jsonDecode(migratedTask['legacy_payload_json'] as String) as Map<String, dynamic>;
+                expect(taskEnvelope['futureField'], 'preserve-42');
+                expect(taskEnvelope['legacyReminderPayload'], <String, dynamic>{'channel':'alarm','custom':7});
+                final migratedProject = _rows(after, 'projects').single;
+                expect(
+                  (jsonDecode(migratedProject['legacy_payload_json'] as String) as Map)['futureProjectField'],
+                  'retain',
+                );
+                expect(
+                  (_rows(after, 'task_people').single['person_json'] as String),
+                  contains('futurePersonField'),
+                );
+                expect(
+                  _rows(after, 'tasks').singleWhere((row) => row['id'] == 'task-active-001')['recurrence_json'],
+                  contains('unknownScheduleField'),
+                );
+
+                File('build/command-48-r/pre-migration-snapshot.json')
+                    .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(before));
+                File('build/command-48-r/post-migration-snapshot.json')
+                    .writeAsStringSync(const JsonEncoder.withIndent('  ').convert(after));
+                File('build/command-48-r/execution-verdict.txt').writeAsStringSync(
+                  'ORIGINAL_V19_INSTALLER=EXECUTED\n'
+                  'TASK_IDS_PRESERVED=PASS\n'
+                  'POST_INTEGRITY_CHECK=PASS\n'
+                  'POST_FOREIGN_KEY_CHECK=PASS\n'
+                  'PRAGMA_USER_VERSION=${after['pragma_user_version']}\n',
+                );
+                // ignore: avoid_print
+                print('COMMAND48_V19_INSTALLER_EXECUTED=PASS');
+              } finally {
+                await migrationDb.close();
+              }
+            });
+          }
+          DART
+          mkdir -p build/command-48-r
+
+      - name: Execute historical v19 migration against isolated fixture copy
+        shell: bash
+        env:
+          ARVIN_V7_WORKING_COPY: build/command-48-r/working-copy.sqlite
+        run: |
+          set -euo pipefail
+          flutter test test/command48_v7_to_v19_execution_test.dart --reporter expanded 2>&1 | tee build/command-48-r/flutter-test.log
+          test -s build/command-48-r/pre-migration-snapshot.json
+          test -s build/command-48-r/post-migration-snapshot.json
+          sha256sum build/command-48-r/pre-migration-snapshot.json build/command-48-r/post-migration-snapshot.json | tee build/command-48-r/snapshot-sha256.txt
+          sha256sum build/command-48-r/working-copy.sqlite | tee build/command-48-r/working-copy-after-sha256.txt
+          echo "RUNNER_RESULT=PASS" | tee build/command-48-r/runner-result.txt
+
+      - name: Upload complete COMMAND 48-R runtime evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: command-48-r-v7-to-v19-${{ github.run_id }}
+          path: build/command-48-r/
+          if-no-files-found: warn
+          retention-days: 90

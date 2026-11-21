@@ -31,17 +31,24 @@ jobs:
             const workflowId = 'build.yml';
             const staleFailureMs = 6 * 60 * 60 * 1000;
             const maxPrAgeMs = 14 * 24 * 60 * 60 * 1000;
-            const maxDispatchesPerRun = 3;
+            const maxDispatchesPerRun = 1;
             const now = Date.now();
 
-            const pulls = await github.paginate(github.rest.pulls.list, {
+            const canonicalResponse = await github.rest.pulls.get({
               owner,
               repo,
-              state: 'open',
-              per_page: 100,
-              sort: 'updated',
-              direction: 'desc'
+              pull_number: 3495
             });
+            const canonical = canonicalResponse.data;
+            if (canonical.state !== 'open' ||
+                canonical.base.ref !== 'main' ||
+                canonical.head.ref !== 'recovery-02/main-based-integration' ||
+                !canonical.head.repo ||
+                canonical.head.repo.full_name !== `${owner}/${repo}`) {
+              core.info('CANONICAL_PR_3495_NOT_ELIGIBLE_FOR_RECOVERY_DISPATCH');
+              return;
+            }
+            const pulls = [canonical];
 
             let dispatched = 0;
             let skipped = 0;

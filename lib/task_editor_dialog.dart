@@ -317,7 +317,7 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
           Row(
             children: [
               const Expanded(
-                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w800)),
+                child: Text('یادآورهای مستقل', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
               FilledButton.tonalIcon(
                 key: const ValueKey('task-editor-add-reminder'),
@@ -407,9 +407,10 @@ class _ArvinTaskEditorDialogState extends State<ArvinTaskEditorDialog> {
                         final allDay = value ?? false;
                         _updateTaskReminder(index, reminder.copyWith(
                           isAllDay: allDay,
-                          date: allDay
-                              ? DateTime(reminder.date.year, reminder.date.month, reminder.date.day)
-                              : reminder.date,
+                          // Keep the hidden clock components while the reminder is
+                          // All-Day. The UI suppresses clock display in that state;
+                          // toggling back to Timed restores the exact hour and minute.
+                          date: reminder.date,
                         ));
                       },
                       title: const Text('تمام‌روز (بدون ساعت)'),
@@ -502,10 +503,10 @@ Future<void> _pickDueDate() async {
   void _toggleDueAllDay(bool value) {
     if (_dueDateTime == null) return;
     setState(() {
+      // Keep the exact timestamp in SQL/backup while All-Day is active.
+      // The allDay flag controls presentation and scheduling; retaining the
+      // hidden clock makes Timed ↔ All-Day reversible across save/reopen.
       _dueAllDay = value;
-      if (value) {
-        _dueDateTime = DateTime(_dueDateTime!.year, _dueDateTime!.month, _dueDateTime!.day);
-      }
       _syncAutomaticReminder();
     });
   }
@@ -526,7 +527,7 @@ Future<void> _pickDueDate() async {
         child: Directionality(
           textDirection: TextDirection.rtl,
           child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
             const SizedBox(height: 12),
             TextField(controller: controller, autofocus: true, decoration: const InputDecoration(labelText: 'نام', border: OutlineInputBorder())),
             const SizedBox(height: 12),
@@ -752,7 +753,7 @@ Future<void> _pickDueDate() async {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(color: ArvinColors.projectSoft, borderRadius: BorderRadius.circular(20), border: Border.all(color: ArvinColors.border)),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16))]),
+        const Row(children: [Icon(Icons.checklist_rounded, color: _brand), SizedBox(width: 8), Text('چک‌لیست', style: TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 16))]),
         const SizedBox(height: 4),
         const Text('مواردی که باید برای این کار یکی‌یکی انجام شوند.'),
         const SizedBox(height: 10),
@@ -1051,7 +1052,7 @@ Future<void> _pickDueDate() async {
         children: [
           Row(
             children: [
-              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w800))),
+              Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.w700))),
               if (value != null)
                 TextButton.icon(
                   key: ValueKey('$keyPrefix-clear'),
@@ -1122,7 +1123,7 @@ Future<void> _pickDueDate() async {
                       ),
                       const Expanded(
                         child: Center(
-                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                          child: Text('ویرایش کار', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                         ),
                       ),
                       FilledButton.icon(
@@ -1276,7 +1277,7 @@ Future<void> _pickDueDate() async {
                     childrenPadding: const EdgeInsets.only(bottom: 8),
                     title: const Text(
                       'جزئیات بیشتر',
-                      style: TextStyle(fontWeight: FontWeight.w800),
+                      style: TextStyle(fontWeight: FontWeight.w700),
                     ),
                     subtitle: const Text(
                       'تاریخ انجام، یادآوری، تکرار، اولویت و وضعیت',
@@ -1525,7 +1526,7 @@ Future<void> _pickDueDate() async {
                             Expanded(
                               child: Text(
                                 'پیگیری‌ها',
-                                style: TextStyle(color: _brand, fontWeight: FontWeight.w800, fontSize: 16),
+                                style: TextStyle(color: _brand, fontWeight: FontWeight.w700, fontSize: 16),
                               ),
                             ),
                             Text('${_followUps.length}', style: const TextStyle(color: _brand, fontWeight: FontWeight.w700)),

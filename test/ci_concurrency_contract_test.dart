@@ -50,30 +50,16 @@ void main() {
     expect(build, contains('inputs.target_sha'));
   });
 
-  test('Parallel Wave keeps one lightweight contract gate', () {
-    final parallel =
-        File('.github/workflows/parallel-wave.yml').readAsStringSync();
-    const draftOnly =
-        "github.event_name != 'pull_request' || github.event.pull_request.draft == true";
+  test('parallel-wave duplicate CI path is retired', () {
+    expect(File('.github/workflows/parallel-wave.yml').existsSync(), isFalse);
+    final build = File('.github/workflows/build.yml').readAsStringSync();
+    final device = File('.github/workflows/device-smoke.yml').readAsStringSync();
 
-    expect(parallel.split(draftOnly).length - 1, 1);
-    expect(parallel, contains("branches: ['wave/**', 'ci/**']"));
-    expect(parallel, contains('cancel-in-progress: true'));
-    expect(
-      parallel,
-      contains(
-        'Arvin Build owns Analyze + all sharded tests + Debug/Release APK',
-      ),
-    );
-    expect(
-      parallel,
-      contains(
-        'Arvin Device Smoke owns real Android integration evidence for Ready PRs',
-      ),
-    );
-    expect(parallel, contains('contract:'));
-    expect(parallel, isNot(contains('surface:')));
-    expect(parallel, isNot(contains('flutter test')));
+    expect(build, contains('lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]'));
+    expect(build, contains('flutter test'));
+    expect(device, contains('integration_test'));
+    expect(build, contains('cancel-in-progress: true'));
+    expect(device, contains('cancel-in-progress: true'));
   });
   test('legacy ARVIN release dispatcher cannot cancel exact-head main validation', () {
     expect(

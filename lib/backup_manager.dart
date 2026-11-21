@@ -231,7 +231,9 @@ class ArvinBackupManager {
     final categories = _decodeCatalog(document, 'categories', 'Category');
     final tags = _decodeCatalog(document, 'tags', 'Tag');
     final people = _decodePeopleDirectory(document);
-    if (people != null) _validateFollowUpPersonReferences(tasks, people);
+    // Follow-up person IDs are historical identity references. A person may
+    // have been deleted from the active directory while their ID must remain
+    // restorable with the historical Follow-up record.
     final rawSettings = document['settings'];
     if (rawSettings != null && rawSettings is! Map) {
       throw const FormatException('Arvin backup settings are invalid');
@@ -311,26 +313,6 @@ class ArvinBackupManager {
       people.add(person);
     }
     return List<PersonReference>.unmodifiable(people);
-  }
-
-  /// Rejects dangling Follow-up person IDs before the restore UI can mutate storage.
-  /// Old backups without a peopleDirectory remain backward-compatible.
-  void _validateFollowUpPersonReferences(
-    Iterable<Task> tasks,
-    Iterable<PersonReference> people,
-  ) {
-    final knownIds = people.map((person) => person.id).toSet();
-    for (final task in tasks) {
-      for (final followUp in task.followUps) {
-        for (final personId in followUp.personIds) {
-          if (!knownIds.contains(personId)) {
-            throw FormatException(
-              'Arvin backup Follow-up references unknown person id: $personId',
-            );
-          }
-        }
-      }
-    }
   }
 
   /// Reconciles the standalone directory by stable identity, retaining local-only

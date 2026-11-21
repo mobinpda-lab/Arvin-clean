@@ -4,8 +4,12 @@ class ProjectPlan {
     required this.title,
     this.colorValue = 0xFF4A4CAB,
     this.isArchived = false,
-    Iterable<String> itemIds = const [],
-  }) : itemIds = List.unmodifiable(itemIds);
+    Iterable<String>? itemIds,
+    bool? itemIdsSpecified,
+    Map<String, dynamic> legacyFields = const {},
+  })  : itemIds = List.unmodifiable(itemIds ?? const <String>[]),
+        itemIdsSpecified = itemIdsSpecified ?? itemIds != null,
+        legacyFields = Map.unmodifiable(Map<String, dynamic>.from(legacyFields));
 
   final String id;
   final String title;
@@ -26,6 +30,14 @@ class ProjectPlan {
   /// truth.
   final List<String> itemIds;
 
+  /// Whether the caller explicitly supplied Project membership. A missing
+  /// membership field means preserve existing SQL edges during partial upsert;
+  /// an explicit empty list means remove this Project's edges.
+  final bool itemIdsSpecified;
+
+  /// Unknown fields from older Project/backup envelopes survive round-trips.
+  final Map<String, dynamic> legacyFields;
+
   bool get hasItems => itemIds.isNotEmpty;
 
   /// Owner contract: a non-empty Project cannot be deleted.
@@ -36,6 +48,8 @@ class ProjectPlan {
     int? colorValue,
     bool? isArchived,
     Iterable<String>? itemIds,
+    bool? itemIdsSpecified,
+    Map<String, dynamic>? legacyFields,
   }) {
     return ProjectPlan(
       id: id,
@@ -43,6 +57,8 @@ class ProjectPlan {
       colorValue: colorValue ?? this.colorValue,
       isArchived: isArchived ?? this.isArchived,
       itemIds: itemIds ?? this.itemIds,
+      itemIdsSpecified: itemIdsSpecified ?? (itemIds != null ? true : this.itemIdsSpecified),
+      legacyFields: legacyFields ?? this.legacyFields,
     );
   }
 }

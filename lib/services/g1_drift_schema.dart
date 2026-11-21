@@ -2,9 +2,12 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'g1_rev10_hierarchy_v9_migration.dart';
+import 'g1_person_directory_exclusion_v1_migration.dart';
+
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 7;
+  static const int version = 9;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -19,6 +22,7 @@ class G1DriftSchema implements QueryExecutorUser {
   date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
   reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
   waiting_for_response INTEGER NOT NULL DEFAULT 0,
+  extension_json TEXT NULL,
   ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
     '''CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
@@ -56,7 +60,10 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
-  static Future<void> install(QueryExecutor executor) async {
+  static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
@@ -86,6 +93,9 @@ class G1DriftSchema implements QueryExecutorUser {
           'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
         );
       }
+      if (!followUpColumns.any((row) => row['name'] == 'extension_json')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN extension_json TEXT NULL');
+      }
       final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371');
@@ -108,6 +118,9 @@ class G1DriftSchema implements QueryExecutorUser {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
     }
+    await G1Rev10HierarchyV9Migration(failureInjector: failureInjector)
+        .migrate(executor);
+    await const G1PersonDirectoryExclusionV1Migration().migrate(executor);
   }
 
   /// Copies historical task-person identities into the canonical directory.
@@ -118,11 +131,24 @@ class G1DriftSchema implements QueryExecutorUser {
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
     );
+    // Explicit directory removals are distinct from historical Task/Follow-up references.
+    // The exclusion table is created by an additive marker-versioned migration.
+    final exclusionTable = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'person_directory_exclusions'",
+      const [],
+    );
+    final excludedIds = exclusionTable.isEmpty
+        ? <String>{}
+        : (await executor.runSelect(
+            'SELECT person_id FROM person_directory_exclusions',
+            const [],
+          )).map((row) => row['person_id'] as String).toSet();
     final now = DateTime.now().toIso8601String();
     for (final row in rows) {
       final id = row['person_id'];
       final raw = row['person_json'];
       if (id is! String || id.trim().isEmpty || raw is! String) continue;
+      if (excludedIds.contains(id.trim())) continue;
       try {
         final decoded = jsonDecode(raw);
         if (decoded is! Map) continue;

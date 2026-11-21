@@ -61,12 +61,10 @@ void main() {
   });
 
   test('guide coverage stays in the canonical Build test matrix', () {
-    final workflow =
-        File('.github/workflows/parallel-wave.yml').readAsStringSync();
+    final parallel = File('.github/workflows/parallel-wave.yml');
     final build = File('.github/workflows/build.yml').readAsStringSync();
 
-    expect(workflow, contains('Arvin Build owns Analyze + all sharded tests + Debug/Release APK'));
-    expect(workflow, isNot(contains('surface:')));
+    expect(parallel.existsSync(), isFalse);
     expect(build, contains('lane: [analyze, test-0, test-1, test-2, test-3, test-4, test-5]'));
     expect(build, contains('flutter test'));
   });

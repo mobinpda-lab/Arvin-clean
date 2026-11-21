@@ -77,15 +77,36 @@ class TaskStore {
       final oldById = <String, Map<String, Object?>>{
         for (final row in oldRows) row['id'] as String: row,
       };
+      final incomingIds = normalized.keys.toSet();
+      final removedIds = oldById.keys.toSet().difference(incomingIds);
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom('DELETE FROM people');
         final now = DateTime.now().toIso8601String();
+        for (final personId in removedIds) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory_exclusions (person_id, excluded_at) VALUES (?, ?)',
+            <Object?>[personId, now],
+          );
+        }
+        for (final personId in incomingIds) {
+          await executor.runDelete(
+            'DELETE FROM person_directory_exclusions WHERE person_id = ?',
+            <Object?>[personId],
+          );
+        }
+        await executor.runCustom('DELETE FROM people');
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
             'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
+          );
+          // The Task relation is the historical identity snapshot. Keep its
+          // label synchronized with the canonical Person directory so the
+          // idempotent legacy hydrator cannot restore a stale display name.
+          await executor.runUpdate(
+            'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+            <Object?>[jsonEncode(person.toJson()), person.id],
           );
         }
         await executor.runCustom('COMMIT');
@@ -398,9 +419,21 @@ class TaskStore {
         (row['follow_up_enabled'] as num?)?.toInt() == 1;
     envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
-    envelope['notebookKind'] = row['notebook_kind'];
+    final centerId = row['center_id'];
+    if (centerId is String) envelope['centerId'] = centerId;
+    final projectId = row['project_id'];
+    if (projectId is String) envelope['projectId'] = projectId;
+    final categoryId = row['category_id'];
+    if (categoryId is String) envelope['categoryId'] = categoryId;
+    final notebookKind = row['notebook_kind'];
+    if (notebookKind != null) {
+      envelope['notebookKind'] = notebookKind;
+    }
     envelope['reminderDate'] = row['reminder_date'];
-    envelope['priority'] = row['priority'];
+    final priority = row['priority'];
+    if (priority is String && priority != 'none') {
+      envelope['priority'] = priority;
+    }
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
@@ -418,9 +451,9 @@ class TaskStore {
       envelope['recurrence'] = jsonDecode(recurrence);
     } else if (envelope['recurrence'] is Map) {
       envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
-    } else {
-      envelope['recurrence'] = null;
     }
+    // When the dedicated column is NULL, keep the legacy envelope untouched.
+    // It distinguishes an omitted optional field from an explicitly stored NULL.
 
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
@@ -457,8 +490,10 @@ class TaskStore {
       'SELECT person_json FROM task_people WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
-    envelope['people'] =
-        people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    if (people.isNotEmpty) {
+      envelope['people'] =
+          people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    }
 
     return Task.fromJson(envelope);
   }
@@ -474,6 +509,7 @@ class TaskStore {
 
   Map<String, dynamic> _followUpJson(Map<String, Object?> row) =>
       <String, dynamic>{
+        ..._decodeEnvelope(row['extension_json']),
         'id': row['id'],
         'dateTime': row['date_time'],
         'title': row['title'],
@@ -533,9 +569,10 @@ class TaskStore {
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
-            follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            follow_up_enabled, follow_up_date, category, center_id, project_id, category_id,
+            notebook_kind, reminder_date, priority, archived, trashed, completed,
+            completed_at, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -547,6 +584,9 @@ class TaskStore {
             task.followUpEnabled ? 1 : 0,
             task.followUpDate?.toIso8601String(),
             task.category,
+            task.centerId,
+            task.projectId,
+            task.categoryId,
             task.notebookKind?.name,
             task.reminderDate?.toIso8601String(),
             task.priority.name,
@@ -592,13 +632,7 @@ class TaskStore {
     Task task, {
     Map<String, dynamic>? previousPayload,
   }) {
-    final knownKeys = <String>{
-      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
-      'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
-      'taskReminders',
-    };
+    final knownKeys = Task.jsonFieldNames;
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
     if (previous != null) {
@@ -616,13 +650,15 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, extension_json, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
           followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
           followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
-          followUp.waitingForResponse ? 1 : 0, ordinal,
+          followUp.waitingForResponse ? 1 : 0,
+          followUp.extensionData.isEmpty ? null : jsonEncode(followUp.extensionData),
+          ordinal,
         ],
       );
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {

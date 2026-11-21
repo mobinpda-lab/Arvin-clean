@@ -16,6 +16,7 @@ class FollowUp {
   final bool completed;
   final bool waitingForResponse;
   final List<String> personIds;
+  final Map<String, dynamic> extensionData;
 
   const FollowUp({
     required this.id,
@@ -28,9 +29,11 @@ class FollowUp {
     this.completed = false,
     this.waitingForResponse = false,
     this.personIds = const <String>[],
+    this.extensionData = const <String, dynamic>{},
   });
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'dateTime': dateTime.toIso8601String(),
         if (title?.trim().isNotEmpty == true) 'title': title!.trim(),
@@ -66,6 +69,14 @@ class FollowUp {
           .where((id) => id.isNotEmpty)
           .toSet()
           .toList(growable: false),
+      extensionData: <String, dynamic>{
+        for (final entry in json.entries)
+          if (!const <String>{
+            'id', 'dateTime', 'title', 'note', 'result', 'reminderDate',
+            'nextFollowUp', 'completed', 'waitingForResponse', 'personIds',
+          }.contains(entry.key))
+            entry.key: entry.value,
+      },
     );
   }
 }
@@ -87,6 +98,7 @@ class TaskReminder {
     this.isAllDay = false,
     required this.sequence,
     this.isLegacyTaskReminder = false,
+    this.extensionData = const <String, dynamic>{},
   });
 
   final String id;
@@ -99,10 +111,14 @@ class TaskReminder {
   /// It retains the old Calendar identity during migration.
   final bool isLegacyTaskReminder;
 
+  /// Forward-compatible fields retained across SQLite and backup round-trips.
+  final Map<String, dynamic> extensionData;
+
   TaskReminder copyWith({
     String? title,
     DateTime? date,
     bool? isAllDay,
+    Map<String, dynamic>? extensionData,
   }) => TaskReminder(
         id: id,
         title: title ?? this.title,
@@ -110,9 +126,11 @@ class TaskReminder {
         isAllDay: isAllDay ?? this.isAllDay,
         sequence: sequence,
         isLegacyTaskReminder: isLegacyTaskReminder,
+        extensionData: extensionData ?? this.extensionData,
       );
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'title': title,
         'date': date.toIso8601String(),
@@ -121,14 +139,28 @@ class TaskReminder {
         if (isLegacyTaskReminder) 'isLegacyTaskReminder': true,
       };
 
-  factory TaskReminder.fromJson(Map<String, dynamic> json) => TaskReminder(
-        id: json['id'] as String? ?? '',
-        title: json['title'] as String? ?? '',
-        date: DateTime.parse(json['date'] as String),
-        isAllDay: json['isAllDay'] as bool? ?? false,
-        sequence: (json['sequence'] as num?)?.toInt() ?? 1,
-        isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
-      );
+  factory TaskReminder.fromJson(Map<String, dynamic> json) {
+    const knownKeys = <String>{
+      'id',
+      'title',
+      'date',
+      'isAllDay',
+      'sequence',
+      'isLegacyTaskReminder',
+    };
+    return TaskReminder(
+      id: json['id'] as String? ?? '',
+      title: json['title'] as String? ?? '',
+      date: DateTime.parse(json['date'] as String),
+      isAllDay: json['isAllDay'] as bool? ?? false,
+      sequence: (json['sequence'] as num?)?.toInt() ?? 1,
+      isLegacyTaskReminder: json['isLegacyTaskReminder'] as bool? ?? false,
+      extensionData: <String, dynamic>{
+        for (final entry in json.entries)
+          if (!knownKeys.contains(entry.key)) entry.key: entry.value,
+      },
+    );
+  }
 }
 
 class Task {
@@ -144,6 +176,9 @@ class Task {
     this.followUpDate,
     this.tags = const [],
     this.category,
+    this.centerId,
+    this.projectId,
+    this.categoryId,
     this.checklist = const [],
     bool? checklistEnabled,
     this.checklistOccurrences = const {},
@@ -161,10 +196,14 @@ class Task {
     this.followUps = const [],
     this.recurrence,
     Iterable<PersonReference> people = const [],
+    Map<String, dynamic> extensionData = const <String, dynamic>{},
   }) : checklistEnabled = checklistEnabled ??
             (checklist.isNotEmpty || notebookKind == NotebookItemKind.checklist),
         people = _normalizePeople(people),
-        taskReminders = List<TaskReminder>.of(taskReminders);
+        taskReminders = List<TaskReminder>.of(taskReminders),
+        extensionData = Map<String, dynamic>.unmodifiable(
+          Map<String, dynamic>.from(extensionData),
+        );
 
   final String id;
   String title;
@@ -179,6 +218,10 @@ class Task {
   DateTime? followUpDate;
   List<String> tags;
   String? category;
+  /// Optional direct REV10 hierarchy links; independent from legacy project_items.
+  final String? centerId;
+  final String? projectId;
+  final String? categoryId;
   List<String> checklist;
   /// Whether the Task editor checklist mode is enabled. Disabled checklists
   /// retain their rows so toggling the feature off never deletes user data.
@@ -207,6 +250,62 @@ class Task {
   List<FollowUp> followUps;
   RecurrenceRule? recurrence;
   final List<PersonReference> people;
+  /// Unknown and explicitly omitted optional JSON fields retained for forward compatibility.
+  final Map<String, dynamic> extensionData;
+
+  /// Canonical Task JSON keys. TaskStore uses this same contract when retaining
+  /// fields from an older SQLite envelope, preventing stale known values from
+  /// being mistaken for unknown metadata after an edit.
+  static const Set<String> jsonFieldNames = <String>{
+    'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate', 'allDay',
+    'followUpEnabled', 'followUpDate', 'tags', 'category',
+    'centerId', 'projectId', 'categoryId', 'checklist',
+    'checklistEnabled', 'checklistOccurrences', 'occurrenceHistory',
+    'notebookKind', 'reminderDate', 'taskReminders', 'nextReminderSequence',
+    'legacyTaskReminderMigrationVersion', 'priority', 'archived', 'trashed',
+    'completed', 'completedAt', 'followUps', 'recurrence', 'people',
+  };
+
+  static bool _isOmittedOptionalJsonField(String key, Object? value) {
+    switch (key) {
+      case 'centerId':
+      case 'projectId':
+      case 'categoryId':
+        // Nullable hierarchy links still carry presence semantics: an explicit
+        // JSON null must survive decoding and the next canonical save.
+        return value == null;
+      case 'notebookKind':
+        return value == null || value is! String ||
+            !NotebookItemKind.values.any((item) => item.name == value);
+      case 'recurrence':
+        return value == null || value is! Map;
+      case 'taskReminders':
+        return value == null || value is! List || value.isEmpty;
+      case 'people':
+        return value == null || (value is List && value.isEmpty);
+      case 'checklistOccurrences':
+      case 'occurrenceHistory':
+        return value == null || (value is Map && value.isEmpty);
+      case 'nextReminderSequence':
+        return value == null || value is! num || value.toInt() <= 1;
+      case 'legacyTaskReminderMigrationVersion':
+        return value == null || value is! num || value.toInt() <= 0;
+      case 'priority':
+        return value == null || value == 'none' ||
+            !TaskPriority.values.any((item) => item.name == value);
+      default:
+        return false;
+    }
+  }
+
+  static Map<String, dynamic> _decodeExtensionData(
+    Map<String, dynamic> json,
+  ) => <String, dynamic>{
+        for (final entry in json.entries)
+          if (!jsonFieldNames.contains(entry.key) ||
+              _isOmittedOptionalJsonField(entry.key, entry.value))
+            entry.key: entry.value,
+      };
 
   /// First completion records a timestamp; repeated completion is idempotent.
   /// Explicit reopening clears it so the next completion records a fresh time.
@@ -311,17 +410,21 @@ class Task {
   }
 
   Map<String, dynamic> toJson() => {
+        ...extensionData,
         'id': id,
         'title': title,
         'description': description,
         'createdAt': createdAt?.toIso8601String(),
         'updatedAt': updatedAt?.toIso8601String(),
         'dueDate': dueDate?.toIso8601String(),
-        if (allDay) 'allDay': true,
+        'allDay': allDay,
         'followUpEnabled': followUpEnabled,
         'followUpDate': followUpDate?.toIso8601String(),
         'tags': tags,
         'category': category,
+        if (centerId != null) 'centerId': centerId,
+        if (projectId != null) 'projectId': projectId,
+        if (categoryId != null) 'categoryId': categoryId,
         'checklist': checklist,
         'checklistEnabled': checklistEnabled,
         if (checklistOccurrences.isNotEmpty)
@@ -440,6 +543,9 @@ class Task {
           .whereType<String>()
           .toList(),
       category: json['category'] as String?,
+      centerId: json['centerId'] as String?,
+      projectId: json['projectId'] as String?,
+      categoryId: json['categoryId'] as String?,
       checklist: (json['checklist'] as List<dynamic>? ?? const [])
           .whereType<String>()
           .toList(),
@@ -472,6 +578,7 @@ class Task {
             )
           : null,
       people: loadedPeople,
+      extensionData: _decodeExtensionData(json),
     );
   }
 

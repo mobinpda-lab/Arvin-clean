@@ -1,0 +1,6 @@
+---
+description: Arvin repository governance pointer
+alwaysApply: true
+---
+
+Follow `/AGENTS.md` and `/AI_CONTINUITY_PROTOCOL.md`. The eight files in `/docs/project-continuity/` are the only active project authority. Canonical development is PR #3495 on `recovery-02/main-based-integration`. No direct Main changes, parallel PRs, unapproved merges/releases/deployments, production-data mutations, or weakened tests.

@@ -34,6 +34,27 @@ class TaskPeopleService {
     return tasks[index];
   }
 
+  /// Detects duplicate display names without treating a name as identity.
+  /// A duplicate may still be added after the UI explicitly confirms that it
+  /// represents a distinct person with a new stable ID.
+  Future<bool> hasDuplicateDisplayName(String displayName) async {
+    final normalized = _normalizeDisplayName(displayName);
+    if (normalized.isEmpty) return false;
+    final tasks = await _store.load();
+    if (tasks.any((task) => task.people.any(
+          (person) => _normalizeDisplayName(person.displayName) == normalized,
+        ))) {
+      return true;
+    }
+    final directory = await _store.loadPeopleDirectory();
+    return directory.any(
+      (person) => _normalizeDisplayName(person.displayName) == normalized,
+    );
+  }
+
+  String _normalizeDisplayName(String value) =>
+      value.trim().replaceAll(RegExp(r'\\s+'), ' ').toLowerCase();
+
   Future<Task> addLocalPerson({
     required String taskId,
     required String displayName,

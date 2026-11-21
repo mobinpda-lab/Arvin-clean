@@ -656,7 +656,9 @@ class _HomePageState extends State<HomePage> {
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where((task) {
           final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
+          // Tags are one filter dimension: any selected Tag may match.
+          // Different dimensions remain AND-combined by the surrounding projection.
+          return _tagFilters.any(tags.contains);
         });
       }
     }
@@ -681,12 +683,16 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (!task.completed && day.isBefore(today)) grouped['overdue']!.add(task);
+        if (day.isBefore(today)) grouped['overdue']!.add(task);
         else if (day == today) grouped['today']!.add(task);
         else if (day == tomorrow) grouped['tomorrow']!.add(task);
         else grouped['future']!.add(task);
       }
     }
+    grouped['overdue']!.sort((a, b) {
+      if (a.completed != b.completed) return a.completed ? 1 : -1;
+      return a.dueDate!.compareTo(b.dueDate!);
+    });
     return [
       HomeGroup<Task>(id: 'overdue', title: 'تاریخ‌گذشته', items: grouped['overdue']!),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
@@ -1074,12 +1080,12 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 5),
                   Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
-                  Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
+                  Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w700))),
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
-                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
+                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w700)),
                   ),
                 ]),
               ),
@@ -2030,7 +2036,7 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await ProjectStore().replaceAll(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2075,7 +2081,7 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await ProjectStore().replaceAll(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
@@ -2924,7 +2930,7 @@ class _HomePageState extends State<HomePage> {
                                 style: TextStyle(
                                   color: late ? ArvinColors.error : ArvinColors.textSecondary,
                                   fontSize: 11,
-                                  fontWeight: late ? FontWeight.w800 : FontWeight.w500,
+                                  fontWeight: late ? FontWeight.w700 : FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -3034,7 +3040,7 @@ class _HomePageState extends State<HomePage> {
             child: Row(children: [
               IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w800)),
+                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w700)),
                 SizedBox(height: 2),
                 Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),

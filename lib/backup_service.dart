@@ -157,21 +157,30 @@ class ArvinBackupService {
       throw const FormatException('Arvin backup Tag catalog is invalid');
     }
 
-    final document = <String, dynamic>{
-      'type': backupType,
-      'formatVersion': backupFormatVersion,
-      'createdAt': DateTime.now().toIso8601String(),
-      'tasks': payload['tasks'] ?? const <dynamic>[],
-      if (rawSettings is Map)
-        'settings': Map<String, dynamic>.from(rawSettings),
-      if (rawProjects is List)
-        'projects': List<dynamic>.from(rawProjects),
-      if (rawCalendarLinks is List)
-        'calendarLinks': List<dynamic>.from(rawCalendarLinks),
-      if (rawCategories is List)
-        'categories': List<dynamic>.from(rawCategories),
-      if (rawTags is List) 'tags': List<dynamic>.from(rawTags),
-    };
+    // Start from the complete payload so forward-compatible top-level
+    // metadata (including fields introduced by newer/older clients) survives
+    // a decode -> encode cycle. Canonical envelope fields below remain owned
+    // by this codec and are normalized after the opaque fields are copied.
+    final document = Map<String, dynamic>.from(payload)
+      ..['type'] = backupType
+      ..['formatVersion'] = backupFormatVersion
+      ..['createdAt'] = DateTime.now().toIso8601String()
+      ..['tasks'] = payload['tasks'] ?? const <dynamic>[];
+    if (rawSettings is Map) {
+      document['settings'] = Map<String, dynamic>.from(rawSettings);
+    }
+    if (rawProjects is List) {
+      document['projects'] = List<dynamic>.from(rawProjects);
+    }
+    if (rawCalendarLinks is List) {
+      document['calendarLinks'] = List<dynamic>.from(rawCalendarLinks);
+    }
+    if (rawCategories is List) {
+      document['categories'] = List<dynamic>.from(rawCategories);
+    }
+    if (rawTags is List) {
+      document['tags'] = List<dynamic>.from(rawTags);
+    }
 
     return Uint8List.fromList(
       utf8.encode(const JsonEncoder.withIndent('  ').convert(document)),

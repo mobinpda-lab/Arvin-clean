@@ -76,9 +76,7 @@ class ArvinPrimaryNavigation extends StatelessWidget {
               for (final destination in destinations)
                 Expanded(
                   child: _NavigationItem(
-                    key: destination.$1 == ArvinPrimaryDestination.more
-                        ? const ValueKey('primary-nav-more')
-                        : null,
+                    key: ValueKey('primary-nav-${destination.$1.name}'),
                     selected: selected == destination.$1,
                     icon: selected == destination.$1
                         ? destination.$3
@@ -147,7 +145,7 @@ class _NavigationItem extends StatelessWidget {
                 style: TextStyle(
                   color: selected ? primary : muted,
                   fontSize: 10.5,
-                  fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                 ),
               ),
             ],

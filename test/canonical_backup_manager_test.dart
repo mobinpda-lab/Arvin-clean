@@ -739,7 +739,7 @@ void main() {
           },
           rollback: () async {
             await taskStore.save([oldTask]);
-            await projectStore.save([oldProject]);
+            await projectStore.replaceAll([oldProject]);
             await linkStore.save([oldLink]);
             if (oldSettings == null) {
               await prefs.remove('restore-test.settings');
@@ -830,27 +830,32 @@ void main() {
   });
 
 
-  test('restore rejects dangling follow-up person IDs before mutation', () async {
+  test('restore retains historical Follow-up person IDs absent from the active directory', () async {
     final service = _FakeBackupService()
       ..restoreDocument = <String, dynamic>{
         'tasks': [
           (_completeTask()
                 ..followUps = [
                   FollowUp(
-                    id: 'fu-dangling',
+                    id: 'fu-historical-orphan',
                     dateTime: DateTime(2026, 10, 15, 9),
-                    personIds: const ['missing-person'],
+                    personIds: const ['person-deleted-historically'],
+                    extensionData: const <String, dynamic>{
+                      'futureFollowUpField': {'retained': true},
+                    },
                   ),
                 ])
               .toJson(),
         ],
         'peopleDirectory': const <Map<String, dynamic>>[],
       };
-    final manager = ArvinBackupManager(service: service);
-
-    await expectLater(
-      manager.restoreCanonicalBackup(),
-      throwsA(isA<FormatException>()),
+    final candidate = await ArvinBackupManager(service: service).restoreCanonicalBackup();
+    expect(candidate, isNotNull);
+    expect(candidate!.people, isEmpty);
+    expect(candidate.tasks.single.followUps.single.personIds, ['person-deleted-historically']);
+    expect(
+      candidate.tasks.single.followUps.single.extensionData['futureFollowUpField'],
+      {'retained': true},
     );
   });
 

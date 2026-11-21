@@ -10,7 +10,7 @@ void main() {
     const internalBuild = 'name: Test and build release APK from locked inputs';
     const storeEvidence = 'name: Store release evidence';
     const uploadInternalArtifact = 'name: Upload internal Release APK artifact';
-    const gate = 'name: Require explicit product release approval';
+    const gate = 'name: Verify product release gates';
     const createRelease = 'name: Create exact-head tag and prerelease';
     const uploadAssets = 'name: Upload release assets';
     const removeStale = 'name: Remove stale Arvin prereleases';
@@ -29,16 +29,18 @@ void main() {
     expect(workflow, contains('issue_number: 2102'));
     expect(workflow, contains('  issues: read'));
     expect(workflow, contains('  cancel-in-progress: false'));
-    expect(workflow, contains("workflows: ['Arvin Device Smoke']"));
-    expect(workflow, contains("github.event.workflow_run.conclusion == 'success'"));
-    expect(workflow, contains("github.event.workflow_run.event == 'push'"));
-    expect(workflow, contains("github.event.workflow_run.head_branch == 'main'"));
+    expect(workflow, contains('workflow_dispatch:'));
+    expect(workflow, contains("github.actor == 'mobinpda-lab'"));
+    expect(workflow, contains("inputs.owner_approval == 'APPROVE RELEASE'"));
+    expect(workflow, isNot(contains('workflow_run:')));
+    expect(workflow, isNot(contains('schedule:')));
     expect(workflow, contains("github.event_name == 'workflow_dispatch'"));
     expect(workflow, isNot(contains("workflows: ['Arvin Production Orchestrator']")));
     expect(
       workflow,
       contains('const tag = `v\${appVersion}-build\${buildNumber}-arvin-\${sha.slice(0,7)}`;'),
     );
+    expect(workflow, contains('pull_number: 3495'));
     expect(workflow, contains('pull_number: 1901'));
     expect(workflow, contains('await hideUnapprovedPrereleases();'));
     expect(workflow, contains('draft: true'));
