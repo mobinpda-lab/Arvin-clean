@@ -14,7 +14,7 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final directory =
         await Directory.systemTemp.createTemp('arvin-center-store-');
-    final file = File(directory.path + '/center-store.sqlite');
+    final file = File('${directory.path}/center-store.sqlite');
     NativeDatabase? database;
 
     try {
