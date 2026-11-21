@@ -154,9 +154,15 @@ void main() {
       );
       expect(legacyFollowUpCard, findsNothing);
       expect(find.text('پیگیری دارای یادآور'), findsNothing);
-      // The selected-day list contains the canonical reminder directly; assert
-      // its presence before scrolling, then reveal it without repeatedly
-      // advancing a one-item list past the target.
+      // The selected-day ListView is lazy and may contain official calendar
+      // items before the canonical Task reminder. Scroll the actual list until
+      // the target text is built; checking its Key before scrolling incorrectly
+      // treats an off-screen, not-yet-built child as a missing projection.
+      await tester.scrollUntilVisible(
+        find.text('یادآور آزمایشی'),
+        320,
+        scrollable: calendarScrollable,
+      );
       expect(card, findsOneWidget);
       await tester.ensureVisible(card);
       await tester.pumpAndSettle();
