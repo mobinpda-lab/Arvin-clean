@@ -588,3 +588,17 @@ This addendum operationalizes the owner-issued ONE PATH CONSOLIDATION DIRECTIVE 
 - Only the eight documents named in this directory's README are active continuity authorities. Other valid documents remain historical evidence or are explicitly superseded; they must not silently become execution instructions.
 - NIRA is an independent related repository. No runtime dependency or project-code import from NIRA is authorized or required for Arvin.
 - All test evidence is exact-SHA scoped. A result on a previous SHA is historical evidence only.
+
+## COMMAND 103-R — immutable Product Owner decision (2026-11-21)
+
+**Decision ID:** ARVIN-DEC-OWNER-001  
+**Authority:** Mobin — Product Owner  
+**Status:** APPROVED / OWNER-LOCKED  
+**Canonical baseline:** REV10  
+**Canonical brand token:** Primary Blue = `#4169A1`
+
+REV10 remains the canonical product baseline. The Primary Blue name and exact HEX are immutable under this decision. Only a subsequent explicit Product Owner decision with a new Decision ID may supersede it. Keep the historical record; never silently rename it to Persian Teal or substitute another color during theme work, refactoring or design-system consolidation. All consumers resolve the canonical token from `lib/arvin_colors.dart`; separately named contrast variants do not redefine Primary Blue.
+
+Governance, implementation and test verification remain separate. The decision is approved; implementation changes and the new validation are not accepted until the resulting exact SHA passes its checks. Main remains read-only; PR #3495 remains the sole development route. Merge, release and deployment remain unauthorized.
+
+---
