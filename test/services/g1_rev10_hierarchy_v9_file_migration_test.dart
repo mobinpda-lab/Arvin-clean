@@ -95,11 +95,13 @@ void main() {
       // migration's own foreign-key enforcement.
       await database!.runCustom('PRAGMA foreign_keys = OFF');
       await database!.runCustom(
-        "INSERT INTO projects (id, name, center_id, template_id, template_name_snapshot, legacy_payload_json) VALUES "
-        "('project-v8-a', 'پروژه الف', 'center-v8-a', 'template-legacy', 'الگوی قدیمی', '{\"unknownProjectField\":{\"keep\":true}}'), "
-        "('project-v8-b', 'پروژه ب', 'center-v8-a', NULL, NULL, NULL), "
-        "('project-v8-c', 'پروژه ج', 'center-v8-b', NULL, NULL, NULL), "
-        "('project-v8-missing-center', 'پروژه با مرکز مفقود', 'center-v8-missing', NULL, NULL, NULL)",
+        "INSERT INTO projects (id, name, is_archived, center_id, template_id, template_name_snapshot, legacy_payload_json) VALUES "
+        "('project-v8-a', 'پروژه الف', 0, 'center-v8-a', 'template-legacy', 'الگوی قدیمی', '{\"unknownProjectField\":{\"keep\":true}}'), "
+        "('project-v8-b', 'پروژه ب', 0, 'center-v8-a', NULL, NULL, NULL), "
+        "('project-v8-c', 'پروژه ج', 1, 'center-v8-b', NULL, NULL, NULL), "
+        "('project-v8-missing-center', 'پروژه با مرکز مفقود', 0, 'center-v8-missing', NULL, NULL, NULL), "
+        "('project-v8-missing-center-b', 'پروژه با مرکز دوم مفقود', 0, 'center-v8-missing-b', NULL, NULL, NULL), "
+        "('project-v8-null-center', 'پروژه بدون مرکز', 0, NULL, NULL, NULL, NULL)",
       );
       await database!.runCustom('PRAGMA foreign_keys = ON');
       await database!.runCustom(
@@ -117,41 +119,70 @@ void main() {
       await database!.runCustom('PRAGMA user_version = 8');
     }
 
-    try {
+    Future<void> resetV8Database() async {
+      await database?.close();
+      if (await file.exists()) await file.delete();
       await createV8Fixture();
       await database!.close();
       database = NativeDatabase(file);
+    }
 
-      // Failure after legacy relationship transfer must roll back the entire
-      // v8→v9-B transaction, including the new timestamp column and M2M edges.
-      await expectLater(
-        G1DriftSchema.install(
-          database!,
-          failureInjector: (stage) {
-            if (stage == 'after_legacy_relationship_transfer') {
-              throw StateError('injected v8→v9-B failure');
-            }
-          },
-        ),
-        throwsA(isA<StateError>()),
-      );
-      var centerColumns = await database!.runSelect(
-        "PRAGMA table_info('centers')",
-        const [],
-      );
-      expect(centerColumns.map((row) => row['name']), isNot(contains('updated_at')));
-      final rolledBackLinks = await database!.runSelect(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'center_projects'",
-        const [],
-      );
-      expect(rolledBackLinks, isEmpty);
-      final rolledBackMarker = await database!.runSelect(
-        "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_hierarchy_schema_version'",
-        const [],
-      );
-      expect(rolledBackMarker, isEmpty);
+    try {
+      // Each injected failure gets a fresh physical v8 database. Every stage
+      // must roll back the preservation column, relationship tables, exception
+      // ledger and completion marker as one atomic migration transaction.
+      for (final failureStage in <String>[
+        'after_legacy_relationship_transfer',
+        'during_exception_insert',
+        'after_exception_insert',
+        'before_completion_marker',
+      ]) {
+        await resetV8Database();
+        await expectLater(
+          G1DriftSchema.install(
+            database!,
+            failureInjector: (stage) {
+              if (stage == failureStage) {
+                throw StateError('injected v8→v9 failure at $failureStage');
+              }
+            },
+          ),
+          throwsA(isA<StateError>()),
+        );
+        final centerColumns = await database!.runSelect(
+          "PRAGMA table_info('centers')",
+          const [],
+        );
+        expect(centerColumns.map((row) => row['name']), isNot(contains('updated_at')));
+        final projectColumns = await database!.runSelect(
+          "PRAGMA table_info('projects')",
+          const [],
+        );
+        expect(projectColumns.map((row) => row['name']), isNot(contains('legacy_center_id')));
+        final rolledBackLinks = await database!.runSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'center_projects'",
+          const [],
+        );
+        expect(rolledBackLinks, isEmpty);
+        final rolledBackExceptions = await database!.runSelect(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'arvin_migration_exceptions'",
+          const [],
+        );
+        expect(rolledBackExceptions, isEmpty);
+        final rolledBackMarker = await database!.runSelect(
+          "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_hierarchy_schema_version'",
+          const [],
+        );
+        expect(rolledBackMarker, isEmpty);
+        final originalOrphan = await database!.runSelect(
+          "SELECT center_id FROM projects WHERE id = 'project-v8-missing-center'",
+          const [],
+        );
+        expect(originalOrphan.single['center_id'], 'center-v8-missing');
+      }
 
-      // Retry the same physical database without the injected interruption.
+      // Retry successfully on a fresh copy of the same historical fixture.
+      await resetV8Database();
       await G1DriftSchema.install(database!);
       final links = await database!.runSelect(
         'SELECT center_id, project_id FROM center_projects ORDER BY center_id, project_id',
