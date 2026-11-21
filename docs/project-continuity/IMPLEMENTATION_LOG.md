@@ -1102,3 +1102,14 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Verified existing Settings font-size persistence and root MediaQuery textScaler; no duplicate setting was introduced.
 - Added six focused acceptance reports and updated the Master Tracker. No application code, historical data, schema or tests were changed in this documentation checkpoint.
 - Exact-SHA CI must be re-fetched after this documentation commit; prior run conclusions do not transfer to the new canonical HEAD.
+
+
+## 2026-11-21 — COMMAND 103-R governance implementation
+
+- Created owner governance issue #3653.
+- On canonical branch `recovery-02/main-based-integration`, changed `lib/arvin_colors.dart`: `ArvinColors.primaryName = 'Primary Blue'`; `ArvinColors.primary = Color(0xFF4169A1)`. Existing separately named dark/contrast variants were not silently redefined.
+- Registered immutable decision ARVIN-DEC-OWNER-001 at the top of `PRODUCT_DECISIONS.md` and added its governance boundary to `MASTER_GOVERNANCE.md`.
+- Added `test/arvin_primary_blue_contract_test.dart` and `.github/workflows/arvin-governance-validation.yml`.
+- Commits: `8ad3ef25587151f5f52bd2e5d37a5d39bdee00a5`, `eadca0799a0d1572a60d279c6349b48835543ab6`, `169db3bc002f1fce0cc254444bdbbb68131973ee`, `77fcb9a64840ae830fbde208bdcbb7a515b93206`, `27a0a7109a68c2530710a17fe5ad7f9e117e20bc`, `2a5aecb49f56fc23c3b1660db410a3bf2aca4a95`, `b32ee86f8ff7370542ee61d95a1a4f02e368e021`.
+- Initial inspected SHA `cd71c169019003e183e428e24353bb3ee487e042` had Build, Device Smoke, COMMAND 20-E and Follow-up File Persistence SUCCESS. Those runs predate the governance changes and do not verify the new HEAD.
+- No test result is claimed for the final post-change SHA yet. Branch-protection/ruleset settings remain UNVERIFIED. No Main, merge, release, deployment or production-data operation occurred.
