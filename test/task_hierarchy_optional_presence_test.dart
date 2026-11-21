@@ -61,9 +61,9 @@ void main() {
 
       // Prove the three JSON states independently before persistence.
       for (final field in validValues.keys) {
-        final missing = cases.singleWhere((task) => task.id == '${field}-missing').toJson();
-        final explicitNull = cases.singleWhere((task) => task.id == '${field}-null').toJson();
-        final valid = cases.singleWhere((task) => task.id == '${field}-valid').toJson();
+        final missing = cases.singleWhere((task) => task.id == '$field-missing').toJson();
+        final explicitNull = cases.singleWhere((task) => task.id == '$field-null').toJson();
+        final valid = cases.singleWhere((task) => task.id == '$field-valid').toJson();
         expect(missing.containsKey(field), isFalse, reason: '$field must remain absent');
         expect(explicitNull.containsKey(field), isTrue, reason: '$field explicit NULL must remain present');
         expect(explicitNull[field], isNull, reason: '$field explicit NULL value');
@@ -79,9 +79,9 @@ void main() {
       final restored = await TaskStore(executor: database).load();
 
       for (final field in validValues.keys) {
-        final missing = restored.singleWhere((task) => task.id == '${field}-missing').toJson();
-        final explicitNull = restored.singleWhere((task) => task.id == '${field}-null').toJson();
-        final valid = restored.singleWhere((task) => task.id == '${field}-valid').toJson();
+        final missing = restored.singleWhere((task) => task.id == '$field-missing').toJson();
+        final explicitNull = restored.singleWhere((task) => task.id == '$field-null').toJson();
+        final valid = restored.singleWhere((task) => task.id == '$field-valid').toJson();
         expect(missing.containsKey(field), isFalse, reason: '$field missing after SQLite reopen');
         expect(explicitNull.containsKey(field), isTrue, reason: '$field NULL presence after SQLite reopen');
         expect(explicitNull[field], isNull, reason: '$field NULL value after SQLite reopen');
