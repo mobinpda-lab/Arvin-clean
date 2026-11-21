@@ -1852,3 +1852,12 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Main was not modified. No merge, release, deployment, production data operation, branch deletion, permission change or history rewrite was performed.
 
 **Current acceptance:** NOT GRANTED. **Next:** finish canonical document synchronization, inspect the final exact SHA and all triggered checks, then continue independent product/data gates.
+
+## COMMAND 103-R follow-up — Primary Blue conflict remediation
+
+- Governance Validation run `44871858882` on SHA `e0fcbf2b568670db3b7f5720cb87aa3052d55256` correctly FAILED because `lib/home/home_visual_integration.dart` independently declared the old `Color(0xFF4A4CAB)` as `primary`.
+- Root cause corrected: `HomeVisualIntegration.primary` now references `ArvinColors.primary`; the duplicate hard-coded color was removed.
+- Governance workflow path filters now include `lib/home/home_visual_integration.dart`, and CODEOWNERS now covers `lib/arvin_colors.dart`, `lib/home/home_visual_integration.dart`, the regression test and governance workflow.
+- Follow-up implementation commits: `5afd55be7363a72107796f88f5c38719148b8d61`, `9060ebc23027bde35b53342fd48a8c84d827baea`, `f9e6fc537df3ef180c71232dfa37e2f37c13d0b5`.
+- The corrected workflow has not yet produced a confirmed run on the latest candidate at the time of this checkpoint. Earlier Governance FAIL remains preserved as valid evidence.
+- Branch Protection / Rulesets / required-check enforcement remain UNVERIFIED because the connected GitHub action set does not expose repository ruleset/protection reads.
