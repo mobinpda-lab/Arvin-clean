@@ -177,103 +177,111 @@ void main() {
       await database.close();
     }
 
-    // The helper is materialized only in this disposable test directory.
-    // Each invocation starts a distinct Dart OS process; the first process
-    // recovers and saves, exits, and the second process reopens and verifies.
-    final childSource = r'''
+    // Use the Flutter test runtime for the child processes. TaskStore imports
+    // drift_flutter, which requires dart:ui; a plain `dart helper.dart` process
+    // cannot load that library. The helper lives under .dart_tool so it is not
+    // included in the parent test shard's file discovery.
+    final helperDirectory = Directory('${Directory.current.path}/.dart_tool/arvin_process_tests');
+    await helperDirectory.create(recursive: true);
+    final helper = File('${helperDirectory.path}/task_hierarchy_process_restart_child_test.dart');
+    await helper.writeAsString(r'''
 import 'dart:convert';
 import 'dart:io';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-Future<void> main(List<String> args) async {
-  if (args.length != 2) {
-    throw ArgumentError('Expected database path and stage');
-  }
-  final database = NativeDatabase(File(args[0]));
-  try {
-    final store = TaskStore(executor: database);
-    final tasks = await store.load();
-    const values = <String, String>{
-      'centerId': 'process-center',
-      'projectId': 'process-project',
-      'categoryId': 'process-category',
-    };
-    if (tasks.length != 9) {
-      throw StateError('Expected nine hierarchy-presence Tasks; found ' + tasks.length.toString());
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  test('fresh Flutter process recovers and verifies hierarchy presence', () async {
+    final databasePath = Platform.environment['ARVIN_HIERARCHY_DATABASE'];
+    final stage = Platform.environment['ARVIN_HIERARCHY_STAGE'];
+    if (databasePath == null || stage == null) {
+      throw StateError('Missing process-recovery environment');
     }
-    for (final entry in values.entries) {
-      final missing = tasks.singleWhere((task) => task.id == entry.key + '-missing').toJson();
-      final explicitNull = tasks.singleWhere((task) => task.id == entry.key + '-null').toJson();
-      final valid = tasks.singleWhere((task) => task.id == entry.key + '-valid').toJson();
-      if (missing.containsKey(entry.key)) {
-        throw StateError(entry.key + ' missing state was materialized');
-      }
-      if (!explicitNull.containsKey(entry.key) || explicitNull[entry.key] != null) {
-        throw StateError(entry.key + ' explicit NULL state was lost');
-      }
-      if (valid[entry.key] != entry.value) {
-        throw StateError(entry.key + ' valid value changed');
-      }
-    }
-    for (final task in tasks) {
-      final expectedUnknown = <String, Object?>{
-        'nested': <Object?>['preserve', 7],
-        'flag': true,
+    final database = NativeDatabase(File(databasePath));
+    try {
+      final store = TaskStore(executor: database);
+      final tasks = await store.load();
+      const values = <String, String>{
+        'centerId': 'process-center',
+        'projectId': 'process-project',
+        'categoryId': 'process-category',
       };
-      if (jsonEncode(task.toJson()['futureEnvelopeField']) != jsonEncode(expectedUnknown)) {
-        throw StateError('Unknown nested field changed for ' + task.id);
+      if (tasks.length != 9) {
+        throw StateError('Expected nine hierarchy-presence Tasks; found ${tasks.length}');
       }
-    }
-    final legacyTask = tasks.singleWhere((task) => task.id == 'projectId-null');
-    final legacyValue = legacyTask.toJson()['legacyEnvelopeOnlyField'];
-    if (jsonEncode(legacyValue) != jsonEncode(<String, Object?>{
-      'origin': 'legacy-sql-envelope',
-      'revision': 3,
-    })) {
-      throw StateError('Legacy envelope-only field was not preserved');
-    }
-
-    if (args[1] == 'recover-and-save') {
-      for (final task in tasks) {
-        task.title = task.title + ' [saved-after-recovery]';
-      }
-      await store.save(tasks);
-      stdout.writeln('RECOVERY_AND_SECONDARY_SAVE=PASS');
-    } else if (args[1] == 'verify-second-save') {
-      for (final task in tasks) {
-        if (!task.title.endsWith(' [saved-after-recovery]')) {
-          throw StateError('Second-save title missing for ' + task.id);
+      for (final entry in values.entries) {
+        final missing = tasks.singleWhere((task) => task.id == '${entry.key}-missing').toJson();
+        final explicitNull = tasks.singleWhere((task) => task.id == '${entry.key}-null').toJson();
+        final valid = tasks.singleWhere((task) => task.id == '${entry.key}-valid').toJson();
+        if (missing.containsKey(entry.key)) {
+          throw StateError('${entry.key} missing state was materialized');
+        }
+        if (!explicitNull.containsKey(entry.key) || explicitNull[entry.key] != null) {
+          throw StateError('${entry.key} explicit NULL state was lost');
+        }
+        if (valid[entry.key] != entry.value) {
+          throw StateError('${entry.key} valid value changed');
         }
       }
-      stdout.writeln('FRESH_PROCESS_SECOND_SAVE_REOPEN=PASS');
-    } else {
-      throw ArgumentError('Unknown stage: ' + args[1]);
+      for (final task in tasks) {
+        final expectedUnknown = <String, Object?>{
+          'nested': <Object?>['preserve', 7],
+          'flag': true,
+        };
+        if (jsonEncode(task.toJson()['futureEnvelopeField']) != jsonEncode(expectedUnknown)) {
+          throw StateError('Unknown nested field changed for ${task.id}');
+        }
+      }
+      final legacyTask = tasks.singleWhere((task) => task.id == 'projectId-null');
+      final legacyValue = legacyTask.toJson()['legacyEnvelopeOnlyField'];
+      if (jsonEncode(legacyValue) != jsonEncode(<String, Object?>{
+        'origin': 'legacy-sql-envelope',
+        'revision': 3,
+      })) {
+        throw StateError('Legacy envelope-only field was not preserved');
+      }
+
+      if (stage == 'recover-and-save') {
+        for (final task in tasks) {
+          task.title = '${task.title} [saved-after-recovery]';
+        }
+        await store.save(tasks);
+        stdout.writeln('RECOVERY_AND_SECONDARY_SAVE=PASS');
+      } else if (stage == 'verify-second-save') {
+        for (final task in tasks) {
+          if (!task.title.endsWith(' [saved-after-recovery]')) {
+            throw StateError('Second-save title missing for ${task.id}');
+          }
+        }
+        stdout.writeln('FRESH_PROCESS_SECOND_SAVE_REOPEN=PASS');
+      } else {
+        throw ArgumentError('Unknown stage: $stage');
+      }
+    } finally {
+      await database.close();
     }
-  } finally {
-    await database.close();
-  }
+  });
 }
-''';
-    final helper = File('${directory.path}/task_hierarchy_process_restart_child.dart');
-    await helper.writeAsString(childSource, flush: true);
-    final packageConfig = File('${Directory.current.path}/.dart_tool/package_config.json');
-    expect(await packageConfig.exists(), isTrue, reason: 'Dart package configuration is required');
+''', flush: true);
+
     Future<void> runFreshProcess(String stage) async {
       final result = await Process.run(
-        'dart',
-        <String>[
-          '--packages=${packageConfig.path}',
-          helper.path,
-          file.path,
-          stage,
-        ],
+        'flutter',
+        <String>['test', '--no-pub', helper.path],
         workingDirectory: Directory.current.path,
+        environment: <String, String>{
+          ...Platform.environment,
+          'ARVIN_HIERARCHY_DATABASE': file.path,
+          'ARVIN_HIERARCHY_STAGE': stage,
+        },
       );
       expect(
         result.exitCode,
         0,
-        reason: 'Fresh process stage $stage failed. stdout: ${result.stdout} stderr: ${result.stderr}',
+        reason: 'Fresh Flutter process stage $stage failed. stdout: ${result.stdout} stderr: ${result.stderr}',
       );
     }
 
