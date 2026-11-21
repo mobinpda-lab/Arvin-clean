@@ -268,6 +268,12 @@ class Task {
 
   static bool _isOmittedOptionalJsonField(String key, Object? value) {
     switch (key) {
+      case 'centerId':
+      case 'projectId':
+      case 'categoryId':
+        // Nullable hierarchy links still carry presence semantics: an explicit
+        // JSON null must survive decoding and the next canonical save.
+        return value == null;
       case 'notebookKind':
         return value == null || value is! String ||
             !NotebookItemKind.values.any((item) => item.name == value);
