@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:arvin/arvin_colors.dart';
+
 /// Reusable presentation shell matching the owner-approved Arvin Home contract.
 ///
 /// This widget owns no data or persistence. The real Home route supplies its
@@ -15,7 +17,7 @@ class HomeVisualIntegration extends StatelessWidget {
     this.searchHint = 'جست‌وجو در کارها',
   });
 
-  static const primary = Color(0xFF4A4CAB);
+  static const primary = ArvinColors.primary;
   static const background = Color(0xFFF8F8FB);
   static const surface = Color(0xFFFDFDFE);
   static const border = Color(0xFFE5E7ED);
