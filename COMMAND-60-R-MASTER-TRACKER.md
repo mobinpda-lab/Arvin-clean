@@ -542,3 +542,12 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 - Merge, deployment and production-user-database migration: NOT AUTHORIZED.
 - No progress percentage is reported: REV10 requirement weights and complete evidence coverage have not been established.
 - Main was not modified. No merge, release, deployment or destructive production operation was performed.
+
+
+### MASTER EXECUTION 150-R — exact-SHA follow-up after first correction (2026-11-21)
+- Candidate `ac52f706a6b785a2b194a46bc97866d48c54b5e5` exact-SHA Build `44932431149` exposed two additional facts:
+  - The portable PRAGMA fingerprint assertion passed; the fixture test then failed because it selected nonexistent `id` from `template_task_applications`. Historical v8 DDL defines `template_task_id`, `project_id`, and `task_id`. The assertion is corrected to select and verify `task_id`; no assertion was removed.
+  - Release APK setup failed while Android SDK Manager downloaded NDK r28c: `Premature EOF`. This is an SDK download/setup failure, not a Dart/Flutter source compilation error. A fresh exact-SHA run is required.
+- On the same Candidate: Analyze passed; Follow-up File Persistence `44932431161` passed; Governance `44932431141` passed. Device Smoke `44932431155` was cancelled after a newer branch update. COMMAND 20-E `44932431140` had no final conclusion at the last query.
+- No Build, Device Smoke or COMMAND 20-E result from `ac52f706...` is transferred to a later Candidate.
+- The next correction preserves the 16-table and application-row fixture checks and uses `task_id`, the actual historical key.

@@ -310,13 +310,12 @@ void main() {
         ),
         hasLength(1),
       );
-      expect(
-        await database.runSelect(
-          "SELECT id FROM template_task_applications WHERE task_id = 'task-v8-a'",
-          const [],
-        ),
-        hasLength(1),
+      final applicationRows = await database.runSelect(
+        "SELECT task_id FROM template_task_applications WHERE task_id = 'task-v8-a'",
+        const [],
       );
+      expect(applicationRows, hasLength(1));
+      expect(applicationRows.single['task_id'], 'task-v8-a');
       expect(
         await database.runSelect(
           "SELECT ordinal FROM project_items WHERE project_id = 'project-v8-active' AND task_id = 'task-v8-a'",

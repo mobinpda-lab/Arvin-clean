@@ -1,10 +1,13 @@
 # MASTER EXECUTION 150-R — ENTITY-CENTRIC CONTINUOUS ENGINEERING
 
-
+**Date:** 2026-11-21  
+**Repository:** mobinpda-lab/Arvin-clean  
+**PR:** #3495  
+**Canonical branch:** recovery-02/main-based-integration
 
 ---
 
-## MASTER EXECUTION 150-R — ENTITY-CENTRIC CONTINUOUS ENGINEERING (2026-11-21)
+## Live audit and execution record
 
 ### Canonical refs and history
 - Mission 150-R began from the reported 149-R Candidate `aad43e6e2dc3e1a53ef77912c7a0c1522962f64d`; the live branch HEAD at first audit matched that SHA.
@@ -31,16 +34,17 @@ On `aad43e6e2dc3e1a53ef77912c7a0c1522962f64d`:
 - Commit `ac52f706a6b785a2b194a46bc97866d48c54b5e5` changes only `test/services/historical_v8_fixture_test.dart`.
 - Structural Fingerprint now uses stable SQLite PRAGMA metadata: table columns, foreign keys, index attributes and index columns. It no longer hashes version-sensitive `sqlite_master` CREATE-statement formatting.
 - Existing 16-table, column, FK and partial-index assertions remain. No assertion was removed or weakened.
-- New metadata fingerprint golden: `ae240d3fd9e9af95cd3f503b282d58463613373585c967f4f80525e013751463`, independently computed from the historical fixture. Exact-SHA CI is required to accept it.
+- New metadata fingerprint golden: `ae240d3fd9e9af95cd3f503b282d58463613373585c967f4f80525e013751463`, independently computed from the historical fixture. The ac52 exact-SHA test shard advanced past this fingerprint assertion.
+- The next assertion then exposed a separate fixture-test defect: `template_task_applications` has `task_id`, `template_task_id`, and `project_id`, not `id`. The test incorrectly selected `id`; it is corrected to select and assert `task_id`, preserving the application row check.
 
 ### Live CI after the correction commit
 At the report preparation checkpoint, all runs below target `ac52f706a6b785a2b194a46bc97866d48c54b5e5`:
-- Build `44932431149`: IN_PROGRESS.
-- COMMAND 20-E `44932431140`: IN_PROGRESS.
+- Build `44932431149`: FAILURE at Release APK setup because Android SDK Manager download of NDK r28c ended with `Premature EOF`; Analyze passed. Test shard 2 passed the new fingerprint assertion, then failed on the invalid `id` column query described above. Other test jobs were cancelled when a newer branch update arrived.
+- COMMAND 20-E `44932431140`: IN PROGRESS at last status query; no final result claimed.
 - Governance `44932431141`: SUCCESS.
 - Follow-up File Persistence `44932431161`: SUCCESS.
-- Device Smoke `44932431155`: QUEUED.
-- Zero Dollar Environment Smoke `44932427713`: PENDING.
+- Device Smoke `44932431155`: CANCELLED after the newer branch update; no Device Smoke acceptance on ac52.
+- Zero Dollar Environment Smoke `44932427713`: CANCELLED after the newer branch update.
 No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit that adds this 150-R evidence changes the Candidate again; its new exact-SHA CI must be followed separately.
 
 ### Entity and relationship audit
@@ -72,7 +76,7 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 - Design System status: PARTIAL.
 
 ### Remaining product sequence
-1. Resolve and pass the exact-SHA Historical V8 fingerprint test; retain every table/column/FK/index assertion.
+1. Complete the Historical V8 fixture test: the portable PRAGMA fingerprint now passes; correct the invalid Template Applications test query to `task_id`, then pass the exact-SHA shard with all table/column/FK/index assertions retained.
 2. Complete Center management UI and CenterStore search/sort; wire Center to Project, Task Editor and Quick Capture.
 3. Add the fifth Home Center filter using real SQLite Task projections; preserve OR-within-dimension / AND-between-dimensions and all five time groups.
 4. Implement canonical Project↔Category Store/API and transaction-safe relationship editing; reconcile legacy `project_items` and direct Task assignment semantics.
