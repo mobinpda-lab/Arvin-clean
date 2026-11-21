@@ -16,3 +16,18 @@
 /lib/home/home_visual_integration.dart @mobinpda-lab
 /test/arvin_primary_blue_contract_test.dart @mobinpda-lab
 /.github/workflows/arvin-governance-validation.yml @mobinpda-lab
+# REV10 product, domain, persistence and migration ownership.
+/lib/models/ @mobinpda-lab
+/lib/services/ @mobinpda-lab
+/lib/home/ @mobinpda-lab
+/lib/widgets/ @mobinpda-lab
+/lib/task_editor_dialog.dart @mobinpda-lab
+/lib/follow_up_reminder_notification_service.dart @mobinpda-lab
+/lib/android_follow_up_reminder_scheduler.dart @mobinpda-lab
+/lib/follow_up_reminder_background_runner.dart @mobinpda-lab
+/android/app/src/main/ @mobinpda-lab
+/test/ @mobinpda-lab
+/integration_test/ @mobinpda-lab
+/docs/ADR/ @mobinpda-lab
+/.github/workflows/ @mobinpda-lab
+/.github/scripts/ @mobinpda-lab
