@@ -84,7 +84,8 @@ void main() {
         await reopened.projectIdsForCenter('center-a'),
         <String>['center-store-project-a'],
       );
-      expect(await projects.load(), hasLength(2));
+      final reopenedProjects = ProjectStore(executor: database);
+      expect(await reopenedProjects.load(), hasLength(2));
 
       await reopened.unlinkProject('center-a', 'center-store-project-a');
       await reopened.delete('center-a');
