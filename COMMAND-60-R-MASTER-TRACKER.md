@@ -395,7 +395,7 @@ IN PROGRESS / BLOCKED ON EXECUTION EVIDENCE. The available GitHub integration ca
 - Pre-documentation code Candidate: `1b07eb6d03689f8eb73dd94934d37061e6bc5d63`.
 - PR #3495 remains OPEN / DRAFT / UNMERGED; canonical branch remains `recovery-02/main-based-integration`.
 - The 148-R chain from `026f1cda...` to `dc1a3f...` was independently compared: 9 commits ahead, 0 behind. All 9 are preserved.
-- Mission 149-R added 20 commits from `dc1a3f...` through the code Candidate above; compare reports 475 ahead / 0 behind Main before this tracker update.
+- Mission 149-R added 19 commits from `dc1a3f...` through the code Candidate above; compare reports 475 ahead / 0 behind Main before this tracker update.
 - Main is READ-ONLY. No merge, release, deployment, force-push or history rewrite.
 - Local working-tree state is not observable through the GitHub API; report as UNKNOWN, not clean.
 
