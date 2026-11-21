@@ -529,3 +529,14 @@ Release remains NO-GO. No merge, deployment or production data migration is auth
 8. Audit workflow triggers, permissions, third-party actions, duplicate automation and exact-SHA gates. Retain valid tests; do not weaken assertions to obtain green CI.
 9. Close duplicate/superseded PRs and delete only proven-unused branches after every unique contribution has been recovered and verified.
 10. Run all required gates on one final exact SHA. Keep Main, merge, release and deployment locked pending explicit owner approval.
+
+
+## COMMAND 103-R — governance lock before product waves
+
+- [x] Register ARVIN-DEC-OWNER-001 in the canonical decision ledger.
+- [x] Set the single canonical Primary Blue source to `ArvinColors.primary = Color(0xFF4169A1)` and canonical name `Primary Blue`.
+- [x] Add exact-name and exact-value regression tests.
+- [x] Add dedicated governance validation workflow.
+- [ ] Verify governance workflow and full Build on the final exact SHA.
+- [ ] Verify Branch Protection, Rulesets, required checks, bypass actors and sensitive-path review configuration.
+- [ ] Continue the REV10 data architecture, Home, Reminder, entity management, Backup/Restore and device acceptance waves without treating the governance commit as product acceptance.
