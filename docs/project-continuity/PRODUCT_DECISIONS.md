@@ -1,3 +1,23 @@
+# ARVIN-DEC-OWNER-001 — OWNER-LOCKED REV10 BASELINE
+
+| Field | Value |
+|---|---|
+| Decision ID | ARVIN-DEC-OWNER-001 |
+| Authority | Mobin — Product Owner |
+| Date | 2026-11-21 |
+| Status | APPROVED / OWNER-LOCKED |
+| Scope | Global Product Governance |
+| Canonical Product Baseline | REV10 |
+| Canonical Primary Name | Primary Blue |
+| Exact Primary HEX | `#4169A1` |
+| Change Permission | Explicit, subsequent Product Owner decision only |
+| Historical Record | Immutable; retain this entry and mark SUPERSEDED only if a later explicit owner decision replaces it |
+
+**Exact decision:** REV10 is the canonical product baseline. Primary Blue is permanently fixed at `#4169A1` under the current owner decision. No refactor, theme change, design-system cleanup, proposal, PR, test, or implementation detail may rename or silently replace this token. All consumers must resolve the brand primary from the single canonical source `lib/arvin_colors.dart`. Contrast variants may exist only as separately named semantic variants; they must not redefine the canonical Primary Blue token.
+
+**Enforcement:** `ArvinColors.primaryName` must equal `Primary Blue`; `ArvinColors.primary` must equal `Color(0xFF4169A1)`. The dedicated governance validation and regression test enforce these invariants. A change requires a new Decision ID, date, exact text, owner authority and explicit supersession link. This entry must not be deleted or rewritten.
+
+---
 ## REV10 — Home filter semantics clarified
 
 - The five Home filter dimensions are Time, Center, Project, Category and Tag.
