@@ -154,6 +154,11 @@ void main() {
       final firstCandidate = candidate!;
       expect(firstCandidate.tasks, hasLength(1));
       expect(firstCandidate.tasks.single.id, taskId);
+      expect(firstCandidate.projects, hasLength(1));
+      expect(
+        firstCandidate.projects.single.legacyFields['legacyCenterId'],
+        'historical-center-42',
+      );
 
       Future<void> applyCandidate(
         CanonicalBackupCandidate candidateToApply,
@@ -175,7 +180,8 @@ void main() {
       await applyCandidate(firstCandidate);
 
       Future<void> verifyDatabaseB({required Task expectedTask}) async {
-        final restoredTasks = await TaskStore(executor: databaseB).load();
+        final storeB = TaskStore(executor: databaseB);
+        final restoredTasks = await storeB.load();
         expect(restoredTasks, hasLength(1));
         final restored = restoredTasks.single;
         expect(restored.id, taskId);
@@ -265,6 +271,7 @@ void main() {
       final secondManager = ArvinBackupManager(service: secondBackupService);
       final secondBackupName = await secondManager.backupCanonicalTasks(
         secondSourceTasks,
+        projects: await projectStoreA.load(),
         categories: await storeA.loadCategories(),
         tags: await storeA.loadTags(),
         people: await storeA.loadPeopleDirectory(),
@@ -283,6 +290,11 @@ void main() {
       final secondCandidate = await secondManager.restoreCanonicalBackup();
       expect(secondCandidate, isNotNull);
       expect(secondCandidate!.tasks.single.description, 'نسخه دوم مستقل پایگاه A');
+      expect(secondCandidate.projects, hasLength(1));
+      expect(
+        secondCandidate.projects.single.legacyFields['legacyCenterId'],
+        'historical-center-42',
+      );
       await applyCandidate(secondCandidate);
       await verifyDatabaseB(expectedTask: secondSourceTasks.single);
       final taskCount = await databaseB.runSelect(
