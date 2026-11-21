@@ -346,3 +346,9 @@ Commit 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51 changes only .github/workflows/c
 - Historical source-to-acceptance ledger: [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md).
 - Current exact-SHA CI: Build `44880424925` PASS; Governance `44880424937` PASS; Device Smoke Attempt 2 `44880424928` PASS; COMMAND 20-E `44880424929` PASS; Follow-up Persistence `44880424931` PASS.
 - No Main write, merge, release, deployment or production-data operation occurred.
+
+
+## Zero Dollar follow-up forensic correction — 2026-11-21
+- Run `44890531184` on `1facd26252157f79904d09794eb9b0ee35f0f9a1` confirmed the shared AVD home and generated `.ini` / `config.ini` successfully.
+- Emulator 37.3.10 then failed because KVM was unavailable and `-accel off` requires `ANDROID_I_WANT_MY_TCG=yes`; exact error preserved in artifact `14702045917`.
+- Issue #3654 updated with this root cause. Next fix exports `ANDROID_I_WANT_MY_TCG=yes`; rerun required. Product smoke not reached; do not classify as product failure.

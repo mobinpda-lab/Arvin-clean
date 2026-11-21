@@ -237,6 +237,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           stage="software emulator acceleration"
+          export ANDROID_I_WANT_MY_TCG=yes
+          echo "ANDROID_I_WANT_MY_TCG=$ANDROID_I_WANT_MY_TCG" >> "$GITHUB_STEP_SUMMARY"
           if [[ -c /dev/kvm && -r /dev/kvm && -w /dev/kvm ]]; then
             echo "KVM is available; software fallback remains selected for deterministic zero-dollar execution."
           else
@@ -244,7 +246,7 @@ jobs:
           fi
           {
             echo "KVM: optional; software acceleration selected"
-            echo "Emulator acceleration mode: -accel off"
+            echo "Emulator acceleration mode: -accel off (TCG explicitly enabled)"
           } >> "$GITHUB_STEP_SUMMARY"
 
           stage="AVD creation and emulator boot"

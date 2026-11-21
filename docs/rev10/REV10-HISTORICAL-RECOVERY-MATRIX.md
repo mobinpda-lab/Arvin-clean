@@ -68,7 +68,9 @@ Candidate: `e380ffd86c4157796cecd6a0d9c4a21716344d55`
 - KVM was unavailable on the hosted runner; the workflow selected software acceleration (`-accel off`). KVM absence is not a product failure.
 - Emulator boot did not start: the emulator log reports `Unknown AVD name [arvin-zero-dollar-api35]` and no matching AVD `.ini`; `adb wait-for-device` timed out with exit 124.
 - Product Calendar smoke was not reached. Result: **ENVIRONMENT BLOCKED / PRODUCT NOT TESTED**, not a product regression.
-- Root-cause hypothesis: AVD-manager and emulator user/AVD-home paths were not explicitly exported and verified as one shared path. Remediation is tracked by Issue #3654: export `ANDROID_USER_HOME` and `ANDROID_AVD_HOME`, capture `avdmanager create avd` output, assert the generated `.ini` and `config.ini`, then launch software-accelerated emulator and use bounded boot checks. This is an environment workflow correction, not a change to app architecture.
+- First remediation on SHA `1facd26252157f79904d09794eb9b0ee35f0f9a1` verified the shared exported AVD path: `avdmanager-list.log` lists `arvin-zero-dollar-api35` at `$ANDROID_AVD_HOME`; `.ini` and `config.ini` assertions passed.
+- The next failure was explicit: Android Emulator `37.3.10` exited with `Software CPU emulation (-accel off) is not supported... (or set ANDROID_I_WANT_MY_TCG=yes to force TCG software emulation)`. Hosted KVM was unavailable; AVD provisioning was no longer the blocker.
+- Corrective action: export `ANDROID_I_WANT_MY_TCG=yes` while retaining `-accel off`, shared AVD paths, AVD-file assertions, and bounded boot diagnostics. Issue #3654 tracks the fix. This is an environment fallback configuration, not a product architecture change. Product smoke remains NOT TESTED until a booted emulator executes the Calendar test.
 
 ## 6. Grouped execution backlog
 ### Group A — preserve; no rebuild
