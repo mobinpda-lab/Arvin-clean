@@ -102,14 +102,21 @@ class ProjectStore {
         }
         envelope = Map<String, dynamic>.from(decoded);
       }
-      result.add(codec.decode({
+      final projectEnvelope = <String, dynamic>{
         ...envelope,
         'id': row['id'],
         'title': row['name'],
         'colorValue': row['color_value'],
         'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
         'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
-      }));
+      };
+      final legacyCenterId = row['legacy_center_id'];
+      if (legacyCenterId is String) {
+        // The dedicated nullable SQL field is authoritative; mirror it into
+        // the lossless Project envelope so backup/restore carries the ID.
+        projectEnvelope['legacyCenterId'] = legacyCenterId;
+      }
+      result.add(codec.decode(projectEnvelope));
     }
     return List<ProjectPlan>.unmodifiable(result);
   }
@@ -200,7 +207,7 @@ class ProjectStore {
 
   Future<void> _upsertProject(QueryExecutor executor, ProjectPlan project) async {
     final existing = await executor.runSelect(
-      'SELECT legacy_payload_json FROM projects WHERE id = ?',
+      'SELECT legacy_payload_json, legacy_center_id FROM projects WHERE id = ?',
       <Object?>[project.id],
     );
     Map<String, dynamic> previousEnvelope = <String, dynamic>{};
@@ -218,20 +225,30 @@ class ProjectStore {
       ...previousEnvelope,
       ...codec.encode(project),
     };
+    final legacyCenterId = project.legacyFields.containsKey('legacyCenterId')
+        ? project.legacyFields['legacyCenterId']
+        : existing.isNotEmpty
+            ? existing.single['legacy_center_id']
+            : null;
+    if (legacyCenterId is String) {
+      envelope['legacyCenterId'] = legacyCenterId;
+    }
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?)
+         (id, name, color_value, is_archived, legacy_center_id, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)
          ON CONFLICT(id) DO UPDATE SET
            name = excluded.name,
            color_value = excluded.color_value,
            is_archived = excluded.is_archived,
+           legacy_center_id = excluded.legacy_center_id,
            legacy_payload_json = excluded.legacy_payload_json''',
       <Object?>[
         project.id,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
+        legacyCenterId,
         jsonEncode(envelope),
       ],
     );
@@ -256,15 +273,17 @@ class ProjectStore {
   }
 
   Future<void> _insertProject(QueryExecutor executor, ProjectPlan project) async {
+    final legacyCenterId = project.legacyFields['legacyCenterId'];
     await executor.runInsert(
       '''INSERT INTO projects
-         (id, name, color_value, is_archived, legacy_payload_json)
-         VALUES (?, ?, ?, ?, ?)''',
+         (id, name, color_value, is_archived, legacy_center_id, legacy_payload_json)
+         VALUES (?, ?, ?, ?, ?, ?)''',
       <Object?>[
         project.id,
         project.title,
         project.colorValue,
         project.isArchived ? 1 : 0,
+        legacyCenterId,
         jsonEncode(codec.encode(project)),
       ],
     );
