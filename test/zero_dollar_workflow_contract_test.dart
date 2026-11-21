@@ -17,7 +17,7 @@ void main() {
     expect(workflow, contains('label_present'));
     expect(workflow, contains('zero-dollar-environment-smoke'));
     expect(workflow, contains('merge_base'));
-    expect(workflow, contains('timeout 1800 adb wait-for-device'));
+    expect(workflow, contains('timeout 900 adb wait-for-device'));
     expect(workflow.contains(r'\${{'), isFalse);
     expect(workflow, isNot(contains('chmod 0666')));
   });
