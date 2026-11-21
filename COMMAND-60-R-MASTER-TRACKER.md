@@ -302,3 +302,38 @@ Commit 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51 changes only .github/workflows/c
 - No merge, release, deployment, production database operation or branch deletion.
 - No status is ACCEPTED without evidence on one exact candidate SHA.
 - **Release: NO-GO.**
+
+
+---
+
+## MASTER EXECUTION COMMAND 124-R — live audit checkpoint (2026-11-21)
+
+**Canonical Candidate:** `c033513de5bd0067a093c59303c4071acf42f564` (verified live HEAD; unchanged during audit).
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` (unchanged/read-only).
+**PR #3495:** OPEN / DRAFT / UNMERGED; 430 ahead / 0 behind.
+
+### Exact-SHA CI results
+- Governance run `44874825945`, job `136757113713`: SUCCESS.
+- Build/Analyze run `44874825859`: all 9 jobs SUCCESS.
+- Device Smoke run `44874825857`: all 8 jobs SUCCESS; CI device/emulator only, not physical phone.
+- COMMAND 20-E run `44874825813`, jobs `136757113613` and `136758814805`: SUCCESS.
+- Follow-up File Persistence run `44874825843`, job `136757123714`: SUCCESS.
+- Zero Dollar Environment Smoke run `44874821618`: PENDING; no jobs exposed.
+- Build artifacts `14695861569` (debug) and `14695327649` (release) exist. Their recorded digests are artifact archive digests, not APK SHA-256.
+
+### Product acceptance findings
+- REV10 charter is embedded in `docs/project-continuity/MASTER_GOVERNANCE.md`; no PDF exists in the canonical branch tree. The source Git blob SHA is `cdea45d11f4e25795231f2aca10cfdc1b6cde521`; source SHA-256 remains NOT CALCULATED.
+- Home implementation still has four filter dimensions/cards. Center is missing from `HomeFilterDimension` and `lib/main.dart`; Home five-filter acceptance is BLOCKED.
+- Center model/store and file-backed test exist, but Center management UI, Task Editor, Quick Capture, Task projection, Home and report integration remain unaccepted.
+- Project↔Category table exists in schema v9; canonical Store/UI/backup integration is not accepted.
+- Reminder Issue #3646 remains open; four-action Android UI and process/reboot/physical-device acceptance remain BLOCKED.
+- Migration v7→v20, independent backup/restore and full parity remain INCOMPLETE EVIDENCE.
+
+### Governance findings
+- Active ruleset `20952260` protects Main against deletion and non-fast-forward and requires PRs, but has zero required approvals, CODEOWNERS review disabled, review-thread resolution disabled and no required CI checks.
+- Canonical branch protection is disabled. Branch protection endpoints returned 403 to the active integration; no settings were modified.
+- Main remained unchanged. No merge, release, deployment or production-data migration occurred.
+
+### 124-R deliverables
+- Added canonical baseline, owner-decision, feature-acceptance and change-control records under `docs/rev10/`.
+- This tracker update records exact-SHA evidence and open acceptance boundaries. All feature statuses remain conservative; generic CI success is not product acceptance.
