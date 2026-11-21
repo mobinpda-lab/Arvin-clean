@@ -294,10 +294,8 @@ void main() {
       await directory.delete(recursive: true);
     }
   });
-}
 
-
-test('v8 upgrade adds legacy_center_id when every historical Center link is valid', () async {
+  test('v8 upgrade adds legacy_center_id when every historical Center link is valid', () async {
   final directory = await Directory.systemTemp.createTemp('arvin-v8-v9-valid-center-');
   final file = File('${directory.path}/canonical-v8-valid.sqlite');
   var database = NativeDatabase(file);
