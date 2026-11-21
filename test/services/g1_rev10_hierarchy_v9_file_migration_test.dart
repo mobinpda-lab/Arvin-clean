@@ -216,7 +216,14 @@ void main() {
         'SELECT id, center_id FROM projects ORDER BY id',
         const [],
       );
-      expect(oldProjectLinks, hasLength(3));
+      // All four source Projects survive. The orphaned historical Center
+      // edge is cleared, while its original identifier remains in
+      // legacy_center_id and the migration exception ledger.
+      expect(oldProjectLinks, hasLength(4));
+      final orphanedProject = oldProjectLinks.singleWhere(
+        (row) => row['id'] == 'project-v8-missing-center',
+      );
+      expect(orphanedProject['center_id'], isNull);
 
       final membership = await database!.runSelect(
         'SELECT ordinal FROM project_items WHERE project_id = ? AND task_id = ?',
