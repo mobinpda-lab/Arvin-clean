@@ -233,7 +233,7 @@ void main() {
         'center-v8-b:project-v8-c',
       ]);
 
-      centerColumns = await database!.runSelect(
+      final centerColumns = await database!.runSelect(
         "PRAGMA table_info('centers')",
         const [],
       );
