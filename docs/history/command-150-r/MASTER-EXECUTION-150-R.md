@@ -97,3 +97,8 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 ## Detailed matrices
 - [Entity Acceptance Matrix](ENTITY-ACCEPTANCE-MATRIX.md)
 - [Entity Relationship Matrix](ENTITY-RELATIONSHIP-MATRIX.md)
+
+
+## Live Candidate and evidence rule
+
+The source audit SHA recorded above is the code snapshot inspected for this mission. The current delivery Candidate is always the live head of PR #3495 on `recovery-02/main-based-integration`; after this report publication, resolve that SHA from GitHub before acting. Every CI, artifact, test and acceptance claim must match that exact live SHA. Any later commit invalidates acceptance transfer until its own required checks finish.
