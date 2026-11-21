@@ -384,3 +384,73 @@ Commit 4bc23b1af7ef57ad165c38b87164db2f7ebb1a51 changes only .github/workflows/c
 
 ### Mission 148-R disposition
 IN PROGRESS / BLOCKED ON EXECUTION EVIDENCE. The available GitHub integration can read and commit repository files but this execution did not provide a local Flutter/Android runner or an Actions dispatch operation. Do not accept the migration, fixture, People, Backup/Restore or overall mission until exact-SHA tests and CI complete.
+
+
+## MASTER EXECUTION 149-R — live implementation and acceptance checkpoint (2026-11-21)
+
+### Canonical revision and governance
+- Mission starting Candidate: `dc1a3f797009134a52467c7e2f6a3a7f77d3e762`.
+- Previous starting SHA: `026f1cdaeb63fe804b685cbffa0ff9da3579de0d`.
+- Main baseline and verified Main HEAD: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Pre-documentation code Candidate: `1b07eb6d03689f8eb73dd94934d37061e6bc5d63`.
+- PR #3495 remains OPEN / DRAFT / UNMERGED; canonical branch remains `recovery-02/main-based-integration`.
+- The 148-R chain from `026f1cda...` to `dc1a3f...` was independently compared: 9 commits ahead, 0 behind. All 9 are preserved.
+- Mission 149-R added 20 commits from `dc1a3f...` through the code Candidate above; compare reports 475 ahead / 0 behind Main before this tracker update.
+- Main is READ-ONLY. No merge, release, deployment, force-push or history rewrite.
+- Local working-tree state is not observable through the GitHub API; report as UNKNOWN, not clean.
+
+### Mission 149-R changed files
+1. `integration_test/calendar_card_interaction_test.dart`
+2. `lib/services/g1_drift_schema.dart`
+3. `lib/services/g1_rev10_hierarchy_v9_migration.dart`
+4. `lib/services/project_store.dart`
+5. `test/independent_sqlite_backup_restore_test.dart`
+6. `test/services/g1_rev10_hierarchy_v9_file_migration_test.dart`
+7. `test/services/historical_v8_fixture_test.dart`
+
+### Implementation record
+- Historical v8 fixture parser now removes full-line SQL comments before splitting statements, preventing semicolons inside comments from becoming executable SQL.
+- Historical fixture test now executes the DDL in an independent SQLite database; calculates a normalized structural fingerprint from actual `sqlite_master` table/index definitions; checks the 16 historical table column lists and foreign-key declarations; and seeds template, template-task, template-application, project_items, active/archived Project and explicit NULL records. Golden fingerprint currently asserted as `2fdd5eb5385fc6f0933498bd70f2872d214cadb63e8909b834510142aebcba15`. This assertion is NOT YET ACCEPTED until the exact-SHA test shard passes.
+- The earlier migration test's expected Project count was incorrect. The source has four Project rows at that checkpoint; the test was corrected to assert that orphaned historical Projects survive with only invalid FK edges cleared.
+- Further source inspection found `legacy_center_id` was absent from the fresh destination DDL and conditionally added only when an orphan existed. It is now declared as nullable TEXT in the destination schema and added unconditionally during v8→v9 upgrade when absent.
+- ProjectStore now maps the dedicated SQL `legacy_center_id` into the lossless Project envelope and writes it back on insert/upsert, enabling serialization and backup/restore retention.
+- Backup/Restore regression now includes a Project with `legacyCenterId`, restores it from independent Database A into Database B, closes/reopens B, and checks the historical ID survives. This is a focused parity test, not full Backup/Restore acceptance.
+- Migration fixture now includes three valid Center links, two different missing Centers and one explicit NULL Center; six Projects including active and archived records; two exception records; and failure injection at relationship transfer, before exception insertion, after exception insertion and before the completion marker. Each injected failure starts from a fresh file-backed v8 database and asserts rollback of the new column, relationship table, exception table and completion marker. Successful retry checks durable IDs, duplicate prevention and FK integrity.
+- Calendar Device Smoke root cause on the starting Candidate was a lazy-list test-harness issue: the expected reminder was present in the projection and selected-day filter, but the test searched for its card key before scrolling the ListView past earlier calendar items. Integration test now scrolls until the reminder title is visible before asserting the card.
+- Historical People failure Run `44909382967` is confirmed at the empty `persisted.people.single` assertion. People Device Smoke passed on starting Candidate `dc1a3f...`; no production correction is claimed because the historical failure was not reproduced there. Exact latest-Candidate People rerun remains required.
+
+### Initial 148-R Candidate workflow evidence
+On `dc1a3f797009134a52467c7e2f6a3a7f77d3e762`:
+- Build `44925872319`: FAILURE; Analyze, Debug APK, Release APK and shards 0,1,3,4,5 passed, shard 2 failed with the fixture parser defect and Project-count expectation defect.
+- Device Smoke `44925872346`: FAILURE; Calendar failed due lazy selected-day list lookup; People lane passed.
+- COMMAND 20-E `44925872381`: FAILURE; final evidence gate did not report overall PASS.
+- Governance `44925872334`: SUCCESS.
+- Follow-up Persistence `44925872313`: SUCCESS.
+These historical results are diagnostic only and are not transferable to the final Candidate.
+
+### Latest exact-SHA workflow snapshot before this tracker commit
+Pre-documentation code Candidate: `1b07eb6d03689f8eb73dd94934d37061e6bc5d63`.
+- Build `44929930326`: RUNNING. Analyze SUCCESS; test shard 5 SUCCESS; other five shards and Debug/Release APK jobs RUNNING at checkpoint.
+- Device Smoke `44929930251`: RUNNING; Home and Quick Capture RUNNING; SQL Migration, Backup/Restore, SQL Persistence, Calendar and People queued at checkpoint.
+- COMMAND 20-E `44929930261`: storage-persistence job RUNNING; final evidence gate not yet produced.
+- Follow-up Persistence `44929930248`: SUCCESS.
+- Governance `44929930321`: SUCCESS.
+- Artifact IDs for Build, Device Smoke and COMMAND 20-E: NOT YET AVAILABLE at checkpoint.
+- The prior Candidate `5b828b46...` Analyze failed because `centerColumns` was scoped inside a loop; corrected in `1b07eb6d...`. Do not use the earlier Candidate's result as acceptance.
+
+### Acceptance status at checkpoint
+- Canonical HEAD / PR / Main protection: VERIFIED.
+- Nine previous commits preserved: VERIFIED.
+- Historical fixture execution and structural fingerprint: IMPLEMENTED / CI PENDING.
+- Missing Center exception matrix and legacy ID schema: IMPLEMENTED / CI PENDING.
+- Project serialization and focused backup/restore ID retention: IMPLEMENTED / CI PENDING.
+- People root cause: NOT CONFIRMED; latest rerun PENDING.
+- Full Backup/Restore matrix including Center entities, Migration Exceptions, all M2M relationships, Calendar Links, corruption/interrupted restore and destination preservation: PARTIAL / NOT ACCEPTED.
+- COMMAND 20-E Overall: NOT YET PRODUCED.
+- Build Analyze: PASS on pre-documentation code Candidate; exact final SHA rerun required after this tracker update.
+- Six shards, Debug APK, Release APK, Device Smoke: IN PROGRESS / NOT ACCEPTED.
+- Center management UI, Center in Task Editor/Quick Capture/Home, Project↔Category M2M product flows, Home five filters, five time groups, Reminder four actions, Calendar full product acceptance, Templates/Deep Clone, Notebook, Reports, RTL, Accessibility and Unified Design System: NOT ACCEPTED in this mission checkpoint.
+- Issues #3619, #3641, #3550, #3646, #3458 and #2102 received 149-R progress comments; none was closed.
+
+### Mission disposition
+149-R remains IN PROGRESS. This tracker entry is a checkpoint, not a final acceptance certificate. After this documentation commit, all required workflows must be rerun and tied to the new exact HEAD. Anything not proven on that SHA remains PARTIAL / BLOCKED / NOT RUN / NOT ACCEPTED. Release remains NO-GO; merge and deployment are not authorized.
