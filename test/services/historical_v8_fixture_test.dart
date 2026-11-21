@@ -102,6 +102,186 @@ void main() {
         partialIndex.single['sql'],
         contains('is_archived = 0'),
       );
+      // Fingerprint the schema SQLite actually created, not the source file
+      // bytes. This includes normalized table DDL (and therefore column
+      // declarations/constraints) plus the explicit index SQL/predicate.
+      final schemaObjects = await database.runSelect(
+        """SELECT type, name, tbl_name, sql FROM sqlite_master
+           WHERE type IN ('table', 'index')
+             AND name NOT LIKE 'sqlite_%'
+           ORDER BY type, name""",
+        const [],
+      );
+      expect(schemaObjects, hasLength(17)); // 16 tables + one explicit index.
+      final canonicalSchema = schemaObjects.map((row) => <String, Object?>{
+        'type': row['type'],
+        'name': row['name'],
+        'table': row['tbl_name'],
+        'sql': (row['sql'] as String?)
+            ?.replaceAll(RegExp(r'\\s+'), ' ')
+            .trim()
+            .toLowerCase(),
+      }).toList(growable: false);
+      final structuralFingerprint = (await Sha256().hash(
+        utf8.encode(jsonEncode(canonicalSchema)),
+      )).bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
+      // Golden is computed from sqlite_master after executing the historical
+      // source DDL at commit 874dd8b..., not from a SHA of the fixture file.
+      expect(
+        structuralFingerprint,
+        '2fdd5eb5385fc6f0933498bd70f2872d214cadb63e8909b834510142aebcba15',
+      );
+
+      const expectedColumns = <String, List<String>>{
+        'tasks': <String>['id', 'storage_ordinal', 'title', 'description', 'created_at', 'updated_at', 'due_date', 'follow_up_enabled', 'follow_up_date', 'category', 'notebook_kind', 'reminder_date', 'priority', 'archived', 'trashed', 'completed', 'completed_at', 'recurrence_json', 'legacy_payload_json'],
+        'follow_ups': <String>['id', 'task_id', 'date_time', 'title', 'note', 'result', 'reminder_date', 'next_follow_up', 'completed', 'waiting_for_response', 'ordinal'],
+        'centers': <String>['id', 'name', 'is_archived', 'created_at'],
+        'project_templates': <String>['id', 'name', 'is_archived', 'created_at', 'updated_at'],
+        'project_template_tasks': <String>['id', 'template_id', 'title', 'description', 'category', 'tags_json', 'checklist_json', 'ordinal'],
+        'projects': <String>['id', 'name', 'color_value', 'is_archived', 'center_id', 'template_id', 'template_name_snapshot', 'legacy_payload_json'],
+        'project_items': <String>['project_id', 'task_id', 'ordinal'],
+        'template_task_applications': <String>['template_task_id', 'project_id', 'task_id'],
+        'taxonomy_categories': <String>['name', 'created_at'],
+        'tags': <String>['id', 'name'],
+        'task_tags': <String>['task_id', 'tag_id', 'ordinal'],
+        'checklist_items': <String>['task_id', 'ordinal', 'value'],
+        'task_people': <String>['task_id', 'person_id', 'person_json', 'ordinal'],
+        'people': <String>['id', 'name', 'created_at', 'updated_at'],
+        'follow_up_people': <String>['follow_up_id', 'person_id', 'ordinal'],
+        'arvin_storage_meta': <String>['key', 'value'],
+      };
+      for (final entry in expectedColumns.entries) {
+        final columns = await database.runSelect(
+          "PRAGMA table_info('${entry.key}')",
+          const [],
+        );
+        expect(
+          columns.map((row) => row['name']).toList(),
+          entry.value,
+          reason: 'Historical column shape mismatch for ${entry.key}',
+        );
+      }
+
+      const expectedForeignKeys = <String, List<String>>{
+        'follow_ups': <String>['task_id:tasks:id'],
+        'project_template_tasks': <String>['template_id:project_templates:id'],
+        'projects': <String>['center_id:centers:id'],
+        'project_items': <String>['project_id:projects:id', 'task_id:tasks:id'],
+        'template_task_applications': <String>['project_id:projects:id', 'task_id:tasks:id'],
+        'task_tags': <String>['tag_id:tags:id', 'task_id:tasks:id'],
+        'checklist_items': <String>['task_id:tasks:id'],
+        'task_people': <String>['task_id:tasks:id'],
+        'follow_up_people': <String>['follow_up_id:follow_ups:id'],
+      };
+      for (final entry in expectedForeignKeys.entries) {
+        final foreignKeys = await database.runSelect(
+          "PRAGMA foreign_key_list('${entry.key}')",
+          const [],
+        );
+        final actual = foreignKeys
+            .map((row) => '${row['from']}:${row['table']}:${row['to']}')
+            .toList()
+          ..sort();
+        final expected = List<String>.of(entry.value)..sort();
+        expect(actual, expected, reason: 'Foreign-key shape mismatch for ${entry.key}');
+      }
+
+      // Deterministic historical data exercises templates, their task rows,
+      // applications, legacy Project membership, nullable values and both
+      // archived and active Projects against the independent SQLite schema.
+      await database.runCustom(
+        "INSERT INTO centers (id, name, is_archived, created_at) VALUES ('center-v8-a', 'مرکز تاریخی', 0, '2026-11-01T08:00:00.000Z')",
+      );
+      await database.runCustom(
+        "INSERT INTO project_templates (id, name, is_archived, created_at, updated_at) VALUES ('template-v8-a', 'قالب تاریخی', 0, '2026-11-01T08:00:00.000Z', '2026-11-01T08:00:00.000Z')",
+      );
+      await database.runCustom(
+        "INSERT INTO project_template_tasks (id, template_id, title, description, category, tags_json, checklist_json, ordinal) VALUES ('template-task-v8-a', 'template-v8-a', 'کار قالب', '', NULL, '[]', '[]', 0)",
+      );
+      await database.runCustom(
+        "INSERT INTO tasks (id, title, description, follow_up_enabled, priority, archived, trashed, completed) VALUES ('task-v8-a', 'کار تاریخی', '', 0, 'none', 0, 0, 0)",
+      );
+      await database.runCustom(
+        "INSERT INTO projects (id, name, center_id, template_id, template_name_snapshot) VALUES ('project-v8-active', 'پروژه فعال', 'center-v8-a', 'template-v8-a', 'قالب تاریخی')",
+      );
+      await database.runCustom(
+        "INSERT INTO projects (id, name, is_archived, center_id, template_id, template_name_snapshot) VALUES ('project-v8-archived', 'پروژه بایگانی', 1, 'center-v8-a', 'template-v8-a', NULL)",
+      );
+      await database.runCustom(
+        "INSERT INTO project_items (project_id, task_id, ordinal) VALUES ('project-v8-active', 'task-v8-a', 7)",
+      );
+      await database.runCustom(
+        "INSERT INTO template_task_applications (template_task_id, project_id, task_id) VALUES ('template-task-v8-a', 'project-v8-active', 'task-v8-a')",
+      );
+      await database.runCustom(
+        "INSERT INTO taxonomy_categories (name, created_at) VALUES ('دسته تاریخی', '2026-11-01T08:00:00.000Z')",
+      );
+      await database.runCustom(
+        "INSERT INTO tags (id, name) VALUES ('tag-v8-a', 'برچسب تاریخی')",
+      );
+      await database.runCustom(
+        "INSERT INTO task_tags (task_id, tag_id, ordinal) VALUES ('task-v8-a', 'tag-v8-a', 0)",
+      );
+      await database.runCustom(
+        "INSERT INTO checklist_items (task_id, ordinal, value) VALUES ('task-v8-a', 0, 'مرحله تاریخی')",
+      );
+      await database.runCustom(
+        "INSERT INTO people (id, name, created_at, updated_at) VALUES ('person-v8-a', 'شخص تاریخی', '2026-11-01T08:00:00.000Z', '2026-11-01T08:00:00.000Z')",
+      );
+      await database.runCustom(
+        """INSERT INTO task_people (task_id, person_id, person_json, ordinal)
+           VALUES ('task-v8-a', 'person-v8-a', '{"displayName":"شخص تاریخی"}', 0)""",
+      );
+      await database.runCustom(
+        "INSERT INTO follow_ups (id, task_id, date_time, title, note, completed, ordinal) VALUES ('follow-up-v8-a', 'task-v8-a', '2026-11-01T09:00:00.000Z', NULL, 'یادداشت تاریخی', 0, 0)",
+      );
+      await database.runCustom(
+        "INSERT INTO follow_up_people (follow_up_id, person_id, ordinal) VALUES ('follow-up-v8-a', 'person-v8-a', 0)",
+      );
+      await database.runCustom(
+        "INSERT INTO arvin_storage_meta (key, value) VALUES ('historical-v8-fixture', 'seeded')",
+      );
+
+      expect(
+        await database.runSelect(
+          "SELECT id FROM project_templates WHERE id = 'template-v8-a'",
+          const [],
+        ),
+        hasLength(1),
+      );
+      expect(
+        await database.runSelect(
+          "SELECT id FROM project_template_tasks WHERE id = 'template-task-v8-a'",
+          const [],
+        ),
+        hasLength(1),
+      );
+      expect(
+        await database.runSelect(
+          "SELECT id FROM template_task_applications WHERE task_id = 'task-v8-a'",
+          const [],
+        ),
+        hasLength(1),
+      );
+      expect(
+        await database.runSelect(
+          "SELECT ordinal FROM project_items WHERE project_id = 'project-v8-active' AND task_id = 'task-v8-a'",
+          const [],
+        ),
+        hasLength(1),
+      );
+      final nulls = await database.runSelect(
+        "SELECT due_date, follow_up_date, reminder_date, completed_at, recurrence_json FROM tasks WHERE id = 'task-v8-a'",
+        const [],
+      );
+      expect(nulls.single.values, everyElement(isNull));
+      final projectStates = await database.runSelect(
+        "SELECT id, is_archived FROM projects ORDER BY id",
+        const [],
+      );
+      expect(projectStates.map((row) => row['is_archived']).toList(), <Object?>[1, 0]);
+      expect(await database.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
+
     } finally {
       await database.close();
     }
