@@ -1833,3 +1833,22 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Vazirmatn ZIP and OFL license have been independently re-inspected. Repository still has only weights 400/500/700.
 - Existing Settings text-size slider and root textScaler are present; preserve them.
 - See the six additive COMMAND 60-R.1 reports under `docs/history/command-60-r/`. Earlier history and failed results are retained.
+
+
+---
+
+# COMMAND 103-R — live execution checkpoint (2026-11-21, Asia/Tehran)
+
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Canonical PR: #3495, OPEN / DRAFT / UNMERGED; branch `recovery-02/main-based-integration`.
+- Main base SHA observed from live PR metadata: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Initial live candidate inspected: `cd71c169019003e183e428e24353bb3ee487e042`.
+- Exact-SHA workflows on that initial candidate: Build `44813831202` SUCCESS; Device Smoke `44813831215` SUCCESS; COMMAND 20-E `44813831127` SUCCESS; Follow-up File Persistence `44813831239` SUCCESS. These results do not transfer to later commits.
+- Owner governance ticket: Issue #3653.
+- Implemented on the canonical branch after the initial candidate: `lib/arvin_colors.dart` locks `ArvinColors.primaryName` to `Primary Blue` and `ArvinColors.primary` to `Color(0xFF4169A1)`; `PRODUCT_DECISIONS.md` records ARVIN-DEC-OWNER-001; `test/arvin_primary_blue_contract_test.dart` adds exact name/value regression tests; `.github/workflows/arvin-governance-validation.yml` adds static owner-decision/token validation.
+- Relevant implementation commits in order: `8ad3ef25587151f5f52bd2e5d37a5d39bdee00a5`, `eadca0799a0d1572a60d279c6349b48835543ab6`, `169db3bc002f1fce0cc254444bdbbb68131973ee`, `77fcb9a64840ae830fbde208bdcbb7a515b93206`, `27a0a7109a68c2530710a17fe5ad7f9e117e20bc`, `2a5aecb49f56fc23c3b1660db410a3bf2aca4a95`, `b32ee86f8ff7370542ee61d95a1a4f02e368e021`.
+- The initial candidate's green workflows are historical for subsequent commits. Governance CI and the complete test suite have not yet been observed on the final post-documentation SHA.
+- Branch protection/ruleset API state and required-check configuration were not exposed by the connected GitHub actions used in this audit; mark them UNVERIFIED, not compliant.
+- Main was not modified. No merge, release, deployment, production data operation, branch deletion, permission change or history rewrite was performed.
+
+**Current acceptance:** NOT GRANTED. **Next:** finish canonical document synchronization, inspect the final exact SHA and all triggered checks, then continue independent product/data gates.
