@@ -46,7 +46,7 @@ jobs:
           grep -Fq 'Exact Primary HEX | `#4169A1` |' "$decisions"
           grep -Fq "static const String primaryName = 'Primary Blue';" "$colors"
           grep -Fq 'static const primary = Color(0xFF4169A1);' "$colors"
-          if grep -R -nE 'static const (primary|primaryColor)[[:space:]]*=[[:space:]]*Color\\(0xFF' lib --include='*.dart' | grep -v 'Color(0xFF4169A1)'; then
+          if grep -R -nE 'static const (primary|primaryColor)[[:space:]]*=[[:space:]]*Color\(0xFF' lib --include='*.dart' | grep -v 'Color(0xFF4169A1)'; then
             echo 'Conflicting canonical primary token found.' >&2
             exit 1
           fi
