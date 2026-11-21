@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:arvin/services/center_store.dart';
@@ -90,12 +91,17 @@ void main() {
         "('center-v8-a', 'مرکز الف', 0, '2026-11-01T08:00:00.000Z'), "
         "('center-v8-b', 'مرکز ب', 1, '2026-11-02T08:00:00.000Z')",
       );
+      // Reproduce a legacy orphaned reference without weakening the
+      // migration's own foreign-key enforcement.
+      await database!.runCustom('PRAGMA foreign_keys = OFF');
       await database!.runCustom(
         "INSERT INTO projects (id, name, center_id, template_id, template_name_snapshot, legacy_payload_json) VALUES "
         "('project-v8-a', 'پروژه الف', 'center-v8-a', 'template-legacy', 'الگوی قدیمی', '{\"unknownProjectField\":{\"keep\":true}}'), "
         "('project-v8-b', 'پروژه ب', 'center-v8-a', NULL, NULL, NULL), "
-        "('project-v8-c', 'پروژه ج', 'center-v8-b', NULL, NULL, NULL)",
+        "('project-v8-c', 'پروژه ج', 'center-v8-b', NULL, NULL, NULL), "
+        "('project-v8-missing-center', 'پروژه با مرکز مفقود', 'center-v8-missing', NULL, NULL, NULL)",
       );
+      await database!.runCustom('PRAGMA foreign_keys = ON');
       await database!.runCustom(
         "INSERT INTO tasks (id, title, description, follow_up_enabled, category, priority, archived, trashed, completed) "
         "VALUES ('task-v8-a', 'کار تاریخی', '', 0, 'شخصی', 'none', 0, 0, 0)",
@@ -152,6 +158,30 @@ void main() {
         const [],
       );
       expect(links, hasLength(3));
+      final preservedMissingProject = await database!.runSelect(
+        "SELECT id, center_id FROM projects WHERE id = 'project-v8-missing-center'",
+        const [],
+      );
+      expect(preservedMissingProject, hasLength(1));
+      expect(preservedMissingProject.single['center_id'], 'center-v8-missing');
+      final missingCenterExceptions = await database!.runSelect(
+        """SELECT entity_type, entity_id, code, details_json
+           FROM arvin_migration_exceptions
+           WHERE migration_key = 'rev10_hierarchy_schema_version'
+             AND entity_type = 'project'
+             AND entity_id = 'project-v8-missing-center'""",
+        const [],
+      );
+      expect(missingCenterExceptions, hasLength(1));
+      final exception = missingCenterExceptions.single;
+      expect(exception['code'], 'PROJECT_CENTER_REFERENCE_MISSING');
+      final details = jsonDecode(exception['details_json'] as String) as Map;
+      expect(details['sourceEntity'], 'projects');
+      expect(details['sourceRecordId'], 'project-v8-missing-center');
+      expect(details['historicalCenterId'], 'center-v8-missing');
+      expect(details['migrationVersion'], 9);
+      expect(details['exceptionType'], 'MissingHistoricalCenter');
+      expect(details['recoveryStatus'], 'pending');
       expect(links.map((row) => '${row['center_id']}:${row['project_id']}'), <String>[
         'center-v8-a:project-v8-a',
         'center-v8-a:project-v8-b',
