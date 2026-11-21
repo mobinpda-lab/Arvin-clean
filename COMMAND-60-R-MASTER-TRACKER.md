@@ -551,3 +551,10 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 - On the same Candidate: Analyze passed; Follow-up File Persistence `44932431161` passed; Governance `44932431141` passed. Device Smoke `44932431155` was cancelled after a newer branch update. COMMAND 20-E `44932431140` had no final conclusion at the last query.
 - No Build, Device Smoke or COMMAND 20-E result from `ac52f706...` is transferred to a later Candidate.
 - The next correction preserves the 16-table and application-row fixture checks and uses `task_id`, the actual historical key.
+
+
+### MASTER EXECUTION 150-R — Center Store search implementation
+- Added `CenterStore.search(query, includeArchived: false)` on the existing canonical SQLite Center table; it trims and case-folds the query, preserves name/id ordering, excludes archived Centers by default and supports explicit archived inclusion.
+- Extended the existing file-backed Center lifecycle test to verify active/archived search, trimming, empty results and ordering.
+- This does not duplicate the Center store or alter existing relationships. UI, Task Editor, Quick Capture, Home Center filter and Center-aware Backup/Restore remain open gaps.
+- Exact-SHA CI is required before treating this Store improvement as accepted.

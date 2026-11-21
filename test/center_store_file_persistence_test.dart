@@ -51,6 +51,20 @@ void main() {
         (await centers.load(includeArchived: false)).map((item) => item.id),
         <String>['center-a'],
       );
+      expect(
+        (await centers.search('  الف  ')).map((item) => item.id),
+        <String>['center-a'],
+      );
+      expect(
+        (await centers.search('مرکز')).map((item) => item.id),
+        <String>['center-a'],
+      );
+      expect(
+        (await centers.search('مرکز', includeArchived: true))
+            .map((item) => item.id),
+        <String>['center-a', 'center-b'],
+      );
+      expect(await centers.search('مرکز ناموجود'), isEmpty);
       await centers.restore('center-b');
 
       await expectLater(

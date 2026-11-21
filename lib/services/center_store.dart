@@ -55,6 +55,20 @@ class CenterStore {
     return List<Center>.unmodifiable(rows.map(_decode));
   }
 
+  /// Searches Center names while preserving the store's canonical sort order.
+  /// Archived rows are excluded by default and can be included explicitly.
+  Future<List<Center>> search(
+    String query, {
+    bool includeArchived = false,
+  }) async {
+    final needle = query.trim().toLowerCase();
+    final centers = await load(includeArchived: includeArchived);
+    if (needle.isEmpty) return centers;
+    return List<Center>.unmodifiable(
+      centers.where((center) => center.name.toLowerCase().contains(needle)),
+    );
+  }
+
   Future<Center?> findById(String centerId) async {
     final executor = _database;
     await _ensureReady();

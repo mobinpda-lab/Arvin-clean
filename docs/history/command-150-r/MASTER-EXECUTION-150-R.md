@@ -77,7 +77,7 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 
 ### Remaining product sequence
 1. Complete the Historical V8 fixture test: the portable PRAGMA fingerprint now passes; correct the invalid Template Applications test query to `task_id`, then pass the exact-SHA shard with all table/column/FK/index assertions retained.
-2. Complete Center management UI and CenterStore search/sort; wire Center to Project, Task Editor and Quick Capture.
+2. CenterStore search is now implemented and covered in the file-backed lifecycle test. Complete Center management UI, wire Center to Project, Task Editor and Quick Capture, and preserve the existing canonical sort order.
 3. Add the fifth Home Center filter using real SQLite Task projections; preserve OR-within-dimension / AND-between-dimensions and all five time groups.
 4. Implement canonical Project↔Category Store/API and transaction-safe relationship editing; reconcile legacy `project_items` and direct Task assignment semantics.
 5. Implement the four Reminder actions and visual window without introducing a parallel scheduler.
@@ -102,3 +102,12 @@ No result from `aad43e6...` transfers to `ac52f706...`. The report-only commit t
 ## Live Candidate and evidence rule
 
 The source audit SHA recorded above is the code snapshot inspected for this mission. The current delivery Candidate is always the live head of PR #3495 on `recovery-02/main-based-integration`; after this report publication, resolve that SHA from GitHub before acting. Every CI, artifact, test and acceptance claim must match that exact live SHA. Any later commit invalidates acceptance transfer until its own required checks finish.
+
+
+### 150-R product-gap closure — CenterStore search
+
+- Added `CenterStore.search(query, includeArchived: false)` using the canonical `centers` table and existing name/id sort order.
+- Search trims whitespace, performs case-insensitive name matching, excludes archived Centers by default and supports explicit archived inclusion.
+- Extended `test/center_store_file_persistence_test.dart` to prove active/archived search, whitespace trimming, no-match behavior and ordering on the existing file-backed database lifecycle.
+- This is Store-level progress only. Center management UI, Task Editor, Quick Capture, Home Center filter and Center-aware backup/restore remain incomplete.
+- Exact-SHA CI for the resulting Candidate is pending.
