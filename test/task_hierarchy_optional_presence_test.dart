@@ -256,7 +256,22 @@ void main() {
             throw StateError('Second-save title missing for ${task.id}');
           }
         }
-        stdout.writeln('FRESH_PROCESS_SECOND_SAVE_REOPEN=PASS');
+        stdout.writeln('SECOND_PROCESS_REOPEN_AFTER_RECOVERY_SAVE=PASS');
+      } else if (stage == 'verify-third-process-reopen') {
+        for (final task in tasks) {
+          if (!task.title.endsWith(' [saved-after-recovery]')) {
+            throw StateError('Third-process title missing for ${task.id}');
+          }
+        }
+        final integrity = await database.runSelect('PRAGMA integrity_check', const []);
+        final foreignKeys = await database.runSelect('PRAGMA foreign_key_check', const []);
+        if (integrity.isEmpty || integrity.single.values.first != 'ok') {
+          throw StateError('Third-process SQLite integrity check failed: $integrity');
+        }
+        if (foreignKeys.isNotEmpty) {
+          throw StateError('Third-process foreign-key check failed: $foreignKeys');
+        }
+        stdout.writeln('THIRD_PROCESS_REOPEN_AND_INTEGRITY=PASS');
       } else {
         throw ArgumentError('Unknown stage: $stage');
       }
@@ -288,6 +303,7 @@ void main() {
     try {
       await runFreshProcess('recover-and-save');
       await runFreshProcess('verify-second-save');
+      await runFreshProcess('verify-third-process-reopen');
 
       database = NativeDatabase(file);
       await G1DriftSchema.install(database);
