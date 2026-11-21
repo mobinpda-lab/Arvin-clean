@@ -101,6 +101,64 @@ class G1Rev10HierarchyV9Migration {
           UNIQUE (migration_key, entity_type, entity_id, code)
         )
       ''');
+      // v8 already owns a Center catalog and a single Project.center_id
+      // edge. Preserve that historical edge by promoting it into the canonical
+      // M2M relation; CREATE TABLE IF NOT EXISTS does not upgrade old columns.
+      final centerColumns = await executor.runSelect(
+        "PRAGMA table_info('centers')",
+        const [],
+      );
+      if (!centerColumns.any((row) => row['name'] == 'updated_at')) {
+        await executor.runCustom(
+          'ALTER TABLE centers ADD COLUMN updated_at TEXT NULL',
+        );
+      }
+      await executor.runCustom(
+        '''UPDATE centers
+           SET updated_at = created_at
+           WHERE updated_at IS NULL OR TRIM(updated_at) = '' ''',
+      );
+      final centersWithoutUpdateTime = await executor.runSelect(
+        "SELECT id FROM centers WHERE updated_at IS NULL OR TRIM(updated_at) = ''",
+        const [],
+      );
+      if (centersWithoutUpdateTime.isNotEmpty) {
+        throw StateError(
+          'REV10 v8→v9 could not backfill Center updated_at: '
+          '$centersWithoutUpdateTime',
+        );
+      }
+
+      final projectColumns = await executor.runSelect(
+        "PRAGMA table_info('projects')",
+        const [],
+      );
+      if (projectColumns.any((row) => row['name'] == 'center_id')) {
+        final legacyCenterLinks = await executor.runSelect(
+          '''SELECT id, center_id FROM projects
+             WHERE center_id IS NOT NULL ORDER BY id''',
+          const [],
+        );
+        for (final link in legacyCenterLinks) {
+          final centerId = link['center_id'] as String;
+          final center = await executor.runSelect(
+            'SELECT id FROM centers WHERE id = ?',
+            <Object?>[centerId],
+          );
+          if (center.isEmpty) {
+            throw StateError(
+              'REV10 v8→v9 found Project ${link['id']} with missing '
+              'legacy Center $centerId; source row is preserved and migration '
+              'must not silently discard this relationship.',
+            );
+          }
+          await executor.runInsert(
+            '''INSERT OR IGNORE INTO center_projects (center_id, project_id)
+               VALUES (?, ?)''',
+            <Object?>[centerId, link['id']],
+          );
+        }
+      }
       await _inject('after_relationship_tables');
 
       await _addTaskColumn(
@@ -256,6 +314,8 @@ class G1Rev10HierarchyV9Migration {
         'center_projects',
         'project_categories',
         'tasks',
+        'projects',
+        'centers',
       ]) {
         violations.addAll(await executor.runSelect(
           'PRAGMA foreign_key_check($table)',
