@@ -159,11 +159,12 @@ void main() {
       );
       expect(links, hasLength(3));
       final preservedMissingProject = await database!.runSelect(
-        "SELECT id, center_id FROM projects WHERE id = 'project-v8-missing-center'",
+        "SELECT id, center_id, legacy_center_id FROM projects WHERE id = 'project-v8-missing-center'",
         const [],
       );
       expect(preservedMissingProject, hasLength(1));
-      expect(preservedMissingProject.single['center_id'], 'center-v8-missing');
+      expect(preservedMissingProject.single['center_id'], isNull);
+      expect(preservedMissingProject.single['legacy_center_id'], 'center-v8-missing');
       final missingCenterExceptions = await database!.runSelect(
         """SELECT entity_type, entity_id, code, details_json
            FROM arvin_migration_exceptions
@@ -182,6 +183,10 @@ void main() {
       expect(details['migrationVersion'], 9);
       expect(details['exceptionType'], 'MissingHistoricalCenter');
       expect(details['recoveryStatus'], 'pending');
+      expect(
+        await database!.runSelect('PRAGMA foreign_key_check', const []),
+        isEmpty,
+      );
       expect(links.map((row) => '${row['center_id']}:${row['project_id']}'), <String>[
         'center-v8-a:project-v8-a',
         'center-v8-a:project-v8-b',
