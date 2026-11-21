@@ -146,11 +146,30 @@ class G1Rev10HierarchyV9Migration {
             <Object?>[centerId],
           );
           if (center.isEmpty) {
-            throw StateError(
-              'REV10 v8→v9 found Project ${link['id']} with missing '
-              'legacy Center $centerId; source row is preserved and migration '
-              'must not silently discard this relationship.',
+            // Preserve the legacy Project.center_id value as source evidence,
+            // but never manufacture a Center or an invalid M2M edge. The
+            // exception is written inside this migration transaction: if
+            // recording it fails, the transaction rolls back and no
+            // completion marker can be committed.
+            final projectId = link['id'] as String;
+            await _recordException(
+              executor,
+              entityType: 'project',
+              entityId: projectId,
+              code: 'PROJECT_CENTER_REFERENCE_MISSING',
+              details: <String, Object?>{
+                'sourceEntity': 'projects',
+                'sourceRecordId': projectId,
+                'historicalCenterId': centerId,
+                'migrationVersion': targetSchemaVersion,
+                'exceptionType': 'MissingHistoricalCenter',
+                'failureReason':
+                    'Project.center_id references no row in centers.',
+                'originalDataReference': 'projects.center_id',
+                'recoveryStatus': 'pending',
+              },
             );
+            continue;
           }
           await executor.runInsert(
             '''INSERT OR IGNORE INTO center_projects (center_id, project_id)
