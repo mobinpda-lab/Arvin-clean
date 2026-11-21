@@ -139,6 +139,8 @@ class G1Rev10HierarchyV9Migration {
              WHERE center_id IS NOT NULL ORDER BY id''',
           const [],
         );
+        var hasLegacyCenterIdColumn =
+            projectColumns.any((row) => row['name'] == 'legacy_center_id');
         for (final link in legacyCenterLinks) {
           final centerId = link['center_id'] as String;
           final center = await executor.runSelect(
@@ -152,6 +154,20 @@ class G1Rev10HierarchyV9Migration {
             // recording it fails, the transaction rolls back and no
             // completion marker can be committed.
             final projectId = link['id'] as String;
+            // The historical column has an enforced FK. Keep the orphaned
+            // identifier in a non-FK preservation column and the exception
+            // ledger, then clear only the invalid FK edge so global FK checks
+            // remain meaningful. The Project and all unrelated fields survive.
+            if (!hasLegacyCenterIdColumn) {
+              await executor.runCustom(
+                'ALTER TABLE projects ADD COLUMN legacy_center_id TEXT NULL',
+              );
+              hasLegacyCenterIdColumn = true;
+            }
+            await executor.runUpdate(
+              'UPDATE projects SET legacy_center_id = ?, center_id = NULL WHERE id = ?',
+              <Object?>[centerId, projectId],
+            );
             await _recordException(
               executor,
               entityType: 'project',
