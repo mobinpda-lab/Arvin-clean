@@ -171,6 +171,7 @@ class G1Rev10HierarchyV9Migration {
               'UPDATE projects SET legacy_center_id = ?, center_id = NULL WHERE id = ?',
               <Object?>[centerId, projectId],
             );
+            await _inject('during_exception_insert');
             await _recordException(
               executor,
               entityType: 'project',
@@ -188,6 +189,7 @@ class G1Rev10HierarchyV9Migration {
                 'recoveryStatus': 'pending',
               },
             );
+            await _inject('after_exception_insert');
             continue;
           }
           await executor.runInsert(
