@@ -310,6 +310,7 @@ void main() {
         ),
         hasLength(1),
       );
+      // Historical v8 applications are keyed by task_id; there is no synthetic id column.
       final applicationRows = await database.runSelect(
         "SELECT task_id FROM template_task_applications WHERE task_id = 'task-v8-a'",
         const [],
