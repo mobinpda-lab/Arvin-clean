@@ -49,3 +49,16 @@
 - Follow-up File Persistence: run 44874825843, job 136757123714 — SUCCESS.
 - Zero Dollar Environment Smoke: run 44874821618 — PENDING; no jobs exposed.
 - Build artifacts: debug artifact 14695861569 (archive digest sha256:80aa8052a482183f40e6849be113672adb8c5d732d5e5cb8468288a2b63b948c); release artifact 14695327649 (archive digest sha256:074f2d5414233a611e3508450c4468528e556b738e1580d3f7859a93a890a479). These are artifact archive digests, not APK file SHA-256.
+
+
+## Historical recovery matrix
+The canonical source-to-acceptance recovery ledger is maintained in [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md). This matrix is evidence-oriented and does not supersede REV10 or owner decisions.
+
+
+## MASTER EXECUTION 131-R live recovery checkpoint — 2026-11-21
+- Audited Candidate: `e380ffd86c4157796cecd6a0d9c4a21716344d55`; Main: `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3495 OPEN / DRAFT / UNMERGED; 434 ahead / 0 behind.
+- COMMAND 20-E run `44880424929`: PASS on the exact Candidate SHA. Attempt 2 Device Smoke run `44880424928` reports People SUCCESS; stale artifact `14698614096` is superseded by latest artifact `14699814794`.
+- Zero Dollar run `44876935899` is an older-SHA environment failure: KVM was unavailable but software fallback was selected; AVD was not found and product smoke was not reached. Issue #3654 tracks the workflow correction.
+- Historical source-to-acceptance ledger: [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md).
+- Current exact-SHA CI: Build `44880424925` PASS; Governance `44880424937` PASS; Device Smoke Attempt 2 `44880424928` PASS; COMMAND 20-E `44880424929` PASS; Follow-up Persistence `44880424931` PASS.
+- No Main write, merge, release, deployment or production-data operation occurred.

@@ -30,3 +30,16 @@ Active repository ruleset 20952260 (`main-protection`) applies only to `refs/hea
 The connector cannot read the branch-protection endpoint (403) and this mission did not modify repository settings. Do not claim owner approval enforcement is active. Admin-authorized settings change remains required.
 ## Conflict response
 Stop the affected change, preserve source evidence, record the exact files/lines/SHAs, consult REV10 and current owner decision register, and obtain owner clarification where the source is genuinely ambiguous. Do not delete or weaken a feature/test to make CI green.
+
+
+## Historical recovery matrix
+The canonical source-to-acceptance recovery ledger is maintained in [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md). This matrix is evidence-oriented and does not supersede REV10 or owner decisions.
+
+
+## MASTER EXECUTION 131-R live recovery checkpoint — 2026-11-21
+- Audited Candidate: `e380ffd86c4157796cecd6a0d9c4a21716344d55`; Main: `45e4202b03a434459e4c021a04efa7e8396359db`; PR #3495 OPEN / DRAFT / UNMERGED; 434 ahead / 0 behind.
+- COMMAND 20-E run `44880424929`: PASS on the exact Candidate SHA. Attempt 2 Device Smoke run `44880424928` reports People SUCCESS; stale artifact `14698614096` is superseded by latest artifact `14699814794`.
+- Zero Dollar run `44876935899` is an older-SHA environment failure: KVM was unavailable but software fallback was selected; AVD was not found and product smoke was not reached. Issue #3654 tracks the workflow correction.
+- Historical source-to-acceptance ledger: [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md).
+- Current exact-SHA CI: Build `44880424925` PASS; Governance `44880424937` PASS; Device Smoke Attempt 2 `44880424928` PASS; COMMAND 20-E `44880424929` PASS; Follow-up Persistence `44880424931` PASS.
+- No Main write, merge, release, deployment or production-data operation occurred.

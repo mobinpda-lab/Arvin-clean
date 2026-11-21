@@ -163,8 +163,9 @@ jobs:
           }
           trap finish EXIT
 
-          ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
-          mkdir -p "$ANDROID_USER_HOME" "$flutter_root"
+          export ANDROID_USER_HOME="$RUNNER_TEMP/android-user"
+          export ANDROID_AVD_HOME="$ANDROID_USER_HOME/avd"
+          mkdir -p "$ANDROID_USER_HOME" "$ANDROID_AVD_HOME" "$flutter_root"
           {
             echo "Runtime environment"
             echo "OS: $(. /etc/os-release && echo "$PRETTY_NAME")"
@@ -247,17 +248,41 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
           stage="AVD creation and emulator boot"
+          stage="AVD creation and emulator boot"
           printf 'no\n' | "$avdmanager" create avd \
             --force --name "$avd_name" \
             --package "system-images;android-35;google_apis;x86_64" \
-            --device pixel_2
+            --device pixel_2 2>&1 | tee "$RUNNER_TEMP/avdmanager-create.log"
+          "$avdmanager" list avd 2>&1 | tee "$RUNNER_TEMP/avdmanager-list.log"
+          avd_ini="$ANDROID_AVD_HOME/$avd_name.ini"
+          avd_config="$ANDROID_AVD_HOME/$avd_name.avd/config.ini"
+          test -s "$avd_ini"
+          test -s "$avd_config"
+          grep -Fq "image.sysdir.1=system-images/android-35/google_apis/x86_64/" "$avd_config"
+          {
+            echo "AVD_HOME=$ANDROID_AVD_HOME"
+            echo "AVD_INI=$avd_ini"
+            echo "AVD_CONFIG=$avd_config"
+            echo "AVD_PROVISIONING=PASS"
+          } >> "$GITHUB_STEP_SUMMARY"
           "$sdk_root/platform-tools/adb" start-server
           "$sdk_root/emulator/emulator" -avd "$avd_name" \
             -accel off -no-window -no-audio -no-boot-anim -no-snapshot -no-metrics \
             -gpu swiftshader_indirect > "$emulator_log" 2>&1 &
           emulator_pid=$!
           export PATH="$sdk_root/platform-tools:$PATH"
-          timeout 1800 adb wait-for-device
+          for _ in $(seq 1 60); do
+            if ! kill -0 "$emulator_pid" 2>/dev/null; then
+              cat "$emulator_log" >&2 || true
+              exit 1
+            fi
+            if grep -Fq "Unknown AVD name" "$emulator_log"; then
+              cat "$emulator_log" >&2
+              exit 1
+            fi
+            sleep 1
+          done
+          timeout 900 adb wait-for-device
           booted=""
           device=""
           for _ in $(seq 1 900); do
@@ -305,6 +330,8 @@ jobs:
             ${{ runner.temp }}/flutter-version.txt
             ${{ runner.temp }}/android-sdk-install.txt
             ${{ runner.temp }}/android-sdk-installed.txt
+            ${{ runner.temp }}/avdmanager-create.log
+            ${{ runner.temp }}/avdmanager-list.log
             ${{ runner.temp }}/arvin-emulator.log
             ${{ runner.temp }}/flutter-pub-get.log
             ${{ runner.temp }}/zero-dollar-calendar-smoke.log

@@ -36,3 +36,7 @@
 - No parallel scheduler or reminder storage is allowed.
 ## Change-control rule
 A historical implementation, test, ADR, issue, branch, PR or report cannot silently supersede an owner decision. If evidence conflicts, stop the affected change, register the conflict, inspect the canonical source and request owner clarification where necessary. Do not remove a requirement to make a test pass.
+
+
+## Historical recovery matrix
+The canonical source-to-acceptance recovery ledger is maintained in [REV10-HISTORICAL-RECOVERY-MATRIX.md](REV10-HISTORICAL-RECOVERY-MATRIX.md). This matrix is evidence-oriented and does not supersede REV10 or owner decisions.
