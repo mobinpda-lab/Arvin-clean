@@ -137,13 +137,12 @@ class G1Rev10HierarchyV9Migration {
       // merely a repair column created when an orphan happens to be present.
       // Existing v8 databases need the additive upgrade; fresh v9 databases
       // already receive it from G1DriftSchema._statements.
-      var hasLegacyCenterIdColumn =
+      final hasLegacyCenterIdColumn =
           projectColumns.any((row) => row['name'] == 'legacy_center_id');
       if (!hasLegacyCenterIdColumn) {
         await executor.runCustom(
           'ALTER TABLE projects ADD COLUMN legacy_center_id TEXT NULL',
         );
-        hasLegacyCenterIdColumn = true;
       }
       if (projectColumns.any((row) => row['name'] == 'center_id')) {
         final legacyCenterLinks = await executor.runSelect(
