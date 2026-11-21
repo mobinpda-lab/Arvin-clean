@@ -29,12 +29,17 @@ void main() {
       // every application table below comes from the historical SQL fixture.
       await database.ensureOpen(G1DriftSchema());
       final sql = utf8.decode(bytes);
-      final statements = sql.split(';').map((raw) {
-        final sourceLines = raw
-            .split('\n')
-            .where((line) => !line.trimLeft().startsWith('--'));
-        return sourceLines.join('\n').trim();
-      }).where((statement) => statement.isNotEmpty);
+      // Remove full-line SQL comments before splitting statements. A comment
+      // may itself contain semicolons; splitting first would turn its tail
+      // into executable SQL (for example, "not generated from current schema").
+      final executableSql = sql
+          .split('\n')
+          .where((line) => !line.trimLeft().startsWith('--'))
+          .join('\n');
+      final statements = executableSql
+          .split(';')
+          .map((statement) => statement.trim())
+          .where((statement) => statement.isNotEmpty);
       for (final statement in statements) {
         await database.runCustom(statement);
       }
