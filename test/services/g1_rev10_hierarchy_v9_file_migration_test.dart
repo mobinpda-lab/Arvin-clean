@@ -212,6 +212,20 @@ void main() {
         const [],
       );
       expect(oldProjectColumns.map((row) => row['name']), contains('center_id'));
+      final legacyCenterColumn = oldProjectColumns.singleWhere(
+        (row) => row['name'] == 'legacy_center_id',
+      );
+      expect(legacyCenterColumn['type'], 'TEXT');
+      expect((legacyCenterColumn['notnull'] as num).toInt(), 0);
+      expect((legacyCenterColumn['pk'] as num).toInt(), 0);
+      final projectForeignKeys = await database!.runSelect(
+        "PRAGMA foreign_key_list('projects')",
+        const [],
+      );
+      expect(
+        projectForeignKeys.any((row) => row['from'] == 'legacy_center_id'),
+        isFalse,
+      );
       final oldProjectLinks = await database!.runSelect(
         'SELECT id, center_id FROM projects ORDER BY id',
         const [],
@@ -265,6 +279,11 @@ void main() {
         'ok',
       );
       expect(await database!.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
+      final reopenedLegacyId = await database!.runSelect(
+        "SELECT legacy_center_id FROM projects WHERE id = 'project-v8-missing-center'",
+        const [],
+      );
+      expect(reopenedLegacyId.single['legacy_center_id'], 'center-v8-missing');
       final marker = await database!.runSelect(
         "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_hierarchy_schema_version'",
         const [],
