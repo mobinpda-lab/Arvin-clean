@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'lib/arvin_colors.dart'
+      - 'lib/home/home_visual_integration.dart'
       - 'docs/project-continuity/PRODUCT_DECISIONS.md'
       - '.github/workflows/arvin-governance-validation.yml'
       - 'test/arvin_primary_blue_contract_test.dart'
