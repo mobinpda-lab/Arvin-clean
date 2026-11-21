@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:drift/native.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences.setMockInitialValues(<String, Object>{});
 
   test('real file-backed v8 Center and Project links migrate to v9 M2M and survive retry/reopen', () async {
     final directory = await Directory.systemTemp.createTemp('arvin-v8-v9b-file-');
