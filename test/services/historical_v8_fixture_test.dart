@@ -102,34 +102,88 @@ void main() {
         partialIndex.single['sql'],
         contains('is_archived = 0'),
       );
-      // Fingerprint the schema SQLite actually created, not the source file
-      // bytes. This includes normalized table DDL (and therefore column
-      // declarations/constraints) plus the explicit index SQL/predicate.
-      final schemaObjects = await database.runSelect(
-        """SELECT type, name, tbl_name, sql FROM sqlite_master
-           WHERE type IN ('table', 'index')
-             AND name NOT LIKE 'sqlite_%'
-           ORDER BY type, name""",
-        const [],
-      );
-      expect(schemaObjects, hasLength(17)); // 16 tables + one explicit index.
-      final canonicalSchema = schemaObjects.map((row) => <String, Object?>{
-        'type': row['type'],
-        'name': row['name'],
-        'table': row['tbl_name'],
-        'sql': (row['sql'] as String?)
-            ?.replaceAll(RegExp(r'\s+'), ' ')
-            .trim()
-            .toLowerCase(),
-      }).toList(growable: false);
+      // Fingerprint canonical SQLite metadata rather than sqlite_master SQL text.
+      // SQLite versions may normalize CREATE statements differently even when
+      // the resulting schema is identical. PRAGMA metadata captures columns,
+      // constraints, foreign keys and index shape in a version-stable form.
+      final canonicalSchema = <Map<String, Object?>>[];
+      for (final tableRow in tables) {
+        final tableName = tableRow['name'] as String;
+        final columns = await database.runSelect(
+          "PRAGMA table_info('$tableName')",
+          const [],
+        );
+        final columnShape = columns.map((row) => <String, Object?>{
+          'cid': row['cid'],
+          'name': row['name'],
+          'type': row['type'],
+          'notnull': row['notnull'],
+          'default': row['dflt_value'],
+          'pk': row['pk'],
+        }).toList(growable: false);
+        final foreignKeys = await database.runSelect(
+          "PRAGMA foreign_key_list('$tableName')",
+          const [],
+        );
+        final foreignKeyShape = foreignKeys.map((row) => <String, Object?>{
+          'id': row['id'],
+          'seq': row['seq'],
+          'table': row['table'],
+          'from': row['from'],
+          'to': row['to'],
+          'onUpdate': row['on_update'],
+          'onDelete': row['on_delete'],
+          'match': row['match'],
+        }).toList()
+          ..sort((left, right) {
+            final byId = (left['id'] as num).compareTo(right['id'] as num);
+            return byId != 0
+                ? byId
+                : (left['seq'] as num).compareTo(right['seq'] as num);
+          });
+        final indexes = await database.runSelect(
+          "PRAGMA index_list('$tableName')",
+          const [],
+        );
+        final indexShape = <Map<String, Object?>>[];
+        for (final index in indexes) {
+          final indexName = index['name'] as String;
+          final indexColumns = await database.runSelect(
+            "PRAGMA index_xinfo('$indexName')",
+            const [],
+          );
+          indexShape.add(<String, Object?>{
+            'name': indexName,
+            'unique': index['unique'],
+            'origin': index['origin'],
+            'partial': index['partial'],
+            'columns': indexColumns.map((row) => <String, Object?>{
+              'seqno': row['seqno'],
+              'cid': row['cid'],
+              'name': row['name'],
+              'desc': row['desc'],
+              'coll': row['coll'],
+              'key': row['key'],
+            }).toList(growable: false),
+          });
+        }
+        indexShape.sort(
+          (left, right) =>
+              (left['name'] as String).compareTo(right['name'] as String),
+        );
+        canonicalSchema.add(<String, Object?>{
+          'table': tableName,
+          'columns': columnShape,
+          'foreignKeys': foreignKeyShape,
+          'indexes': indexShape,
+        });
+      }
       final structuralFingerprint = (await Sha256().hash(
         utf8.encode(jsonEncode(canonicalSchema)),
       )).bytes.map((byte) => byte.toRadixString(16).padLeft(2, '0')).join();
-      // Golden is computed from sqlite_master after executing the historical
-      // source DDL at commit 874dd8b..., not from a SHA of the fixture file.
       expect(
         structuralFingerprint,
-        '2fdd5eb5385fc6f0933498bd70f2872d214cadb63e8909b834510142aebcba15',
+        'ae240d3fd9e9af95cd3f503b282d58463613373585c967f4f80525e013751463',
       );
 
       const expectedColumns = <String, List<String>>{
