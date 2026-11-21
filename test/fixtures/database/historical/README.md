@@ -12,7 +12,7 @@
 
 ## Checked-in artifacts
 - `v8_schema.sql`: independent SQL DDL extracted from the historical source; it does not install the current schema first.
-- `../../../../services/historical_v8_fixture_test.dart`: executes the SQL against an isolated in-memory SQLite executor, checks all 16 table names, key foreign-key declarations and the partial index.
+- `../../../services/historical_v8_fixture_test.dart`: executes the SQL against an isolated in-memory SQLite executor, checks all 16 table names, key foreign-key declarations and the partial index.
 - DDL file SHA-256 fingerprint: `9a11f8952cf1d11bebd020a785021e7f051410580762a6b78276b7b0f89dc2ba`.
 
 ## Remaining acceptance work
