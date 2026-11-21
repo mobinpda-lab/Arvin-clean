@@ -4,7 +4,9 @@ import 'dart:typed_data';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/task.dart';
+import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -66,6 +68,15 @@ void main() {
       expect(databaseAFile.path, isNot(databaseBFile.path));
 
       final storeA = TaskStore(executor: databaseA);
+      final projectStoreA = ProjectStore(executor: databaseA);
+      final projectA = ProjectPlan(
+        id: 'independent-backup-project',
+        title: 'پروژه با شناسه تاریخی مرکز',
+        legacyFields: const <String, dynamic>{
+          'legacyCenterId': 'historical-center-42',
+        },
+      );
+      await projectStoreA.upsert(<ProjectPlan>[projectA]);
       const taskId = 'independent-backup-task';
       const personId = 'independent-backup-person';
       const followUpId = 'independent-backup-follow-up';
@@ -125,6 +136,7 @@ void main() {
       final manager = ArvinBackupManager(service: backupService);
       final backupName = await manager.backupCanonicalTasks(
         sourceTasks,
+        projects: await projectStoreA.load(),
         categories: await storeA.loadCategories(),
         tags: await storeA.loadTags(),
         people: await storeA.loadPeopleDirectory(),
@@ -135,8 +147,8 @@ void main() {
       expect(await backupFile.length(), greaterThan(0));
 
       // Database B is a separate SQLite file and starts with no user records.
-      final storeB = TaskStore(executor: databaseB);
-      expect(await storeB.load(), isEmpty);
+      expect(await TaskStore(executor: databaseB).load(), isEmpty);
+      expect(await ProjectStore(executor: databaseB).load(), isEmpty);
       final candidate = await manager.restoreCanonicalBackup();
       expect(candidate, isNotNull);
       final firstCandidate = candidate!;
@@ -146,6 +158,7 @@ void main() {
       Future<void> applyCandidate(
         CanonicalBackupCandidate candidateToApply,
       ) async {
+        final storeB = TaskStore(executor: databaseB);
         await storeB.save(candidateToApply.tasks);
         await storeB.mergeCatalogs(
           categories: candidateToApply.categories ?? const <String>[],
@@ -154,12 +167,15 @@ void main() {
         if (candidateToApply.people != null) {
           await storeB.savePeopleDirectory(candidateToApply.people!);
         }
+        await ProjectStore(executor: databaseB).replaceAll(
+          candidateToApply.projects,
+        );
       }
 
       await applyCandidate(firstCandidate);
 
       Future<void> verifyDatabaseB({required Task expectedTask}) async {
-        final restoredTasks = await storeB.load();
+        final restoredTasks = await TaskStore(executor: databaseB).load();
         expect(restoredTasks, hasLength(1));
         final restored = restoredTasks.single;
         expect(restored.id, taskId);
@@ -191,8 +207,16 @@ void main() {
         expect(await storeB.loadCategories(), contains('دسته مستقل بدون اتکا به UI'));
         expect(await storeB.loadTags(), contains('برچسب مستقل'));
         expect(
-          (await storeB.loadPeopleDirectory()).map((person) => person.id),
+          (await TaskStore(executor: databaseB).loadPeopleDirectory())
+              .map((person) => person.id),
           contains(personId),
+        );
+        final restoredProjects = await ProjectStore(executor: databaseB).load();
+        expect(restoredProjects, hasLength(1));
+        expect(restoredProjects.single.id, 'independent-backup-project');
+        expect(
+          restoredProjects.single.legacyFields['legacyCenterId'],
+          'historical-center-42',
         );
 
         final taskPeople = await databaseB.runSelect(
@@ -217,6 +241,13 @@ void main() {
         );
       }
 
+      await verifyDatabaseB(expectedTask: sourceTasks.single);
+
+      // Reopen the independent destination database before the second backup
+      // and verify both Task and historical Project metadata survive process
+      // restart, not just the in-memory restore session.
+      await databaseB.close();
+      databaseB = NativeDatabase(databaseBFile);
       await verifyDatabaseB(expectedTask: sourceTasks.single);
 
       // Create a genuinely independent second backup file from a newer
@@ -277,6 +308,7 @@ void main() {
 
       // Inject a failure after a real write to Database B and require the
       // rollback path to restore the complete prior Task snapshot.
+      final storeB = TaskStore(executor: databaseB);
       final beforeFailure = await storeB.load();
       await expectLater(
         runRestoreWithRollback<void>(
