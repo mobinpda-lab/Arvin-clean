@@ -951,3 +951,14 @@ Next safe work: read-only consumer and legacy-data inventory, then additive cand
 
 ## Exact-SHA evidence rule
 A test result is valid only for the SHA it actually checked out. The successful Build/Device Smoke/Follow-up results on `d8fa8e4` do not prove the polling correction or any later documentation-updated SHA.
+
+
+## COMMAND 103-R — next safe actions
+
+1. Re-fetch PR #3495 and confirm the latest branch SHA after all continuity-document commits.
+2. Confirm the new `Arvin Governance Validation` workflow is triggered and inspect its job logs.
+3. Run the exact-SHA Build and all required regression shards; do not transfer the earlier `cd71c169...` PASS results.
+4. Inspect `arvin_colors.dart`, the new regression test and governance workflow at the final SHA.
+5. Audit Branch Protection, Rulesets, required status checks, CODEOWNERS enforcement and bypass actors using authoritative repository settings. If unavailable, leave UNVERIFIED.
+6. Continue Issue #3619 (independent SQLite A-to-B restore) and Issue #3646 (four-action Reminder window) as separate product gates.
+7. Keep PR #3495 Draft and unmerged. Do not modify Main, release, deploy or perform production data operations.
