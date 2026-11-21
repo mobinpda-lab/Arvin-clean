@@ -276,3 +276,87 @@ void main() {
     }
   });
 }
+
+
+test('v8 upgrade adds legacy_center_id when every historical Center link is valid', () async {
+  final directory = await Directory.systemTemp.createTemp('arvin-v8-v9-valid-center-');
+  final file = File('${directory.path}/canonical-v8-valid.sqlite');
+  var database = NativeDatabase(file);
+  try {
+    await database.ensureOpen(G1DriftSchema());
+    await database.runCustom('PRAGMA foreign_keys = ON');
+    await database.runCustom('''
+      CREATE TABLE tasks (
+        id TEXT NOT NULL PRIMARY KEY,
+        category TEXT NULL
+      )
+    ''');
+    await database.runCustom('''
+      CREATE TABLE centers (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        is_archived INTEGER NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await database.runCustom('''
+      CREATE TABLE projects (
+        id TEXT NOT NULL PRIMARY KEY,
+        name TEXT NOT NULL,
+        center_id TEXT NULL REFERENCES centers(id)
+      )
+    ''');
+    await database.runCustom('''
+      CREATE TABLE project_items (
+        project_id TEXT NOT NULL REFERENCES projects(id),
+        task_id TEXT NOT NULL REFERENCES tasks(id),
+        ordinal INTEGER NOT NULL,
+        PRIMARY KEY (project_id, task_id)
+      )
+    ''');
+    await database.runCustom('''
+      CREATE TABLE taxonomy_categories (
+        name TEXT NOT NULL PRIMARY KEY,
+        created_at TEXT NOT NULL
+      )
+    ''');
+    await database.runCustom('''
+      CREATE TABLE arvin_storage_meta (
+        key TEXT NOT NULL PRIMARY KEY,
+        value TEXT NOT NULL
+      )
+    ''');
+    await database.runCustom(
+      "INSERT INTO centers (id, name, created_at) VALUES ('valid-center', 'مرکز معتبر', '2026-11-01T08:00:00.000Z')",
+    );
+    await database.runCustom(
+      "INSERT INTO projects (id, name, center_id) VALUES ('valid-project', 'پروژه معتبر', 'valid-center')",
+    );
+
+    await G1DriftSchema.install(database);
+
+    final columns = await database.runSelect(
+      "PRAGMA table_info('projects')",
+      const [],
+    );
+    expect(columns.map((row) => row['name']), contains('legacy_center_id'));
+    final project = await database.runSelect(
+      "SELECT id, center_id, legacy_center_id FROM projects WHERE id = 'valid-project'",
+      const [],
+    );
+    expect(project, hasLength(1));
+    expect(project.single['center_id'], 'valid-center');
+    expect(project.single['legacy_center_id'], isNull);
+    final links = await database.runSelect(
+      "SELECT center_id, project_id FROM center_projects",
+      const [],
+    );
+    expect(links, hasLength(1));
+    expect(links.single['center_id'], 'valid-center');
+    expect(links.single['project_id'], 'valid-project');
+    expect(await database.runSelect('PRAGMA foreign_key_check', const []), isEmpty);
+  } finally {
+    await database.close();
+    await directory.delete(recursive: true);
+  }
+});
