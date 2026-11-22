@@ -60,10 +60,7 @@ class _BackupPageState extends State<BackupPage> {
   }
 
   Future<void> _chooseDirectory() async {
-    await arvinAsyncTrace.run<void>(
-      operationName: 'backup.ui_loading_start',
-      operation: () async => setState(() => busy = true),
-    );
+    setState(() => busy = true);
     try {
       final value = await manager.chooseAndRememberDirectory();
       if (!mounted) return;
@@ -259,7 +256,10 @@ class _BackupPageState extends State<BackupPage> {
       if (passphrase == null || !mounted) return;
     }
 
-    setState(() => busy = true);
+    await arvinAsyncTrace.run<void>(
+      operationName: 'backup.ui_loading_start',
+      operation: () async => setState(() => busy = true),
+    );
     try {
       final tasks = await arvinTraceFuture('backup.load_tasks', widget.loadTasks());
       final settings = await arvinTraceFuture('backup.load_settings', _portableBackupSettings());
