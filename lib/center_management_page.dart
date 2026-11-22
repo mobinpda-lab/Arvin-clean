@@ -62,7 +62,12 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _load() async {
+  Future<void> _load() => arvinAsyncTrace.run<void>(
+        operationName: 'center.page.load',
+        operation: _loadTraced,
+      );
+
+  Future<void> _loadTraced() async {
     setState(() {
       _loading = true;
       _error = null;
