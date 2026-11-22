@@ -11,6 +11,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/project_store.dart';
 import 'services/task_store.dart';
+import 'services/arvin_async_trace.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -249,20 +250,25 @@ class _BackupPageState extends State<BackupPage> {
 
     setState(() => busy = true);
     try {
-      final tasks = await widget.loadTasks();
-      final fileName = await manager.backupTasks(
-        tasks,
-        settings: await _portableBackupSettings(),
-        calendarLinks: (await ExternalCalendarLinkStore().load())
-            .map((link) => link.toJson())
-            .toList(growable: false),
-        projects: manager.projectCodec.encodeList(await ProjectStore().load()),
-        categories: await TaskStore().loadCategories(),
-        tags: await TaskStore().loadTags(),
-        peopleDirectory: (await TaskStore().loadPeopleDirectory())
-            .map((person) => person.toJson())
-            .toList(growable: false),
-        encryptionPassphrase: passphrase,
+      final tasks = await arvinTraceFuture('backup.load_tasks', widget.loadTasks());
+      final settings = await arvinTraceFuture('backup.load_settings', _portableBackupSettings());
+      final calendarLinks = await arvinTraceFuture('backup.load_calendar_links', ExternalCalendarLinkStore().load());
+      final projects = await arvinTraceFuture('backup.load_projects', ProjectStore().load());
+      final categories = await arvinTraceFuture('backup.load_categories', TaskStore().loadCategories());
+      final tags = await arvinTraceFuture('backup.load_tags', TaskStore().loadTags());
+      final people = await arvinTraceFuture('backup.load_people', TaskStore().loadPeopleDirectory());
+      final fileName = await arvinTraceFuture(
+        'backup.manager_write',
+        manager.backupTasks(
+          tasks,
+          settings: settings,
+          calendarLinks: calendarLinks.map((link) => link.toJson()).toList(growable: false),
+          projects: manager.projectCodec.encodeList(projects),
+          categories: categories,
+          tags: tags,
+          peopleDirectory: people.map((person) => person.toJson()).toList(growable: false),
+          encryptionPassphrase: passphrase,
+        ),
       );
       if (!mounted) return;
       _message(

@@ -6,6 +6,7 @@ import 'package:drift/drift.dart';
 
 import 'g1_rev10_hierarchy_v9_migration.dart';
 import 'g1_person_directory_exclusion_v1_migration.dart';
+import 'arvin_async_trace.dart';
 
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
@@ -77,13 +78,13 @@ class G1DriftSchema implements QueryExecutorUser {
     // Failure-injection callers must execute the migration path even if this
     // executor was previously initialized, so they bypass the success cache.
     if (failureInjector != null) {
-      return _serializeInstall(executor, failureInjector: failureInjector);
+      return arvinTraceFuture('schema.install.failure_injection', _serializeInstall(executor, failureInjector: failureInjector));
     }
 
     final existing = _installations[executor];
     if (existing != null) return existing;
 
-    final installation = _serializeInstall(executor);
+    final installation = arvinTraceFuture('schema.install', _serializeInstall(executor));
     final tracked = installation.catchError((Object error, StackTrace stackTrace) {
       _installations[executor] = null;
       Error.throwWithStackTrace(error, stackTrace);

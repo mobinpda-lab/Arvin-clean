@@ -4,6 +4,7 @@ import 'models/center.dart' as domain;
 import 'models/goal_project.dart';
 import 'services/center_store.dart';
 import 'services/project_store.dart';
+import 'services/arvin_async_trace.dart';
 
 enum _CenterSort { name, newest, oldest }
 
@@ -70,10 +71,17 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
       // CenterStore._ensureReady already initializes the canonical Project
       // path. Load stores sequentially to avoid overlapping schema/install
       // transactions on the shared SQLite executor.
-      final centers = await _centers.load(includeArchived: true);
-      final projects = await _projects.load();
-      final links = await Future.wait(
-        centers.map((center) => _centers.projectIdsForCenter(center.id)),
+      final centers = await arvinTraceFuture(
+        'center.page.load_centers',
+        _centers.load(includeArchived: true),
+      );
+      final projects = await arvinTraceFuture(
+        'center.page.load_projects',
+        _projects.load(),
+      );
+      final links = await arvinTraceFuture(
+        'center.page.load_all_links',
+        Future.wait(centers.map((center) => _centers.projectIdsForCenter(center.id))),
       );
       if (!mounted) return;
       setState(() {

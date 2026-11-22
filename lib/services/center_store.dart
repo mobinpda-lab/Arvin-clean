@@ -7,6 +7,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../models/center.dart';
 import 'g1_drift_schema.dart';
 import 'project_store.dart';
+import 'arvin_async_trace.dart';
 
 /// Canonical Center persistence over the existing G1 SQLite database.
 ///
@@ -37,10 +38,10 @@ class CenterStore {
 
   Future<void> _ensureReady() async {
     final executor = _database;
-    await G1DriftSchema.install(executor);
+    await arvinTraceFuture('center.store.schema_install', G1DriftSchema.install(executor));
     // Reuse the canonical Project/Task initialization path. This ensures
     // legacy Projects are migrated before Center↔Project foreign keys are used.
-    await ProjectStore(executor: executor).load();
+    await arvinTraceFuture('center.store.project_prerequisite', ProjectStore(executor: executor).load());
   }
 
   Future<List<Center>> load({bool includeArchived = true}) async {

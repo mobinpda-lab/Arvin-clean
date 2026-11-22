@@ -12,6 +12,7 @@ import '../models/task.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
+import 'arvin_async_trace.dart';
 
 typedef TaskMutation<T> = T Function(List<Task> tasks);
 
@@ -33,8 +34,10 @@ class TaskStore {
 
   TaskStore({QueryExecutor? executor}) : _injectedExecutor = executor;
 
-  Future<List<Task>> load() =>
-      TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
+  Future<List<Task>> load() => arvinTraceFuture(
+        'task.store.load_and_lock',
+        TaskStorageLock.synchronized<List<Task>>(_loadUnlocked),
+      );
 
   Future<List<String>> loadCategories() async {
     return TaskStorageLock.synchronized<List<String>>(() async {
@@ -392,7 +395,7 @@ class TaskStore {
 
   Future<List<Task>> _loadUnlocked() async {
     final executor = _database;
-    await _ensureReady();
+    await arvinTraceFuture('task.store.ensure_ready', _ensureReady());
     final rows = await executor.runSelect(
       'SELECT * FROM tasks ORDER BY storage_ordinal, id',
       const [],
