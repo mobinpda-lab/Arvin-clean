@@ -104,7 +104,10 @@ class _SettingsTextScaler extends TextScaler {
 void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({super.key, this.onHomeLoadComplete});
+
+  /// Test synchronization seam for the canonical Home SQLite initialization.
+  final VoidCallback? onHomeLoadComplete;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -284,6 +287,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          onLoadComplete: widget.onHomeLoadComplete,
         ),
       ),
     );
@@ -298,6 +302,7 @@ class HomePage extends StatefulWidget {
       usePersianDate: true,
       ),
     this.onSettingsChanged,
+    this.onLoadComplete,
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
@@ -305,6 +310,8 @@ class HomePage extends StatefulWidget {
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
+  /// Signals completion of the page's single canonical Store load.
+  final VoidCallback? onLoadComplete;
   final bool enableFirstRunGuide;
 
   /// Optional seam for exercising the existing Home restore flow in tests.
@@ -419,12 +426,14 @@ class _HomePageState extends State<HomePage> {
         loadFailure = null;
         loading = false;
       });
+      widget.onLoadComplete?.call();
     } catch (error) {
       if (!mounted) return;
       setState(() {
         loadFailure = error;
         loading = false;
       });
+      widget.onLoadComplete?.call();
     }
   }
 
