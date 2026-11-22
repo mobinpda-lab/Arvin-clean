@@ -36,7 +36,26 @@ class CenterStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
-  Future<void> _ensureReady() async {
+  Future<void>? _readyFuture;
+
+  Future<void> _ensureReady() {
+    final pending = _readyFuture;
+    if (pending != null) return pending;
+
+    // Every Center read/mutation shares one initialization future per store.
+    // In particular, a page loading several Center↔Project edges concurrently
+    // must not fan out repeated schema installs and Project/Task prerequisites
+    // against the same SQLite executor.
+    final initialization = _initialize();
+    _readyFuture = initialization;
+    return initialization.catchError((Object error, StackTrace stackTrace) {
+      // Permit a later operation to retry after a genuine initialization error.
+      if (identical(_readyFuture, initialization)) _readyFuture = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+  }
+
+  Future<void> _initialize() async {
     final executor = _database;
     await arvinTraceFuture('center.store.schema_install', G1DriftSchema.install(executor));
     // Reuse the canonical Project/Task initialization path. This ensures
