@@ -243,11 +243,12 @@ jobs:
             printf '1\n' > "$trace_dir/test-exit-code.txt"
           fi
           {
-            echo "Mission ID: 185-R"
+            echo "Mission ID: 189-R"
             echo "Commit SHA: $TARGET_SHA"
             echo "GitHub Run ID: $GITHUB_RUN_ID"
             echo "Timestamp UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
             echo "Trace file: $(basename "$ARVIN_TRACE_OUTPUT")"
+            echo "Test exit status: $(cat "$trace_dir/test-exit-code.txt")"
           } > "$trace_dir/metadata.txt"
           test -s "$ARVIN_TRACE_OUTPUT"
           test -s "$trace_dir/metadata.txt"
@@ -259,6 +260,9 @@ jobs:
           test -s "$ARVIN_TRACE_OUTPUT"
           grep -Fqx "Commit SHA: $TARGET_SHA" "$trace_dir/metadata.txt"
           grep -Fqx "GitHub Run ID: $GITHUB_RUN_ID" "$trace_dir/metadata.txt"
+          grep -Fqx "Mission ID: 189-R" "$trace_dir/metadata.txt"
+          expected_exit_code="$(cat "$trace_dir/test-exit-code.txt")"
+          grep -Fqx "Test exit status: $expected_exit_code" "$trace_dir/metadata.txt"
           while IFS= read -r line; do
             test -n "$line"
             printf '%s\n' "$line" | jq -e '
