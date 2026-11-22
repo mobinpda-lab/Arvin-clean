@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-import '../../lib/services/arvin_async_trace.dart';
+import 'package:arvin/services/arvin_async_trace.dart';
 
 class _MemoryTraceWriter implements ArvinJsonlTraceWriter {
   _MemoryTraceWriter({this.failFromWrite});
