@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:collection';
 
+import 'arvin_async_trace.dart';
+
 /// Process-local serialization boundary for the canonical `arvin.tasks`
 /// document.
 ///
@@ -24,10 +26,31 @@ class TaskStorageLock {
       _TaskStorageLockEntry(
         zone: zone,
         run: () async {
+          var actionStarted = false;
           try {
-            completer.complete(await action());
-          } catch (error, stackTrace) {
-            completer.completeError(error, stackTrace);
+            await arvinAsyncTrace.run<void>(
+              operationName: 'task.storage_lock.owner',
+              operation: () async {
+                actionStarted = true;
+                try {
+                  completer.complete(await action());
+                } catch (error, stackTrace) {
+                  completer.completeError(error, stackTrace);
+                  Error.throwWithStackTrace(error, stackTrace);
+                }
+              },
+            );
+          } catch (_) {
+            // A diagnostic writer failure must not strand the task lock.
+            // If START could not be persisted, execute the original operation
+            // without tracing; no false END/SUCCESS event is emitted.
+            if (!actionStarted && !completer.isCompleted) {
+              try {
+                completer.complete(await action());
+              } catch (error, stackTrace) {
+                completer.completeError(error, stackTrace);
+              }
+            }
           }
         },
       ),
