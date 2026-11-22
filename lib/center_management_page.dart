@@ -465,7 +465,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
                                   ),
                                   title: Text(center.name),
                                   subtitle: Text(
-                                    center.isArchived ? 'بایگانی‌شده' : 'فعال • ${linkedCount} پروژه',
+                                    center.isArchived ? 'بایگانی‌شده' : 'فعال • $linkedCount پروژه',
                                   ),
                                   onTap: () => _showDetails(center),
                                   trailing: PopupMenuButton<String>(
