@@ -43,6 +43,17 @@ void main() {
         ),
       ),
     );
+    // The page starts its own asynchronous _load from initState. Drain the
+    // real SQLite executor after mounting so the fake-async widget frame does
+    // not assert against the initial loading state.
+    await tester.runAsync(() async {
+      await centers.load(includeArchived: true);
+      await projects.load();
+      final loadedCenters = await centers.load(includeArchived: true);
+      await Future.wait(
+        loadedCenters.map((center) => centers.projectIdsForCenter(center.id)),
+      );
+    });
     await tester.pumpAndSettle();
   }
 
