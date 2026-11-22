@@ -640,3 +640,13 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - Lane A remains BLOCKED / NOT ACCEPTED: #3458, #3550, #3619, #3641 are OPEN. Reminder four-action acceptance remains open under #3646. No Schema/Migration contract or production database changed.
 - Permanent mission report: `docs/history/command-155-r/MASTER-EXECUTION-155-R.md`. Acceptance and relationship matrices were updated with 155-R addenda.
 - Main remains unchanged. PR #3495 remains OPEN/unmerged. Merge NOT AUTHORIZED; Release NO-GO; Deployment NOT AUTHORIZED.
+
+## MASTER EXECUTION 157-R — live recovery addendum (2026-11-22 09:09 Asia/Tehran)
+- Starting canonical HEAD independently verified from PR #3495: `16944fb7dc7f8d5da682a259a4b6d46de9d85156`; Main: `45e4202b03a434459e4c021a04efa7e8396359db`; PR remains OPEN / DRAFT / UNMERGED.
+- Compared previous 156-R code candidate `5c567e8370dacfced5bb218c51897f2cad7b912a` with live HEAD: 5 commits ahead, 0 behind. Six changed paths: this tracker, 150-R entity matrices, 155-R report, `lib/services/g1_drift_schema.dart`, and `test/services/g1_drift_schema_test.dart`.
+- Latest code commit `16944fb7dc7f8d5da682a259a4b6d46de9d85156` serializes concurrent shared-executor schema installation and adds a concurrent installation test. Existing fix reused; no duplicate implementation.
+- Main→canonical compare: 519 ahead, 0 behind.
+- Exact-SHA workflows on starting HEAD: Build `44990357417` IN PROGRESS; Governance `44990357385` SUCCESS; Device Smoke `44990357401` QUEUED/IN PROGRESS; Follow-up Persistence `44990357445` IN PROGRESS; COMMAND 20-E `44990357379` IN PROGRESS. Only Governance is PASS.
+- Task optional-field preservation implementation and tests exist, but exact-current-SHA CI and product acceptance remain pending. Center Task Editor/Task Detail/Quick Capture/Home integration remain incomplete. Lane A and independent Backup A→B remain NOT ACCEPTED. Reminder four-action Issue #3646 remains OPEN.
+- See `docs/history/command-157-r/MASTER-EXECUTION-157-R.md` and `docs/project-continuity/REV10-MASTER-REQUIREMENT-LEDGER.md`.
+- No Main write, merge, release, deployment, schema migration or production database operation occurred.
