@@ -225,6 +225,7 @@ jobs:
           run_suite trace test/services/arvin_async_trace_test.dart
           run_suite center test/center_management_page_test.dart
           run_suite backup test/backup_page_encryption_ux_test.dart
+          run_suite encrypted_backup test/encrypted_backup_service_integration_test.dart
           printf '%s\n' "$overall_exit_code" > "$trace_dir/test-exit-code.txt"
           echo "TRACE_TEST_AGGREGATE_EXIT_CODE=$overall_exit_code"
           exit 0
