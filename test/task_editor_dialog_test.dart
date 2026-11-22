@@ -209,6 +209,71 @@ void main() {
     expect(result!.category, 'مشتریان');
     expect(result!.checklist, const ['[ ] ارسال قرارداد']);
   });
+  testWidgets('editing preserves Center, Project, Category and unknown metadata', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'hierarchy-links',
+      title: 'کار دارای ارتباط',
+      centerId: 'center-a',
+      projectId: 'project-a',
+      categoryId: 'category-a',
+      extensionData: const <String, dynamic>{'futureMetadata': 'preserve-me'},
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.id, 'hierarchy-links');
+    expect(result!.centerId, 'center-a');
+    expect(result!.projectId, 'project-a');
+    expect(result!.categoryId, 'category-a');
+    expect(result!.extensionData['futureMetadata'], 'preserve-me');
+  });
+
+  testWidgets('editing preserves explicit NULL hierarchy fields', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'explicit-null-links',
+      'title': 'ارتباط‌های خالی صریح',
+      'centerId': null,
+      'projectId': null,
+      'categoryId': null,
+    });
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    final json = result!.toJson();
+    expect(json.containsKey('centerId'), isTrue);
+    expect(json['centerId'], isNull);
+    expect(json.containsKey('projectId'), isTrue);
+    expect(json['projectId'], isNull);
+    expect(json.containsKey('categoryId'), isTrue);
+    expect(json['categoryId'], isNull);
+  });
+
+  testWidgets('editing preserves absent hierarchy fields as absent', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'absent-links',
+      'title': 'بدون ارتباط',
+    });
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    final json = result!.toJson();
+    expect(json.containsKey('centerId'), isFalse);
+    expect(json.containsKey('projectId'), isFalse);
+    expect(json.containsKey('categoryId'), isFalse);
+  });
+
   testWidgets('Back-style close prompts and can save Task edits without data loss',
       (tester) async {
     Task? result;
