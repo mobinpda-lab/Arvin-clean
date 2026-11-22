@@ -26,7 +26,9 @@ class ArvinFileJsonlTraceWriter implements ArvinJsonlTraceWriter {
       return Future<void>.error(StateError('Trace writer is closed'));
     }
     final next = _tail.then((_) => action());
-    _tail = next;
+    // Keep the serialization queue usable after a failed write while still
+    // returning that failure to the operation that attempted the write.
+    _tail = next.then<void>((_) {}, onError: (Object _, StackTrace __) {});
     return next;
   }
 
@@ -45,11 +47,14 @@ class ArvinFileJsonlTraceWriter implements ArvinJsonlTraceWriter {
   @override
   Future<void> close() async {
     if (_closed) return;
-    await _tail;
     _closed = true;
-    await _sink?.flush();
-    await _sink?.close();
-    _sink = null;
+    try {
+      await _tail;
+      await _sink?.flush();
+    } finally {
+      await _sink?.close();
+      _sink = null;
+    }
   }
 }
 
@@ -109,7 +114,7 @@ class ArvinAsyncTrace {
     final writer = _writer;
     if (writer == null) return;
     final next = _writeTail.then((_) => writer.writeLine(line));
-    _writeTail = next;
+    _writeTail = next.then<void>((_) {}, onError: (Object _, StackTrace __) {});
     await next;
   }
 
@@ -202,10 +207,10 @@ class ArvinAsyncTrace {
 
   Future<void> close() async {
     if (_closed) return;
+    _closed = true;
     await _writeTail;
     await _writer?.flush();
     await _writer?.close();
-    _closed = true;
   }
 }
 
