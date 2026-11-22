@@ -182,11 +182,11 @@ jobs:
     env:
       FLUTTER_VERSION: '3.47.0'
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-      ARVIN_TRACE_OUTPUT: ${{ runner.temp }}/arvin-trace/arvin-async-trace.jsonl
+      ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/.arvin-trace/arvin-async-trace.jsonl
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ env.TARGET_SHA }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       - name: Verify exact requested revision
         run: |
           set -euo pipefail
@@ -273,8 +273,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v5
         with:
-          name: arvin-trace-${{ env.TARGET_SHA }}-${{ github.run_id }}
-          path: ${{ runner.temp }}/arvin-trace/
+          name: arvin-trace-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}
+          path: .arvin-trace/
           if-no-files-found: error
           compression-level: 6
       - name: Preserve the trace test exit code
