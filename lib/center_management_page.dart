@@ -146,9 +146,15 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     try {
       if (center == null) {
         final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
-        await _centers.create(id: id, name: name);
+        await arvinAsyncTrace.run<void>(
+          operationName: 'center.page.create',
+          operation: () async => _centers.create(id: id, name: name),
+        );
       } else {
-        await _centers.rename(center.id, name);
+        await arvinAsyncTrace.run<void>(
+          operationName: 'center.page.rename',
+          operation: () async => _centers.rename(center.id, name),
+        );
       }
       await _load();
     } catch (error) {
@@ -181,9 +187,15 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     if (accepted != true) return;
     try {
       if (archived) {
-        await _centers.archive(center.id);
+        await arvinAsyncTrace.run<void>(
+          operationName: 'center.page.archive',
+          operation: () => _centers.archive(center.id),
+        );
       } else {
-        await _centers.restore(center.id);
+        await arvinAsyncTrace.run<void>(
+          operationName: 'center.page.restore',
+          operation: () => _centers.restore(center.id),
+        );
       }
       await _load();
     } catch (error) {
@@ -193,7 +205,10 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
 
   Future<void> _editProjectLinks(domain.Center center) async {
     try {
-      final current = await _centers.projectIdsForCenter(center.id);
+      final current = await arvinAsyncTrace.run<List<String>>(
+        operationName: 'center.page.read_project_links_for_edit',
+        operation: () => _centers.projectIdsForCenter(center.id),
+      );
       if (!mounted) return;
       final selected = await showDialog<Set<String>>(
         context: context,
@@ -245,7 +260,10 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
         },
       );
       if (!mounted || selected == null) return;
-      await _centers.replaceProjectLinks(center.id, selected);
+      await arvinAsyncTrace.run<void>(
+        operationName: 'center.page.replace_project_links',
+        operation: () => _centers.replaceProjectLinks(center.id, selected),
+      );
       await _load();
       _showMessage('ارتباط پروژه‌های مرکز به‌روزرسانی شد.');
     } catch (error) {
@@ -255,7 +273,10 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
 
   Future<void> _showDetails(domain.Center center) async {
     try {
-      final ids = await _centers.projectIdsForCenter(center.id);
+      final ids = await arvinAsyncTrace.run<List<String>>(
+        operationName: 'center.page.read_project_links_for_details',
+        operation: () => _centers.projectIdsForCenter(center.id),
+      );
       final byId = {for (final project in _projectItems) project.id: project};
       final linked = ids.map((id) => byId[id]).whereType<ProjectPlan>().toList();
       if (!mounted) return;
