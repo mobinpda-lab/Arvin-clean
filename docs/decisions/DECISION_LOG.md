@@ -42,3 +42,14 @@ Category cardinality per Task; exact canonical Task relation; existing membershi
 - No end-to-end Main v7 physical SQLite fixture was executed. Full DDL transcription, source fixture and complete data/ID preservation proof remain BLOCKED.
 - Original COMMAND 37-R report remains unavailable in the retrievable context; no reconstruction was made.
 - Evidence recorded in DATABASE_SOURCE_EVIDENCE.md, updated history reports, sqlite-test-results/COMMAND-41-R.md and historical fixture README.
+
+## 2026-11-22 — ARVIN-DEC-157-001 — Serialize shared SQLite schema installation
+- **Decision status:** implementation committed; acceptance pending exact-SHA CI.
+- **Observed canonical SHA:** `16944fb7dc7f8d5da682a259a4b6d46de9d85156`.
+- **Decision:** Serialize complete `G1DriftSchema.install` operations when multiple Stores share the same `QueryExecutor`; do not rely on per-statement executor serialization to protect a multi-statement schema installation.
+- **Technical reasoning:** Concurrent installers can otherwise interleave PRAGMA changes and DDL transactions. An identity-keyed per-executor future queue serializes installation while preserving concurrency across distinct executors.
+- **Affected entities:** SQLite schema bootstrap; every Store sharing a single executor.
+- **Implementation:** `lib/services/g1_drift_schema.dart`; regression `test/services/g1_drift_schema_test.dart`.
+- **Related commit:** `16944fb7dc7f8d5da682a259a4b6d46de9d85156`.
+- **Acceptance evidence:** Build run `44990357417` was IN PROGRESS at observation; Governance run `44990357385` SUCCESS does not prove the SQLite test. Acceptance remains NOT ACCEPTED until exact-SHA test/CI succeeds.
+- **Guardrail:** no schema version change, data migration, Main write, merge, release or deployment authorized.
