@@ -128,3 +128,12 @@ No join table was recreated, no existing relation was deleted, and no schema/per
 | Project → Category | Existing `project_categories` table retained | Canonical Store/API/UI and accepted backup/restore round-trip remain absent | PARTIAL / NOT ACCEPTED |
 
 Task Editor regression tests now cover retained IDs, unknown metadata, explicit NULL and absent optional fields. Exact-SHA Build and related workflows for this Candidate remain pending/in progress; no relationship acceptance is inferred from source changes alone. Lane A issues #3458, #3550, #3619 and #3641 remain OPEN. No Schema or Migration contract changed.
+
+## MASTER EXECUTION 157-R — relationship revalidation addendum (2026-11-22 09:09 Asia/Tehran)
+**Candidate:** `16944fb7dc7f8d5da682a259a4b6d46de9d85156`
+- Task→Center, Task→Project and Task→Category optional IDs are preserved by the Task Editor on unrelated edits, including unknown extensionData and absent-vs-explicit-NULL states. This is preservation-only; it does not implement relationship selection or establish graph acceptance.
+- Center→Project remains the existing M2M relation through CenterStore. Preserve the existing join table and scoped transactional replacement coverage; portable backup parity remains open.
+- Project→Category schema exists, but canonical Store/API/UI and accepted backup/restore round-trip remain open. Do not recreate the join table or infer relationships.
+- Home Center filtering and all end-to-end relation projections remain unaccepted.
+- No migration or schema contract was changed by this mission. Lane A remains the gate for historical migration and protected persistence work.
+- Exact candidate CI is not complete: Governance `44990357385` SUCCESS; Build `44990357417` IN PROGRESS; Device Smoke `44990357401` QUEUED/IN PROGRESS; Follow-up `44990357445` IN PROGRESS; COMMAND 20-E `44990357379` IN PROGRESS.
