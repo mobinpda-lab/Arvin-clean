@@ -17,7 +17,7 @@ class _MemoryTraceWriter implements ArvinJsonlTraceWriter {
   @override
   Future<void> writeLine(String line) async {
     _writeCount++;
-    if (failFromWrite != null && _writeCount >= failFromWrite!) {
+    if (failFromWrite != null && _writeCount == failFromWrite!) {
       throw StateError('injected trace writer failure');
     }
     lines.add(line);
