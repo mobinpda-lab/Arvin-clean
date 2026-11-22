@@ -148,12 +148,16 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
         final id = 'center-${DateTime.now().microsecondsSinceEpoch}';
         await arvinAsyncTrace.run<void>(
           operationName: 'center.page.create',
-          operation: () async => _centers.create(id: id, name: name),
+          operation: () async {
+            await _centers.create(id: id, name: name);
+          },
         );
       } else {
         await arvinAsyncTrace.run<void>(
           operationName: 'center.page.rename',
-          operation: () async => _centers.rename(center.id, name),
+          operation: () async {
+            await _centers.rename(center.id, name);
+          },
         );
       }
       await _load();
