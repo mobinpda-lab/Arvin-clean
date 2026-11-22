@@ -237,14 +237,23 @@ class _BackupPageState extends State<BackupPage> {
   }
 
   Future<void> _backup() async {
+    var operationStarted = false;
     try {
       await arvinAsyncTrace.run<void>(
         operationName: 'backup.page',
-        operation: _backupTraced,
+        operation: () async {
+          operationStarted = true;
+          await _backupTraced();
+        },
       );
     } catch (_) {
-      // The page reports the failure in its UI; do not leak an unhandled
-      // Future from the button callback.
+      // If START could not be persisted, preserve the user operation without
+      // diagnostics. A started operation already ran its own completion path.
+      if (!operationStarted) {
+        try {
+          await _backupTraced();
+        } catch (_) {}
+      }
     }
   }
 
