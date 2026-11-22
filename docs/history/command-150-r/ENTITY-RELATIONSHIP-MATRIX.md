@@ -112,3 +112,19 @@ No join table was recreated, no existing relation was deleted, and no schema/per
 - Task→Center remains optional 0..1 at the data layer. Task Editor currently omits centerId when reconstructing the Task; this is a verified preservation defect. Task Detail, Quick Capture and Home Center selector/projection remain absent.
 - Project↔Category schema exists, but Store/API/UI and portable relation round-trip acceptance remain absent. Do not recreate the table or infer edges.
 - No Schema or protected persistence changes were made. Lane A remains BLOCKED / NOT ACCEPTED.
+
+
+## MASTER EXECUTION 155-R — relationship revalidation (2026-11-22)
+
+**Candidate:** `5c567e8370dacfced5bb218c51897f2cad7b912a`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`
+
+| Relationship | Source change / current contract | Product path | Acceptance |
+|---|---|---|---|
+| Task → Center | Task Editor now preserves existing `centerId` during unrelated edits; `projectId`, `categoryId` and optional-field `extensionData` are preserved too | Center selection/change/clear is not yet exposed in Task Editor | IMPLEMENTED for preservation only; UI PARTIAL; NOT ACCEPTED |
+| Task → Project | Existing direct optional `projectId` is carried forward; legacy `project_items` assignment remains independently managed by existing service | No new membership authority or relation table introduced | PARTIAL / NOT ACCEPTED |
+| Task → Category | Existing optional `categoryId` is carried forward; legacy Category string remains separate | No new Category relationship API introduced | PARTIAL / NOT ACCEPTED |
+| Center → Project | Existing `center_projects` and CenterStore transaction methods reused | Center Management UI remains the current editing surface; Project-side integration and portable backup parity remain open | PARTIAL / NOT ACCEPTED |
+| Project → Category | Existing `project_categories` table retained | Canonical Store/API/UI and accepted backup/restore round-trip remain absent | PARTIAL / NOT ACCEPTED |
+
+Task Editor regression tests now cover retained IDs, unknown metadata, explicit NULL and absent optional fields. Exact-SHA Build and related workflows for this Candidate remain pending/in progress; no relationship acceptance is inferred from source changes alone. Lane A issues #3458, #3550, #3619 and #3641 remain OPEN. No Schema or Migration contract changed.
