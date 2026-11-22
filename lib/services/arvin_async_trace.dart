@@ -214,9 +214,17 @@ class ArvinAsyncTrace {
   }
 }
 
-/// Process-wide compatibility facade. A writer is opt-in so application
-/// startup does not silently create files or capture private user content.
-final ArvinAsyncTrace arvinAsyncTrace = ArvinAsyncTrace();
+/// The Build trace lane opts in through ARVIN_TRACE_OUTPUT. Normal app runs
+/// remain developer.log-only and never create a diagnostic file implicitly.
+ArvinJsonlTraceWriter? _traceWriterFromEnvironment() {
+  final path = Platform.environment['ARVIN_TRACE_OUTPUT'];
+  if (path == null || path.isEmpty) return null;
+  return ArvinFileJsonlTraceWriter(File(path));
+}
+
+/// Process-wide compatibility facade.
+final ArvinAsyncTrace arvinAsyncTrace =
+    ArvinAsyncTrace(writer: _traceWriterFromEnvironment());
 
 Future<T> arvinTraceFuture<T>(String stage, Future<T> future) =>
     arvinAsyncTrace.traceFuture<T>(stage, future);
