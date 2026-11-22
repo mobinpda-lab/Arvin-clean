@@ -89,3 +89,17 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - Task↔Project: both `tasks.project_id` and legacy `project_items` remain present. Canonical consistency contract and all move/remove/reload/restart/restore scenarios are NOT VERIFIED; neither path is deleted.
 - Home dimensions: Time, Project, Category, Tags and Center are the required five dimensions. The complete SQLite-backed OR-within / AND-between contract and five-dimension acceptance remain NOT ACCEPTED.
 - No relationship migration, destructive edge replacement or legacy membership deletion was performed.
+
+
+## MASTER EXECUTION 153-R — relationship revalidation (2026-11-22)
+**Audited source Candidate:** `6fb78dee3d236385df8045149f8c929df076ae78`.
+
+| Relationship | Current source/API | 153-R product path | Acceptance |
+|---|---|---|---|
+| Center → Project | Existing `center_projects` M2M; CenterStore exposes idempotent link/unlink, transactional replace and bidirectional lookup | Center Details displays associated Projects; relationship editor now selects multiple Projects and persists via existing Store | IMPLEMENTED in UI; UI tests pending; backup/restore parity NOT ACCEPTED |
+| Center → Task | Existing optional `tasks.center_id`; Task model/TaskStore retain `centerId` | No Center selector in Task Editor or Quick Capture; no Center label in Task Details | PERSISTENCE IMPLEMENTED; PRODUCT UI PARTIAL |
+| Project → Category | Existing `project_categories` schema table | No canonical ProjectCategory Store/API or multi-select UI verified | SCHEMA PRESENT; PRODUCT RELATIONSHIP NOT IMPLEMENTED / NOT ACCEPTED |
+| Project → Task | Legacy `project_items` and optional direct `tasks.project_id` both remain | Existing assignment path still needs canonical authority/consistency proof | PARTIAL / NOT ACCEPTED |
+| Task → Tag | Existing `task_tags` and TaskStore APIs | Existing editor/Home paths | IMPLEMENTED foundation; full REV10 acceptance not established |
+
+No join table was recreated, no existing relation was deleted, and no schema/persistence contract was changed in 153-R. Lane A remains the gate for any schema or protected persistence modification.
