@@ -5,6 +5,7 @@ import 'package:saf/saf.dart';
 
 import 'cloud_backup_provider.dart';
 import 'services/encrypted_backup_envelope.dart';
+import 'services/arvin_async_trace.dart';
 
 typedef BackupLocalWriter = Future<void> Function(
   String directoryUri,
@@ -69,9 +70,9 @@ class ArvinBackupService {
     Uint8List bytes, {
     String? passphrase,
   }) async {
-    final plainBytes = await encryptedEnvelope.decodeForRestore(
-      bytes,
-      passphrase: passphrase,
+    final plainBytes = await arvinTraceFuture(
+      'backup.service.decrypt_payload',
+      encryptedEnvelope.decodeForRestore(bytes, passphrase: passphrase),
     );
     return validateBackupDocument(jsonDecode(utf8.decode(plainBytes)));
   }
@@ -83,25 +84,34 @@ class ArvinBackupService {
     bool uploadToCloud = true,
     String? encryptionPassphrase,
   }) async {
-    final bytes = await prepareBackupBytes(
-      payload,
-      passphrase: encryptionPassphrase,
+    final bytes = await arvinTraceFuture(
+      'backup.service.encrypt_payload',
+      prepareBackupBytes(payload, passphrase: encryptionPassphrase),
     );
 
     final localWriter = _localWriter;
     if (localWriter != null) {
-      await localWriter(directoryUri, fileName, 'application/json', bytes);
+      await arvinTraceFuture(
+        'backup.service.file_write',
+        localWriter(directoryUri, fileName, 'application/json', bytes),
+      );
     } else {
-      await saf.writeFileBytes(
-        directoryUri,
-        fileName,
-        'application/json',
-        bytes,
+      await arvinTraceFuture(
+        'backup.service.file_write',
+        saf.writeFileBytes(
+          directoryUri,
+          fileName,
+          'application/json',
+          bytes,
+        ),
       );
     }
 
     if (uploadToCloud && cloudProvider != null) {
-      await cloudProvider!.uploadBackup(fileName: fileName, bytes: bytes);
+      await arvinTraceFuture(
+        'backup.service.cloud_upload',
+        cloudProvider!.uploadBackup(fileName: fileName, bytes: bytes),
+      );
     }
   }
 
