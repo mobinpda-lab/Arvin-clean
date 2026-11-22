@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:arvin/models/center.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/center_store.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -136,7 +137,8 @@ void main() {
 
     try {
       database = NativeDatabase(file);
-      await database.runCustom('PRAGMA foreign_keys = ON');
+      // Open/install the canonical schema first; this also enables foreign keys.
+      await G1DriftSchema.install(database);
       final projects = ProjectStore(executor: database);
       await projects.save(<ProjectPlan>[
         ProjectPlan(id: 'project-a', title: 'پروژه الف'),
