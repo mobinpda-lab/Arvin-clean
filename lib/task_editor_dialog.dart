@@ -906,6 +906,12 @@ Future<void> _pickDueDate() async {
         allDay: _dueDateTime != null && _dueAllDay,
         tags: List<String>.of(_tags),
         category: _category,
+        // Preserve canonical optional hierarchy links during unrelated edits.
+        // Explicit-null versus absent presence is retained in extensionData.
+        centerId: existing?.centerId,
+        projectId: existing?.projectId,
+        categoryId: existing?.categoryId,
+        extensionData: existing?.extensionData ?? const <String, dynamic>{},
         checklist: List<String>.of(_checklist),
         checklistEnabled: _checklistEnabled,
         reminderDate: existing != null &&
