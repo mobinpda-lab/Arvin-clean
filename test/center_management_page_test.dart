@@ -118,4 +118,26 @@ void main() {
     expect(find.text('پروژه‌های مرتبط (1)'), findsOneWidget);
     expect(find.text('پروژه الف'), findsOneWidget);
   });
+
+  testWidgets('manages Center to Project links through the existing store',
+      (tester) async {
+    await centers.create(id: 'center-a', name: 'مرکز الف');
+    await pumpPage(tester);
+
+    await tester.tap(find.text('مرکز الف'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('center-edit-project-links')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('پروژه‌های «مرکز الف»'), findsOneWidget);
+    await tester.tap(find.text('پروژه الف'));
+    await tester.tap(find.text('ذخیره ارتباط‌ها'));
+    await tester.pumpAndSettle();
+
+    expect(
+      await centers.projectIdsForCenter('center-a'),
+      <String>['project-a'],
+    );
+  });
+
 }
