@@ -650,3 +650,11 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - Task optional-field preservation implementation and tests exist, but exact-current-SHA CI and product acceptance remain pending. Center Task Editor/Task Detail/Quick Capture/Home integration remain incomplete. Lane A and independent Backup A→B remain NOT ACCEPTED. Reminder four-action Issue #3646 remains OPEN.
 - See `docs/history/command-157-r/MASTER-EXECUTION-157-R.md` and `docs/project-continuity/REV10-MASTER-REQUIREMENT-LEDGER.md`.
 - No Main write, merge, release, deployment, schema migration or production database operation occurred.
+
+## MASTER EXECUTION 157-R — post-write CI disposition (2026-11-22 09:09 Asia/Tehran)
+- Starting-SHA Build `44990357417`, Device Smoke `44990357401`, and Follow-up Persistence `44990357445` were subsequently CANCELLED; no artifacts were produced.
+- Governance `44990357385` SUCCESS applies only to starting SHA `16944fb7dc7f8d5da682a259a4b6d46de9d85156`. COMMAND 20-E `44990357379` remained IN PROGRESS at last poll on that same starting SHA.
+- The final documentation SHA has no PR-triggered workflow runs returned. No complete CI result exists for final docs HEAD; do not report Build/Device/Follow-up/20-E PASS.
+- Mission report post-write addendum commit: `8dbfaedafe7e96818300bfef843d47e2aab1cfe6`.
+- No code changes were added by the documentation checkpoint; the only application-code change in the five commits after 156-R is the already-existing schema installation serialization fix `16944fb7dc7f8d5da682a259a4b6d46de9d85156`.
+- Merge NOT AUTHORIZED; Release NO-GO; Deployment NOT AUTHORIZED.
