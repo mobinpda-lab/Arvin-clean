@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,14 +10,11 @@ import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
 Future<void> _pumpArvinApp(WidgetTester tester) async {
-  await tester.pumpWidget(const ArvinApp());
-  // Home loads both canonical stores from real asynchronous SQLite work.
-  // Drain that work outside fake-async before waiting for the loading
-  // indicator to disappear; this is synchronization, not a fixed delay.
-  await tester.runAsync(() async {
-    await TaskStore().load();
-    await ProjectStore().load();
-  });
+  final loaded = Completer<void>();
+  await tester.pumpWidget(ArvinApp(onHomeLoadComplete: loaded.complete));
+  // Await the Future started by HomePage.initState. Do not initialize the
+  // same Stores a second time while the page's SQLite load is in flight.
+  await tester.runAsync(() => loaded.future);
   await tester.pumpAndSettle();
 }
 
@@ -99,7 +97,7 @@ void main() {
       find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
       findsNothing,
     );
-    final saved = (await TaskStore().load()).single;
+    final saved = await tester.runAsync(() async => (await TaskStore().load()).single);
     expect(saved.id, 'overdue-preserved');
     expect(saved.dueDate, isNotNull);
   });
@@ -123,7 +121,7 @@ void main() {
       find.byKey(const ValueKey('task-card-checklist-progress-disabled-checklist-home')),
       findsNothing,
     );
-    final persisted = (await TaskStore().load()).single;
+    final persisted = await tester.runAsync(() async => (await TaskStore().load()).single);
     expect(persisted.checklist, const ['[ ] کیف']);
     expect(persisted.checklistEnabled, isFalse);
   });
