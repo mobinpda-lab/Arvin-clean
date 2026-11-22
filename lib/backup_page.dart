@@ -236,10 +236,17 @@ class _BackupPageState extends State<BackupPage> {
     };
   }
 
-  Future<void> _backup() => arvinAsyncTrace.run<void>(
+  Future<void> _backup() async {
+    try {
+      await arvinAsyncTrace.run<void>(
         operationName: 'backup.page',
         operation: _backupTraced,
       );
+    } catch (_) {
+      // The page reports the failure in its UI; do not leak an unhandled
+      // Future from the button callback.
+    }
+  }
 
   Future<void> _backupTraced() async {
     if (directory == null || directory!.isEmpty) {
@@ -297,14 +304,19 @@ class _BackupPageState extends State<BackupPage> {
               : 'پشتیبان‌گیری انجام نشد',
         );
       }
+      rethrow;
     } finally {
-      await arvinAsyncTrace.run<void>(
-        operationName: 'backup.ui_reset_and_completion',
-        operation: () async {
-          if (mounted) setState(() => busy = false);
-          widget.onBackupComplete?.call();
-        },
-      );
+      try {
+        await arvinAsyncTrace.run<void>(
+          operationName: 'backup.ui_reset',
+          operation: () async {
+            if (mounted) setState(() => busy = false);
+          },
+        );
+      } catch (_) {
+        if (mounted) setState(() => busy = false);
+      }
+      widget.onBackupComplete?.call();
     }
   }
 
