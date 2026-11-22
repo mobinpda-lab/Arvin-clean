@@ -62,10 +62,17 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _load() => arvinAsyncTrace.run<void>(
+  Future<void> _load() async {
+    try {
+      await arvinAsyncTrace.run<void>(
         operationName: 'center.page.load',
         operation: _loadTraced,
       );
+    } catch (_) {
+      // _loadTraced already updates the visible error state and completion
+      // callback; keep the lifecycle Future handled by the widget.
+    }
+  }
 
   Future<void> _loadTraced() async {
     setState(() {
@@ -106,6 +113,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
         _loading = false;
       });
       widget.onLoadComplete?.call();
+      rethrow;
     }
   }
 
