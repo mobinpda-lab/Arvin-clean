@@ -46,6 +46,22 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  test('concurrent CenterStore reads share one initialization path', () async {
+    await centers.create(id: 'center-concurrent', name: 'مرکز هم‌زمان');
+
+    final results = await Future.wait([
+      centers.load(),
+      centers.search('مرکز هم‌زمان'),
+      centers.projectIdsForCenter('center-concurrent'),
+      centers.centerIdsForProject('project-a'),
+    ]);
+
+    expect((results[0] as List).map((center) => center.id), contains('center-concurrent'));
+    expect((results[1] as List).map((center) => center.id), ['center-concurrent']);
+    expect(results[2], isEmpty);
+    expect(results[3], isEmpty);
+  });
+
   testWidgets('creates, searches, edits and sorts Centers', (tester) async {
     await centers.create(id: 'center-a', name: 'مرکز الف');
     await centers.create(id: 'center-b', name: 'مرکز ب');
