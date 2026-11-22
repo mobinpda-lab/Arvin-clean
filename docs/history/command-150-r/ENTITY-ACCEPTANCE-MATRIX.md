@@ -150,3 +150,18 @@ PR #3495 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a
 - Home remains four filter dimensions; Center is absent from Home selection state and SQL-backed projection. Five time groups remain implemented in the canonical Home route.
 - Commit e9573107b1194f1e0b978f2254d456674f3db22f adds file-backed tests for Center-scoped Project replacement, unrelated Center-edge preservation, FK failure rollback and close/reopen integrity. The exact-SHA Build was still pending at the recorded checkpoint.
 - Center remains PARTIAL / NOT ACCEPTED as a complete REV10 entity; portable Backup/Restore parity and Task/Home integration are not accepted.
+
+
+## MASTER EXECUTION 155-R — live acceptance addendum (2026-11-22)
+
+**Code Candidate:** `5c567e8370dacfced5bb218c51897f2cad7b912a`  
+**Starting Candidate:** `4bb1860f29403be4d1fd7e8d7aebd8a3026c6dc8`  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`  
+**PR:** #3495 OPEN / unmerged; Release NO-GO.
+
+- Task Editor save now carries forward existing `centerId`, `projectId`, `categoryId` and `extensionData` (commit `aaefe268994c6c73ebc8d50aafec321801f66809`). Regression tests cover existing links, unknown metadata, explicit NULL and absent fields (commit `5c567e8370dacfced5bb218c51897f2cad7b912a`). This closes the source-level loss-on-unrelated-edit defect only; Center selection/change/clear UI and exact-SHA acceptance remain pending.
+- Center Management widget test helper now waits for the page's post-mount SQLite load and relationship reads before asserting (commit `3e00daa78b4db23bd245798b8898c7c7ee482d5f`). Original assertions are retained.
+- Exact Candidate CI: Build `44989444175` IN PROGRESS; Device Smoke `44989444131` queued/in progress; Governance `44989444105` SUCCESS; Follow-up Persistence `44989444082` SUCCESS; COMMAND 20-E `44989444099` IN PROGRESS. No PASS is claimed for pending workflows.
+- Prior Candidate `4bb1860f` Build `44986909172` failed in Shard 0 at `center_management_page_test.dart:54` (expected one “مرکز الف”, found zero); Shards 1–5, Analyze, Debug/Release APK and Device Smoke 7/7 passed. COMMAND 20-E artifact `14739764622` is overall NO-GO solely because Build Shard 0 failed.
+- Task, Project, Center, Category, Tags, People, Reminder, Follow-up, Calendar, Home, Notebook, Templates, Reports, Backup/Restore and Migration remain individually unaccepted as complete. See the 155-R mission report for the implementation/testing/acceptance matrix.
+- Lane A remains BLOCKED / NOT ACCEPTED. No Schema/Migration change or real user database operation occurred.
