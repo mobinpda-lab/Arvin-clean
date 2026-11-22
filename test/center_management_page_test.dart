@@ -29,6 +29,12 @@ void main() {
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
+    // Initialize the shared SQLite schema outside the widget's fake-async
+    // frame loop so the page starts from a ready, deterministic store.
+    await tester.runAsync(() async {
+      await centers.load(includeArchived: true);
+      await projects.load();
+    });
     await tester.pumpWidget(
       MaterialApp(
         home: CenterManagementPage(
