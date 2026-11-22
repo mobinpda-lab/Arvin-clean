@@ -201,8 +201,24 @@ class ArvinAsyncTrace {
   }
 
   /// Compatibility adapter for existing Future-based call sites.
-  Future<T> traceFuture<T>(String operationName, Future<T> future) =>
-      run<T>(operationName: operationName, operation: () => future);
+  ///
+  /// The Future argument has already started before it reaches this wrapper.
+  /// If the diagnostic writer fails, keep the product operation's original
+  /// result/error while leaving the missing terminal trace visible.
+  Future<T> traceFuture<T>(String operationName, Future<T> future) async {
+    try {
+      return await run<T>(
+        operationName: operationName,
+        operation: () => future,
+      );
+    } catch (_) {
+      try {
+        return await future;
+      } catch (operationError, stackTrace) {
+        Error.throwWithStackTrace(operationError, stackTrace);
+      }
+    }
+  }
 
   Future<void> flush() async {
     await _writeTail;
