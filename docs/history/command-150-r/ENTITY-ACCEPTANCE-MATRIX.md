@@ -165,3 +165,13 @@ PR #3495 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a
 - Prior Candidate `4bb1860f` Build `44986909172` failed in Shard 0 at `center_management_page_test.dart:54` (expected one “مرکز الف”, found zero); Shards 1–5, Analyze, Debug/Release APK and Device Smoke 7/7 passed. COMMAND 20-E artifact `14739764622` is overall NO-GO solely because Build Shard 0 failed.
 - Task, Project, Center, Category, Tags, People, Reminder, Follow-up, Calendar, Home, Notebook, Templates, Reports, Backup/Restore and Migration remain individually unaccepted as complete. See the 155-R mission report for the implementation/testing/acceptance matrix.
 - Lane A remains BLOCKED / NOT ACCEPTED. No Schema/Migration change or real user database operation occurred.
+
+## MASTER EXECUTION 157-R — exact candidate acceptance addendum (2026-11-22 09:09 Asia/Tehran)
+**Candidate audited:** `16944fb7dc7f8d5da682a259a4b6d46de9d85156`
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db`
+**PR:** #3495 OPEN / DRAFT / UNMERGED
+- Task optional hierarchy ID/extensionData preservation is IMPLEMENTED in the editor path; tests for retained IDs, explicit NULL and absent fields exist. Exact candidate Build is still IN PROGRESS; Task Editor Center select/change/clear, Task Detail Center surface, Quick Capture Center selection and Home Center filter remain NOT ACCEPTED.
+- SQLite shared schema installation is now serialized per QueryExecutor and has a three-concurrent-installation regression test (commit `16944fb7dc7f8d5da682a259a4b6d46de9d85156`). This is implementation plus test source, not acceptance; exact-SHA Build remains IN PROGRESS.
+- Exact-SHA CI snapshot: Governance run `44990357385` SUCCESS; Build `44990357417` IN PROGRESS; Device Smoke `44990357401` QUEUED/IN PROGRESS; Follow-up Persistence `44990357445` IN PROGRESS; COMMAND 20-E `44990357379` IN PROGRESS. No pending workflow is PASS.
+- Center, Home five-filter, Project↔Category Store/UI, migration, independent A→B backup/restore, four-action Reminder, Calendar lifecycle and all other entities remain individually NOT ACCEPTED until their own requirements and exact-SHA evidence pass. Do not infer acceptance from Governance success.
+- Permanent requirement ledger: `docs/project-continuity/REV10-MASTER-REQUIREMENT-LEDGER.md`.
