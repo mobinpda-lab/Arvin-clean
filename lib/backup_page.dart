@@ -21,6 +21,7 @@ class BackupPage extends StatefulWidget {
     required this.replaceTasks,
     this.manager,
     this.restoreStageHook,
+    this.onBackupComplete,
   });
 
   final Future<List<Map<String, dynamic>>> Function() loadTasks;
@@ -30,6 +31,8 @@ class BackupPage extends StatefulWidget {
   /// Test-only seam for injecting failures at real restore mutation boundaries.
   /// Production callers leave this unset.
   final Future<void> Function(String stage)? restoreStageHook;
+  /// Test synchronization seam for completion of the canonical backup flow.
+  final VoidCallback? onBackupComplete;
 
   @override
   State<BackupPage> createState() => _BackupPageState();
@@ -279,6 +282,7 @@ class _BackupPageState extends State<BackupPage> {
       }
     } finally {
       if (mounted) setState(() => busy = false);
+      widget.onBackupComplete?.call();
     }
   }
 
