@@ -60,7 +60,10 @@ class _BackupPageState extends State<BackupPage> {
   }
 
   Future<void> _chooseDirectory() async {
-    setState(() => busy = true);
+    await arvinAsyncTrace.run<void>(
+      operationName: 'backup.ui_loading_start',
+      operation: () async => setState(() => busy = true),
+    );
     try {
       final value = await manager.chooseAndRememberDirectory();
       if (!mounted) return;
@@ -295,8 +298,13 @@ class _BackupPageState extends State<BackupPage> {
         );
       }
     } finally {
-      if (mounted) setState(() => busy = false);
-      widget.onBackupComplete?.call();
+      await arvinAsyncTrace.run<void>(
+        operationName: 'backup.ui_reset_and_completion',
+        operation: () async {
+          if (mounted) setState(() => busy = false);
+          widget.onBackupComplete?.call();
+        },
+      );
     }
   }
 
