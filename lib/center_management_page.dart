@@ -64,18 +64,18 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
       _error = null;
     });
     try {
-      final values = await Future.wait<Object>([
-        _centers.load(includeArchived: true),
-        _projects.load(),
-      ]);
-      final centers = values[0] as List<domain.Center>;
+      // CenterStore._ensureReady already initializes the canonical Project
+      // path. Load stores sequentially to avoid overlapping schema/install
+      // transactions on the shared SQLite executor.
+      final centers = await _centers.load(includeArchived: true);
+      final projects = await _projects.load();
       final links = await Future.wait(
         centers.map((center) => _centers.projectIdsForCenter(center.id)),
       );
       if (!mounted) return;
       setState(() {
         _items = centers;
-        _projectItems = values[1] as List<ProjectPlan>;
+        _projectItems = projects;
         _centerProjectIds = {
           for (var index = 0; index < centers.length; index++)
             centers[index].id: links[index],
@@ -113,37 +113,13 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
   }
 
   Future<void> _editCenter([domain.Center? center]) async {
-    final controller = TextEditingController(text: center?.name ?? '');
     final name = await showDialog<String>(
       context: context,
-      builder: (dialogContext) => Directionality(
-        textDirection: TextDirection.rtl,
-        child: AlertDialog(
-          title: Text(center == null ? 'مرکز جدید' : 'ویرایش مرکز'),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            maxLength: 80,
-            decoration: const InputDecoration(
-              labelText: 'نام مرکز',
-              border: OutlineInputBorder(),
-            ),
-            onSubmitted: (value) => Navigator.pop(dialogContext, value.trim()),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('انصراف'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, controller.text.trim()),
-              child: const Text('ذخیره'),
-            ),
-          ],
-        ),
+      builder: (_) => _CenterNameDialog(
+        initialName: center?.name ?? '',
+        title: center == null ? 'مرکز جدید' : 'ویرایش مرکز',
       ),
     );
-    controller.dispose();
     if (!mounted || name == null) return;
     if (name.trim().isEmpty) {
       _showMessage('نام مرکز نمی‌تواند خالی باشد.');
@@ -492,4 +468,64 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
       ),
     );
   }
+}
+
+
+class _CenterNameDialog extends StatefulWidget {
+  const _CenterNameDialog({
+    required this.initialName,
+    required this.title,
+  });
+
+  final String initialName;
+  final String title;
+
+  @override
+  State<_CenterNameDialog> createState() => _CenterNameDialogState();
+}
+
+class _CenterNameDialogState extends State<_CenterNameDialog> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialName);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Directionality(
+        textDirection: TextDirection.rtl,
+        child: AlertDialog(
+          title: Text(widget.title),
+          content: TextField(
+            controller: _controller,
+            autofocus: true,
+            maxLength: 80,
+            decoration: const InputDecoration(
+              labelText: 'نام مرکز',
+              border: OutlineInputBorder(),
+            ),
+            onSubmitted: (value) =>
+                Navigator.pop(context, value.trim()),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('انصراف'),
+            ),
+            FilledButton(
+              onPressed: () =>
+                  Navigator.pop(context, _controller.text.trim()),
+              child: const Text('ذخیره'),
+            ),
+          ],
+        ),
+      );
 }
