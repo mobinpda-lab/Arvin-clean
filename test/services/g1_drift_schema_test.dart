@@ -153,6 +153,23 @@ void main() {
     expect(duplicate, hasLength(1));
   });
 
+  test('serializes concurrent schema installation on one executor', () async {
+    await Future.wait(<Future<void>>[
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+      G1DriftSchema.install(database),
+    ]);
+
+    final integrity = await database.runSelect('PRAGMA integrity_check', const []);
+    expect(integrity.single.values.first, 'ok');
+
+    final tables = await database.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'tasks'",
+      const [],
+    );
+    expect(tables, hasLength(1));
+  });
+
   test('schema installation is idempotent', () async {
     await G1DriftSchema.install(database);
     await G1DriftSchema.install(database);

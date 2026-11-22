@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
@@ -60,7 +62,31 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
+  // QueryExecutor serializes individual statements, not a complete schema
+  // installation. Multiple Stores can share one executor and otherwise
+  // interleave PRAGMA changes with another install's DDL transaction.
+  static final Map<QueryExecutor, Future<void>> _installTails =
+      HashMap<QueryExecutor, Future<void>>.identity();
+
   static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
+    final previous = _installTails[executor];
+    final turn = Completer<void>();
+    _installTails[executor] = turn.future;
+    try {
+      if (previous != null) await previous;
+      await _installNow(executor, failureInjector: failureInjector);
+    } finally {
+      turn.complete();
+      if (identical(_installTails[executor], turn.future)) {
+        _installTails.remove(executor);
+      }
+    }
+  }
+
+  static Future<void> _installNow(
     QueryExecutor executor, {
     G1HierarchyFailureInjector? failureInjector,
   }) async {
