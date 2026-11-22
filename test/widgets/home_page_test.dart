@@ -5,17 +5,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
+
+Future<void> _pumpArvinApp(WidgetTester tester) async {
+  await tester.pumpWidget(const ArvinApp());
+  // Home loads both canonical stores from real asynchronous SQLite work.
+  // Drain that work outside fake-async before waiting for the loading
+  // indicator to disappear; this is synchronization, not a fixed delay.
+  await tester.runAsync(() async {
+    await TaskStore().load();
+    await ProjectStore().load();
+  });
+  await tester.pumpAndSettle();
+}
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
   testWidgets('renders the current canonical HomePage shell', (tester) async {
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
@@ -35,8 +48,7 @@ void main() {
           '[{"id":"legacy-ui-1","title":"کار آزمایشی","description":"توضیح"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('کار آزمایشی'), findsOneWidget);
     expect(find.text('توضیح'), findsNothing);
@@ -48,8 +60,7 @@ void main() {
           '[{"id":"compact-home","title":"کار فشرده","dueDate":"2030-09-20T10:00:00.000"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     final toggle = find.byKey(const ValueKey('task-card-toggle-compact-home'));
     expect(toggle, findsOneWidget);
@@ -74,8 +85,7 @@ void main() {
           '[{"id":"overdue-preserved","title":"کار عقب‌افتادهٔ مهم","completed":false,"dueDate":"$dueDate"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار عقب‌افتادهٔ مهم'), findsOneWidget);
     expect(find.textContaining('موعد گذشته:'), findsOneWidget);
 
@@ -100,8 +110,7 @@ void main() {
           '[{"id":"disabled-checklist-home","title":"کار با چک‌لیست خاموش","checklist":["[ ] کیف"],"checklistEnabled":false}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     await tester.scrollUntilVisible(
       find.text('کار با چک‌لیست خاموش'),
       300,
@@ -125,8 +134,7 @@ void main() {
           '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active","title":"کار انجام‌نشده","completed":false}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     // «همه کارها»: a completed task with an old due date must remain visible.
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
@@ -155,8 +163,7 @@ void main() {
           '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('زمان'), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
@@ -192,8 +199,7 @@ void main() {
           '[{"id":"one","title":"تماس فروش"},{"id":"two","title":"جلسه فنی"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('تماس فروش'), findsOneWidget);
     expect(find.text('جلسه فنی'), findsOneWidget);
@@ -212,8 +218,7 @@ void main() {
           '[{"id":"active","title":"جستجوی مشترک فعال"},{"id":"completed","title":"جستجوی مشترک انجام‌شده","completed":true},{"id":"archived","title":"جستجوی مشترک بایگانی","archived":true},{"id":"trashed","title":"جستجوی مشترک حذف‌شده","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     await tester.enterText(find.byType(TextField), 'جستجوی مشترک');
     await tester.pumpAndSettle();
@@ -231,8 +236,7 @@ void main() {
           '[{"id":"persian","title":"يادداشت كاری"},{"id":"followup","title":"کار دوم","followUps":[{"id":"f1","dateTime":"2026-08-25T10:00:00.000","note":"تماس با مشتری","result":"موفق"}]},{"id":"other","title":"خرید"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     await tester.enterText(find.byType(TextField), 'یادداشت کاری');
     await tester.pump();
@@ -252,8 +256,7 @@ void main() {
       'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
     expect(dismissible.direction, DismissDirection.horizontal);
@@ -278,8 +281,7 @@ void main() {
           '[{"id":"trashed","title":"حذف آزمایشی","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
@@ -318,8 +320,7 @@ void main() {
           '[{"id":"archived","title":"کار بایگانی","archived":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار بایگانی'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -343,8 +344,7 @@ void main() {
           '[{"id":"trashed-restore","title":"کار سطل","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار سطل'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -369,8 +369,7 @@ void main() {
       'arvin.tasks': corrupt,
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('داده‌های کارها قابل خواندن نیست'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
@@ -513,8 +512,7 @@ void main() {
       'arvin.tasks': '[{"id":"long-card","title":"$title","description":"$description"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     // Home is intentionally a scan surface: the long description is
     // progressively disclosed away from the Home card, while the title remains
