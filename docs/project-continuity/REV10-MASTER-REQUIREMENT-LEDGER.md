@@ -46,3 +46,24 @@ This is an append-only operational ledger. Implementation, testing and acceptanc
 5. A blocked lane does not stop independent safe work.
 6. No production-user database is used for migration experiments.
 7. No Main writes, merge, release or deployment without explicit owner approval.
+
+---
+
+## MASTER EXECUTION 162-R — permanent technical architecture registrations
+**Registration source SHA:** `dddbac90fbc51f55ddf5f1ae3ac1be20ded1eed1`  
+**Status rule:** these are requirements/investigations, not claims of implementation, approval or acceptance. Each remains independently gated by evidence.
+
+| Requirement ID | Technical requirement | Implementation | Testing | Acceptance | Evidence / next action | Priority |
+|---|---|---|---|---|---|---|
+| ARCH-ID-001 | Evaluate UUIDv7 against SQLite IDs, FKs, historical records and backup/restore | NOT IMPLEMENTED | NOT TESTED | NOT ACCEPTED | Compatibility report and reversible proposal; owner approval before ID migration | P0 |
+| ARCH-ACTIVITY-001 | Define shared activity identity across Task, Reminder, Follow-up and Calendar projections | NOT IMPLEMENTED | NOT TESTED | NOT ACCEPTED | Ownership map and lifecycle invariants; reconcile ProjectExecution decision | P0 |
+| ARCH-RECURRENCE-001 | Specify recurrence rules, timezone, occurrence generation, history, rule edits and missed recovery | PARTIAL | TEST PENDING | NOT ACCEPTED | Canonical recurrence contract and deterministic clock fixtures | P0 |
+| ARCH-WAITING-001 | Define Waiting For ownership, transitions, follow-up identity and next action | NOT IMPLEMENTED | NOT TESTED | NOT ACCEPTED | Owner decision and persistence/query contract | P1 |
+| ARCH-SEARCH-001 | Normalize Persian/Arabic Yeh/Kaf, digits, diacritics, half-space; assess SQLite FTS5 | PARTIAL | TEST PENDING | NOT ACCEPTED | Normalization contract, FTS5 compatibility and regression corpus | P1 |
+| ARCH-MONEY-001 | Persist money as integer minor units with explicit currency; prohibit floating-point persistence | NOT IMPLEMENTED | NOT TESTED | NOT ACCEPTED | Typed value contract and serialization/migration tests | P1 |
+| ARCH-DELETE-001 | Distinguish archive, soft delete, restore and retention using deleted_at and FK-safe rules | PARTIAL | TEST PENDING | NOT ACCEPTED | Lifecycle matrix, retention policy and failure-injection tests | P1 |
+| ARCH-ALARM-001 | Verify exact alarms, Android 13+ permissions, Doze, battery restrictions and reboot recovery | PARTIAL | TEST PENDING | NOT ACCEPTED | API-level matrix and physical-device evidence | P0 |
+| ARCH-SQLITE-001 | Harden WAL, busy_timeout, transactions, shared executor, single-writer and autosave conflicts | PARTIAL | TEST PENDING | NOT ACCEPTED | Concurrency stress, rollback, reopen and contention evidence | P0 |
+| ARCH-ENCRYPT-001 | Assess local DB protection, backup encryption, key management and recovery; no SQLCipher without migration analysis | PARTIAL | TEST PENDING | NOT ACCEPTED | Threat model, key lifecycle and compatibility/migration decision | P0 |
+| ARCH-A11Y-001 | Define TalkBack, contrast, 200% scaling, clipping, touch targets and RTL criteria | PARTIAL | TEST PENDING | NOT ACCEPTED | Automated semantics/layout checks and device evidence | P1 |
+| ARCH-DIAG-001 | Define privacy-safe rotating diagnostics for migration, backup, scheduler and app failures | NOT IMPLEMENTED | NOT TESTED | NOT ACCEPTED | Redaction policy, retention limits and export format; no private content in logs | P1 |
