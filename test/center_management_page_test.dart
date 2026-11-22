@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:arvin/center_management_page.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/center_store.dart';
@@ -29,31 +30,19 @@ void main() {
   });
 
   Future<void> pumpPage(WidgetTester tester) async {
-    // Initialize the shared SQLite schema outside the widget's fake-async
-    // frame loop so the page starts from a ready, deterministic store.
-    await tester.runAsync(() async {
-      await centers.load(includeArchived: true);
-      await projects.load();
-    });
+    final loaded = Completer<void>();
     await tester.pumpWidget(
       MaterialApp(
         home: CenterManagementPage(
           centerStore: centers,
           projectStore: projects,
+          onLoadComplete: loaded.complete,
         ),
       ),
     );
-    // The page starts its own asynchronous _load from initState. Drain the
-    // real SQLite executor after mounting so the fake-async widget frame does
-    // not assert against the initial loading state.
-    await tester.runAsync(() async {
-      await centers.load(includeArchived: true);
-      await projects.load();
-      final loadedCenters = await centers.load(includeArchived: true);
-      await Future.wait(
-        loadedCenters.map((center) => centers.projectIdsForCenter(center.id)),
-      );
-    });
+    // Await the page-owned Future; duplicate Store loads can overlap schema
+    // initialization and leave the widget test's runAsync zone unresolved.
+    await tester.runAsync(() => loaded.future);
     await tester.pumpAndSettle();
   }
 
