@@ -611,3 +611,18 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - Exact-SHA run snapshot for `6fb78dee3d236385df8045149f8c929df076ae78`: Governance `44985238078` SUCCESS; Follow-up Persistence `44985238063` SUCCESS; Build `44985238060` IN PROGRESS; Device Smoke `44985238066` IN PROGRESS; COMMAND 20-E `44985238070` IN PROGRESS. Do not transfer results to later SHAs.
 - Earlier Candidate `afad6631a75ff192c0409d77072a45296d89879f`: Build `44981359994`, Device Smoke `44981360016`, Governance `44981360021`, Follow-up Persistence `44981360013` SUCCESS; COMMAND 20-E `44981360041` FAILURE. The failed 20-E included ProjectStore test failure and Android emulator provisioning / Maven Central HTTP 429 errors; the product-level ProjectStore failure detail remains to be extracted from the uploaded evidence artifact.
 - PR #3495 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release NO-GO; deployment not authorized.
+
+
+## MASTER EXECUTION 154-R — Center integration and exact-SHA evidence checkpoint (2026-11-22)
+
+- Starting canonical HEAD: c0a038b3ab70434df512a92da24c828105c71022; Main unchanged at 45e4202b03a434459e4c021a04efa7e8396359db; PR #3495 OPEN / DRAFT / UNMERGED.
+- Four commits after source Candidate 6fb78dee were documentation-only. The 153-R source implementation was revalidated; Center model/store/management UI exist and were reused.
+- Test-only commit e9573107b1194f1e0b978f2254d456674f3db22f adds file-backed transactional Center↔Project replacement coverage: per-Center scope, unrelated-edge preservation, FK failure rollback, close/reopen and integrity checks.
+- Exact-SHA evidence on e9573107: Governance Run 44986467646 SUCCESS; Follow-up Persistence Run 44986467643 SUCCESS; Build Run 44986467626 IN PROGRESS (Analyze job passed); Device Smoke Run 44986467638 QUEUED / IN PROGRESS; COMMAND 20-E Run 44986467605 IN PROGRESS. No pending job is PASS.
+- Verified P0 defect: Task Editor reconstructs Task without copying centerId; editing a Center-assigned Task can drop the relationship. Task Editor Center selection, Task Detail Center display, Quick Capture Center selection and Home fifth Center filter remain unimplemented.
+- Home has four filter dimensions; canonical Home route retains five due-date groups. Project↔Category schema exists; Store/API/UI and backup/restore relation acceptance remain absent.
+- Reminder notification/scheduler foundations exist; four-action floating presentation remains NOT ACCEPTED (Issue #3646).
+- Lane A remains BLOCKED / NOT ACCEPTED: #3458, #3550, #3619, #3641. No Schema, protected persistence or real user database migration was changed.
+- Mission report: docs/history/command-154-r/MASTER-EXECUTION-154-R.md.
+- Entity and relationship matrices were reconciled in 154-R commits; they distinguish Center Management UI IMPLEMENTED from full Center entity acceptance NOT ACCEPTED.
+- Merge NOT AUTHORIZED; Release NO-GO; Deployment NOT AUTHORIZED.
