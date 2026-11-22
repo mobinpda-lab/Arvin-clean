@@ -55,3 +55,14 @@ This audit did not change application source or tests. Four existing official re
 
 ## 8. Final decision
 **150-R: NOT FINALIZED.** **Calendar Device Smoke: NOT ACCEPTED.** **COMMAND 20-E: NOT ACCEPTED (aggregate NO-GO due Calendar).** **Center: PARTIAL.** **Center↔Project: storage IMPLEMENTED; product acceptance pending.** **Project↔Category: PARTIAL / NOT ACCEPTED.** **Home five-filter contract: NOT ACCEPTED.** **Reminder: PARTIAL / NOT ACCEPTED.** **Full Backup/Restore: NOT ACCEPTED.** **REV10: NO-GO. Release / merge / deployment: NOT AUTHORIZED.**
+
+
+## 9. Documentation commit ledger
+The following documentation-only commits were created sequentially on the canonical branch:
+- `4dcf0a85e5fb451a65e25743e7d02cbf3bd82cee` — `docs/history/command-150-r/ENTITY-ACCEPTANCE-MATRIX.md`
+- `1ed062c3943e6ecf2ac4ba827147d0e3748eaa06` — `docs/history/command-150-r/ENTITY-RELATIONSHIP-MATRIX.md`
+- `2ce854c1614750d4eb192611899a9ed3e9d143f4` — `docs/history/command-150-r/MASTER-EXECUTION-150-R.md`
+- `a542a0c700f0c3e7fbb71d6dfde9fb18ca8c6357` — `COMMAND-60-R-MASTER-TRACKER.md`
+- `474ffc10064a8eebd7824cd676f4e3d5a996c67f` — initial `docs/history/command-151-r/MASTER-EXECUTION-151-R.md`
+
+The latest report amendment itself is the next documentation-only commit. The branch was advanced only with expected-SHA updates; no force-push was used.
