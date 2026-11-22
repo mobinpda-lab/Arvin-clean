@@ -23,6 +23,9 @@ Only these eight files are active project authority:
 
 All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. Historical PR #3448 continuity documents are preserved under `archive/pr-3448-source-2026-11-13/`; the REV9 governance archive is under `archive/`. These copies preserve evidence and do not create additional active documents. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
 
+## REV10 architecture packet — MASTER EXECUTION 162-R
+The mission-specific architecture packet is maintained under [docs/rev10](../rev10/CONSTITUTION.md): [Constitution](../rev10/CONSTITUTION.md), [Agent Card](../rev10/AGENT_CARD.md), [State snapshot](../rev10/STATE.md), [Specification index](../rev10/SPEC/README.md), [Wave dependency DAG](../rev10/REV10-WAVE-DEPENDENCY-DAG.md) and [Open Decisions](../rev10/REV10-OPEN-DECISIONS.md). These are supporting, traceable architecture artifacts only; they do not override the eight continuity authorities, approved Product Decisions or permanent Requirement Ledger. Technical registrations are appended to the canonical [REV10 Requirement Ledger](REV10-MASTER-REQUIREMENT-LEDGER.md).
+
 ## Current governance boundary
 
 - Main remains read-only for development.
