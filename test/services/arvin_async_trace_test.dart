@@ -196,8 +196,7 @@ void main() {
 
     test('a failed terminal write remains detectable as missing END',
         () async {
-      final writer = _MemoryTraceWriter(failFromWrite: 2);
-      // Fail START's write only after it was accepted, then also fail ERROR.
+      // Fail both terminal events after START has been accepted.
       final trace = ArvinAsyncTrace(writer: _FailTerminalWriter());
 
       await expectLater(
@@ -209,7 +208,6 @@ void main() {
       );
 
       expect(trace.missingEndOperationIds, hasLength(1));
-      expect(writer.events, isEmpty);
       await trace.close();
     });
 
