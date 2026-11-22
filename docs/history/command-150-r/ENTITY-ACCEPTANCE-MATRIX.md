@@ -64,3 +64,37 @@
 - Added `CenterStore.search(query, includeArchived: false)` over the canonical Center table. It trims and case-folds the query, reuses the store's name/id ordering, excludes archived Centers by default, and permits explicit archived inclusion.
 - Extended the existing file-backed Center CRUD/M2M/restart test to verify search results for active and archived Centers, whitespace trimming, no-match behavior and ordering.
 - This closes the Store-level search gap only. It does not claim a Center management UI, Task Editor/Quick Capture/Home integration or backup acceptance.
+
+
+## MASTER EXECUTION 151-R — LIVE ACCEPTANCE ADDENDUM (2026-11-22)
+
+**Audited Candidate:** `3c72a341fc1aac785a22b6fe151c23507c16793c`
+**Main baseline:** `45e4202b03a434459e4c021a04efa7e8396359db`
+**PR:** #3495 — OPEN / DRAFT / UNMERGED. **Release: NO-GO.**
+
+### Exact-SHA CI
+- Build `44933088338`: SUCCESS; all 9 jobs passed (Analyze, Test Shards 0–5, Debug APK, Release APK).
+- Governance `44933088356`: SUCCESS.
+- Follow-up File Persistence `44933088362`: SUCCESS.
+- Device Smoke `44933088406`: FAILURE; Home, Quick Capture, SQL Persistence, SQL Migration, Backup/Restore and People passed; Calendar failed (6/7).
+- COMMAND 20-E `44933088374`: FAILURE / NO-GO at aggregate acceptance.
+
+### COMMAND 20-E artifact inspection
+Final artifact `14719705601` and phase artifact `14718404033` were downloaded and inspected. Analyze, all six test shards, Debug/Release APK, ProjectStore file persistence, Calendar Link process restart, cleanup and Follow-up persistence passed. Process restart independently compared eight links × four fields = 32 values across distinct process PIDs 2334 and 2406. Cleanup passed without clearing app data. Aggregate NO-GO is caused by the Device Smoke Calendar failure; ProjectStore, process restart and cleanup are not the cause.
+
+### Calendar failure boundary
+The failing test is `integration_test/calendar_card_interaction_test.dart:169`. Logs prove the seeded Task was reloaded from SQLite and independent Reminder records were projected. The expected keyed Calendar card was nevertheless absent from the rendered list. The follow-on screenshot upload failed because its screenshot was not produced. Root cause is narrowed to Calendar UI/test interaction after projection; whether date selection, list construction, widget identity or test interaction is responsible remains unproven. No speculative correction is accepted.
+
+### Entity acceptance addendum
+- Center model, v9 SQLite catalog / `center_projects`, CenterStore CRUD/search/archive/restore and bidirectional M2M operations exist. File-backed Center CRUD/M2M close-reopen test exists and Build passed. Dedicated Center management UI, Project UI integration, Task Editor / Quick Capture / Details selection, portable Backup/Restore coverage and Home Center filter are not evidenced. Center remains PARTIAL.
+- Center↔Project schema/store and additive idempotent link/unlink/lookups are IMPLEMENTED at storage layer; product UI and portable backup/restore relationship acceptance remain NOT ACCEPTED.
+- Project↔Category join schema exists, but canonical Category model/store, relationship API/UI and accepted round-trip were not found. PARTIAL / NOT ACCEPTED.
+- Home five-dimension filter contract, including Center and OR-within / AND-between semantics, remains NOT ACCEPTED.
+- Reminder's four required operations (Stop Alarm, Follow-up, Snooze, Complete) are not all independently proven against canonical Task data with restart and backup/restore. PARTIAL / NOT ACCEPTED.
+- Selected Backup/Restore Device Smoke passed, but independent Database A→B, repeated restore, corruption, interrupted restore, destination preservation and rollback matrix remains NOT ACCEPTED.
+
+### Artifact IDs
+Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; Smoke Home `14718517988`; Smoke Quick Capture `14718209271`; Persian Time Picker `14718612582`; COMMAND 20-E Phase `14718404033`; COMMAND 20-E Final `14719705601`.
+
+### Disposition
+150-R is NOT FINALIZED. No safe minimal Calendar source correction was committed because the root cause is not isolated. No code or tests were changed in this audit pass. No Main change, merge, release, deployment, destructive data operation, test removal or test weakening occurred.
