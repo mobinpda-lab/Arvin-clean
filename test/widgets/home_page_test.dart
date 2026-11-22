@@ -97,7 +97,7 @@ void main() {
       find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
       findsNothing,
     );
-    final saved = await tester.runAsync(() async => (await TaskStore().load()).single);
+    final saved = (await tester.runAsync(() async => (await TaskStore().load()).single))!;
     expect(saved.id, 'overdue-preserved');
     expect(saved.dueDate, isNotNull);
   });
@@ -121,7 +121,7 @@ void main() {
       find.byKey(const ValueKey('task-card-checklist-progress-disabled-checklist-home')),
       findsNothing,
     );
-    final persisted = await tester.runAsync(() async => (await TaskStore().load()).single);
+    final persisted = (await tester.runAsync(() async => (await TaskStore().load()).single))!;
     expect(persisted.checklist, const ['[ ] کیف']);
     expect(persisted.checklistEnabled, isFalse);
   });
