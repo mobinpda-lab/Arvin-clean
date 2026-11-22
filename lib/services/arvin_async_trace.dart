@@ -106,16 +106,20 @@ class ArvinAsyncTrace {
   Future<void> _emit(Map<String, Object?> event) async {
     if (_closed) throw StateError('Trace is closed');
     final line = jsonEncode(event);
+    final writer = _writer;
+    if (writer != null) {
+      final next = _writeTail.then((_) => writer.writeLine(line));
+      _writeTail =
+          next.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+      await next;
+    }
+    // Log only after the independent sink accepted the event. A failed END
+    // write must not leave a misleading developer.log success record.
     developer.log(
       '[ARVIN_TRACE] ${event['event']} ${event['operation_name']}',
       name: 'arvin.async_trace',
       level: event['event'] == 'ERROR' ? 1000 : 800,
     );
-    final writer = _writer;
-    if (writer == null) return;
-    final next = _writeTail.then((_) => writer.writeLine(line));
-    _writeTail = next.then<void>((_) {}, onError: (Object _, StackTrace __) {});
-    await next;
   }
 
   /// Runs [operation] inside an async context. Nested calls automatically
