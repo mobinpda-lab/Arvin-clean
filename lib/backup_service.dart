@@ -71,7 +71,9 @@ class ArvinBackupService {
     String? passphrase,
   }) async {
     final plainBytes = await arvinTraceFuture(
-      'backup.service.decrypt_payload',
+      passphrase == null
+          ? 'backup.service.decode_plaintext_payload'
+          : 'backup.service.decrypt_payload',
       encryptedEnvelope.decodeForRestore(bytes, passphrase: passphrase),
     );
     return validateBackupDocument(jsonDecode(utf8.decode(plainBytes)));
@@ -85,7 +87,9 @@ class ArvinBackupService {
     String? encryptionPassphrase,
   }) async {
     final bytes = await arvinTraceFuture(
-      'backup.service.encrypt_payload',
+      encryptionPassphrase == null
+          ? 'backup.service.encode_payload'
+          : 'backup.service.encrypt_payload',
       prepareBackupBytes(payload, passphrase: encryptionPassphrase),
     );
 
