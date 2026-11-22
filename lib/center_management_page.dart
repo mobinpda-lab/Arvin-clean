@@ -197,6 +197,68 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     }
   }
 
+  Future<void> _editProjectLinks(domain.Center center) async {
+    try {
+      final current = await _centers.projectIdsForCenter(center.id);
+      if (!mounted) return;
+      final selected = await showDialog<Set<String>>(
+        context: context,
+        builder: (dialogContext) {
+          final chosen = Set<String>.of(current);
+          return StatefulBuilder(
+            builder: (context, setDialogState) => Directionality(
+              textDirection: TextDirection.rtl,
+              child: AlertDialog(
+                title: Text('پروژه‌های «${center.name}»'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: 320,
+                  child: _projectItems.isEmpty
+                      ? const Center(child: Text('پروژه‌ای برای اتصال وجود ندارد.'))
+                      : ListView(
+                          children: _projectItems.map((project) {
+                            return CheckboxListTile(
+                              value: chosen.contains(project.id),
+                              title: Text(project.title),
+                              secondary: CircleAvatar(
+                                backgroundColor: Color(project.colorValue),
+                                radius: 7,
+                              ),
+                              onChanged: (checked) => setDialogState(() {
+                                if (checked == true) {
+                                  chosen.add(project.id);
+                                } else {
+                                  chosen.remove(project.id);
+                                }
+                              }),
+                            );
+                          }).toList(),
+                        ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: const Text('انصراف'),
+                  ),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(dialogContext, chosen),
+                    child: const Text('ذخیره ارتباط‌ها'),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+      if (!mounted || selected == null) return;
+      await _centers.replaceProjectLinks(center.id, selected);
+      await _load();
+      _showMessage('ارتباط پروژه‌های مرکز به‌روزرسانی شد.');
+    } catch (error) {
+      _showMessage('ویرایش ارتباط پروژه‌ها انجام نشد: $error');
+    }
+  }
+
   Future<void> _showDetails(domain.Center center) async {
     try {
       final ids = await _centers.projectIdsForCenter(center.id);
@@ -236,6 +298,16 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
                           ),
                           title: Text(project.title),
                         )),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    key: const ValueKey('center-edit-project-links'),
+                    onPressed: () {
+                      Navigator.pop(sheetContext);
+                      _editProjectLinks(center);
+                    },
+                    icon: const Icon(Icons.link),
+                    label: const Text('مدیریت ارتباط پروژه‌ها'),
+                  ),
                 ],
               ),
             ),
