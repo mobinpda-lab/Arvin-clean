@@ -626,3 +626,17 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - Mission report: docs/history/command-154-r/MASTER-EXECUTION-154-R.md.
 - Entity and relationship matrices were reconciled in 154-R commits; they distinguish Center Management UI IMPLEMENTED from full Center entity acceptance NOT ACCEPTED.
 - Merge NOT AUTHORIZED; Release NO-GO; Deployment NOT AUTHORIZED.
+
+
+## MASTER EXECUTION 155-R — live checkpoint (2026-11-22)
+
+- Starting Candidate: `4bb1860f29403be4d1fd7e8d7aebd8a3026c6dc8`; Main: `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Code Candidate after three 155-R commits: `5c567e8370dacfced5bb218c51897f2cad7b912a`; docs/matrix updates followed on the same canonical branch. No new branch or PR.
+- Commits: `3e00daa78b4db23bd245798b8898c7c7ee482d5f` (Center widget test async-load synchronization); `aaefe268994c6c73ebc8d50aafec321801f66809` (Task Editor preserves Center/Project/Category IDs and extensionData); `5c567e8370dacfced5bb218c51897f2cad7b912a` (regressions for retained IDs, explicit NULL and absent fields).
+- Build/Center regression at starting Candidate 4bb: Run `44986909172` failed Shard 0; exact failing assertion `test/center_management_page_test.dart:54`, expected one “مرکز الف”, found zero. Shards 1–5, Analyze, Debug/Release APK passed. Device Smoke `44986909168` passed 7/7; Governance `44986909166` and Follow-up Persistence `44986909202` passed. COMMAND 20-E `44986909366` failed overall because Build Shard 0 failed; artifact `14739764622` inspected.
+- Exact Candidate 5c567 workflows: Build `44989444175` IN PROGRESS; Device Smoke `44989444131` queued/in progress; Governance `44989444105` SUCCESS; Follow-up File Persistence `44989444082` SUCCESS; COMMAND 20-E `44989444099` IN PROGRESS. Do not treat pending jobs as PASS.
+- Task Editor now preserves existing optional hierarchy links and extensionData on unrelated edits. Center selection/change/clear UI, Task Details Center display/navigation, Quick Capture Center selection, and Home fifth Center filter remain open.
+- Home still has four filter dimensions; five temporal groups remain in canonical Home grouping. Project↔Category table exists, but canonical Store/API/UI and accepted backup/restore relation path remain incomplete.
+- Lane A remains BLOCKED / NOT ACCEPTED: #3458, #3550, #3619, #3641 are OPEN. Reminder four-action acceptance remains open under #3646. No Schema/Migration contract or production database changed.
+- Permanent mission report: `docs/history/command-155-r/MASTER-EXECUTION-155-R.md`. Acceptance and relationship matrices were updated with 155-R addenda.
+- Main remains unchanged. PR #3495 remains OPEN/unmerged. Merge NOT AUTHORIZED; Release NO-GO; Deployment NOT AUTHORIZED.
