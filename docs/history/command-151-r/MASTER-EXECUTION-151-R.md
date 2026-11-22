@@ -66,3 +66,12 @@ The following documentation-only commits were created sequentially on the canoni
 - `474ffc10064a8eebd7824cd676f4e3d5a996c67f` — initial `docs/history/command-151-r/MASTER-EXECUTION-151-R.md`
 
 The latest report amendment itself is the next documentation-only commit. The branch was advanced only with expected-SHA updates; no force-push was used.
+
+## MASTER EXECUTION 152-R — continuation addendum (2026-11-22)
+- Live PR #3495 remains OPEN / DRAFT / UNMERGED. Canonical branch HEAD at the start of 152-R was `9d8dc6cd4474818e03cc1c5a7deed4dcb3d9a974`; Main remains `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Six commits after the prior code Candidate were documentation-only; no executable source or tests changed in that range.
+- Exact-SHA Build, Device Smoke, Governance, Follow-up Persistence and COMMAND 20-E all pass on `9d8dc6cd`. Calendar failure was not reproduced with identical source/test blobs.
+- COMMAND 20-E final artifact: `14736794580`; Device Smoke Calendar screenshot artifact: `14737792173`; Debug APK artifact: `14736764773`; Release APK artifact: `14736803286`.
+- Center remains incomplete: Center model/store and file-backed M2M persistence foundation are IMPLEMENTED; management UI and Task/Project/Quick Capture integration are NOT IMPLEMENTED; Home Center filter and portable Center relationship backup/restore are NOT ACCEPTED.
+- Continue under Issue #3550's existing lane-A migration/data-safety boundary. UI specification/work can proceed independently; no schema/storage mutation is authorized until the migration/backup contract is accepted.
+- Merge, release, deployment and real-user database migration remain NOT AUTHORIZED.

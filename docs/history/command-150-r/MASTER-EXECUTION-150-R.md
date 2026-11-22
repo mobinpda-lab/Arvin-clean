@@ -145,3 +145,10 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 
 ### Disposition
 150-R is NOT FINALIZED. No safe minimal Calendar source correction was committed because the root cause is not isolated. No code or tests were changed in this audit pass. No Main change, merge, release, deployment, destructive data operation, test removal or test weakening occurred.
+
+## MASTER EXECUTION 152-R — evidence finalization addendum (2026-11-22)
+- The prior 150-R blocker was the Calendar Device Smoke assertion on Candidate `3c72a341fc1aac785a22b6fe151c23507c16793c`. Documentation-only commits advanced to `9d8dc6cd4474818e03cc1c5a7deed4dcb3d9a974`; all five executable Calendar/test files retained identical blob SHAs.
+- Fresh exact-HEAD Build `44979607579`, Device Smoke `44979607528`, Governance `44979607509`, Follow-up Persistence `44979607500` and COMMAND 20-E `44979607577` all completed SUCCESS.
+- Calendar Android smoke job `137077040499` passed and produced screenshot artifact `14737792173`. The prior failure is classified as NOT REPRODUCED; its underlying transient cause is NOT VERIFIED. No product-source fix is asserted.
+- COMMAND 20-E final report `14736794580` has `overall = PASS`, with all six test shards, Analyze, Debug/Release APK, ProjectStore persistence, Calendar process restart, cleanup, Follow-up persistence and seven Device Smoke scenarios passing on the exact SHA.
+- Therefore 150-R exact-SHA evidence finalization is COMPLETE. This does not imply full REV10 product acceptance or release readiness.

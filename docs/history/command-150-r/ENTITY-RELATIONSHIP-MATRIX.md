@@ -81,3 +81,11 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 
 ### Disposition
 150-R is NOT FINALIZED. No safe minimal Calendar source correction was committed because the root cause is not isolated. No code or tests were changed in this audit pass. No Main change, merge, release, deployment, destructive data operation, test removal or test weakening occurred.
+
+## MASTER EXECUTION 152-R — relationship acceptance refresh (2026-11-22)
+- Center↔Project: schema/store CRUD, idempotent link/unlink and bidirectional lookup are IMPLEMENTED at storage level; product relationship UI and portable Backup/Restore acceptance remain NOT ACCEPTED.
+- Center↔Task: optional direct FK persistence foundation exists; Task Editor, Details and Quick Capture selection integration remains NOT IMPLEMENTED / NOT ACCEPTED.
+- Project↔Category: join-table foundation exists; canonical relationship API, bidirectional product UI and accepted backup/restore round-trip remain PARTIAL / NOT ACCEPTED.
+- Task↔Project: both `tasks.project_id` and legacy `project_items` remain present. Canonical consistency contract and all move/remove/reload/restart/restore scenarios are NOT VERIFIED; neither path is deleted.
+- Home dimensions: Time, Project, Category, Tags and Center are the required five dimensions. The complete SQLite-backed OR-within / AND-between contract and five-dimension acceptance remain NOT ACCEPTED.
+- No relationship migration, destructive edge replacement or legacy membership deletion was performed.

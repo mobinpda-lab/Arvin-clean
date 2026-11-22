@@ -98,3 +98,10 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 
 ### Disposition
 150-R is NOT FINALIZED. No safe minimal Calendar source correction was committed because the root cause is not isolated. No code or tests were changed in this audit pass. No Main change, merge, release, deployment, destructive data operation, test removal or test weakening occurred.
+
+## MASTER EXECUTION 152-R — exact-SHA evidence refresh (2026-11-22)
+- Candidate `9d8dc6cd4474818e03cc1c5a7deed4dcb3d9a974` was validated by Build `44979607579`, Device Smoke `44979607528`, Follow-up Persistence `44979607500`, Governance `44979607509` and COMMAND 20-E `44979607577`; all completed SUCCESS on the same SHA.
+- Calendar lane `137077040499` passed; the target Task and both independent Reminder records appeared in the selected-day projection and the edit/persistence flow passed.
+- COMMAND 20-E final artifact `14736794580` reports `overall: PASS`; exact target/checkout SHA matched. This closes the prior 150-R CI evidence blocker only; it does not accept the remaining REV10 product gaps.
+- Five executable source/test blobs compared between `3c72a341` and `9d8dc6cd` are byte-identical. The prior Calendar failure was not reproduced; no source correction is claimed and the historical root cause remains NOT VERIFIED.
+- Entity status remains separate from CI: Center UI, Center Task selectors, Home five-filter data path, Project↔Category store/UI, full Backup/Restore matrix and Reminder four-operation acceptance remain NOT ACCEPTED.

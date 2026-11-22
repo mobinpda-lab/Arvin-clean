@@ -592,3 +592,11 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 
 ### Disposition
 150-R is NOT FINALIZED. No safe minimal Calendar source correction was committed because the root cause is not isolated. No code or tests were changed in this audit pass. No Main change, merge, release, deployment, destructive data operation, test removal or test weakening occurred.
+
+## MASTER EXECUTION 152-R — live checkpoint (2026-11-22)
+- Canonical candidate at checkpoint: `9d8dc6cd4474818e03cc1c5a7deed4dcb3d9a974`. Main: `45e4202b03a434459e4c021a04efa7e8396359db`. PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Exact-SHA validation: Build `44979607579` SUCCESS; Device Smoke `44979607528` SUCCESS (7/7 scenarios); Governance `44979607509` SUCCESS; Follow-up Persistence `44979607500` SUCCESS; COMMAND 20-E `44979607577` SUCCESS.
+- Calendar job `137077040499` passed. Prior Calendar failure did not reproduce against identical executable source/test blobs; historical root cause remains NOT VERIFIED.
+- COMMAND 20-E machine-readable summary: `overall: PASS`; final artifact `14736794580`. No release acceptance is implied.
+- APK artifacts: Debug `14736764773` (SHA-256 `b1ae5b2683c63fdd573dda2900dae78f82585c46fb26094bab0b65c19c324352`); Release `14736803286` (SHA-256 `9098bce9859d8d8b864cecc92fff651c1f4f73a67fddb658e1837dce5375ca29`).
+- Center/Home/Project-Category/Task-Project/Backup-Restore/Reminder UX acceptance remains open. Continue only through PR #3495 and the existing issue/branch governance.
