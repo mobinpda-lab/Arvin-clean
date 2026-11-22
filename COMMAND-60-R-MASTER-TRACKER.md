@@ -600,3 +600,14 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - COMMAND 20-E machine-readable summary: `overall: PASS`; final artifact `14736794580`. No release acceptance is implied.
 - APK artifacts: Debug `14736764773` (SHA-256 `b1ae5b2683c63fdd573dda2900dae78f82585c46fb26094bab0b65c19c324352`); Release `14736803286` (SHA-256 `9098bce9859d8d8b864cecc92fff651c1f4f73a67fddb658e1837dce5375ca29`).
 - Center/Home/Project-Category/Task-Project/Backup-Restore/Reminder UX acceptance remains open. Continue only through PR #3495 and the existing issue/branch governance.
+
+
+## MASTER EXECUTION 153-R — canonical checkpoint (2026-11-22)
+- Source Candidate at implementation/test start: `6fb78dee3d236385df8045149f8c929df076ae78`; all work stayed on `recovery-02/main-based-integration` / PR #3495.
+- Center Management UI is implemented in `lib/center_management_page.dart`; Settings integration is in `lib/settings_page.dart`; widget coverage is in `test/center_management_page_test.dart`.
+- Reused existing `CenterStore`, `Center`, `ProjectStore`, and Center↔Project transaction APIs. No duplicate model/store/table and no Schema/Persistence contract change.
+- Center Task selector, Task Details Center label, Quick Capture Center selector, Home fifth Center filter, Project↔Category Store/UI, and Center/relationship portable backup are still outstanding.
+- Lane A remains BLOCKED / NOT ACCEPTED. See open Issues #3458, #3550, #3619 and #3641. No schema change or production-data operation.
+- Exact-SHA run snapshot for `6fb78dee3d236385df8045149f8c929df076ae78`: Governance `44985238078` SUCCESS; Follow-up Persistence `44985238063` SUCCESS; Build `44985238060` IN PROGRESS; Device Smoke `44985238066` IN PROGRESS; COMMAND 20-E `44985238070` IN PROGRESS. Do not transfer results to later SHAs.
+- Earlier Candidate `afad6631a75ff192c0409d77072a45296d89879f`: Build `44981359994`, Device Smoke `44981360016`, Governance `44981360021`, Follow-up Persistence `44981360013` SUCCESS; COMMAND 20-E `44981360041` FAILURE. The failed 20-E included ProjectStore test failure and Android emulator provisioning / Maven Central HTTP 429 errors; the product-level ProjectStore failure detail remains to be extracted from the uploaded evidence artifact.
+- PR #3495 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. Release NO-GO; deployment not authorized.
