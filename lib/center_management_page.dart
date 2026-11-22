@@ -33,6 +33,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
 
   List<domain.Center> _items = const [];
   List<ProjectPlan> _projectItems = const [];
+  Map<String, List<String>> _centerProjectIds = const {};
   _CenterSort _sort = _CenterSort.name;
   bool _showArchived = false;
   bool _loading = true;
@@ -67,10 +68,18 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
         _centers.load(includeArchived: true),
         _projects.load(),
       ]);
+      final centers = values[0] as List<domain.Center>;
+      final links = await Future.wait(
+        centers.map((center) => _centers.projectIdsForCenter(center.id)),
+      );
       if (!mounted) return;
       setState(() {
-        _items = values[0] as List<domain.Center>;
+        _items = centers;
         _projectItems = values[1] as List<ProjectPlan>;
+        _centerProjectIds = {
+          for (var index = 0; index < centers.length; index++)
+            centers[index].id: links[index],
+        };
         _loading = false;
       });
     } catch (error) {
@@ -372,9 +381,7 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
                               separatorBuilder: (_, __) => const Divider(height: 1),
                               itemBuilder: (context, index) {
                                 final center = visible[index];
-                                final linkedCount = _projectItems
-                                    .where((project) => false)
-                                    .length;
+                                final linkedCount = _centerProjectIds[center.id]?.length ?? 0;
                                 return ListTile(
                                   key: ValueKey('center-row-${center.id}'),
                                   leading: CircleAvatar(
