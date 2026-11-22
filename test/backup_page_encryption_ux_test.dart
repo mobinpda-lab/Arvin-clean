@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
@@ -50,6 +51,7 @@ Widget _app({
   Future<List<Map<String, dynamic>>> Function()? loadTasks,
   Future<void> Function(List<Map<String, dynamic>> tasks)? replaceTasks,
   Future<void> Function(String stage)? restoreStageHook,
+  VoidCallback? onBackupComplete,
 }) {
   return MaterialApp(
     home: BackupPage(
@@ -60,6 +62,7 @@ Widget _app({
               ],
       replaceTasks: replaceTasks ?? (_) async {},
       restoreStageHook: restoreStageHook,
+      onBackupComplete: onBackupComplete,
     ),
   );
 }
@@ -104,7 +107,10 @@ void main() {
   testWidgets('encrypted backup requires matching non-empty confirmation',
       (tester) async {
     final service = _FakeBackupService();
-    await tester.pumpWidget(_app(service: service));
+    final backupComplete = Completer<void>();
+    await tester.pumpWidget(
+      _app(service: service, onBackupComplete: backupComplete.complete),
+    );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
@@ -131,6 +137,10 @@ void main() {
       'secret-123',
     );
     await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await tester.pump();
+    // The UI starts the real async backup pipeline; await its completion
+    // signal rather than settling frames while SQLite Futures are in flight.
+    await tester.runAsync(() => backupComplete.future);
     await tester.pumpAndSettle();
 
     expect(service.writeCount, 1);
