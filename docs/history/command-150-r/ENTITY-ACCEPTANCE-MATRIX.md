@@ -105,3 +105,37 @@ Debug APK `14718821042`; Release APK `14718204892`; Smoke People `14718882016`; 
 - COMMAND 20-E final artifact `14736794580` reports `overall: PASS`; exact target/checkout SHA matched. This closes the prior 150-R CI evidence blocker only; it does not accept the remaining REV10 product gaps.
 - Five executable source/test blobs compared between `3c72a341` and `9d8dc6cd` are byte-identical. The prior Calendar failure was not reproduced; no source correction is claimed and the historical root cause remains NOT VERIFIED.
 - Entity status remains separate from CI: Center UI, Center Task selectors, Home five-filter data path, Project↔Category store/UI, full Backup/Restore matrix and Reminder four-operation acceptance remain NOT ACCEPTED.
+
+
+## MASTER EXECUTION 153-R — source revalidation (2026-11-22)
+**Audited source Candidate:** `6fb78dee3d236385df8045149f8c929df076ae78` (PR #3495 canonical branch).
+
+| Entity / capability | Implementation | Tested on 153-R Candidate | Product acceptance |
+|---|---|---|---|
+| Center model | EXISTING — reused `lib/models/center.dart` | Existing store persistence test; 153-R UI tests are pending exact-SHA Build | NOT ACCEPTED |
+| CenterStore | EXISTING — reused `lib/services/center_store.dart`; no duplicate store/table | Existing file-backed test exists; 153-R UI suite pending | NOT ACCEPTED as full entity |
+| Center Management UI | IMPLEMENTED — new independent page, CRUD name, search, sort, archive/restore, empty/loading/error states, details and Settings entry | Widget tests added; Build/Analyze still running when recorded | NOT YET TESTED / NOT ACCEPTED |
+| Center↔Project | Existing transactional M2M API reused; Center page displays linked Projects and supports per-Center relationship editing | Store persistence test exists; new UI relationship test pending | NOT ACCEPTED — portable backup parity missing |
+| Center↔Task | Optional FK and TaskStore persistence exist | Existing file-backed relation test | PARTIAL — Task Editor, Details and Quick Capture UI absent |
+| Home five filters | Four existing dimensions only: Time, Project, Category, Tags | Existing four-dimension source; no fifth-dimension regression | NOT IMPLEMENTED / NOT ACCEPTED |
+| Project↔Category | Schema-v9 join table exists | No canonical relationship Store/UI acceptance evidence | PARTIAL / NOT ACCEPTED |
+| Calendar | Existing source retained; no rewrite | Candidate afad663 Device Smoke Calendar job passed; current 6fb Device Smoke is in progress | PARTIAL — no full product acceptance |
+| Reminder four actions | Existing reminder/follow-up foundations retained | No new exact-SHA four-action acceptance | PARTIAL / NOT ACCEPTED |
+
+### Source-contract boundary
+- Current Center model exposes ID, name, created/updated timestamps and archive status only. Description/color are not represented by the existing model/store contract; no temporary fields or Schema changes were introduced.
+- Center↔Project editing calls the existing `replaceProjectLinks` API for one Center only; it does not replace relationships belonging to other Centers.
+- No Task persistence, Schema, migration, Backup/Restore or protected query contract was modified.
+- Lane A remains BLOCKED / NOT ACCEPTED. Historical v8 SQL DDL fixture is not a full historical data fixture; v8→v9 migration, explicit NULL/unknown metadata parity, complete rollback/retry and independent SQLite A→B restore are not all accepted.
+
+### Exact-SHA CI observation
+For 153-R source Candidate `6fb78dee3d236385df8045149f8c929df076ae78` at the time of this amendment:
+- Governance run `44985238078`: SUCCESS.
+- Follow-up File Persistence run `44985238063`: SUCCESS.
+- Build run `44985238060`: IN PROGRESS (Analyze/Test Shards 0–5/Debug+Release APK not yet complete).
+- Device Smoke run `44985238066`: IN PROGRESS (Home and Quick Capture running; remaining scenarios queued).
+- COMMAND 20-E run `44985238070`: IN PROGRESS.
+No pending result is represented as PASS. Recheck exact SHA after all workflows finish.
+
+### Delivery state
+PR #3495 remains OPEN / DRAFT / UNMERGED. Main remains `45e4202b03a434459e4c021a04efa7e8396359db`. No merge, release, deployment or destructive migration is authorized.
