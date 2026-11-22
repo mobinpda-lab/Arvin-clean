@@ -153,12 +153,13 @@ void main() {
     expect(duplicate, hasLength(1));
   });
 
-  test('serializes concurrent schema installation on one executor', () async {
-    await Future.wait(<Future<void>>[
-      G1DriftSchema.install(database),
-      G1DriftSchema.install(database),
-      G1DriftSchema.install(database),
-    ]);
+  test('coalesces concurrent schema installation on one executor', () async {
+    final first = G1DriftSchema.install(database);
+    final second = G1DriftSchema.install(database);
+    final third = G1DriftSchema.install(database);
+    expect(identical(first, second), isTrue);
+    expect(identical(second, third), isTrue);
+    await Future.wait(<Future<void>>[first, second, third]);
 
     final integrity = await database.runSelect('PRAGMA integrity_check', const []);
     expect(integrity.single.values.first, 'ok');

@@ -62,13 +62,37 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
-  // QueryExecutor serializes individual statements, not a complete schema
-  // installation. Multiple Stores can share one executor and otherwise
-  // interleave PRAGMA changes with another install's DDL transaction.
+  // Successful installation is shared for the lifetime of one executor.
+  // Multiple Stores use the same executor; rerunning PRAGMA and DDL from each
+  // Store can otherwise overlap with another Store's transaction.
+  static final Expando<Future<void>> _installations =
+      Expando<Future<void>>('G1DriftSchema.installations');
   static final Map<QueryExecutor, Future<void>> _installTails =
       HashMap<QueryExecutor, Future<void>>.identity();
 
   static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) {
+    // Failure-injection callers must execute the migration path even if this
+    // executor was previously initialized, so they bypass the success cache.
+    if (failureInjector != null) {
+      return _serializeInstall(executor, failureInjector: failureInjector);
+    }
+
+    final existing = _installations[executor];
+    if (existing != null) return existing;
+
+    final installation = _serializeInstall(executor);
+    final tracked = installation.catchError((Object error, StackTrace stackTrace) {
+      _installations[executor] = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _installations[executor] = tracked;
+    return tracked;
+  }
+
+  static Future<void> _serializeInstall(
     QueryExecutor executor, {
     G1HierarchyFailureInjector? failureInjector,
   }) async {
