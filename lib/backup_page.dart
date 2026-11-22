@@ -236,7 +236,12 @@ class _BackupPageState extends State<BackupPage> {
     };
   }
 
-  Future<void> _backup() async {
+  Future<void> _backup() => arvinAsyncTrace.run<void>(
+        operationName: 'backup.page',
+        operation: _backupTraced,
+      );
+
+  Future<void> _backupTraced() async {
     if (directory == null || directory!.isEmpty) {
       _message('ابتدا پوشه پشتیبان را انتخاب کنید');
       return;
@@ -244,7 +249,10 @@ class _BackupPageState extends State<BackupPage> {
 
     String? passphrase;
     if (encryptBackup) {
-      passphrase = await _requestNewPassphrase();
+      passphrase = await arvinAsyncTrace.run<String?>(
+        operationName: 'backup.password_entry_confirmation',
+        operation: _requestNewPassphrase,
+      );
       if (passphrase == null || !mounted) return;
     }
 
