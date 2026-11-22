@@ -101,10 +101,13 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     switch (_sort) {
       case _CenterSort.name:
         result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        break;
       case _CenterSort.newest:
         result.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+        break;
       case _CenterSort.oldest:
         result.sort((a, b) => a.createdAt.compareTo(b.createdAt));
+        break;
     }
     return result;
   }
