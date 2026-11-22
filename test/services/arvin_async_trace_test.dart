@@ -211,6 +211,22 @@ void main() {
       await trace.close();
     });
 
+    test('compatibility Future preserves product result on writer failure',
+        () async {
+      final writer = _MemoryTraceWriter(failFromWrite: 2);
+      final trace = ArvinAsyncTrace(writer: writer);
+
+      final result = await trace.traceFuture<int>(
+        'test.compatibility_writer_failure',
+        Future<int>.value(73),
+      );
+
+      expect(result, 73);
+      expect(writer.events.map((event) => event['event']), ['START', 'ERROR']);
+      expect(writer.events.any((event) => event['status'] == 'SUCCESS'), isFalse);
+      await trace.close();
+    });
+
     test('writes an independent file that parses line by line', () async {
       final configuredPath = Platform.environment['ARVIN_TRACE_OUTPUT'];
       final tempDirectory = configuredPath == null
