@@ -17,10 +17,13 @@ class CenterManagementPage extends StatefulWidget {
     super.key,
     this.centerStore,
     this.projectStore,
+    this.onLoadComplete,
   });
 
   final CenterStore? centerStore;
   final ProjectStore? projectStore;
+  /// Signals completion of the page's canonical Center/Project load.
+  final VoidCallback? onLoadComplete;
 
   @override
   State<CenterManagementPage> createState() => _CenterManagementPageState();
@@ -82,12 +85,14 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
         };
         _loading = false;
       });
+      widget.onLoadComplete?.call();
     } catch (error) {
       if (!mounted) return;
       setState(() {
         _error = 'بارگذاری مراکز انجام نشد: $error';
         _loading = false;
       });
+      widget.onLoadComplete?.call();
     }
   }
 
