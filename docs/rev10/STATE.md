@@ -45,3 +45,9 @@ These results do not transfer to later SHAs.
 **Home / Backup:** page-owned completion callbacks and the corresponding test wait paths are present in the current source. Their targeted test outcomes have not yet been separately extracted from the shard logs in this checkpoint; do not mark them individually PASS based only on source presence.
 
 **Execution disposition:** no source fix, test execution from a local Flutter/Dart environment, or new acceptance is claimed in this checkpoint. Continue with isolated reproduction and focused Center lifecycle correction on this canonical branch. Keep Slice-0, full Database A→B restore, and Galaxy A52s physical acceptance NOT ACCEPTED / BLOCKED until their own evidence exists. Main remains untouched; merge/release/deployment remain unauthorized.
+
+
+### 165-R log extraction addendum
+- The exact Home regression `closing overdue warning preserves the Task and its due date` passed in shard 1 job `137149100053` on source SHA `b303d8e2b45e0d06c08a901ebea4895d3546ad46`.
+- The exact Backup encryption regression `encrypted backup requires matching non-empty confirmation` failed by a 10-minute `TimeoutException` in shard 0 job `137149100070` on that same source SHA. It is NOT PASS; inspect the completion callback / async pipeline and SQLite test fixture lifecycle before any patch.
+- Center Management tests failed by 10-minute timeouts across shards 0, 2, 3 and 5. The specific test names are listed above. The source-level repeated initialization is an investigation lead, not a proven root cause.
