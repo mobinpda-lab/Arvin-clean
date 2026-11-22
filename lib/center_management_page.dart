@@ -63,14 +63,20 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
   }
 
   Future<void> _load() async {
+    var operationStarted = false;
     try {
       await arvinAsyncTrace.run<void>(
         operationName: 'center.page.load',
-        operation: _loadTraced,
+        operation: () async {
+          operationStarted = true;
+          await _loadTraced();
+        },
       );
     } catch (_) {
-      // _loadTraced already updates the visible error state and completion
-      // callback; keep the lifecycle Future handled by the widget.
+      // If START could not be persisted, still perform the UI load without
+      // diagnostics. If the traced operation started, _loadTraced already
+      // updated the visible error state and completion callback.
+      if (!operationStarted) await _loadTraced();
     }
   }
 
