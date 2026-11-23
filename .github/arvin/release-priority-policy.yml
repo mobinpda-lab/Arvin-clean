@@ -1,0 +1,87 @@
+version: 1
+name: arvin-release-closure-policy
+purpose: prioritize_proven_arvin_completion_over_factory_expansion
+
+source_of_truth:
+  - live_current_github_state_only
+  - current_main_head
+  - real_code
+  - real_tests
+  - real_ci
+  - real_build
+  - real_artifact
+  - acceptance_evidence
+
+mission:
+  primary_target: mobinpda-lab/Arvin-clean
+  goal: maximize_time_to_proven_completion
+  rules:
+    - arvin_release_ready_first
+    - verified_output_over_activity
+    - zero_false_progress
+    - zero_duplicate_work
+    - zero_blind_retry
+
+arvin_mode:
+  release_closure: true
+  freeze_nonessential_work: true
+  allow_new_features: false_when_release_blockers_exist
+  strategy: deterministic_before_ai
+
+priority:
+  P0: [security, crash, data_loss, broken_main, proven_blocker]
+  P1: [merge_ready_release_work]
+  P2: [v1_acceptance_gaps]
+  P3: [device_validation]
+  P4: [build_reproducibility]
+  P5: [artifact_and_release_evidence]
+  P6: [automation_improvement_only_if_release_time_decreases]
+
+execution:
+  order:
+    - read_current_main
+    - check_build_and_release_gates
+    - read_open_pr
+    - reconcile_issues
+    - remove_stale_work
+    - fix_real_blocker
+    - merge_valid_work
+    - validate
+    - repeat
+
+capacity:
+  arvin_release_path: 90
+  factory_acceleration_only: 10
+  other_projects: background
+
+lanes:
+  maximum_active_code_lanes: 2
+  required: [release_lane, support_lane]
+
+verification:
+  never_mark_complete_without_evidence: true
+  required_before_release_ready:
+    - final_main_sha_verified
+    - release_blockers_zero
+    - tests_passed
+    - build_verified
+    - artifact_verified
+    - checksum_verified
+    - traceable_evidence_available
+
+factory_role:
+  allowed:
+    - test_automation
+    - ci_recovery
+    - failure_classification
+    - diff_check
+    - evidence_collection
+    - checksum
+    - release_automation
+  condition: only_run_if_reduces_arvin_release_time
+
+stop_definition:
+  stop_only_when:
+    - no_safe_high_value_action_exists
+    - human_required_blocker
+    - security_stop

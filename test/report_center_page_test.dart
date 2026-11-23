@@ -1,0 +1,323 @@
+import 'package:arvin/models/task.dart';
+import 'package:arvin/models/person_reference.dart';
+import 'package:arvin/report_center_page.dart';
+import 'package:arvin/task_detail_page.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+
+void main() {
+  testWidgets('Report Center opens an Arvin bottom-sheet filter panel', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [
+            Task(id: 'one', title: 'اول', dueDate: DateTime(2026, 10, 7, 15)),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('فیلتر گزارش‌ها'), findsOneWidget);
+    expect(find.text('امروز'), findsOneWidget);
+    expect(find.text('بازه دقیق'), findsOneWidget);
+    expect(tester.getSize(find.byKey(const ValueKey('report-filter-header'))).height, 64);
+
+    final applyBeforeScroll = tester.getRect(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.drag(find.byType(ListView).last, const Offset(0, -700));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('report-filter-apply')), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-clear')), findsOneWidget);
+    expect(tester.getRect(find.byKey(const ValueKey('report-filter-apply'))), applyBeforeScroll);
+    expect(find.text('بازنشانی'), findsOneWidget);
+    expect(find.text('اعمال فیلتر'), findsOneWidget);
+  });
+
+  testWidgets(
+    'Report Center combines time and category filters and opens that exact report scope',
+    (tester) async {
+      final now = DateTime(2026, 10, 7, 10);
+      await tester.pumpWidget(
+        MaterialApp(
+          home: ReportCenterPage(
+            now: now,
+            tasks: [
+              Task(
+                id: 'match',
+                title: 'جلسه امروز',
+                category: 'کار',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 7, 15),
+              ),
+              Task(
+                id: 'wrong-time',
+                title: 'جلسه فردا',
+                category: 'کار',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 8, 15),
+              ),
+              Task(
+                id: 'wrong-category',
+                title: 'خرید امروز',
+                category: 'خرید',
+                tags: ['مهم'],
+                dueDate: DateTime(2026, 10, 7, 15),
+              ),
+            ],
+          ),
+        ),
+      );
+
+      await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'امروز'));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-section-دسته')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.byKey(const ValueKey('report-filter-section-دسته')));
+      await tester.pumpAndSettle();
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-category-کار')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.byKey(const ValueKey('report-filter-category-کار')));
+      await tester.pumpAndSettle();
+
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('report-filter-apply')),
+        200,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('نتیجه: 1 کار'), findsOneWidget);
+      expect(find.text('جلسه امروز'), findsOneWidget);
+      expect(find.text('خرید امروز'), findsNothing);
+      expect(find.text('جلسه فردا'), findsNothing);
+
+      await tester.tap(find.byKey(const ValueKey('report-center-open-report')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('گزارش و اشتراک‌گذاری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('report-task-match')), findsOneWidget);
+      expect(find.byKey(const ValueKey('report-task-wrong-time')), findsNothing);
+      expect(find.byKey(const ValueKey('report-task-wrong-category')), findsNothing);
+    },
+  );
+  testWidgets('Report Center shows separate person-specific active waiting rows', (tester) async {
+    final ana = PersonReference(id: 'ana', displayName: 'آنا');
+    final reza = PersonReference(id: 'reza', displayName: 'رضا');
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 15, 10),
+          people: [ana, reza],
+          tasks: [
+            Task(
+              id: 'task-waiting',
+              title: 'پرونده مشتری',
+              followUps: [
+                FollowUp(
+                  id: 'waiting-ana',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                  note: 'پاسخ آنا',
+                  personIds: ['ana'],
+                  waitingForResponse: true,
+                  nextFollowUp: DateTime(2026, 10, 16, 9),
+                  reminderDate: DateTime(2026, 10, 15, 18),
+                ),
+                FollowUp(
+                  id: 'waiting-reza',
+                  dateTime: DateTime(2026, 10, 15, 9),
+                  note: 'پاسخ رضا',
+                  personIds: ['reza'],
+                  waitingForResponse: true,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.byType(DropdownButtonFormField<String>), findsNothing);
+    expect(find.byType(SwitchListTile), findsNothing);
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-نوع')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('منتظر پاسخ'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-نوع')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('منتظر پاسخ'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-apply')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 2 پیگیری'), findsOneWidget);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
+    expect(find.textContaining('اقدام بعدی:'), findsNothing);
+    expect(find.textContaining('یادآور:'), findsNothing);
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-person-ana')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-person-ana')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-apply')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
+    expect(find.textContaining('پاسخ آنا'), findsOneWidget);
+    expect(find.textContaining('پاسخ رضا'), findsNothing);
+    final personFilterChip = find.byKey(const ValueKey('report-active-person-ana'));
+    expect(personFilterChip, findsOneWidget);
+    tester.widget<InputChip>(personFilterChip).onDeleted!();
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('report-active-person-ana')), findsNothing);
+    expect(find.textContaining('پاسخ رضا'), findsOneWidget);
+  });
+
+  testWidgets('Report Center keeps deleted people selectable by stable label', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 7, 10),
+          tasks: [
+            Task(
+              id: 'historical',
+              title: 'کار تاریخی',
+              followUps: [
+                FollowUp(
+                  id: 'follow-up-deleted-person',
+                  dateTime: DateTime(2026, 10, 7, 9),
+                  personIds: ['person-deleted-stable-id'],
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-section-اشخاص')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(find.byKey(const ValueKey('report-filter-section-اشخاص')));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+
+    expect(find.text('شخص حذف‌شده'), findsOneWidget);
+    expect(find.byKey(const ValueKey('report-filter-person-person-deleted-stable-id')), findsOneWidget);
+  });
+
+
+  testWidgets('task and waiting follow-up cards open canonical TaskDetailPage', (tester) async {
+    final person = PersonReference(id: 'ana', displayName: 'آنا');
+    final task = Task(
+      id: 'task-open-from-report',
+      title: 'کار با پیگیری',
+      followUps: [
+        FollowUp(
+          id: 'waiting-open-from-report',
+          dateTime: DateTime(2026, 10, 15, 9),
+          note: 'پاسخ مشتری',
+          personIds: ['ana'],
+          waitingForResponse: true,
+        ),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ReportCenterPage(
+          now: DateTime(2026, 10, 15, 10),
+          people: [person],
+          tasks: [task],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-task-card-task-open-from-report')));
+    await tester.pumpAndSettle();
+    expect(find.byType(TaskDetailPage), findsOneWidget);
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const ValueKey('report-center-filters')));
+    await tester.pumpAndSettle();
+    final typeSection = find.byKey(
+      const ValueKey('report-filter-section-نوع'),
+    );
+    await tester.scrollUntilVisible(
+      typeSection,
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    await tester.tap(typeSection);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('منتظر پاسخ'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.tap(find.byKey(const ValueKey('report-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('نتیجه: 1 پیگیری'), findsOneWidget);
+    await tester.tap(find.text('کار با پیگیری'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TaskDetailPage), findsOneWidget);
+  });
+
+
+}
+

@@ -1,0 +1,195 @@
+import 'package:arvin/services/app_settings_service.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({});
+  });
+
+  test('loads Iran-first safe defaults from existing SharedPreferences foundation',
+      () async {
+    final settings = await AppSettingsService().load();
+
+    expect(settings.themeMode, ThemeMode.system);
+    expect(settings.usePersianDate, isTrue);
+    expect(settings.swipeRightAction, TaskSwipeAction.trash);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('persists theme and Persian-date preferences without a second store', () async {
+    final service = AppSettingsService();
+
+    await service.saveThemeMode(ThemeMode.dark);
+    await service.saveUsePersianDate(false);
+
+    final settings = await service.load();
+    expect(settings.themeMode, ThemeMode.dark);
+    expect(settings.usePersianDate, isFalse);
+  });
+
+  test('persists explicit left and right swipe actions', () async {
+    final service = AppSettingsService();
+
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.archive,
+      left: TaskSwipeAction.trash,
+    );
+
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.archive);
+    expect(settings.swipeLeftAction, TaskSwipeAction.trash);
+  });
+
+  test('portable settings omit font selection and preserve theme date and swipe preferences',
+      () async {
+    final service = AppSettingsService();
+    const source = AppSettings(
+      themeMode: ThemeMode.dark,
+      usePersianDate: true,
+      swipeRightAction: TaskSwipeAction.archive,
+      swipeLeftAction: TaskSwipeAction.trash,
+    );
+
+    final json = service.toPortableJson(source);
+    expect(json['themeMode'], 'dark');
+    expect(json['usePersianDate'], isTrue);
+    expect(json['swipeRightAction'], 'archive');
+    expect(json['swipeLeftAction'], 'trash');
+    expect(json.containsKey('fontFamily'), isFalse);
+    expect(json['calendarIntegration'], isA<Map<String, dynamic>>());
+
+    final decoded = service.decodePortableJson(json);
+    expect(decoded.themeMode, ThemeMode.dark);
+    expect(decoded.usePersianDate, isTrue);
+    expect(decoded.swipeRightAction, TaskSwipeAction.archive);
+    expect(decoded.swipeLeftAction, TaskSwipeAction.trash);
+  });
+
+  test('portable restore saves settings through existing preference keys', () async {
+    final service = AppSettingsService();
+
+    final restored = await service.restorePortableJson({
+      'themeMode': 'light',
+      'usePersianDate': true,
+      'swipeRightAction': 'archive',
+      'swipeLeftAction': 'none',
+    });
+
+    expect(restored.themeMode, ThemeMode.light);
+    expect(restored.usePersianDate, isTrue);
+    expect(restored.swipeRightAction, TaskSwipeAction.archive);
+    expect(restored.swipeLeftAction, TaskSwipeAction.none);
+
+    final loaded = await service.load();
+    expect(loaded.themeMode, ThemeMode.light);
+    expect(loaded.usePersianDate, isTrue);
+    expect(loaded.swipeRightAction, TaskSwipeAction.archive);
+    expect(loaded.swipeLeftAction, TaskSwipeAction.none);
+  });
+
+  test('legacy font preference in a backup is ignored and never persisted', () async {
+    final service = AppSettingsService();
+    final restored = await service.restorePortableJson({
+      'themeMode': 'dark',
+      'fontFamily': 'System Default',
+    });
+    expect(restored.themeMode, ThemeMode.dark);
+    final preferences = await SharedPreferences.getInstance();
+    expect(preferences.get('arvin.settings.fontFamily'), isNull);
+    expect(service.toPortableJson(restored).containsKey('fontFamily'), isFalse);
+  });
+
+  test('portable decoder rejects malformed or unsupported settings', () {
+    final service = AppSettingsService();
+
+    expect(
+      () => service.decodePortableJson({'themeMode': 7}),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => service.decodePortableJson({'themeMode': 'sepia'}),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => service.decodePortableJson({'usePersianDate': 'yes'}),
+      throwsA(isA<FormatException>()),
+    );
+    expect(service.decodePortableJson({'fontFamily': <String>[]}).themeMode, ThemeMode.system);
+    expect(
+      () => service.decodePortableJson({'swipeRightAction': 3}),
+      throwsA(isA<FormatException>()),
+    );
+    expect(
+      () => service.decodePortableJson({'swipeLeftAction': 'explode'}),
+      throwsA(isA<FormatException>()),
+    );
+  });
+
+  test('portable decoder keeps missing optional keys backward compatible', () {
+    final settings = AppSettingsService().decodePortableJson({});
+
+    expect(settings.themeMode, ThemeMode.system);
+    expect(settings.usePersianDate, isTrue);
+    expect(settings.swipeRightAction, TaskSwipeAction.trash);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('retired Convert to FollowUp preference normalizes to none', () async {
+    final service = AppSettingsService();
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.convertToFollowUp,
+      left: TaskSwipeAction.archive,
+    );
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.none);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('retired Convert to FollowUp preference normalizes to none on either side', () async {
+    final service = AppSettingsService();
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.trash,
+      left: TaskSwipeAction.convertToFollowUp,
+    );
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.trash);
+    expect(settings.swipeLeftAction, TaskSwipeAction.none);
+  });
+
+  test('persists completed as a swipe action', () async {
+    final service = AppSettingsService();
+    await service.saveSwipeActions(right: TaskSwipeAction.complete, left: TaskSwipeAction.archive);
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.complete);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+  test('persists Move to Today as a swipe action', () async {
+    SharedPreferences.setMockInitialValues({});
+    final service = AppSettingsService();
+
+    await service.saveSwipeActions(
+      right: TaskSwipeAction.moveToToday,
+      left: TaskSwipeAction.archive,
+    );
+
+    final settings = await service.load();
+    expect(settings.swipeRightAction, TaskSwipeAction.moveToToday);
+    expect(settings.swipeLeftAction, TaskSwipeAction.archive);
+  });
+
+
+  test('persists and clamps app-wide font size', () async {
+  final service = AppSettingsService();
+  await service.saveFontSize(22);
+  expect((await service.load()).fontSize, 22);
+  await service.saveFontSize(99);
+  expect((await service.load()).fontSize, 24);
+  await service.saveFontSize(1);
+    expect((await service.load()).fontSize, 12);
+  });
+}

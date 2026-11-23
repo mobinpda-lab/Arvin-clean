@@ -1,0 +1,233 @@
+import 'dart:async';
+import 'dart:collection';
+import 'dart:convert';
+
+import 'package:drift/drift.dart';
+
+import 'g1_rev10_hierarchy_v9_migration.dart';
+import 'g1_person_directory_exclusion_v1_migration.dart';
+import 'arvin_async_trace.dart';
+
+/// G1-DRIFT relational schema foundation.
+class G1DriftSchema implements QueryExecutorUser {
+  static const int version = 9;
+
+  static const List<String> _statements = <String>[
+    '''CREATE TABLE IF NOT EXISTS tasks (
+  id TEXT NOT NULL PRIMARY KEY, storage_ordinal INTEGER NOT NULL DEFAULT 0, title TEXT NOT NULL, description TEXT NOT NULL,
+  created_at TEXT NULL, updated_at TEXT NULL, due_date TEXT NULL,
+  follow_up_enabled INTEGER NOT NULL, follow_up_date TEXT NULL, category TEXT NULL,
+  notebook_kind TEXT NULL, reminder_date TEXT NULL, priority TEXT NOT NULL,
+  archived INTEGER NOT NULL, trashed INTEGER NOT NULL, completed INTEGER NOT NULL,
+  completed_at TEXT NULL, recurrence_json TEXT NULL, legacy_payload_json TEXT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS follow_ups (
+  id TEXT NOT NULL PRIMARY KEY, task_id TEXT NOT NULL REFERENCES tasks(id),
+  date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
+  reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
+  waiting_for_response INTEGER NOT NULL DEFAULT 0,
+  extension_json TEXT NULL,
+  ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
+    '''CREATE TABLE IF NOT EXISTS projects (
+  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+  color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0,
+  legacy_center_id TEXT NULL, legacy_payload_json TEXT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS project_items (
+  project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
+  ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
+    '''CREATE TABLE IF NOT EXISTS taxonomy_categories (
+  name TEXT NOT NULL PRIMARY KEY, created_at TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS tags (
+  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS task_tags (
+  task_id TEXT NOT NULL REFERENCES tasks(id), tag_id TEXT NOT NULL REFERENCES tags(id),
+  ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, tag_id))''',
+    '''CREATE TABLE IF NOT EXISTS checklist_items (
+  task_id TEXT NOT NULL REFERENCES tasks(id), ordinal INTEGER NOT NULL,
+  value TEXT NOT NULL, PRIMARY KEY (task_id, ordinal))''',
+    '''CREATE TABLE IF NOT EXISTS task_people (
+  task_id TEXT NOT NULL REFERENCES tasks(id), person_id TEXT NOT NULL,
+  person_json TEXT NOT NULL, ordinal INTEGER NOT NULL, PRIMARY KEY (task_id, person_id))''',
+    '''CREATE TABLE IF NOT EXISTS people (
+  id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
+  created_at TEXT NOT NULL, updated_at TEXT NOT NULL)''',
+    '''CREATE TABLE IF NOT EXISTS follow_up_people (
+  follow_up_id TEXT NOT NULL REFERENCES follow_ups(id), person_id TEXT NOT NULL,
+  ordinal INTEGER NOT NULL, PRIMARY KEY (follow_up_id, person_id))''',
+    '''CREATE TABLE IF NOT EXISTS arvin_storage_meta (
+  key TEXT NOT NULL PRIMARY KEY, value TEXT NOT NULL)''',
+  ];
+
+  @override
+  int get schemaVersion => version;
+
+  @override
+  Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
+
+  // Successful installation is shared for the lifetime of one executor.
+  // Multiple Stores use the same executor; rerunning PRAGMA and DDL from each
+  // Store can otherwise overlap with another Store's transaction.
+  static final Expando<Future<void>> _installations =
+      Expando<Future<void>>('G1DriftSchema.installations');
+  static final Map<QueryExecutor, Future<void>> _installTails =
+      HashMap<QueryExecutor, Future<void>>.identity();
+
+  static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) {
+    // Failure-injection callers must execute the migration path even if this
+    // executor was previously initialized, so they bypass the success cache.
+    if (failureInjector != null) {
+      return arvinTraceFuture('schema.install.failure_injection', _serializeInstall(executor, failureInjector: failureInjector));
+    }
+
+    final existing = _installations[executor];
+    if (existing != null) return existing;
+
+    final installation = arvinTraceFuture('schema.install', _serializeInstall(executor));
+    final tracked = installation.catchError((Object error, StackTrace stackTrace) {
+      _installations[executor] = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _installations[executor] = tracked;
+    return tracked;
+  }
+
+  static Future<void> _serializeInstall(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
+    final previous = _installTails[executor];
+    final turn = Completer<void>();
+    _installTails[executor] = turn.future;
+    try {
+      if (previous != null) await previous;
+      await _installNow(executor, failureInjector: failureInjector);
+    } finally {
+      turn.complete();
+      if (identical(_installTails[executor], turn.future)) {
+        _installTails.remove(executor);
+      }
+    }
+  }
+
+  static Future<void> _installNow(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
+    final schema = G1DriftSchema();
+    await executor.ensureOpen(schema);
+    await executor.runCustom('PRAGMA foreign_keys = ON');
+    await executor.runCustom('PRAGMA busy_timeout = 5000');
+    await executor.runCustom('PRAGMA synchronous = NORMAL');
+    await executor.runCustom('BEGIN');
+    try {
+      for (final statement in _statements) {
+        await executor.runCustom(statement);
+      }
+      final taskColumns = await executor.runSelect("PRAGMA table_info('tasks')", const []);
+      if (!taskColumns.any((row) => row['name'] == 'storage_ordinal')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN storage_ordinal INTEGER NOT NULL DEFAULT 0');
+      }
+      if (!taskColumns.any((row) => row['name'] == 'legacy_payload_json')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN legacy_payload_json TEXT NULL');
+      }
+      if (!taskColumns.any((row) => row['name'] == 'completed_at')) {
+        await executor.runCustom('ALTER TABLE tasks ADD COLUMN completed_at TEXT NULL');
+      }
+      final followUpColumns = await executor.runSelect("PRAGMA table_info('follow_ups')", const []);
+      if (!followUpColumns.any((row) => row['name'] == 'title')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN title TEXT NULL');
+      }
+      if (!followUpColumns.any((row) => row['name'] == 'waiting_for_response')) {
+        await executor.runCustom(
+          'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
+        );
+      }
+      if (!followUpColumns.any((row) => row['name'] == 'extension_json')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN extension_json TEXT NULL');
+      }
+      final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
+      if (!projectColumns.any((row) => row['name'] == 'color_value')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371');
+      }
+      if (!projectColumns.any((row) => row['name'] == 'is_archived')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN is_archived INTEGER NOT NULL DEFAULT 0');
+      }
+      if (!projectColumns.any((row) => row['name'] == 'legacy_payload_json')) {
+        await executor.runCustom('ALTER TABLE projects ADD COLUMN legacy_payload_json TEXT NULL');
+      }
+      await migrateTaskPeople(executor);
+      // Do not write PRAGMA user_version here. The canonical migration marker
+      // is arvin_storage_meta, and this install path can be reached by more
+      // than one SQLite connection (for example app + Android smoke tooling).
+      // A user_version write acquires a database-wide lock and can fail even
+      // though the schema itself is already installed. Schema DDL above is
+      // idempotent and the marker remains the canonical cutover boundary.
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+      rethrow;
+    }
+    await G1Rev10HierarchyV9Migration(failureInjector: failureInjector)
+        .migrate(executor);
+    await const G1PersonDirectoryExclusionV1Migration().migrate(executor);
+  }
+
+  /// Copies historical task-person identities into the canonical directory.
+  /// Existing directory rows win for creation time; names are refreshed from
+  /// the current task relation. Re-running this migration is safe.
+  static Future<void> migrateTaskPeople(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
+      const [],
+    );
+    // Explicit directory removals are distinct from historical Task/Follow-up references.
+    // The exclusion table is created by an additive marker-versioned migration.
+    final exclusionTable = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'person_directory_exclusions'",
+      const [],
+    );
+    final excludedIds = exclusionTable.isEmpty
+        ? <String>{}
+        : (await executor.runSelect(
+            'SELECT person_id FROM person_directory_exclusions',
+            const [],
+          )).map((row) => row['person_id'] as String).toSet();
+    final now = DateTime.now().toIso8601String();
+    for (final row in rows) {
+      final id = row['person_id'];
+      final raw = row['person_json'];
+      if (id is! String || id.trim().isEmpty || raw is! String) continue;
+      if (excludedIds.contains(id.trim())) continue;
+      try {
+        final decoded = jsonDecode(raw);
+        if (decoded is! Map) continue;
+        final name = (decoded['displayName'] ?? decoded['name']);
+        if (name is! String || name.trim().isEmpty) continue;
+        await executor.runInsert(
+          '''INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)
+             ON CONFLICT(id) DO UPDATE SET name = excluded.name, updated_at = excluded.updated_at''',
+          <Object?>[id.trim(), name.trim(), now, now],
+        );
+      } on FormatException {
+        continue;
+      }
+    }
+  }
+
+  static Future<bool> isLegacyMigrationComplete(QueryExecutor executor) async {
+    final rows = await executor.runSelect(
+      "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_tasks_migrated'",
+      const [],
+    );
+    return rows.isNotEmpty && rows.single['value'] == '1';
+  }
+
+  static Future<void> markLegacyMigrationComplete(QueryExecutor executor) async {
+    await executor.runCustom(
+      "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_tasks_migrated', '1') "
+      "ON CONFLICT(key) DO UPDATE SET value = '1'",
+    );
+  }
+}

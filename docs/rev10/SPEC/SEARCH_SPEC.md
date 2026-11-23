@@ -1,0 +1,2 @@
+# Search Specification
+Normalization covers Persian Yeh/Arabic Yeh, Persian Kaf/Arabic Kaf, Arabic/Persian digits, diacritics, half-space and equivalent Persian forms. Preserve original display text; normalize only for matching. Assess SQLite FTS5 compatibility, tokenization, prefix matching and incremental updates. Build a Persian regression corpus first. Results preserve entity identity and respect archive/trash/privacy boundaries. Acceptance: normalization fixtures, FTS integration and file-backed persistence.

@@ -1,0 +1,2 @@
+# Reminder Specification
+Reminder identity and scheduling have one canonical owner and scheduler path. Distinguish Task completion, reminder dismissal, stop-audio, snooze and follow-up creation. Persist schedule identity/state in SQLite and prevent duplicate active schedules. Investigate exact alarms, Android 13+ permissions, Doze, battery restrictions and reboot recovery. Test denial, process death, edit/delete, snooze replacement and physical-device behavior. Non-recurring Reminder work can proceed independently of recurrence decisions.

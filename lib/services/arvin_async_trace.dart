@@ -104,7 +104,7 @@ class ArvinAsyncTrace {
   }
 
   String _sourceLocation() {
-    final frames = StackTrace.current.toString().split('\\n');
+    final frames = StackTrace.current.toString().split('\n');
     return frames.firstWhere(
       (frame) => frame.trim().isNotEmpty && !frame.contains('arvin_async_trace.dart'),
       orElse: () => 'unknown',
