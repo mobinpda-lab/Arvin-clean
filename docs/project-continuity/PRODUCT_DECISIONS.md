@@ -592,3 +592,26 @@ These values supersede the older indigo color literals as the preservation targe
 The current design-token candidate covers spacing, radii, motion, touch targets and typography. A central Components token layer and a full cross-page audit remain incomplete.
 
 The existing Settings font-size preference is retained as-is: it is persisted by `AppSettingsService` and applied through the root `MediaQuery.textScaler`. Do not remove, reset or rebuild it as a parallel setting.
+
+
+---
+
+## 2026-11-23 — Backup protection policy review — PROPOSED / NEEDS PRODUCT OWNER APPROVAL
+
+| Field | Value |
+|---|---|
+| Status | PROPOSED — NEEDS EXPLICIT APPROVAL FROM MOBIN; NOT AN APPROVED PRODUCT DECISION |
+| Observed implementation | Plaintext backup is the default; encryption is an explicit per-backup opt-in |
+| Proposed policy scope | Portable local Backup/Restore; this entry does not authorize a change to the current behavior |
+| Decision owner | Mobin — Product Owner |
+| Review trigger | Before changing the default, enforcing encryption, or changing restore compatibility |
+
+**Observed behavior:** `BackupPage.encryptBackup` defaults to `false`. When encryption is enabled, the UI requires a non-empty passphrase and matching confirmation. `ArvinBackupService` writes the existing plaintext v1 document when no passphrase is supplied and wraps the same document in the versioned authenticated-encryption envelope when a passphrase is explicitly supplied.
+
+**Security implications:** plaintext backup files contain user data without confidentiality protection. They must be treated as sensitive files and stored/shared accordingly. Optional encryption uses the current Argon2id + AES-256-GCM envelope; loss of the passphrase makes that encrypted backup unrecoverable. Arvin does not store the passphrase.
+
+**Compatibility and Restore:** the current decoder accepts legacy/plaintext v1 documents and encrypted envelopes when the correct passphrase is supplied. This proposal does not convert existing files, change the v1 document format, force encryption, or remove plaintext restore. Any future mandatory-encryption proposal must separately specify handling of existing plaintext files, old app versions, forgotten passphrases, restore UX, and recovery/support paths.
+
+**Approval boundary:** this is a record of observed implementation plus a proposal for owner review. It must not be cited as Mobin's approval. Until an explicit owner decision is recorded, preserve the current plaintext-default / optional-encryption behavior and its compatibility tests.
+
+**Review criteria:** owner choice of default, threat model and sensitivity warning, passphrase-loss recovery expectations, backward/forward restore compatibility, migration of existing files, and exact-SHA Backup/Restore evidence.
