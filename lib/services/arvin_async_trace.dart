@@ -187,25 +187,20 @@ class ArvinAsyncTrace {
         },
       );
       stopwatch.stop();
-      try {
-        await _emit({
-          ...common,
-          'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
-          'timestamp': DateTime.now().toUtc().toIso8601String(),
-          'event_type': 'END',
-          'event': 'END',
-          'elapsed_ms': stopwatch.elapsedMilliseconds,
-          'result': 'success',
-          'status': 'SUCCESS',
-          'exception_type': null,
-          'exception_message': null,
-          'error_type': null,
-        });
-        _open.remove(operationId);
-      } catch (_) {
-        // A diagnostic sink failure must not change a successful product result.
-        // Keep START open so the artifact exposes the missing terminal event.
-      }
+      await _emit({
+        ...common,
+        'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+        'event_type': 'END',
+        'event': 'END',
+        'elapsed_ms': stopwatch.elapsedMilliseconds,
+        'result': 'success',
+        'status': 'SUCCESS',
+        'exception_type': null,
+        'exception_message': null,
+        'error_type': null,
+      });
+      _open.remove(operationId);
       return result;
     } catch (error) {
       stopwatch.stop();
