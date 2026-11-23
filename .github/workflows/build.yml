@@ -182,6 +182,7 @@ jobs:
     env:
       FLUTTER_VERSION: '3.47.0'
       TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      ARVIN_MISSION_ID: 202-R
       ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/arvin-async-trace.jsonl
     steps:
       - uses: actions/checkout@v5
@@ -224,6 +225,7 @@ jobs:
           }
           run_suite trace test/services/arvin_async_trace_test.dart
           run_suite center test/center_management_page_test.dart
+          run_suite home test/widgets/home_page_test.dart
           run_suite backup test/backup_page_encryption_ux_test.dart
           run_suite encrypted_backup test/encrypted_backup_service_integration_test.dart
           printf '%s\n' "$overall_exit_code" > "$trace_dir/test-exit-code.txt"
@@ -252,6 +254,17 @@ jobs:
           } > "$trace_dir/metadata.txt"
           test -s "$ARVIN_TRACE_OUTPUT"
           test -s "$trace_dir/metadata.txt"
+      - name: Generate mission 202-R metadata.json from actual execution values
+        if: always()
+        run: |
+          set -euo pipefail
+          python3 scripts/mission_202r_metadata.py --write --trace-file "$ARVIN_TRACE_OUTPUT" --metadata-file "$(dirname "$ARVIN_TRACE_OUTPUT")/metadata.json"
+      - name: Independently validate mission 202-R metadata and ten regression cases
+        if: always()
+        run: |
+          set -euo pipefail
+          python3 scripts/mission_202r_metadata.py --validate --trace-file "$ARVIN_TRACE_OUTPUT" --metadata-file "$(dirname "$ARVIN_TRACE_OUTPUT")/metadata.json"
+          python3 scripts/mission_202r_metadata.py --self-test
       - name: Validate JSONL records and artifact identity
         if: always()
         run: |
