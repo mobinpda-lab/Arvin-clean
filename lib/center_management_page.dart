@@ -62,63 +62,44 @@ class _CenterManagementPageState extends State<CenterManagementPage> {
     if (mounted) setState(() {});
   }
 
-  Future<void> _load() async {
-    var operationStarted = false;
-    try {
-      await arvinAsyncTrace.run<void>(
-        operationName: 'center.page.load',
-        operation: () async {
-          operationStarted = true;
-          await _loadTraced();
-        },
-      );
-    } catch (_) {
-      // If START could not be persisted, still perform the UI load without
-      // diagnostics. If the traced operation started, _loadTraced already
-      // updated the visible error state and completion callback.
-      if (!operationStarted) await _loadTraced();
-    }
-  }
+  Future<void> _load() => arvinTraceOperation<void>('center.page.load', _loadTraced);
 
   Future<void> _loadTraced() async {
-    setState(() {
-      _loading = true;
-      _error = null;
+    await arvinTraceOperation<void>('center.page.state_update', () async {
+      if (mounted) setState(() { _loading = true; _error = null; });
     });
     try {
       // CenterStore._ensureReady already initializes the canonical Project
       // path. Load stores sequentially to avoid overlapping schema/install
       // transactions on the shared SQLite executor.
-      final centers = await arvinTraceFuture(
-        'center.page.load_centers',
-        _centers.load(includeArchived: true),
-      );
-      final projects = await arvinTraceFuture(
-        'center.page.load_projects',
-        _projects.load(),
-      );
-      final links = await arvinTraceFuture(
+      final centers = await arvinTraceFutureFactory('center.page.load_centers',
+          () => _centers.load(includeArchived: true));
+      final projects = await arvinTraceFutureFactory('center.page.load_projects',
+          () => _projects.load());
+      final links = await arvinTraceOperation<List<List<String>>>(
         'center.page.load_all_links',
-        Future.wait(centers.map((center) => _centers.projectIdsForCenter(center.id))),
+        () => arvinTraceOperation<List<List<String>>>('center.page.future_wait',
+          () => Future.wait(centers.map((center) => _centers.projectIdsForCenter(center.id)))),
       );
       if (!mounted) return;
-      setState(() {
-        _items = centers;
-        _projectItems = projects;
-        _centerProjectIds = {
-          for (var index = 0; index < centers.length; index++)
-            centers[index].id: links[index],
-        };
-        _loading = false;
+      await arvinTraceOperation<void>('center.page.state_update', () async {
+        if (!mounted) return;
+        setState(() {
+          _items = centers; _projectItems = projects;
+          _centerProjectIds = {for (var index = 0; index < centers.length; index++) centers[index].id: links[index]};
+          _loading = false;
+        });
       });
-      widget.onLoadComplete?.call();
+      await arvinTraceOperation<void>('center.page.callback', () async { if (mounted) widget.onLoadComplete?.call(); });
+      await arvinTraceOperation<void>('center.page.completion', () async {});
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _error = 'بارگذاری مراکز انجام نشد: $error';
-        _loading = false;
+      await arvinTraceOperation<void>('center.page.state_update', () async {
+        if (!mounted) return;
+        setState(() { _error = 'بارگذاری مراکز انجام نشد: $error'; _loading = false; });
       });
-      widget.onLoadComplete?.call();
+      await arvinTraceOperation<void>('center.page.callback', () async { if (mounted) widget.onLoadComplete?.call(); });
+      await arvinTraceOperation<void>('center.page.completion', () async {});
       rethrow;
     }
   }

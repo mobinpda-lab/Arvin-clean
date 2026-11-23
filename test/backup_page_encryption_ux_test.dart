@@ -1,3 +1,4 @@
+import 'package:arvin/services/arvin_async_trace.dart';
 import 'dart:async';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
@@ -108,9 +109,9 @@ void main() {
       (tester) async {
     final service = _FakeBackupService();
     final backupComplete = Completer<void>();
-    await tester.pumpWidget(
-      _app(service: service, onBackupComplete: backupComplete.complete),
-    );
+    await tester.pumpWidget(_app(service: service, onBackupComplete: () {
+      unawaited(arvinTraceOperation<void>('backup.test_completer', () async { if (!backupComplete.isCompleted) backupComplete.complete(); }));
+    }));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));

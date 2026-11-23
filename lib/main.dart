@@ -1,3 +1,4 @@
+import 'dart:async';
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
@@ -382,11 +383,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    widgetTaskBridge.listen(_openWidgetTask);
-    _load();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _consumeInitialWidgetTask();
-    });
+    unawaited(arvinTraceOperation<void>('home.init', () async {
+      widgetTaskBridge.listen(_openWidgetTask);
+      _load();
+      WidgetsBinding.instance.addPostFrameCallback((_) async { await _consumeInitialWidgetTask(); });
+    }));
   }
 
   @override
@@ -415,27 +416,29 @@ class _HomePageState extends State<HomePage> {
     await _openTaskDetail(task);
   }
 
-  Future<void> _load() async {
-    try {
-      final value = await taskStore.load();
-      final loadedProjects = await projectStore.load();
-      if (!mounted) return;
-      setState(() {
-        tasks = List<Task>.of(value);
-        projects = List<ProjectPlan>.of(loadedProjects);
-        loadFailure = null;
-        loading = false;
+  Future<void> _load() => arvinTraceOperation<void>('home.load', () async {
+        try {
+          final value = await arvinTraceFutureFactory('home.task_store_load', () => taskStore.load());
+          final loadedProjects = await arvinTraceFutureFactory('home.project_store_load', () => projectStore.load());
+          if (!mounted) return;
+          await arvinTraceOperation<void>('home.state_update', () async {
+            if (!mounted) return;
+            setState(() { tasks = List<Task>.of(value); projects = List<ProjectPlan>.of(loadedProjects); loadFailure = null; loading = false; });
+          });
+          await _notifyHomeLoadComplete();
+        } catch (error) {
+          if (!mounted) return;
+          await arvinTraceOperation<void>('home.state_update', () async {
+            if (!mounted) return;
+            setState(() { loadFailure = error; loading = false; });
+          });
+          await _notifyHomeLoadComplete();
+        }
       });
-      widget.onLoadComplete?.call();
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        loadFailure = error;
-        loading = false;
+
+  Future<void> _notifyHomeLoadComplete() => arvinTraceOperation<void>('home.on_load_complete', () async {
+        if (mounted) widget.onLoadComplete?.call();
       });
-      widget.onLoadComplete?.call();
-    }
-  }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
 

@@ -1,3 +1,4 @@
+import 'package:arvin/services/arvin_async_trace.dart';
 import 'dart:async';
 import 'package:arvin/center_management_page.dart';
 import 'package:arvin/models/goal_project.dart';
@@ -31,18 +32,15 @@ void main() {
 
   Future<void> pumpPage(WidgetTester tester) async {
     final loaded = Completer<void>();
-    await tester.pumpWidget(
-      MaterialApp(
-        home: CenterManagementPage(
-          centerStore: centers,
-          projectStore: projects,
-          onLoadComplete: loaded.complete,
-        ),
-      ),
-    );
+    await arvinTraceOperation<void>('center.test_pump', () async {
+      await tester.pumpWidget(MaterialApp(home: CenterManagementPage(
+        centerStore: centers, projectStore: projects,
+        onLoadComplete: () { unawaited(arvinTraceOperation<void>('center.test_completer', () async { if (!loaded.isCompleted) loaded.complete(); })); },
+      )));
+    });
     // Await the page-owned Future; duplicate Store loads can overlap schema
     // initialization and leave the widget test's runAsync zone unresolved.
-    await tester.runAsync(() => loaded.future);
+    await arvinTraceOperation<void>('center.test_wait', () async { await tester.runAsync(() => loaded.future); });
     await tester.pumpAndSettle();
   }
 

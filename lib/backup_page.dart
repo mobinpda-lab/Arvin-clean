@@ -236,26 +236,7 @@ class _BackupPageState extends State<BackupPage> {
     };
   }
 
-  Future<void> _backup() async {
-    var operationStarted = false;
-    try {
-      await arvinAsyncTrace.run<void>(
-        operationName: 'backup.page',
-        operation: () async {
-          operationStarted = true;
-          await _backupTraced();
-        },
-      );
-    } catch (_) {
-      // If START could not be persisted, preserve the user operation without
-      // diagnostics. A started operation already ran its own completion path.
-      if (!operationStarted) {
-        try {
-          await _backupTraced();
-        } catch (_) {}
-      }
-    }
-  }
+  Future<void> _backup() => arvinTraceOperation<void>('backup.page', _backupTraced);
 
   Future<void> _backupTraced() async {
     if (directory == null || directory!.isEmpty) {
@@ -265,28 +246,24 @@ class _BackupPageState extends State<BackupPage> {
 
     String? passphrase;
     if (encryptBackup) {
-      passphrase = await arvinAsyncTrace.run<String?>(
-        operationName: 'backup.password_entry_confirmation',
-        operation: _requestNewPassphrase,
-      );
-      if (passphrase == null || !mounted) return;
+      passphrase = await arvinTraceOperation<String?>('backup.password_request', _requestNewPassphrase);
+      final confirmed = await arvinTraceOperation<bool>('backup.confirmation',
+          () async => passphrase != null && passphrase.isNotEmpty && mounted);
+      if (!confirmed) return;
     }
 
-    await arvinAsyncTrace.run<void>(
-      operationName: 'backup.ui_loading_start',
-      operation: () async => setState(() => busy = true),
-    );
+    await arvinTraceOperation<void>('backup.busy_start', () async { if (mounted) setState(() => busy = true); });
     try {
-      final tasks = await arvinTraceFuture('backup.load_tasks', widget.loadTasks());
-      final settings = await arvinTraceFuture('backup.load_settings', _portableBackupSettings());
-      final calendarLinks = await arvinTraceFuture('backup.load_calendar_links', ExternalCalendarLinkStore().load());
-      final projects = await arvinTraceFuture('backup.load_projects', ProjectStore().load());
-      final categories = await arvinTraceFuture('backup.load_categories', TaskStore().loadCategories());
-      final tags = await arvinTraceFuture('backup.load_tags', TaskStore().loadTags());
-      final people = await arvinTraceFuture('backup.load_people', TaskStore().loadPeopleDirectory());
-      final fileName = await arvinTraceFuture(
+      final tasks = await arvinTraceFutureFactory('backup.load_tasks', widget.loadTasks);
+      final settings = await arvinTraceFutureFactory('backup.load_settings', _portableBackupSettings);
+      final calendarLinks = await arvinTraceFutureFactory('backup.load_calendar_links', () => ExternalCalendarLinkStore().load());
+      final projects = await arvinTraceFutureFactory('backup.load_projects', () => ProjectStore().load());
+      final categories = await arvinTraceFutureFactory('backup.load_categories', () => TaskStore().loadCategories());
+      final tags = await arvinTraceFutureFactory('backup.load_tags', () => TaskStore().loadTags());
+      final people = await arvinTraceFutureFactory('backup.load_people', () => TaskStore().loadPeopleDirectory());
+      final fileName = await arvinTraceFutureFactory(
         'backup.manager_write',
-        manager.backupTasks(
+        () => manager.backupTasks(
           tasks,
           settings: settings,
           calendarLinks: calendarLinks.map((link) => link.toJson()).toList(growable: false),
@@ -316,16 +293,11 @@ class _BackupPageState extends State<BackupPage> {
       rethrow;
     } finally {
       try {
-        await arvinAsyncTrace.run<void>(
-          operationName: 'backup.ui_reset',
-          operation: () async {
-            if (mounted) setState(() => busy = false);
-          },
-        );
+        await arvinTraceOperation<void>('backup.busy_reset', () async { if (mounted) setState(() => busy = false); });
       } catch (_) {
         if (mounted) setState(() => busy = false);
       }
-      widget.onBackupComplete?.call();
+      await arvinTraceOperation<void>('backup.completion_callback', () async { if (mounted) widget.onBackupComplete?.call(); });
     }
   }
 

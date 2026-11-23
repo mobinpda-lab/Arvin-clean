@@ -1,3 +1,4 @@
+import 'package:arvin/services/arvin_async_trace.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,10 +12,12 @@ import 'package:arvin/services/iran_clock.dart';
 
 Future<void> _pumpArvinApp(WidgetTester tester) async {
   final loaded = Completer<void>();
-  await tester.pumpWidget(ArvinApp(onHomeLoadComplete: loaded.complete));
-  // Await the Future started by HomePage.initState. Do not initialize the
-  // same Stores a second time while the page's SQLite load is in flight.
-  await tester.runAsync(() => loaded.future);
+  await arvinTraceOperation<void>('home.test_pump', () async {
+    await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
+      unawaited(arvinTraceOperation<void>('home.test_completer', () async { if (!loaded.isCompleted) loaded.complete(); }));
+    }));
+  });
+  await arvinTraceOperation<void>('home.test_completer_wait', () async { await tester.runAsync(() => loaded.future); });
   await tester.pumpAndSettle();
 }
 

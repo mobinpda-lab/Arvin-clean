@@ -103,6 +103,11 @@ class ArvinAsyncTrace {
     return '$prefix-${DateTime.now().toUtc().microsecondsSinceEpoch}-$_idCounter';
   }
 
+  String _sourceLocation() {
+    final frames = StackTrace.current.toString().split('\\n');
+    return frames.length > 1 ? frames[1].trim() : 'unknown';
+  }
+
   Future<void> _emit(Map<String, Object?> event) async {
     if (_closed) throw StateError('Trace is closed');
     final line = jsonEncode(event);
@@ -116,7 +121,7 @@ class ArvinAsyncTrace {
     // Log only after the independent sink accepted the event. A failed END
     // write must not leave a misleading developer.log success record.
     developer.log(
-      '[ARVIN_TRACE] ${event['event']} ${event['operation_name']}',
+      '[ARVIN_TRACE] ${event['event_type'] ?? event['event']} ${event['operation_name']}',
       name: 'arvin.async_trace',
       level: event['event'] == 'ERROR' ? 1000 : 800,
     );
@@ -142,18 +147,26 @@ class ArvinAsyncTrace {
     final stopwatch = Stopwatch()..start();
 
     final common = <String, Object?>{
+      'mission_id': Platform.environment['ARVIN_MISSION_ID'] ?? 'UNSPECIFIED',
+      'timestamp_utc': startedAt.toIso8601String(),
       'timestamp': startedAt.toIso8601String(),
       'operation_id': operationId,
+      'parent_id': parentId,
       'parent_operation_id': parentId,
       'correlation_id': resolvedCorrelationId,
       'operation_name': operationName,
+      'source_location': _sourceLocation(),
     };
 
     await _emit({
       ...common,
+      'event_type': 'START',
       'event': 'START',
       'elapsed_ms': 0,
+      'result': 'running',
       'status': 'RUNNING',
+      'exception_type': null,
+      'exception_message': null,
       'error_type': null,
     });
     _open[operationId] = ArvinOpenTraceOperation(
@@ -171,25 +184,40 @@ class ArvinAsyncTrace {
         },
       );
       stopwatch.stop();
-      await _emit({
-        ...common,
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
-        'event': 'END',
-        'elapsed_ms': stopwatch.elapsedMilliseconds,
-        'status': 'SUCCESS',
-        'error_type': null,
-      });
-      _open.remove(operationId);
+      try {
+        await _emit({
+          ...common,
+          'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
+          'timestamp': DateTime.now().toUtc().toIso8601String(),
+          'event_type': 'END',
+          'event': 'END',
+          'elapsed_ms': stopwatch.elapsedMilliseconds,
+          'result': 'success',
+          'status': 'SUCCESS',
+          'exception_type': null,
+          'exception_message': null,
+          'error_type': null,
+        });
+        _open.remove(operationId);
+      } catch (_) {
+        // A diagnostic sink failure must not change a successful product result.
+        // Keep START open so the artifact exposes the missing terminal event.
+      }
       return result;
     } catch (error) {
       stopwatch.stop();
       try {
         await _emit({
           ...common,
+          'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
           'timestamp': DateTime.now().toUtc().toIso8601String(),
+          'event_type': 'ERROR',
           'event': 'ERROR',
           'elapsed_ms': stopwatch.elapsedMilliseconds,
+          'result': 'error',
           'status': 'ERROR',
+          'exception_type': error.runtimeType.toString(),
+          'exception_message': error.toString(),
           'error_type': error.runtimeType.toString(),
         });
         _open.remove(operationId);
@@ -245,6 +273,22 @@ ArvinJsonlTraceWriter? _traceWriterFromEnvironment() {
 /// Process-wide compatibility facade.
 final ArvinAsyncTrace arvinAsyncTrace =
     ArvinAsyncTrace(writer: _traceWriterFromEnvironment());
+
+Future<T> arvinTraceOperation<T>(String stage, Future<T> Function() operation) async {
+  var operationStarted = false;
+  try {
+    return await arvinAsyncTrace.run<T>(operationName: stage, operation: () {
+      operationStarted = true;
+      return operation();
+    });
+  } catch (error, stackTrace) {
+    if (operationStarted) Error.throwWithStackTrace(error, stackTrace);
+    return await operation(); // fallback only when START could not be written
+  }
+}
+
+Future<T> arvinTraceFutureFactory<T>(String stage, Future<T> Function() createFuture) =>
+    arvinTraceOperation<T>(stage, createFuture);
 
 Future<T> arvinTraceFuture<T>(String stage, Future<T> future) =>
     arvinAsyncTrace.traceFuture<T>(stage, future);
