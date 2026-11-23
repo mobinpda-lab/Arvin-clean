@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'services/arvin_async_trace.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';

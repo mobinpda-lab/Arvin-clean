@@ -1,2 +1,0 @@
-# Calendar Specification
-Calendar is a projection of canonical Task Reminder and explicitly scheduled events, not a second source of truth. Legacy Follow-up metadata must not silently become an independent Reminder. Preserve stable identity through navigation, restart and provider sync. Prevent duplicate Arvin-owned provider events. Acceptance: date navigation, interaction, process restart, persistence, surfaced failures and exact-SHA device smoke.

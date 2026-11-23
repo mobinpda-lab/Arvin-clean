@@ -1,2 +1,0 @@
-# Design System Specification
-Follow owner-locked tokens and typography in `docs/project-continuity/PRODUCT_DECISIONS.md` and canonical `lib/arvin_colors.dart`. Do not rename or silently change owner-approved tokens. All screens/dialogs preserve Persian RTL reading and control order. Reuse shared components; avoid per-page ad hoc tokens. Validate long Persian strings, keyboard/IME behavior, scaling and real-device rendering.

@@ -136,16 +136,18 @@ class _BackupPageState extends State<BackupPage> {
               ),
               FilledButton(
                 key: const Key('backup_passphrase_confirm'),
-                onPressed: () {
-                  if (passphrase.trim().isEmpty) {
-                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
-                    return;
-                  }
-                  if (passphrase != confirmation) {
-                    setDialogState(() => errorText = 'دو رمز یکسان نیستند');
-                    return;
-                  }
-                  Navigator.of(dialogContext).pop(passphrase);
+                onPressed: () async {
+                  await arvinTraceOperation<void>('backup.password_validation', () async {
+                    if (passphrase.trim().isEmpty) {
+                      setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                      return;
+                    }
+                    if (passphrase != confirmation) {
+                      setDialogState(() => errorText = 'دو رمز یکسان نیستند');
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop(passphrase);
+                  });
                 },
                 child: const Text('ادامه'),
               ),
@@ -297,7 +299,7 @@ class _BackupPageState extends State<BackupPage> {
       } catch (_) {
         if (mounted) setState(() => busy = false);
       }
-      await arvinTraceOperation<void>('backup.completion_callback', () async { if (mounted) widget.onBackupComplete?.call(); });
+      await arvinTraceOperation<void>('backup.completion_callback', () async { widget.onBackupComplete?.call(); });
     }
   }
 

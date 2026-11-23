@@ -1,2 +1,0 @@
-# Project Specification
-Project identity is canonical and reusable; Center↔Project is M2M. Preserve IDs, metadata and memberships on unrelated updates. Task project assignment remains optional under the approved direct-assignment contract; ProjectExecution semantics remain an open owner decision. Reuse ProjectStore/CenterStore. Removing a Center↔Project edge does not delete either endpoint or Task data. Acceptance: file-backed CRUD, bidirectional lookup, idempotency, close/reopen, rollback and backup parity.

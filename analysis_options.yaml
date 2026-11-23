@@ -1,9 +1,0 @@
-include: package:flutter_lints/flutter.yaml
-
-analyzer:
-  exclude:
-    - build/**
-    - .dart_tool/**
-    # Historical V19-only harnesses run in dedicated pinned-source workflows.
-    - test/command49_v19_safety_test.dart
-    - test/command50_occurrence_forensic_test.dart
