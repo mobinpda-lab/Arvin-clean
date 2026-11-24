@@ -10,6 +10,7 @@ import re
 import sys
 import tempfile
 import unittest
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -96,11 +97,15 @@ def _validate_trace_schema(records: list[dict[str, Any]]) -> None:
         if missing:
             raise ValueError(f"invalid trace fields at line {number}: missing {','.join(missing)}")
         event = record["event"]
-        if event not in EVENTS or ("event_type" in record and record["event_type"] != event):
+        if not isinstance(event, str) or event not in EVENTS or ("event_type" in record and record["event_type"] != event):
             raise ValueError(f"invalid event type at line {number}")
         timestamp = record["timestamp"]
         if not isinstance(timestamp, str) or not timestamp:
             raise ValueError(f"invalid timestamp at line {number}")
+        try:
+            datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError as exc:
+            raise ValueError(f"invalid timestamp at line {number}") from exc
         operation_id = record["operation_id"]
         correlation_id = record["correlation_id"]
         operation_name = record["operation_name"]
@@ -117,12 +122,15 @@ def _validate_trace_schema(records: list[dict[str, Any]]) -> None:
         expected_status = {"START": "RUNNING", "END": "SUCCESS", "ERROR": "ERROR"}[event]
         if status != expected_status:
             raise ValueError(f"invalid event fields/status at line {number}")
+        error_type = record["error_type"]
+        if (event == "ERROR" and (not isinstance(error_type, str) or not error_type)) or (event != "ERROR" and error_type is not None):
+            raise ValueError(f"invalid event fields/error_type at line {number}")
         if event == "START":
             if operation_id in seen:
                 raise ValueError(f"duplicate operation or START: {operation_id}")
             parent_id = record["parent_operation_id"]
             if parent_id is not None:
-                if not isinstance(parent_id, str) or parent_id not in opened:
+                if not isinstance(parent_id, str) or not parent_id or parent_id not in opened:
                     raise ValueError(f"invalid parent operation at line {number}")
                 if opened[parent_id]["correlation_id"] != correlation_id:
                     raise ValueError(f"invalid correlation ID at line {number}")
@@ -238,6 +246,9 @@ class MetadataContractTests(unittest.TestCase):
     def test_N01_missing_file(self) -> None:
         self.meta.unlink()
         self._reject("file is missing")
+        write_metadata(self.trace, self.meta, self.expected)
+        self.trace.unlink()
+        self._reject("file is missing")
 
     def test_N02_invalid_json(self) -> None:
         self.meta.write_text("{broken", encoding="utf-8")
@@ -313,6 +324,14 @@ class MetadataContractTests(unittest.TestCase):
         ])
         write_metadata(self.trace, self.meta, self.expected)
         self._reject("invalid parent operation")
+        self._write_records([
+            self._event("START", "parent"),
+            self._event("START", "child", "parent", "wrong-correlation"),
+            self._event("END", "child", "parent", "wrong-correlation"),
+            self._event("END", "parent"),
+        ])
+        write_metadata(self.trace, self.meta, self.expected)
+        self._reject("invalid correlation ID")
 
 
 def main() -> int:
