@@ -140,7 +140,12 @@ void main() {
     await tester.pump();
     // The UI starts the real async backup pipeline; await its completion
     // signal rather than settling frames while SQLite Futures are in flight.
-    await tester.runAsync(() => backupComplete.future);
+    // The backup pipeline starts in WidgetTester's FakeAsync zone.
+    // Pump that zone so TaskStorageLock's queued work can complete there.
+    while (!backupComplete.isCompleted) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await backupComplete.future;
     await tester.pumpAndSettle();
 
     expect(service.writeCount, 1);
