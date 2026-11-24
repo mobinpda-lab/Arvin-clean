@@ -14,7 +14,7 @@ Future<void> _pumpArvinApp(WidgetTester tester) async {
   final loaded = Completer<void>();
   await arvinTraceOperation<void>('home.test_pump', () async {
     await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
-      unawaited(arvinTraceOperation<void>('home.test_completer', () async { if (!loaded.isCompleted) loaded.complete(); }));
+      if (!loaded.isCompleted) loaded.complete();
     }));
   });
   await arvinTraceOperation<void>('home.test_completer_wait', () async { await tester.runAsync(() => loaded.future); });
