@@ -17,7 +17,13 @@ Future<void> _pumpArvinApp(WidgetTester tester) async {
       if (!loaded.isCompleted) loaded.complete();
     }));
   });
-  await arvinTraceOperation<void>('home.test_completer_wait', () async { await tester.runAsync(() => loaded.future); });
+  // TaskStorageLock preserves the caller's Zone. Pump the FakeAsync zone
+  // that started Home loading rather than waiting from tester.runAsync.
+  while (!loaded.isCompleted) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+  await loaded.future;
+  await tester.pumpAndSettle();
   await tester.pumpAndSettle();
 }
 
