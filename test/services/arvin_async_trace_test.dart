@@ -304,7 +304,7 @@ void main() {
       }
       expect(identical(caught, writerError), isTrue);
       expect(identical(caughtStack, writerStack), isTrue);
-      expect(writer.events, ['START', 'ERROR']);
+      expect(writer.events, ['START', 'END', 'ERROR']);
     });
 
     test('TW-03 retains product and writer failures together', () async {
