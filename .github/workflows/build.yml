@@ -245,7 +245,7 @@ jobs:
             printf '1\n' > "$trace_dir/test-exit-code.txt"
           fi
           {
-            echo "Mission ID: 189-R"
+            echo "Mission ID: 202-R"
             echo "Commit SHA: $TARGET_SHA"
             echo "GitHub Run ID: $GITHUB_RUN_ID"
             echo "Timestamp UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
@@ -259,7 +259,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 scripts/mission_202r_metadata.py --write --trace-file "$ARVIN_TRACE_OUTPUT" --metadata-file "$(dirname "$ARVIN_TRACE_OUTPUT")/metadata.json"
-      - name: Independently validate mission 202-R metadata and ten regression cases
+      - name: Independently validate mission 202-R metadata and all 18 regression scenarios
         if: always()
         run: |
           set -euo pipefail
@@ -273,7 +273,7 @@ jobs:
           test -s "$ARVIN_TRACE_OUTPUT"
           grep -Fqx "Commit SHA: $TARGET_SHA" "$trace_dir/metadata.txt"
           grep -Fqx "GitHub Run ID: $GITHUB_RUN_ID" "$trace_dir/metadata.txt"
-          grep -Fqx "Mission ID: 189-R" "$trace_dir/metadata.txt"
+          grep -Fqx "Mission ID: 202-R" "$trace_dir/metadata.txt"
           expected_exit_code="$(cat "$trace_dir/test-exit-code.txt")"
           grep -Fqx "Test exit status: $expected_exit_code" "$trace_dir/metadata.txt"
           while IFS= read -r line; do
