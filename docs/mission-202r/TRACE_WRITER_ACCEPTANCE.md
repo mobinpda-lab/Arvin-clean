@@ -27,3 +27,17 @@ This document records the REV11.22 Trace Writer contract. It is not a release or
 - **ACCEPTED:** owner acceptance has been explicitly recorded.
 
 At this documentation commit, implementation and test definitions are present. Runtime verification is pending exact-SHA CI. No acceptance is claimed.
+
+
+## REV11.34 — exact-SHA checkpoint evidence (2026-11-24)
+The baseline commit 9d58e92203a32a22f7bc67b92552afe19db3ac50 was verified in Build run 45372415634, Trace job 138369867655.
+- test/services/arvin_async_trace_test.dart: PASS, exit code 0.
+- scripts/mission_202r_metadata.py --self-test: 18 regression scenarios passed.
+- Real arvin-async-trace.jsonl was present and matched metadata SHA-256 e626c616862445893b8a2fe22fa7ae97af7ada43506492b3cef21e331e79644e.
+- Trace artifact ID 14928130294; archive digest sha256:63a37db7c7e53b203a51bb74b795846934049b64ec24e599cbd3274da0ad5070.
+- The Trace suite and metadata self-test are verified on this exact SHA. This does not establish full regression acceptance: the aggregate was 1, Center had four timeouts, Home had 18 failures, and Backup had nine failures.
+- TW-01 through TW-05 were not deliberately re-run by REV11.34. Their prior acceptance state remains unchanged; no new claim is made about them.
+- The overall Build run remained FAILURE, so this evidence is scoped to the Trace suite and metadata self-test only.
+
+## REV11.34 Trace workflow repair status
+TRACE-AGG-01 and TRACE-AGG-02 are implemented and locally tested by TWA-01 through TWA-06. Exact-SHA GitHub runner verification is pending. Missing Trace JSONL must remain MISSING and NO-GO; artifact upload must still run. No synthetic JSONL is acceptable.
