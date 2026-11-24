@@ -35,7 +35,7 @@ void main() {
     await arvinTraceOperation<void>('center.test_pump', () async {
       await tester.pumpWidget(MaterialApp(home: CenterManagementPage(
         centerStore: centers, projectStore: projects,
-        onLoadComplete: () { unawaited(arvinTraceOperation<void>('center.test_completer', () async { if (!loaded.isCompleted) loaded.complete(); })); },
+        onLoadComplete: () { if (!loaded.isCompleted) loaded.complete(); },
       )));
     });
     // Await the page-owned Future; duplicate Store loads can overlap schema
