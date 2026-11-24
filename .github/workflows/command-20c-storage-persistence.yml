@@ -357,7 +357,7 @@ jobs:
     if: always()
     needs: storage-persistence
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 360
     permissions:
       actions: read
       contents: read
