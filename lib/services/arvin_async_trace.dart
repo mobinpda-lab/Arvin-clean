@@ -100,6 +100,7 @@ class ArvinAsyncTrace {
   ArvinJsonlTraceWriter? _writer;
   Future<void> _writeTail = Future<void>.value();
   final Map<String, ArvinOpenTraceOperation> _open = {};
+  final List<Object> _compatibilityWriterFailures = [];
   bool _closed = false;
 
   void attachWriter(ArvinJsonlTraceWriter writer) {
@@ -113,6 +114,12 @@ class ArvinAsyncTrace {
 
   List<String> get missingEndOperationIds =>
       List<String>.unmodifiable(_open.keys);
+
+  /// Writer failures observed by the already-started Future compatibility
+  /// adapter. The adapter preserves the product Future result while exposing
+  /// every diagnostic failure here instead of silently discarding it.
+  List<Object> get compatibilityWriterFailures =>
+      List<Object>.unmodifiable(_compatibilityWriterFailures);
 
   String _newId(String prefix) {
     _idCounter++;
@@ -259,8 +266,11 @@ class ArvinAsyncTrace {
       // its original failure is lost when START/terminal persistence fails.
       try {
         final result = await future;
-        Error.throwWithStackTrace(traceError, traceStackTrace);
-        return result; // Unreachable; keeps the generic return type explicit.
+        if (traceError is ArvinTraceDualFailure) {
+          Error.throwWithStackTrace(traceError, traceStackTrace);
+        }
+        _compatibilityWriterFailures.add(traceError);
+        return result;
       } catch (productError, productStackTrace) {
         if (identical(productError, traceError) ||
             traceError is ArvinTraceDualFailure) {
