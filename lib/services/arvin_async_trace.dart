@@ -253,11 +253,28 @@ class ArvinAsyncTrace {
         operationName: operationName,
         operation: () => future,
       );
-    } catch (_) {
+    } catch (traceError, traceStackTrace) {
+      // The Future was supplied already running. Observe it exactly once more
+      // (awaiting a Future does not execute it again) so neither its result nor
+      // its original failure is lost when START/terminal persistence fails.
       try {
-        return await future;
-      } catch (operationError, stackTrace) {
-        Error.throwWithStackTrace(operationError, stackTrace);
+        final result = await future;
+        Error.throwWithStackTrace(traceError, traceStackTrace);
+        return result; // Unreachable; keeps the generic return type explicit.
+      } catch (productError, productStackTrace) {
+        if (identical(productError, traceError) ||
+            traceError is ArvinTraceDualFailure) {
+          Error.throwWithStackTrace(traceError, traceStackTrace);
+        }
+        Error.throwWithStackTrace(
+          ArvinTraceDualFailure(
+            productError: productError,
+            productStackTrace: productStackTrace,
+            writerError: traceError,
+            writerStackTrace: traceStackTrace,
+          ),
+          productStackTrace,
+        );
       }
     }
   }
