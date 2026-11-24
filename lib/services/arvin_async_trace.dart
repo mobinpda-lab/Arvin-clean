@@ -58,6 +58,22 @@ class ArvinFileJsonlTraceWriter implements ArvinJsonlTraceWriter {
   }
 }
 
+/// Retains both failures when product work and diagnostic persistence fail.
+class ArvinTraceDualFailure implements Exception {
+  const ArvinTraceDualFailure({
+    required this.productError,
+    required this.productStackTrace,
+    required this.writerError,
+    required this.writerStackTrace,
+  });
+  final Object productError;
+  final StackTrace productStackTrace;
+  final Object writerError;
+  final StackTrace writerStackTrace;
+  @override
+  String toString() => 'Product failed: $productError; trace writer failed: $writerError';
+}
+
 /// A single operation that has emitted START but has not emitted a terminal
 /// event. This snapshot is intentionally value-free.
 class ArvinOpenTraceOperation {
@@ -139,16 +155,13 @@ class ArvinAsyncTrace {
     String? correlationId,
   }) async {
     if (_closed) throw StateError('Trace is closed');
-    final inheritedParent =
-        Zone.current[_zoneOperationIdKey] as String?;
+    final inheritedParent = Zone.current[_zoneOperationIdKey] as String?;
     final operationId = _newId('op');
     final parentId = parentOperationId ?? inheritedParent;
     final resolvedCorrelationId = correlationId ??
-        (Zone.current['arvin.trace.correlation'] as String?) ??
-        _newId('corr');
+        (Zone.current['arvin.trace.correlation'] as String?) ?? _newId('corr');
     final startedAt = DateTime.now().toUtc();
     final stopwatch = Stopwatch()..start();
-
     final common = <String, Object?>{
       'mission_id': Platform.environment['ARVIN_MISSION_ID'] ?? 'UNSPECIFIED',
       'timestamp_utc': startedAt.toIso8601String(),
@@ -161,69 +174,72 @@ class ArvinAsyncTrace {
       'source_location': _sourceLocation(),
     };
 
+    // A failed START prevents product execution. Callers that own an already
+    // started Future use traceFuture's compatibility handling below.
     await _emit({
-      ...common,
-      'event_type': 'START',
-      'event': 'START',
-      'elapsed_ms': 0,
-      'result': 'running',
-      'status': 'RUNNING',
-      'exception_type': null,
-      'exception_message': null,
-      'error_type': null,
+      ...common, 'event_type': 'START', 'event': 'START', 'elapsed_ms': 0,
+      'result': 'running', 'status': 'RUNNING', 'exception_type': null,
+      'exception_message': null, 'error_type': null,
     });
     _open[operationId] = ArvinOpenTraceOperation(
-      operationId: operationId,
-      operationName: operationName,
-      startedAt: startedAt,
+      operationId: operationId, operationName: operationName, startedAt: startedAt,
     );
 
+    late final T result;
     try {
-      final result = await runZoned<Future<T>>(
+      result = await runZoned<Future<T>>(
         operation,
         zoneValues: {
           _zoneOperationIdKey: operationId,
           'arvin.trace.correlation': resolvedCorrelationId,
         },
       );
-      stopwatch.stop();
-      await _emit({
-        ...common,
-        'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
-        'timestamp': DateTime.now().toUtc().toIso8601String(),
-        'event_type': 'END',
-        'event': 'END',
-        'elapsed_ms': stopwatch.elapsedMilliseconds,
-        'result': 'success',
-        'status': 'SUCCESS',
-        'exception_type': null,
-        'exception_message': null,
-        'error_type': null,
-      });
-      _open.remove(operationId);
-      return result;
-    } catch (error) {
+    } catch (productError, productStackTrace) {
       stopwatch.stop();
       try {
         await _emit({
           ...common,
           'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
           'timestamp': DateTime.now().toUtc().toIso8601String(),
-          'event_type': 'ERROR',
-          'event': 'ERROR',
+          'event_type': 'ERROR', 'event': 'ERROR',
           'elapsed_ms': stopwatch.elapsedMilliseconds,
-          'result': 'error',
-          'status': 'ERROR',
-          'exception_type': error.runtimeType.toString(),
-          'exception_message': error.toString(),
-          'error_type': error.runtimeType.toString(),
+          'result': 'error', 'status': 'ERROR',
+          'exception_type': productError.runtimeType.toString(),
+          'exception_message': productError.toString(),
+          'error_type': productError.runtimeType.toString(),
         });
         _open.remove(operationId);
-      } catch (_) {
-        // Keep the operation open: a failed writer must never imply success.
+      } catch (writerError, writerStackTrace) {
+        Error.throwWithStackTrace(
+          ArvinTraceDualFailure(
+            productError: productError,
+            productStackTrace: productStackTrace,
+            writerError: writerError,
+            writerStackTrace: writerStackTrace,
+          ),
+          productStackTrace,
+        );
       }
-      rethrow;
+      Error.throwWithStackTrace(productError, productStackTrace);
     }
+
+    stopwatch.stop();
+    try {
+      await _emit({
+        ...common,
+        'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
+        'timestamp': DateTime.now().toUtc().toIso8601String(),
+        'event_type': 'END', 'event': 'END',
+        'elapsed_ms': stopwatch.elapsedMilliseconds,
+        'result': 'success', 'status': 'SUCCESS',
+        'exception_type': null, 'exception_message': null, 'error_type': null,
+      });
+      _open.remove(operationId);
+    } catch (writerError, writerStackTrace) {
+      // Never translate a failed END into success or an ERROR record.
+      Error.throwWithStackTrace(writerError, writerStackTrace);
+    }
+    return result;
   }
 
   /// Compatibility adapter for existing Future-based call sites.
