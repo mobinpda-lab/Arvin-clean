@@ -98,7 +98,7 @@ PY
 
 
 classify_github_execution_state() {
-  local raw_status="\${1:-}" raw_conclusion="\${2:-}" record_exists="\${3:-true}"
+  local raw_status="${1:-}" raw_conclusion="${2:-}" record_exists="${3:-true}"
   if [[ "$record_exists" != true ]]; then printf 'NOT_RUN'; return; fi
   case "$raw_status" in
     queued|requested|waiting|pending) printf 'QUEUED' ;;

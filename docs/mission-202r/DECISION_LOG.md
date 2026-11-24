@@ -78,3 +78,11 @@ IMPLEMENTED, TESTED, VERIFIED, and ACCEPTED are separate states. A test definiti
 | BUILD-02 | Not yet repaired | Baseline cancellations/failures observed | YES — states recorded on baseline run | NO |
 
 IMPLEMENTED, TESTED, VERIFIED, and ACCEPTED remain independent states. Local tests and mocked GitHub API fixtures are not substitutes for the new exact-SHA GitHub Actions result. Mission acceptance remains NO-GO until all mandatory gates pass.
+
+
+## REV11.34.1 — first hosted-run correction
+- Build run 45441699404, Trace job 138614289192, reached the TWA test step and failed at TWA-01 because shell parameter expansions were committed with literal escape backslashes.
+- The actual five product test suites did not run in that job. The fail-closed path correctly marked Trace evidence MISSING; no JSONL was fabricated.
+- Artifact upload still completed: artifact 14944045844, SHA-256 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42.
+- The 18 metadata self-tests passed, but they do not override the failed job.
+- REV11.34.1 removes the literal escape characters from the TWA runner/test and COMMAND 20-E parser/test shell expansions. Exact-SHA GitHub verification is pending the corrective push.

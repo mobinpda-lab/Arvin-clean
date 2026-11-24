@@ -57,7 +57,7 @@ echo COMMAND_20E_PARSER_UNIT_TESTS=PASS
 
 # C20-01..C20-14: GitHub execution state, provenance gate and summary output.
 assert_state() {
-  local expected="$1" raw_status="$2" raw_conclusion="$3" exists="\${4:-true}" label="$5"
+  local expected="$1" raw_status="$2" raw_conclusion="$3" exists="${4:-true}" label="$5"
   assert_eq "$(classify_github_execution_state "$raw_status" "$raw_conclusion" "$exists")" "$expected" "$label"
 }
 assert_state QUEUED queued '' true C20-01

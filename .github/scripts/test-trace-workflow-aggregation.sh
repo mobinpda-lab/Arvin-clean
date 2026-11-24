@@ -13,11 +13,11 @@ set -euo pipefail
 suite="$2"
 printf '%s\n' "$suite" >> "$FAKE_FLUTTER_CALLS"
 case "$suite" in
-  test/services/arvin_async_trace_test.dart) rc="\${FAKE_TRACE_RC:-0}" ;;
-  test/center_management_page_test.dart) rc="\${FAKE_CENTER_RC:-0}" ;;
-  test/widgets/home_page_test.dart) rc="\${FAKE_HOME_RC:-0}" ;;
-  test/backup_page_encryption_ux_test.dart) rc="\${FAKE_BACKUP_RC:-0}" ;;
-  test/encrypted_backup_service_integration_test.dart) rc="\${FAKE_ENCRYPTED_BACKUP_RC:-0}" ;;
+  test/services/arvin_async_trace_test.dart) rc="${FAKE_TRACE_RC:-0}" ;;
+  test/center_management_page_test.dart) rc="${FAKE_CENTER_RC:-0}" ;;
+  test/widgets/home_page_test.dart) rc="${FAKE_HOME_RC:-0}" ;;
+  test/backup_page_encryption_ux_test.dart) rc="${FAKE_BACKUP_RC:-0}" ;;
+  test/encrypted_backup_service_integration_test.dart) rc="${FAKE_ENCRYPTED_BACKUP_RC:-0}" ;;
   *) echo "unexpected test path: $suite" >&2; exit 99 ;;
 esac
 printf 'FAKE_FLUTTER_SUITE=%s EXIT=%s\n' "$suite" "$rc"

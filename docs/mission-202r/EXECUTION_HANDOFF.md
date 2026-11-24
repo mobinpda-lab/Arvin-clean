@@ -65,3 +65,7 @@ Do not deliberately re-run TRC-01, TW-01..TW-05, MET-01, JSONL-01..JSONL-04, DEV
 
 ## Acceptance and safety
 Phase 1/2 implementation and local tests are complete; exact-SHA GitHub verification is pending. Mission acceptance remains NO-GO until all mandatory gates pass. main stays read-only. No merge, force-push, release, or deployment.
+
+
+## REV11.34.1 corrective checkpoint
+The first hosted Build run on bf7a60f6ee0b1095b14c7362564ac809f2396483 failed at TWA-01 because literal escape backslashes prevented Bash parameter expansion. The five product suites did not execute. Trace evidence remained MISSING and the always-upload step succeeded (artifact 14944045844; SHA-256 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42). The 18 metadata self-tests passed, but the Build job correctly remained failed. REV11.34.1 corrects the four affected shell scripts. Verify the next exact-SHA Build and COMMAND 20-E runs before acceptance.

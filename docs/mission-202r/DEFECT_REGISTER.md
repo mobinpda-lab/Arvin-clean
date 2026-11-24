@@ -47,3 +47,7 @@
 
 ## Preserved evidence — not re-run in REV11.34
 TRC-01, TW-01..TW-05, MET-01, JSONL-01..JSONL-04, DEV-01, GOV-01, and PERSIST-01 remain prior evidence references. No acceptance state is changed merely because these IDs are listed here.
+
+
+## REV11.34.1 hosted-run correction
+Build run 45441699404 / Trace job 138614289192 failed at TWA-01 because Bash parameter expansions were escaped literally in the committed scripts. The five product suites did not run in that job. Trace was correctly marked MISSING, and artifact 14944045844 was uploaded with digest 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42. The 18 metadata self-tests passed but do not override the job failure. The four affected scripts have been corrected; new exact-SHA runner verification is pending.
