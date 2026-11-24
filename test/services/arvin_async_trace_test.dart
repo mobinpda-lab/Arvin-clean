@@ -222,6 +222,8 @@ void main() {
       );
 
       expect(result, 73);
+      expect(trace.compatibilityWriterFailures, hasLength(1));
+      expect(trace.compatibilityWriterFailures.single, isA<StateError>());
       expect(writer.events.map((event) => event['event']), ['START', 'ERROR']);
       expect(writer.events.any((event) => event['status'] == 'SUCCESS'), isFalse);
       await trace.close();
@@ -261,7 +263,107 @@ void main() {
         await tempDirectory.delete(recursive: true);
       }
     });
+
+    test('TW-01 preserves product exception identity and original stack', () async {
+      final writer = _MemoryTraceWriter();
+      final trace = ArvinAsyncTrace(writer: writer);
+      final productError = ArgumentError('product identity');
+      final productStack = StackTrace.current;
+      Object? caught;
+      StackTrace? caughtStack;
+      try {
+        await trace.run<void>(
+          operationName: 'tw01',
+          operation: () async => Error.throwWithStackTrace(productError, productStack),
+        );
+      } catch (error, stack) {
+        caught = error;
+        caughtStack = stack;
+      }
+      expect(identical(caught, productError), isTrue);
+      expect(identical(caughtStack, productStack), isTrue);
+      expect(writer.events.map((event) => event['event']), ['START', 'ERROR']);
+    });
+
+    test('TW-02 preserves writer exception identity and stack', () async {
+      final writerError = StateError('writer identity');
+      final writerStack = StackTrace.current;
+      final writer = _SpecificFailureWriter(
+        failEvent: 'END', error: writerError, stack: writerStack,
+      );
+      final trace = ArvinAsyncTrace(writer: writer);
+      Object? caught;
+      StackTrace? caughtStack;
+      try {
+        await trace.run<void>(
+          operationName: 'tw02', operation: () async {},
+        );
+      } catch (error, stack) {
+        caught = error;
+        caughtStack = stack;
+      }
+      expect(identical(caught, writerError), isTrue);
+      expect(identical(caughtStack, writerStack), isTrue);
+      expect(writer.events, ['START', 'ERROR']);
+    });
+
+    test('TW-03 retains product and writer failures together', () async {
+      final productError = ArgumentError('product and writer');
+      final productStack = StackTrace.current;
+      final writerError = StateError('ERROR write failed');
+      final writerStack = StackTrace.current;
+      final writer = _SpecificFailureWriter(
+        failEvent: 'ERROR', error: writerError, stack: writerStack,
+      );
+      final trace = ArvinAsyncTrace(writer: writer);
+      Object? caught;
+      try {
+        await trace.run<void>(
+          operationName: 'tw03',
+          operation: () async => Error.throwWithStackTrace(productError, productStack),
+        );
+      } catch (error) {
+        caught = error;
+      }
+      expect(caught, isA<ArvinTraceDualFailure>());
+      final dual = caught! as ArvinTraceDualFailure;
+      expect(identical(dual.productError, productError), isTrue);
+      expect(identical(dual.productStackTrace, productStack), isTrue);
+      expect(identical(dual.writerError, writerError), isTrue);
+      expect(identical(dual.writerStackTrace, writerStack), isTrue);
+    });
+
+    test('TW-04 product callback is invoked exactly once after START', () async {
+      final writer = _MemoryTraceWriter();
+      final trace = ArvinAsyncTrace(writer: writer);
+      var calls = 0;
+      final result = await trace.run<int>(
+        operationName: 'tw04',
+        operation: () async { calls++; return 19; },
+      );
+      expect(result, 19);
+      expect(calls, 1);
+    });
   });
+}
+
+class _SpecificFailureWriter implements ArvinJsonlTraceWriter {
+  _SpecificFailureWriter({required this.failEvent, required this.error, required this.stack});
+  final String failEvent;
+  final Object error;
+  final StackTrace stack;
+  final List<String> events = [];
+  @override
+  Future<void> writeLine(String line) async {
+    final event = jsonDecode(line) as Map<String, dynamic>;
+    final type = event['event'] as String;
+    events.add(type);
+    if (type == failEvent) Error.throwWithStackTrace(error, stack);
+  }
+  @override
+  Future<void> flush() async {}
+  @override
+  Future<void> close() async {}
 }
 
 class _FailTerminalWriter implements ArvinJsonlTraceWriter {
