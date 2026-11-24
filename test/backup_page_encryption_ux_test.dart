@@ -110,7 +110,7 @@ void main() {
     final service = _FakeBackupService();
     final backupComplete = Completer<void>();
     await tester.pumpWidget(_app(service: service, onBackupComplete: () {
-      unawaited(arvinTraceOperation<void>('backup.test_completer', () async { if (!backupComplete.isCompleted) backupComplete.complete(); }));
+      if (!backupComplete.isCompleted) backupComplete.complete();
     }));
     await tester.pumpAndSettle();
 
