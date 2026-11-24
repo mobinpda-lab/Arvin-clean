@@ -243,7 +243,25 @@ class ArvinAsyncTrace {
       });
       _open.remove(operationId);
     } catch (writerError, writerStackTrace) {
-      // Never translate a failed END into success or an ERROR record.
+      // A failed END is never rewritten as success. Attempt an ERROR record
+      // so the trace explains the terminal persistence failure; if that also
+      // fails, retain the secondary writer failure and leave the operation open.
+      try {
+        await _emit({
+          ...common,
+          'timestamp_utc': DateTime.now().toUtc().toIso8601String(),
+          'timestamp': DateTime.now().toUtc().toIso8601String(),
+          'event_type': 'ERROR', 'event': 'ERROR',
+          'elapsed_ms': stopwatch.elapsedMilliseconds,
+          'result': 'error', 'status': 'ERROR',
+          'exception_type': writerError.runtimeType.toString(),
+          'exception_message': writerError.toString(),
+          'error_type': writerError.runtimeType.toString(),
+        });
+        _open.remove(operationId);
+      } catch (secondaryWriterError) {
+        _compatibilityWriterFailures.add(secondaryWriterError);
+      }
       Error.throwWithStackTrace(writerError, writerStackTrace);
     }
     return result;
