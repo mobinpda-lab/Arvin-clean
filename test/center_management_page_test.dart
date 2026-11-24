@@ -38,9 +38,13 @@ void main() {
         onLoadComplete: () { if (!loaded.isCompleted) loaded.complete(); },
       )));
     });
-    // Await the page-owned Future; duplicate Store loads can overlap schema
-    // initialization and leave the widget test's runAsync zone unresolved.
-    await arvinTraceOperation<void>('center.test_wait', () async { await tester.runAsync(() => loaded.future); });
+    // TaskStorageLock preserves the caller's Zone. The page load started in
+    // WidgetTester's FakeAsync zone, so pump that same zone instead of waiting
+    // from runAsync (which cannot drain work captured by the FakeAsync zone).
+    while (!loaded.isCompleted) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await loaded.future;
     await tester.pumpAndSettle();
   }
 
