@@ -19,8 +19,14 @@ Future<void> _pumpArvinApp(WidgetTester tester) async {
   });
   // TaskStorageLock preserves the caller's Zone. Pump the FakeAsync zone
   // that started Home loading rather than waiting from tester.runAsync.
-  while (!loaded.isCompleted) {
+  for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
     await tester.pump(const Duration(milliseconds: 16));
+  }
+  if (!loaded.isCompleted) {
+    throw TimeoutException(
+      'Home did not report load completion after 1200 frames',
+      const Duration(seconds: 20),
+    );
   }
   await loaded.future;
   await tester.pumpAndSettle();
