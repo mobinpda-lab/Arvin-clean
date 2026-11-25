@@ -41,30 +41,23 @@ class TaskStorageLock {
         zone: zone,
         run: () async {
           var actionStarted = false;
-          final actionResult = Completer<T>();
           try {
-            await arvinAsyncTrace.run<void>(
-              operationName: 'task.storage_lock.owner',
-              parentOperationId: parentOperationId,
-              correlationId: correlationId,
-              operation: () async {
-                await runner(() async {
+            await runner(() async {
+              await arvinAsyncTrace.run<void>(
+                operationName: 'task.storage_lock.owner',
+                parentOperationId: parentOperationId,
+                correlationId: correlationId,
+                operation: () async {
                   actionStarted = true;
                   try {
-                    actionResult.complete(await action());
+                    completer.complete(await action());
                   } catch (error, stackTrace) {
-                    actionResult.completeError(error, stackTrace);
+                    completer.completeError(error, stackTrace);
                     Error.throwWithStackTrace(error, stackTrace);
                   }
-                });
-                try {
-                  completer.complete(await actionResult.future);
-                } catch (error, stackTrace) {
-                  completer.completeError(error, stackTrace);
-                  Error.throwWithStackTrace(error, stackTrace);
-                }
-              },
-            );
+                },
+              );
+            });
           } catch (traceError, traceStack) {
             if (!actionStarted && !completer.isCompleted) {
               // A diagnostic START failure must not strand the storage queue.
@@ -84,15 +77,7 @@ class TaskStorageLock {
                 }
               }
             } else if (!completer.isCompleted) {
-              if (actionResult.isCompleted) {
-                try {
-                  completer.complete(await actionResult.future);
-                } catch (error, stackTrace) {
-                  completer.completeError(error, stackTrace);
-                }
-              } else {
-                completer.completeError(traceError, traceStack);
-              }
+              completer.completeError(traceError, traceStack);
             }
           }
         },
