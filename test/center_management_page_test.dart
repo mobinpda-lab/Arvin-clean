@@ -131,7 +131,7 @@ void main() {
     expect(find.text('مرکز ب'), findsOneWidget);
     expect(find.text('مرکز الف'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('center-search'));
+    await tester.tap(find.byKey(const ValueKey('center-search')))
     await tester.enterText(find.byKey(const ValueKey('center-search')), '');
     await tester.pumpAndSettle();
 
@@ -173,7 +173,7 @@ void main() {
       isNotNull,
     );
 
-    await tester.tap(find.byKey(const ValueKey('center-archived-filter'));
+    await tester.tap(find.byKey(const ValueKey('center-archived-filter')))
     await tester.pumpAndSettle();
     expect(find.text('مرکز تازه'), findsOneWidget);
 
@@ -213,8 +213,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های «مرکز الف»'), findsOneWidget);
-    await tester.tap(find.text('پروژه الف');
-    await tester.tap(find.text('ذخیره ارتباط‌ها');
+    await tester.tap(find.text('پروژه الف'))
+    await tester.tap(find.text('ذخیره ارتباط‌ها'))
     await tester.pumpAndSettle();
 
     expect(

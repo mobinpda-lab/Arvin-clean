@@ -8,6 +8,28 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('serializes queued actions in FIFO order', () async {
+    final order = <int>[];
+    final firstStarted = Completer<void>();
+    final releaseFirst = Completer<void>();
+
+    final first = TaskStorageLock.synchronized<void>(() async {
+      order.add(1);
+      firstStarted.complete();
+      await releaseFirst.future;
+      order.add(2);
+    });
+    final second = TaskStorageLock.synchronized<void>(() async {
+      order.add(3);
+    });
+
+    await firstStarted.future;
+    expect(order, [1]);
+    releaseFirst.complete();
+    await Future.wait([first, second]);
+    expect(order, [1, 2, 3]);
+  });
+
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
