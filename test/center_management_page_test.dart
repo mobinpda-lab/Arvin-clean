@@ -32,15 +32,23 @@ void main() {
   });
 
   void installStorageRunner(WidgetTester tester) {
-    TaskStorageLock.setWorkRunnerForTesting((work) async {
-      await tester.runAsync(work);
+    void _installStorageRunner(WidgetTester tester) {
+  TaskStorageLock.setWorkRunnerForTesting((work) async {
+    var started = false;
+    await tester.runAsync(() async {
+      started = true;
+      await work();
+    });
+    if (!started) {
       final exception = tester.takeException();
       if (exception != null) {
         Error.throwWithStackTrace(exception, StackTrace.current);
       }
-    });
-    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
-  }
+      throw StateError('WidgetTester.runAsync did not start storage work');
+    }
+  });
+  addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+}
 
   Future<T> pumpFuture<T>(
     WidgetTester tester,

@@ -18,10 +18,9 @@ class TaskStorageLock {
 
   static Future<void> _runInCallerZone(Future<void> Function() work) => work();
 
-  /// Overrides the execution runner for widget tests that use FakeAsync.
+  /// Overrides storage execution for widget tests using Flutter FakeAsync.
   ///
-  /// Production callers retain their current Zone unless a test explicitly
-  /// installs a real-async runner.
+  /// Production callers keep the default caller-Zone behavior.
   static void setWorkRunnerForTesting(TaskStorageWorkRunner runner) {
     _workRunner = runner;
   }
@@ -42,33 +41,57 @@ class TaskStorageLock {
         zone: zone,
         run: () async {
           var actionStarted = false;
+          final actionResult = Completer<T>();
           try {
-            await runner(() async {
-              await arvinAsyncTrace.run<void>(
-                operationName: 'task.storage_lock.owner',
-                parentOperationId: parentOperationId,
-                correlationId: correlationId,
-                operation: () async {
+            await arvinAsyncTrace.run<void>(
+              operationName: 'task.storage_lock.owner',
+              parentOperationId: parentOperationId,
+              correlationId: correlationId,
+              operation: () async {
+                await runner(() async {
                   actionStarted = true;
+                  try {
+                    actionResult.complete(await action());
+                  } catch (error, stackTrace) {
+                    actionResult.completeError(error, stackTrace);
+                    Error.throwWithStackTrace(error, stackTrace);
+                  }
+                });
+                try {
+                  completer.complete(await actionResult.future);
+                } catch (error, stackTrace) {
+                  completer.completeError(error, stackTrace);
+                  Error.throwWithStackTrace(error, stackTrace);
+                }
+              },
+            );
+          } catch (traceError, traceStack) {
+            if (!actionStarted && !completer.isCompleted) {
+              // A diagnostic START failure must not strand the storage queue.
+              // If product work has not started, run it once without tracing.
+              try {
+                await runner(() async {
                   try {
                     completer.complete(await action());
                   } catch (error, stackTrace) {
                     completer.completeError(error, stackTrace);
                     Error.throwWithStackTrace(error, stackTrace);
                   }
-                },
-              );
-            });
-          } catch (_) {
-            // A diagnostic START failure must not strand the storage queue.
-            // If product work has not started, run it once without tracing.
-            if (!actionStarted && !completer.isCompleted) {
-              try {
-                await runner(() async {
-                  completer.complete(await action());
                 });
               } catch (error, stackTrace) {
-                completer.completeError(error, stackTrace);
+                if (!completer.isCompleted) {
+                  completer.completeError(error, stackTrace);
+                }
+              }
+            } else if (!completer.isCompleted) {
+              if (actionResult.isCompleted) {
+                try {
+                  completer.complete(await actionResult.future);
+                } catch (error, stackTrace) {
+                  completer.completeError(error, stackTrace);
+                }
+              } else {
+                completer.completeError(traceError, traceStack);
               }
             }
           }
