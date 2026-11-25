@@ -356,7 +356,7 @@ void main() {
   });
 
   testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
-    await ProjectStore.resetTestDatabase();
+    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
     try {
       final project = ProjectPlan(
         id: 'backup-page-project',
@@ -483,7 +483,7 @@ void main() {
   });
 
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
-    await ProjectStore.resetTestDatabase();
+    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
     try {
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
@@ -526,7 +526,7 @@ void main() {
   });
 
   testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
-    await ProjectStore.resetTestDatabase();
+    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
     try {
       final localProject = ProjectPlan(
         id: 'local-project',
