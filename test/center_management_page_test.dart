@@ -35,15 +35,31 @@ void main() {
     Future<T> Function() operation,
   ) async {
     final result = await tester.runAsync(
-      operation,
-      timeout: const Duration(seconds: 30),
+      () => operation().timeout(const Duration(seconds: 30)),
     );
+    final exception = tester.takeException();
+    if (exception != null) {
+      Error.throwWithStackTrace(exception, StackTrace.current);
+    }
     return result as T;
+  }
+
+  Future<void> runAsyncAction(
+    WidgetTester tester,
+    Future<void> Function() action,
+  ) async {
+    await tester.runAsync(
+      () => action().timeout(const Duration(seconds: 30)),
+    );
+    final exception = tester.takeException();
+    if (exception != null) {
+      Error.throwWithStackTrace(exception, StackTrace.current);
+    }
   }
 
   Future<void> pumpPage(WidgetTester tester) async {
     final loaded = Completer<void>();
-    await tester.runAsync(() async {
+    await runAsyncAction(tester, () async {
       await arvinTraceOperation<void>('center.test_pump', () async {
         await tester.pumpWidget(MaterialApp(home: CenterManagementPage(
           centerStore: centers,
@@ -53,8 +69,8 @@ void main() {
           },
         )));
       });
-      await loaded.future;
-    }, timeout: const Duration(seconds: 30));
+      await loaded.future.timeout(const Duration(seconds: 30));
+    });
     await tester.pumpAndSettle();
   }
 
@@ -95,7 +111,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('ویرایش').last));
+    await runAsyncAction(tester, () => tester.tap(find.text('ویرایش').last));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز الف ویرایش');
     await tester.tap(find.text('ذخیره').last);
@@ -108,7 +124,7 @@ void main() {
       (tester) async {
     await pumpPage(tester);
 
-    await tester.runAsync(() => tester.tap(find.byKey(const ValueKey('center-create'))));
+    await runAsyncAction(tester, () => tester.tap(find.byKey(const ValueKey('center-create'))));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
     await tester.tap(find.text('ذخیره').last);
@@ -117,9 +133,9 @@ void main() {
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('بایگانی').last));
+    await runAsyncAction(tester, () => tester.tap(find.text('بایگانی').last));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('بایگانی').last));
+    await runAsyncAction(tester, () => tester.tap(find.text('بایگانی').last));
     await tester.pumpAndSettle();
 
     expect(find.text('مرکز تازه'), findsNothing);
@@ -135,9 +151,9 @@ void main() {
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('بازیابی').last));
+    await runAsyncAction(tester, () => tester.tap(find.text('بازیابی').last));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.text('بازیابی').last));
+    await runAsyncAction(tester, () => tester.tap(find.text('بازیابی').last));
     await tester.pumpAndSettle();
 
     expect(
@@ -151,7 +167,7 @@ void main() {
     await pumpFuture(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
 
-    await tester.runAsync(() => tester.tap(find.text('مرکز الف')));
+    await runAsyncAction(tester, () => tester.tap(find.text('مرکز الف')));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های مرتبط (1)'), findsOneWidget);
@@ -163,9 +179,9 @@ void main() {
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 
-    await tester.runAsync(() => tester.tap(find.text('مرکز الف')));
+    await runAsyncAction(tester, () => tester.tap(find.text('مرکز الف')));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.byKey(const ValueKey('center-edit-project-links'))));
+    await runAsyncAction(tester, () => tester.tap(find.byKey(const ValueKey('center-edit-project-links'))));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های «مرکز الف»'), findsOneWidget);

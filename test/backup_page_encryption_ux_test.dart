@@ -74,10 +74,26 @@ Future<T> _pumpFuture<T>(
   Future<T> Function() operation,
 ) async {
   final result = await tester.runAsync(
-    operation,
-    timeout: const Duration(seconds: 30),
+    () => operation().timeout(const Duration(seconds: 30)),
   );
+  final exception = tester.takeException();
+  if (exception != null) {
+    Error.throwWithStackTrace(exception, StackTrace.current);
+  }
   return result as T;
+}
+
+Future<void> _runAsyncAction(
+  WidgetTester tester,
+  Future<void> Function() action,
+) async {
+  await tester.runAsync(
+    () => action().timeout(const Duration(seconds: 30)),
+  );
+  final exception = tester.takeException();
+  if (exception != null) {
+    Error.throwWithStackTrace(exception, StackTrace.current);
+  }
 }
 
 Future<void> _pumpUntilComplete(
@@ -85,9 +101,9 @@ Future<void> _pumpUntilComplete(
   Completer<void> completion, {
   required String operation,
 }) async {
-  await tester.runAsync(
-    () => completion.future,
-    timeout: const Duration(seconds: 30),
+  await _runAsyncAction(
+    tester,
+    () => completion.future.timeout(const Duration(seconds: 30)),
   );
 }
 
@@ -125,7 +141,7 @@ void main() {
       isFalse,
     );
 
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('create_backup_button'))));
     await _pumpUntilComplete(tester, backupComplete, operation: 'Plaintext backup');
     await tester.pumpAndSettle();
 
@@ -146,7 +162,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -197,7 +213,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('backup_passphrase_cancel')));
     await tester.pumpAndSettle();
@@ -226,7 +242,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
@@ -269,7 +285,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
@@ -308,7 +324,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
@@ -342,7 +358,7 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
+      await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('create_backup_button'))));
       await _pumpUntilComplete(tester, backupComplete, operation: 'Project backup');
       await tester.pumpAndSettle();
 
@@ -423,7 +439,7 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
@@ -479,7 +495,7 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
@@ -521,7 +537,7 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
@@ -551,7 +567,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
+    await _runAsyncAction(tester, () => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('backup_passphrase_field')),
