@@ -30,6 +30,21 @@ void main() {
     expect(order, [1, 2, 3]);
   });
 
+  test('propagates action failures and continues draining the queue', () async {
+    var secondActionCompleted = false;
+
+    final failed = TaskStorageLock.synchronized<void>(() async {
+      throw StateError('expected storage failure');
+    });
+    final next = TaskStorageLock.synchronized<void>(() async {
+      secondActionCompleted = true;
+    });
+
+    await expectLater(failed, throwsA(isA<StateError>()));
+    await next;
+    expect(secondActionCompleted, isTrue);
+  });
+
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
