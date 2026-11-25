@@ -124,7 +124,7 @@ void main() {
       eventId: 'event-1',
       lastSyncedFingerprint: 'fingerprint-1',
     );
-    await _pumpFuture(tester, () => ExternalCalendarLinkStore().save([link]));
+    await _runAsyncAction(tester, () => ExternalCalendarLinkStore().save([link]));
     await tester.pumpWidget(_app(
       service: service,
       onBackupComplete: () {
@@ -340,14 +340,14 @@ void main() {
   });
 
   testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
-    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final project = ProjectPlan(
         id: 'backup-page-project',
         title: 'پروژه پشتیبان',
         itemIds: const [],
       );
-      await _pumpFuture(tester, () => ProjectStore().save([project]));
+      await _runAsyncAction(tester, () => ProjectStore().save([project]));
       final service = _FakeBackupService();
       final backupComplete = Completer<void>();
 
@@ -368,13 +368,13 @@ void main() {
       expect((projects.single as Map)['title'], 'پروژه پشتیبان');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page restores Projects and rolls back taxonomy after a late restore failure', (tester) async {
-    await _pumpFuture(tester, TaskStore.resetTestDatabase);
-    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(tester, TaskStore.resetTestDatabase);
+    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final oldProject = ProjectPlan(
         id: 'old-project',
@@ -386,9 +386,9 @@ void main() {
         title: 'پروژه جدید',
         itemIds: const [],
       );
-      await _pumpFuture(tester, () => ProjectStore().save([oldProject]));
-      await _pumpFuture(tester, () => TaskStore().createCategory('دسته محلی'));
-      await _pumpFuture(tester, () => TaskStore().createTag('برچسب محلی'));
+      await _runAsyncAction(tester, () => ProjectStore().save([oldProject]));
+      await _runAsyncAction(tester, () => TaskStore().createCategory('دسته محلی'));
+      await _runAsyncAction(tester, () => TaskStore().createTag('برچسب محلی'));
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -461,13 +461,13 @@ void main() {
       );
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _pumpFuture(tester, TaskStore.resetTestDatabase);
-      await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(tester, TaskStore.resetTestDatabase);
+      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
-    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
@@ -507,19 +507,19 @@ void main() {
       expect(projects.single.title, 'پروژه بازیابی‌شده');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
-    await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final localProject = ProjectPlan(
         id: 'local-project',
         title: 'پروژه محلی',
         itemIds: const [],
       );
-      await _pumpFuture(tester, () => ProjectStore().save([localProject]));
+      await _runAsyncAction(tester, () => ProjectStore().save([localProject]));
       final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
@@ -549,7 +549,7 @@ void main() {
       expect(projects.single.title, 'پروژه محلی');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _pumpFuture(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     }
   });
 

@@ -164,7 +164,7 @@ void main() {
 
   testWidgets('shows related Project names in Center details', (tester) async {
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
-    await pumpFuture(tester, () => centers.linkProject('center-a', 'project-a'));
+    await runAsyncAction(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
 
     await runAsyncAction(tester, () => tester.tap(find.text('مرکز الف')));
