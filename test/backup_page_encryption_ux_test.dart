@@ -171,8 +171,8 @@ void main() {
     await tester.pump();
     // The UI starts the real async backup pipeline; await its completion
     // signal rather than settling frames while SQLite Futures are in flight.
-    // The backup pipeline starts in WidgetTester's FakeAsync zone.
-    // Pump that zone so TaskStorageLock's queued work can complete there.
+    // The backup action starts in tester.runAsync, so TaskStorageLock captures
+    // a real async zone; wait for its completion signal before settling frames.
     await _pumpUntilComplete(tester, backupComplete, operation: 'Encrypted backup');
     await tester.pumpAndSettle();
 
@@ -253,10 +253,14 @@ void main() {
       };
     var replaceCount = 0;
     List<Map<String, dynamic>>? replaced;
+    final restoreComplete = Completer<void>();
 
     await tester.pumpWidget(
       _app(
         service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
         replaceTasks: (tasks) async {
           replaceCount += 1;
           replaced = tasks;
@@ -369,7 +373,6 @@ void main() {
       await _pumpFuture(tester, () => ProjectStore().save([oldProject]));
       await _pumpFuture(tester, () => TaskStore().createCategory('دسته محلی'));
       await _pumpFuture(tester, () => TaskStore().createTag('برچسب محلی'));
-      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -450,6 +453,7 @@ void main() {
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
     await _pumpFuture(tester, ProjectStore.resetTestDatabase);
     try {
+      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
