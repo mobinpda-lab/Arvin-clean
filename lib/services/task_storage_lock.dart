@@ -23,8 +23,6 @@ class TaskStorageLock {
 
     _queue.add(
       _TaskStorageLockEntry(
-        parentOperationId: parentOperationId,
-        correlationId: correlationId,
         run: () async {
           var actionStarted = false;
           try {
@@ -83,13 +81,7 @@ class TaskStorageLock {
 }
 
 class _TaskStorageLockEntry {
-  const _TaskStorageLockEntry({
-    required this.parentOperationId,
-    required this.correlationId,
-    required this.run,
-  });
+  const _TaskStorageLockEntry({required this.run});
 
-  final String? parentOperationId;
-  final String? correlationId;
   final Future<void> Function() run;
 }

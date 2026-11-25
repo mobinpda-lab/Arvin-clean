@@ -84,13 +84,16 @@ void main() {
         }
         if (!completed.isCompleted) {
           throw TimeoutException(
-            'TaskStorageLock did not complete NativeDatabase I/O outside the caller Zone',
+            'TaskStorageLock did not complete NativeDatabase I/O outside '
+            'the caller Zone',
             const Duration(seconds: 20),
           );
         }
         await completed.future;
 
         expect(storageZone, isNot(same(callerZone)));
+        expect(parentOperationId, isNotNull);
+        expect(parentCorrelationId, isNotNull);
         expect(storageOperationId, isNotNull);
         expect(storageOperationId, isNot(parentOperationId));
         expect(storageParentOperationId, parentOperationId);
