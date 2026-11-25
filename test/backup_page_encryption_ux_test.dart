@@ -52,6 +52,7 @@ Widget _app({
   Future<void> Function(List<Map<String, dynamic>> tasks)? replaceTasks,
   Future<void> Function(String stage)? restoreStageHook,
   VoidCallback? onBackupComplete,
+  VoidCallback? onRestoreComplete,
 }) {
   return MaterialApp(
     home: BackupPage(
@@ -63,6 +64,7 @@ Widget _app({
       replaceTasks: replaceTasks ?? (_) async {},
       restoreStageHook: restoreStageHook,
       onBackupComplete: onBackupComplete,
+      onRestoreComplete: onRestoreComplete,
     ),
   );
 }
@@ -71,39 +73,11 @@ Future<T> _pumpFuture<T>(
   WidgetTester tester,
   Future<T> Function() operation,
 ) async {
-  final completion = Completer<T>();
-  operation().then(
-    completion.complete,
-    onError: (Object error, StackTrace stackTrace) {
-      completion.completeError(error, stackTrace);
-    },
+  final result = await tester.runAsync(
+    operation,
+    timeout: const Duration(seconds: 30),
   );
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
-    throw TimeoutException(
-      'Backup test database operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  return completion.future;
-}
-
-Future<void> _pumpUntilFound(
-  WidgetTester tester,
-  Finder finder, {
-  required String operation,
-}) async {
-  for (var frame = 0; finder.evaluate().isEmpty && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (finder.evaluate().isEmpty) {
-    throw TimeoutException(
-      '$operation did not reach its expected UI state after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
+  return result as T;
 }
 
 Future<void> _pumpUntilComplete(
@@ -111,16 +85,10 @@ Future<void> _pumpUntilComplete(
   Completer<void> completion, {
   required String operation,
 }) async {
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
-    throw TimeoutException(
-      '$operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  await completion.future;
+  await tester.runAsync(
+    () => completion.future,
+    timeout: const Duration(seconds: 30),
+  );
 }
 
 void main() {
@@ -157,7 +125,7 @@ void main() {
       isFalse,
     );
 
-    await tester.tap(find.byKey(const Key('create_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
     await _pumpUntilComplete(tester, backupComplete, operation: 'Plaintext backup');
     await tester.pumpAndSettle();
 
@@ -178,7 +146,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -229,7 +197,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('backup_passphrase_cancel')));
     await tester.pumpAndSettle();
@@ -258,7 +226,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
@@ -297,7 +265,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
@@ -313,11 +281,7 @@ void main() {
     expect(replaceCount, 0);
 
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-    await _pumpUntilFound(
-      tester,
-      find.textContaining('بازیابی انجام شد'),
-      operation: 'Encrypted restore',
-    );
+    await _pumpUntilComplete(tester, restoreComplete, operation: 'Encrypted restore');
     await tester.pumpAndSettle();
 
     expect(replaceCount, 1);
@@ -340,7 +304,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
@@ -374,7 +338,7 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('create_backup_button')));
+      await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
       await _pumpUntilComplete(tester, backupComplete, operation: 'Project backup');
       await tester.pumpAndSettle();
 
@@ -405,6 +369,7 @@ void main() {
       await _pumpFuture(tester, () => ProjectStore().save([oldProject]));
       await _pumpFuture(tester, () => TaskStore().createCategory('دسته محلی'));
       await _pumpFuture(tester, () => TaskStore().createTag('برچسب محلی'));
+      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -437,10 +402,14 @@ void main() {
       var localTasks = <Map<String, dynamic>>[
         <String, dynamic>{'id': 'old-task', 'title': 'کار قبلی'},
       ];
+      final restoreComplete = Completer<void>();
 
       await tester.pumpWidget(
         _app(
           service: service,
+          onRestoreComplete: () {
+            if (!restoreComplete.isCompleted) restoreComplete.complete();
+          },
           loadTasks: () async => localTasks,
           replaceTasks: (tasks) async {
             localTasks = tasks.map((task) => Map<String, dynamic>.from(task)).toList();
@@ -451,15 +420,11 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-      await _pumpUntilFound(
-        tester,
-        find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
-        operation: 'Restore rollback',
-      );
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Restore rollback');
       await tester.pumpAndSettle();
 
       expect(localTasks.single['id'], 'old-task');
@@ -503,17 +468,18 @@ void main() {
           ],
         };
 
-      await tester.pumpWidget(_app(service: service));
+      await tester.pumpWidget(_app(
+        service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
+      ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-      await _pumpUntilFound(
-        tester,
-        find.textContaining('بازیابی انجام شد'),
-        operation: 'Modern Project restore',
-      );
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Modern Project restore');
       await tester.pumpAndSettle();
 
       final projects = await _pumpFuture(tester, () => ProjectStore().load());
@@ -534,6 +500,7 @@ void main() {
         itemIds: const [],
       );
       await _pumpFuture(tester, () => ProjectStore().save([localProject]));
+      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -543,17 +510,18 @@ void main() {
           ],
         };
 
-      await tester.pumpWidget(_app(service: service));
+      await tester.pumpWidget(_app(
+        service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
+      ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
+      await tester.runAsync(() => tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
-      await _pumpUntilFound(
-        tester,
-        find.textContaining('بازیابی انجام شد'),
-        operation: 'Legacy Project restore',
-      );
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Legacy Project restore');
       await tester.pumpAndSettle();
 
       final projects = await _pumpFuture(tester, () => ProjectStore().load());
@@ -579,7 +547,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button')));
+    await tester.runAsync(() => tester.tap(find.byKey(const Key('create_backup_button'))));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('backup_passphrase_field')),

@@ -12,23 +12,14 @@ import 'package:arvin/services/iran_clock.dart';
 
 Future<void> _pumpArvinApp(WidgetTester tester) async {
   final loaded = Completer<void>();
-  await arvinTraceOperation<void>('home.test_pump', () async {
-    await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
-      if (!loaded.isCompleted) loaded.complete();
-    }));
-  });
-  // TaskStorageLock preserves the caller's Zone. Pump the FakeAsync zone
-  // that started Home loading rather than waiting from tester.runAsync.
-  for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!loaded.isCompleted) {
-    throw TimeoutException(
-      'Home did not report load completion after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  await loaded.future;
+  await tester.runAsync(() async {
+    await arvinTraceOperation<void>('home.test_pump', () async {
+      await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
+        if (!loaded.isCompleted) loaded.complete();
+      }));
+    });
+    await loaded.future;
+  }, timeout: const Duration(seconds: 30));
   await tester.pumpAndSettle();
   await tester.pumpAndSettle();
 }

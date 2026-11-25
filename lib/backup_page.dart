@@ -23,6 +23,7 @@ class BackupPage extends StatefulWidget {
     this.manager,
     this.restoreStageHook,
     this.onBackupComplete,
+    this.onRestoreComplete,
   });
 
   final Future<List<Map<String, dynamic>>> Function() loadTasks;
@@ -34,6 +35,8 @@ class BackupPage extends StatefulWidget {
   final Future<void> Function(String stage)? restoreStageHook;
   /// Test synchronization seam for completion of the canonical backup flow.
   final VoidCallback? onBackupComplete;
+  /// Test synchronization seam for completion of the canonical restore flow.
+  final VoidCallback? onRestoreComplete;
 
   @override
   State<BackupPage> createState() => _BackupPageState();
@@ -534,7 +537,10 @@ class _BackupPageState extends State<BackupPage> {
         }
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted) {
+        setState(() => busy = false);
+        widget.onRestoreComplete?.call();
+      }
     }
   }
 
