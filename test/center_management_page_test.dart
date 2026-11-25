@@ -89,7 +89,6 @@ void main() {
         },
       )));
     });
-    completion:
     for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
       await tester.pump(const Duration(milliseconds: 16));
     }
@@ -132,7 +131,7 @@ void main() {
     expect(find.text('مرکز ب'), findsOneWidget);
     expect(find.text('مرکز الف'), findsNothing);
 
-    await tester.tap(find.byKey(const ValueKey('center-search')));
+    await tester.tap(find.byKey(const ValueKey('center-search'));
     await tester.enterText(find.byKey(const ValueKey('center-search')), '');
     await tester.pumpAndSettle();
 
@@ -140,7 +139,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('ویرایش').last));
+    await tester.tap(find.text('ویرایش').last);
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز الف ویرایش');
     await tester.tap(find.text('ذخیره').last);
@@ -153,7 +152,7 @@ void main() {
       (tester) async {
     await pumpPage(tester);
 
-    await tester.tap(find.byKey(const ValueKey('center-create'))));
+    await tester.tap(find.byKey(const ValueKey('center-create')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
     await tester.tap(find.text('ذخیره').last);
@@ -162,9 +161,9 @@ void main() {
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بایگانی').last));
+    await tester.tap(find.text('بایگانی').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بایگانی').last));
+    await tester.tap(find.text('بایگانی').last);
     await tester.pumpAndSettle();
 
     expect(find.text('مرکز تازه'), findsNothing);
@@ -174,15 +173,15 @@ void main() {
       isNotNull,
     );
 
-    await tester.tap(find.byKey(const ValueKey('center-archived-filter')));
+    await tester.tap(find.byKey(const ValueKey('center-archived-filter'));
     await tester.pumpAndSettle();
     expect(find.text('مرکز تازه'), findsOneWidget);
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بازیابی').last));
+    await tester.tap(find.text('بازیابی').last);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('بازیابی').last));
+    await tester.tap(find.text('بازیابی').last);
     await tester.pumpAndSettle();
 
     expect(
@@ -196,7 +195,7 @@ void main() {
     await pumpFutureVoid(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
 
-    await tester.tap(find.text('مرکز الف')));
+    await tester.tap(find.text('مرکز الف'));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های مرتبط (1)'), findsOneWidget);
@@ -208,14 +207,14 @@ void main() {
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 
-    await tester.tap(find.text('مرکز الف')));
+    await tester.tap(find.text('مرکز الف'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const ValueKey('center-edit-project-links'))));
+    await tester.tap(find.byKey(const ValueKey('center-edit-project-links')));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های «مرکز الف»'), findsOneWidget);
-    await tester.tap(find.text('پروژه الف'));
-    await tester.tap(find.text('ذخیره ارتباط‌ها'));
+    await tester.tap(find.text('پروژه الف');
+    await tester.tap(find.text('ذخیره ارتباط‌ها');
     await tester.pumpAndSettle();
 
     expect(

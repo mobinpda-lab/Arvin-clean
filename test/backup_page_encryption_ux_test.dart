@@ -69,6 +69,19 @@ Widget _app({
   );
 }
 
+Future<void> _runAsyncAction(
+  WidgetTester tester,
+  Future<void> Function() action,
+) async {
+  await tester.runAsync(
+    () => action().timeout(const Duration(seconds: 30)),
+  );
+  final exception = tester.takeException();
+  if (exception != null) {
+    Error.throwWithStackTrace(exception, StackTrace.current);
+  }
+}
+
 Future<T> _pumpFuture<T>(
   WidgetTester tester,
   Future<T> Function() operation,
@@ -168,7 +181,7 @@ void main() {
       isFalse,
     );
 
-    await tester.tap(find.byKey(const Key('create_backup_button'))));
+    await tester.tap(find.byKey(const Key('create_backup_button')));
     await _pumpUntilComplete(tester, backupComplete, operation: 'Plaintext backup');
     await tester.pumpAndSettle();
 
@@ -187,9 +200,9 @@ void main() {
     }));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
+    await tester.tap(find.byKey(const Key('backup_encryption_toggle'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button'))));
+    await tester.tap(find.byKey(const Key('create_backup_button')));
     await tester.pumpAndSettle();
 
     await tester.enterText(
@@ -200,7 +213,7 @@ void main() {
       find.byKey(const Key('backup_passphrase_confirm_field')),
       'different',
     );
-    await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await tester.tap(find.byKey(const Key('backup_passphrase_confirm'));
     await tester.pump();
 
     expect(find.text('دو رمز یکسان نیستند'), findsOneWidget);
@@ -210,7 +223,7 @@ void main() {
       find.byKey(const Key('backup_passphrase_confirm_field')),
       'secret-123',
     );
-    await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await tester.tap(find.byKey(const Key('backup_passphrase_confirm'));
     await tester.pump();
     // The UI starts the real async backup pipeline; await its completion
     // signal rather than settling frames while SQLite Futures are in flight.
@@ -238,11 +251,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
+    await tester.tap(find.byKey(const Key('backup_encryption_toggle'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button'))));
+    await tester.tap(find.byKey(const Key('create_backup_button')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('backup_passphrase_cancel')));
+    await tester.tap(find.byKey(const Key('backup_passphrase_cancel'));
     await tester.pumpAndSettle();
 
     expect(loadCount, 0);
@@ -269,7 +282,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+    await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
@@ -277,7 +290,7 @@ void main() {
     expect(find.text('تأیید بازیابی'), findsOneWidget);
     expect(replaceCount, 0);
 
-    await tester.tap(find.byKey(const Key('restore_confirm_cancel')));
+    await tester.tap(find.byKey(const Key('restore_confirm_cancel'));
     await tester.pumpAndSettle();
 
     expect(replaceCount, 0);
@@ -312,13 +325,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
+    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
       'restore-secret',
     );
-    await tester.tap(find.byKey(const Key('restore_passphrase_confirm')));
+    await tester.tap(find.byKey(const Key('restore_passphrase_confirm'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
@@ -327,7 +340,7 @@ void main() {
     expect(find.text('تأیید بازیابی'), findsOneWidget);
     expect(replaceCount, 0);
 
-    await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await tester.tap(find.byKey(const Key('restore_confirm_apply'));
     await _pumpUntilComplete(tester, restoreComplete, operation: 'Encrypted restore');
     await tester.pumpAndSettle();
 
@@ -351,13 +364,13 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button'))));
+    await tester.tap(find.byKey(const Key('restore_encrypted_backup_button')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('restore_passphrase_field')),
       'wrong-secret',
     );
-    await tester.tap(find.byKey(const Key('restore_passphrase_confirm')));
+    await tester.tap(find.byKey(const Key('restore_passphrase_confirm'));
     await tester.pumpAndSettle();
 
     expect(service.readCount, 1);
@@ -385,7 +398,7 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('create_backup_button'))));
+      await tester.tap(find.byKey(const Key('create_backup_button')));
       await _pumpUntilComplete(tester, backupComplete, operation: 'Project backup');
       await tester.pumpAndSettle();
 
@@ -466,10 +479,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
-      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply'));
       await _pumpUntilComplete(tester, restoreComplete, operation: 'Restore rollback');
       await tester.pumpAndSettle();
 
@@ -522,10 +535,10 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
-      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply'));
       await _pumpUntilComplete(tester, restoreComplete, operation: 'Modern Project restore');
       await tester.pumpAndSettle();
 
@@ -564,10 +577,10 @@ void main() {
         },
       ));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('restore_plain_backup_button'))));
+      await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
-      await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await tester.tap(find.byKey(const Key('restore_confirm_apply'));
       await _pumpUntilComplete(tester, restoreComplete, operation: 'Legacy Project restore');
       await tester.pumpAndSettle();
 
@@ -592,9 +605,9 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
+    await tester.tap(find.byKey(const Key('backup_encryption_toggle'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('create_backup_button'))));
+    await tester.tap(find.byKey(const Key('create_backup_button')));
     await tester.pumpAndSettle();
     await tester.enterText(
       find.byKey(const Key('backup_passphrase_field')),
@@ -604,7 +617,7 @@ void main() {
       find.byKey(const Key('backup_passphrase_confirm_field')),
       'memory-only-secret',
     );
-    await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await tester.tap(find.byKey(const Key('backup_passphrase_confirm'));
     await _pumpUntilComplete(tester, backupComplete, operation: 'Passphrase backup');
     await tester.pumpAndSettle();
 
