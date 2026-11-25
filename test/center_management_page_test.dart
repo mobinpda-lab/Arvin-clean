@@ -34,43 +34,72 @@ void main() {
     WidgetTester tester,
     Future<T> Function() operation,
   ) async {
-    final result = await tester.runAsync(
-      () => operation().timeout(const Duration(seconds: 30)),
+    final completion = Completer<T>();
+    operation().then(
+      completion.complete,
+      onError: (Object error, StackTrace stackTrace) {
+        completion.completeError(error, stackTrace);
+      },
     );
-    final exception = tester.takeException();
-    if (exception != null) {
-      Error.throwWithStackTrace(exception, StackTrace.current);
+    completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
     }
-    return result as T;
+    if (!completion.isCompleted) {
+      throw TimeoutException(
+        'Center database operation did not complete after 1200 frames',
+        const Duration(seconds: 20),
+      );
+    }
+    return completion.future;
   }
 
-  Future<void> runAsyncAction(
+  Future<void> pumpFutureVoid(
     WidgetTester tester,
-    Future<void> Function() action,
+    Future<void> Function() operation,
   ) async {
-    await tester.runAsync(
-      () => action().timeout(const Duration(seconds: 30)),
+    final completion = Completer<void>();
+    operation().then(
+      (_) => completion.complete(),
+      onError: (Object error, StackTrace stackTrace) {
+        completion.completeError(error, stackTrace);
+      },
     );
-    final exception = tester.takeException();
-    if (exception != null) {
-      Error.throwWithStackTrace(exception, StackTrace.current);
+    completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+    for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
     }
+    if (!completion.isCompleted) {
+      throw TimeoutException(
+        'Center database operation did not complete after 1200 frames',
+        const Duration(seconds: 20),
+      );
+    }
+    await completion.future;
   }
 
   Future<void> pumpPage(WidgetTester tester) async {
     final loaded = Completer<void>();
-    await runAsyncAction(tester, () async {
-      await arvinTraceOperation<void>('center.test_pump', () async {
-        await tester.pumpWidget(MaterialApp(home: CenterManagementPage(
-          centerStore: centers,
-          projectStore: projects,
-          onLoadComplete: () {
-            if (!loaded.isCompleted) loaded.complete();
-          },
-        )));
-      });
-      await loaded.future.timeout(const Duration(seconds: 30));
+    await arvinTraceOperation<void>('center.test_pump', () async {
+      await tester.pumpWidget(MaterialApp(home: CenterManagementPage(
+        centerStore: centers,
+        projectStore: projects,
+        onLoadComplete: () {
+          if (!loaded.isCompleted) loaded.complete();
+        },
+      )));
     });
+    completion:
+    for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    if (!loaded.isCompleted) {
+      throw TimeoutException(
+        'Center page did not report load completion after 1200 frames',
+        const Duration(seconds: 20),
+      );
+    }
+    await loaded.future;
     await tester.pumpAndSettle();
   }
 
@@ -111,7 +140,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.text('ویرایش').last));
+    await tester.tap(find.text('ویرایش').last));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز الف ویرایش');
     await tester.tap(find.text('ذخیره').last);
@@ -124,7 +153,7 @@ void main() {
       (tester) async {
     await pumpPage(tester);
 
-    await runAsyncAction(tester, () => tester.tap(find.byKey(const ValueKey('center-create'))));
+    await tester.tap(find.byKey(const ValueKey('center-create'))));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField).last, 'مرکز تازه');
     await tester.tap(find.text('ذخیره').last);
@@ -133,9 +162,9 @@ void main() {
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.text('بایگانی').last));
+    await tester.tap(find.text('بایگانی').last));
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.text('بایگانی').last));
+    await tester.tap(find.text('بایگانی').last));
     await tester.pumpAndSettle();
 
     expect(find.text('مرکز تازه'), findsNothing);
@@ -151,9 +180,9 @@ void main() {
 
     await tester.tap(find.byTooltip('عملیات مرکز').first);
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.text('بازیابی').last));
+    await tester.tap(find.text('بازیابی').last));
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.text('بازیابی').last));
+    await tester.tap(find.text('بازیابی').last));
     await tester.pumpAndSettle();
 
     expect(
@@ -164,10 +193,10 @@ void main() {
 
   testWidgets('shows related Project names in Center details', (tester) async {
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
-    await runAsyncAction(tester, () => centers.linkProject('center-a', 'project-a'));
+    await pumpFutureVoid(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
 
-    await runAsyncAction(tester, () => tester.tap(find.text('مرکز الف')));
+    await tester.tap(find.text('مرکز الف')));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های مرتبط (1)'), findsOneWidget);
@@ -179,9 +208,9 @@ void main() {
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 
-    await runAsyncAction(tester, () => tester.tap(find.text('مرکز الف')));
+    await tester.tap(find.text('مرکز الف')));
     await tester.pumpAndSettle();
-    await runAsyncAction(tester, () => tester.tap(find.byKey(const ValueKey('center-edit-project-links'))));
+    await tester.tap(find.byKey(const ValueKey('center-edit-project-links'))));
     await tester.pumpAndSettle();
 
     expect(find.text('پروژه‌های «مرکز الف»'), findsOneWidget);

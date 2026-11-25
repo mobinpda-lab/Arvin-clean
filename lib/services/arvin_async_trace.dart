@@ -95,6 +95,7 @@ class ArvinAsyncTrace {
   ArvinAsyncTrace({ArvinJsonlTraceWriter? writer}) : _writer = writer;
 
   static final Object _zoneOperationIdKey = Object();
+  static final Object _zoneParentOperationIdKey = Object();
   static int _idCounter = 0;
 
   ArvinJsonlTraceWriter? _writer;
@@ -108,6 +109,17 @@ class ArvinAsyncTrace {
     if (_writer != null) throw StateError('A trace writer is already attached');
     _writer = writer;
   }
+
+  /// The operation currently owning this async Zone, when one exists.
+  String? get currentOperationId => Zone.current[_zoneOperationIdKey] as String?;
+
+  /// The parent operation captured when the current trace Zone was created.
+  String? get currentParentOperationId =>
+      Zone.current[_zoneParentOperationIdKey] as String?;
+
+  /// The correlation ID inherited by the current trace Zone.
+  String? get currentCorrelationId =>
+      Zone.current['arvin.trace.correlation'] as String?;
 
   List<ArvinOpenTraceOperation> get openOperations =>
       List<ArvinOpenTraceOperation>.unmodifiable(_open.values);
@@ -198,6 +210,7 @@ class ArvinAsyncTrace {
         operation,
         zoneValues: {
           _zoneOperationIdKey: operationId,
+          _zoneParentOperationIdKey: parentId,
           'arvin.trace.correlation': resolvedCorrelationId,
         },
       );

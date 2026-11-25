@@ -3,14 +3,12 @@ import 'dart:collection';
 
 import 'arvin_async_trace.dart';
 
-/// Process-local serialization boundary for the canonical `arvin.tasks`
-/// document.
+/// Process-local serialization boundary for canonical TaskStore operations.
 ///
-/// SharedPreferences stores the task collection as one JSON value. Without a
-/// shared critical section, independent read-modify-write features can race
-/// and overwrite newer changes. Every canonical task persistence path should
-/// use this lock until the storage implementation is migrated to a
-/// transactional database.
+/// Queued storage I/O runs in the root async Zone so native SQLite work is not
+/// coupled to a caller's scheduling Zone (for example, Flutter test FakeAsync).
+/// Trace parent and correlation IDs are captured before enqueueing and carried
+/// explicitly into the storage operation.
 class TaskStorageLock {
   TaskStorageLock._();
 
@@ -20,16 +18,20 @@ class TaskStorageLock {
 
   static Future<T> synchronized<T>(Future<T> Function() action) {
     final completer = Completer<T>();
-    final zone = Zone.current;
+    final parentOperationId = arvinAsyncTrace.currentOperationId;
+    final correlationId = arvinAsyncTrace.currentCorrelationId;
 
     _queue.add(
       _TaskStorageLockEntry(
-        zone: zone,
+        parentOperationId: parentOperationId,
+        correlationId: correlationId,
         run: () async {
           var actionStarted = false;
           try {
             await arvinAsyncTrace.run<void>(
               operationName: 'task.storage_lock.owner',
+              parentOperationId: parentOperationId,
+              correlationId: correlationId,
               operation: () async {
                 actionStarted = true;
                 try {
@@ -65,19 +67,29 @@ class TaskStorageLock {
 
     _running = true;
     final entry = _queue.removeFirst();
-    entry.zone.run(entry.run).whenComplete(() {
-      _running = false;
-      _drain();
+    Zone.root.run(() {
+      entry.run().then<void>(
+        (_) {
+          _running = false;
+          _drain();
+        },
+        onError: (Object _, StackTrace __) {
+          _running = false;
+          _drain();
+        },
+      );
     });
   }
 }
 
 class _TaskStorageLockEntry {
   const _TaskStorageLockEntry({
-    required this.zone,
+    required this.parentOperationId,
+    required this.correlationId,
     required this.run,
   });
 
-  final Zone zone;
+  final String? parentOperationId;
+  final String? correlationId;
   final Future<void> Function() run;
 }

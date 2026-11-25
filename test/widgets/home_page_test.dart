@@ -10,29 +10,23 @@ import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
-Future<void> _runAsyncAction(
-  WidgetTester tester,
-  Future<void> Function() action,
-) async {
-  await tester.runAsync(
-    () => action().timeout(const Duration(seconds: 30)),
-  );
-  final exception = tester.takeException();
-  if (exception != null) {
-    Error.throwWithStackTrace(exception, StackTrace.current);
-  }
-}
-
 Future<void> _pumpArvinApp(WidgetTester tester) async {
   final loaded = Completer<void>();
-  await _runAsyncAction(tester, () async {
-    await arvinTraceOperation<void>('home.test_pump', () async {
-      await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
-        if (!loaded.isCompleted) loaded.complete();
-      }));
-    });
-    await loaded.future.timeout(const Duration(seconds: 30));
+  await arvinTraceOperation<void>('home.test_pump', () async {
+    await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
+      if (!loaded.isCompleted) loaded.complete();
+    }));
   });
+  for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+  if (!loaded.isCompleted) {
+    throw TimeoutException(
+      'Home did not report load completion after 1200 frames',
+      const Duration(seconds: 20),
+    );
+  }
+  await loaded.future;
   await tester.pumpAndSettle();
   await tester.pumpAndSettle();
 }
