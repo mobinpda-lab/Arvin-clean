@@ -21,7 +21,13 @@ run_suite() {
   local -a pipeline_status=()
   local suite_exit_code log_exit_code
   set +e
-  flutter test "$suite_path" --reporter expanded 2>&1 | tee "$log_path"
+  # Keep the file-backed trace sink scoped to the non-widget trace suite.
+  # Widget tests use FakeAsync; awaiting IOSink.flush there prevents their pumps from progressing.
+  local -a flutter_command=(flutter test "$suite_path" --reporter expanded)
+  if [[ "$suite_name" != trace ]]; then
+    flutter_command=(env -u ARVIN_TRACE_OUTPUT -u ARVIN_MISSION_ID "${flutter_command[@]}")
+  fi
+  "${flutter_command[@]}" 2>&1 | tee "$log_path"
   pipeline_status=("${PIPESTATUS[@]}")
   set -e
   suite_exit_code="${pipeline_status[0]:-1}"
