@@ -30,6 +30,29 @@ void main() {
     await database.close();
   });
 
+  Future<T> pumpFuture<T>(
+    WidgetTester tester,
+    Future<T> Function() operation,
+  ) async {
+    final completion = Completer<T>();
+    operation().then(
+      completion.complete,
+      onError: (Object error, StackTrace stackTrace) {
+        completion.completeError(error, stackTrace);
+      },
+    );
+    for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    if (!completion.isCompleted) {
+      throw TimeoutException(
+        'Center test database operation did not complete after 1200 frames',
+        const Duration(seconds: 20),
+      );
+    }
+    return completion.future;
+  }
+
   Future<void> pumpPage(WidgetTester tester) async {
     final loaded = Completer<void>();
     await arvinTraceOperation<void>('center.test_pump', () async {
@@ -41,8 +64,14 @@ void main() {
     // TaskStorageLock preserves the caller's Zone. The page load started in
     // WidgetTester's FakeAsync zone, so pump that same zone instead of waiting
     // from runAsync (which cannot drain work captured by the FakeAsync zone).
-    while (!loaded.isCompleted) {
+    for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
       await tester.pump(const Duration(milliseconds: 16));
+    }
+    if (!loaded.isCompleted) {
+      throw TimeoutException(
+        'Center page did not report load completion after 1200 frames',
+        const Duration(seconds: 20),
+      );
     }
     await loaded.future;
     await tester.pumpAndSettle();
@@ -65,8 +94,8 @@ void main() {
   });
 
   testWidgets('creates, searches, edits and sorts Centers', (tester) async {
-    await centers.create(id: 'center-a', name: 'مرکز الف');
-    await centers.create(id: 'center-b', name: 'مرکز ب');
+    await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
+    await pumpFuture(tester, () => centers.create(id: 'center-b', name: 'مرکز ب'));
     await pumpPage(tester);
 
     expect(find.text('مرکز الف'), findsOneWidget);
@@ -113,9 +142,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('مرکز تازه'), findsNothing);
-    expect(await centers.findById(
-      (await centers.load()).single.id,
-    ), isNotNull);
+    final loadedCenters = await pumpFuture(tester, () => centers.load());
+    expect(
+      await pumpFuture(tester, () => centers.findById(loadedCenters.single.id)),
+      isNotNull,
+    );
 
     await tester.tap(find.byKey(const ValueKey('center-archived-filter')));
     await tester.pumpAndSettle();
@@ -128,12 +159,15 @@ void main() {
     await tester.tap(find.text('بازیابی').last);
     await tester.pumpAndSettle();
 
-    expect((await centers.load(includeArchived: false)), hasLength(1));
+    expect(
+      await pumpFuture(tester, () => centers.load(includeArchived: false)),
+      hasLength(1),
+    );
   });
 
   testWidgets('shows related Project names in Center details', (tester) async {
-    await centers.create(id: 'center-a', name: 'مرکز الف');
-    await centers.linkProject('center-a', 'project-a');
+    await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
+    await pumpFuture(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
 
     await tester.tap(find.text('مرکز الف'));
@@ -145,7 +179,7 @@ void main() {
 
   testWidgets('manages Center to Project links through the existing store',
       (tester) async {
-    await centers.create(id: 'center-a', name: 'مرکز الف');
+    await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 
     await tester.tap(find.text('مرکز الف'));
@@ -159,7 +193,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(
-      await centers.projectIdsForCenter('center-a'),
+      await pumpFuture(tester, () => centers.projectIdsForCenter('center-a')),
       <String>['project-a'],
     );
   });
