@@ -19,11 +19,11 @@ void _installStorageRunner(WidgetTester tester) {
       started = true;
       await work();
     });
+    final exception = tester.takeException();
+    if (exception != null) {
+      Error.throwWithStackTrace(exception, StackTrace.current);
+    }
     if (!started) {
-      final exception = tester.takeException();
-      if (exception != null) {
-        Error.throwWithStackTrace(exception, StackTrace.current);
-      }
       throw StateError('WidgetTester.runAsync did not start storage work');
     }
   });
