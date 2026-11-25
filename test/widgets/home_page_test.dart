@@ -8,8 +8,44 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
+
+void _installStorageRunner(WidgetTester tester) {
+  TaskStorageLock.setWorkRunnerForTesting((work) async {
+    await tester.runAsync(work);
+    final exception = tester.takeException();
+    if (exception != null) {
+      Error.throwWithStackTrace(exception, StackTrace.current);
+    }
+  });
+  addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+}
+
+Future<T> _pumpFuture<T>(
+  WidgetTester tester,
+  Future<T> Function() operation,
+) async {
+  final completion = Completer<T>();
+  operation().then(
+    completion.complete,
+    onError: (Object error, StackTrace stackTrace) {
+      completion.completeError(error, stackTrace);
+    },
+  );
+  completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
+    await tester.pump(const Duration(milliseconds: 16));
+  }
+  if (!completion.isCompleted) {
+    throw TimeoutException(
+      'Home database operation did not complete after 1200 frames',
+      const Duration(seconds: 20),
+    );
+  }
+  return completion.future;
+}
 
 Future<void> _pumpArvinApp(WidgetTester tester) async {
   final loaded = Completer<void>();
@@ -40,6 +76,7 @@ void main() {
   });
 
   testWidgets('renders the current canonical HomePage shell', (tester) async {
+    _installStorageRunner(tester);
     await _pumpArvinApp(tester);
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
@@ -55,6 +92,7 @@ void main() {
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"legacy-ui-1","title":"کار آزمایشی","description":"توضیح"}]',
@@ -67,6 +105,7 @@ void main() {
   });
 
   testWidgets('home task card uses compact controls without shrinking readable text', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"compact-home","title":"کار فشرده","dueDate":"2030-09-20T10:00:00.000"}]',
@@ -90,6 +129,7 @@ void main() {
   });
 
   testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
+    _installStorageRunner(tester);
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
@@ -111,12 +151,13 @@ void main() {
       find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
       findsNothing,
     );
-    final saved = (await tester.runAsync(() async => (await TaskStore().load()).single))!;
+    final saved = await _pumpFuture(tester, () async => (await TaskStore().load()).single);
     expect(saved.id, 'overdue-preserved');
     expect(saved.dueDate, isNotNull);
   });
 
   testWidgets('Home hides disabled checklist progress but keeps its saved rows', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"disabled-checklist-home","title":"کار با چک‌لیست خاموش","checklist":["[ ] کیف"],"checklistEnabled":false}]',
@@ -135,12 +176,13 @@ void main() {
       find.byKey(const ValueKey('task-card-checklist-progress-disabled-checklist-home')),
       findsNothing,
     );
-    final persisted = (await tester.runAsync(() async => (await TaskStore().load()).single))!;
+    final persisted = await _pumpFuture(tester, () async => (await TaskStore().load()).single);
     expect(persisted.checklist, const ['[ ] کیف']);
     expect(persisted.checklistEnabled, isFalse);
   });
 
   testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active","title":"کار انجام‌نشده","completed":false}]',
@@ -167,6 +209,7 @@ void main() {
 
   testWidgets('Home uses the four cards as combined filters and preserves time grouping',
       (tester) async {
+    _installStorageRunner(tester);
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
@@ -206,6 +249,7 @@ void main() {
   });
 
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"one","title":"تماس فروش"},{"id":"two","title":"جلسه فنی"}]',
@@ -225,6 +269,7 @@ void main() {
 
   testWidgets('Home search scopes the active Home task set',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"active","title":"جستجوی مشترک فعال"},{"id":"completed","title":"جستجوی مشترک انجام‌شده","completed":true},{"id":"archived","title":"جستجوی مشترک بایگانی","archived":true},{"id":"trashed","title":"جستجوی مشترک حذف‌شده","trashed":true}]',
@@ -243,6 +288,7 @@ void main() {
 
   testWidgets('Home search uses canonical Persian and FollowUp text',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"persian","title":"يادداشت كاری"},{"id":"followup","title":"کار دوم","followUps":[{"id":"f1","dateTime":"2026-08-25T10:00:00.000","note":"تماس با مشتری","result":"موفق"}]},{"id":"other","title":"خرید"}]',
@@ -264,6 +310,7 @@ void main() {
 
   testWidgets('default rightward swipe still moves an active task to trash',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
     });
@@ -288,6 +335,7 @@ void main() {
 
   testWidgets('permanent delete from trash requires explicit confirmation',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"trashed","title":"حذف آزمایشی","trashed":true}]',
@@ -327,6 +375,7 @@ void main() {
 
   testWidgets('drawer opens archive and restores archived task to active',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"archived","title":"کار بایگانی","archived":true}]',
@@ -351,6 +400,7 @@ void main() {
 
   testWidgets('drawer opens trash and restores trashed task to active',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"trashed-restore","title":"کار سطل","trashed":true}]',
@@ -376,6 +426,7 @@ void main() {
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
       (tester) async {
+    _installStorageRunner(tester);
     const corrupt = '{"not":"a-list"}';
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': corrupt,
@@ -404,6 +455,7 @@ void main() {
 
   testWidgets('RTL swipe directions honor independently configured archive and trash actions',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"right-task","title":"بایگانی راست"},{"id":"left-task","title":"سطل چپ"}]',
@@ -461,6 +513,7 @@ void main() {
 
   testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-26T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
@@ -515,6 +568,7 @@ void main() {
 
   testWidgets('Home task card allows title and description to grow without forced clipping',
       (tester) async {
+    _installStorageRunner(tester);
     const title =
         'عنوان بسیار طولانی برای اطمینان از اینکه متن کامل کار در کارت خانه قابل مشاهده می‌ماند';
     const description =

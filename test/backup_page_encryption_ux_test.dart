@@ -5,6 +5,7 @@ import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
@@ -67,6 +68,17 @@ Widget _app({
       onRestoreComplete: onRestoreComplete,
     ),
   );
+}
+
+void _installStorageRunner(WidgetTester tester) {
+  TaskStorageLock.setWorkRunnerForTesting((work) async {
+    await tester.runAsync(work);
+    final exception = tester.takeException();
+    if (exception != null) {
+      Error.throwWithStackTrace(exception, StackTrace.current);
+    }
+  });
+  addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
 }
 
 Future<void> _runAsyncAction(
@@ -156,6 +168,7 @@ void main() {
 
   testWidgets('plaintext backup remains default and does not prompt',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
     final backupComplete = Completer<void>();
     final link = ExternalCalendarEventLink(
@@ -193,6 +206,7 @@ void main() {
 
   testWidgets('encrypted backup requires matching non-empty confirmation',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
     final backupComplete = Completer<void>();
     await tester.pumpWidget(_app(service: service, onBackupComplete: () {
@@ -238,6 +252,7 @@ void main() {
   });
 
   testWidgets('cancelling encrypted backup performs no write', (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
     var loadCount = 0;
     await tester.pumpWidget(
@@ -264,6 +279,7 @@ void main() {
 
   testWidgets('restore confirmation cancel never replaces local tasks',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
         'type': ArvinBackupService.backupType,
@@ -299,6 +315,7 @@ void main() {
 
   testWidgets('encrypted restore reconciles backup and local tasks by ID',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
         'type': ArvinBackupService.backupType,
@@ -352,6 +369,7 @@ void main() {
 
   testWidgets('wrong encrypted restore passphrase never mutates local tasks',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readError = const FormatException('authentication failed');
     var replaceCount = 0;
@@ -380,6 +398,7 @@ void main() {
   });
 
   testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
+    _installStorageRunner(tester);
     await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final project = ProjectPlan(
@@ -413,6 +432,7 @@ void main() {
   });
 
   testWidgets('Backup page restores Projects and rolls back taxonomy after a late restore failure', (tester) async {
+    _installStorageRunner(tester);
     await _runAsyncAction(tester, TaskStore.resetTestDatabase);
     await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
@@ -507,6 +527,7 @@ void main() {
   });
 
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
+    _installStorageRunner(tester);
     await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final restoreComplete = Completer<void>();
@@ -552,6 +573,7 @@ void main() {
   });
 
   testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
+    _installStorageRunner(tester);
     await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
     try {
       final localProject = ProjectPlan(
@@ -595,6 +617,7 @@ void main() {
 
   testWidgets('passphrase is operation scoped and never persisted',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
     final backupComplete = Completer<void>();
     await tester.pumpWidget(_app(

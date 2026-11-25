@@ -4,6 +4,7 @@ import 'package:arvin/center_management_page.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -29,6 +30,17 @@ void main() {
   tearDown(() async {
     await database.close();
   });
+
+  void installStorageRunner(WidgetTester tester) {
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      await tester.runAsync(work);
+      final exception = tester.takeException();
+      if (exception != null) {
+        Error.throwWithStackTrace(exception, StackTrace.current);
+      }
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+  }
 
   Future<T> pumpFuture<T>(
     WidgetTester tester,
@@ -119,6 +131,7 @@ void main() {
   });
 
   testWidgets('creates, searches, edits and sorts Centers', (tester) async {
+    installStorageRunner(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpFuture(tester, () => centers.create(id: 'center-b', name: 'مرکز ب'));
     await pumpPage(tester);
@@ -150,6 +163,7 @@ void main() {
 
   testWidgets('creates a Center and archives/restores without deleting it',
       (tester) async {
+    installStorageRunner(tester);
     await pumpPage(tester);
 
     await tester.tap(find.byKey(const ValueKey('center-create')));
@@ -191,6 +205,7 @@ void main() {
   });
 
   testWidgets('shows related Project names in Center details', (tester) async {
+    installStorageRunner(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpFutureVoid(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
@@ -204,6 +219,7 @@ void main() {
 
   testWidgets('manages Center to Project links through the existing store',
       (tester) async {
+    installStorageRunner(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 

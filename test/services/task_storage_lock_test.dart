@@ -33,6 +33,15 @@ void main() {
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
+      TaskStorageLock.setWorkRunnerForTesting((work) async {
+        await tester.runAsync(work);
+        final exception = tester.takeException();
+        if (exception != null) {
+          Error.throwWithStackTrace(exception, StackTrace.current);
+        }
+      });
+      addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
       final database = NativeDatabase.memory();
       final completed = Completer<void>();
       Zone? callerZone;
