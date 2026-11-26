@@ -89,16 +89,13 @@ void _installStorageRunner(WidgetTester tester) {
 }
 
 Future<void> _runAsyncAction(
-  WidgetTester tester,
   Future<void> Function() action,
 ) async {
-  await tester.runAsync(
+  // Native test I/O must use the same serialized Runner owner as stores.
+  // Calling tester.runAsync here can re-enter the runner installed above.
+  await TaskStorageLock.synchronized<void>(
     () => action().timeout(const Duration(seconds: 30)),
   );
-  final exception = tester.takeException();
-  if (exception != null) {
-    Error.throwWithStackTrace(exception, StackTrace.current);
-  }
 }
 
 Future<T> _pumpFuture<T>(
@@ -184,7 +181,7 @@ void main() {
       eventId: 'event-1',
       lastSyncedFingerprint: 'fingerprint-1',
     );
-    await _runAsyncAction(tester, () => ExternalCalendarLinkStore().save([link]));
+    await _runAsyncAction(() => ExternalCalendarLinkStore().save([link]));
     await tester.pumpWidget(_app(
       service: service,
       onBackupComplete: () {
@@ -406,7 +403,7 @@ void main() {
 
   testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
     _installStorageRunner(tester);
-    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(ProjectStore.resetTestDatabase);
     try {
       final project = ProjectPlan(
         id: 'backup-page-project',
@@ -434,14 +431,14 @@ void main() {
       expect((projects.single as Map)['title'], 'پروژه پشتیبان');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page restores Projects and rolls back taxonomy after a late restore failure', (tester) async {
     _installStorageRunner(tester);
-    await _runAsyncAction(tester, TaskStore.resetTestDatabase);
-    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(TaskStore.resetTestDatabase);
+    await _runAsyncAction(ProjectStore.resetTestDatabase);
     try {
       final oldProject = ProjectPlan(
         id: 'old-project',
@@ -528,14 +525,14 @@ void main() {
       );
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _runAsyncAction(tester, TaskStore.resetTestDatabase);
-      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(TaskStore.resetTestDatabase);
+      await _runAsyncAction(ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
     _installStorageRunner(tester);
-    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(ProjectStore.resetTestDatabase);
     try {
       final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
@@ -575,13 +572,13 @@ void main() {
       expect(projects.single.title, 'پروژه بازیابی‌شده');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(ProjectStore.resetTestDatabase);
     }
   });
 
   testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
     _installStorageRunner(tester);
-    await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+    await _runAsyncAction(ProjectStore.resetTestDatabase);
     try {
       final localProject = ProjectPlan(
         id: 'local-project',
@@ -618,7 +615,7 @@ void main() {
       expect(projects.single.title, 'پروژه محلی');
     } finally {
       await tester.pumpWidget(const SizedBox.shrink());
-      await _runAsyncAction(tester, ProjectStore.resetTestDatabase);
+      await _runAsyncAction(ProjectStore.resetTestDatabase);
     }
   });
 
