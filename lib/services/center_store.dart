@@ -7,6 +7,7 @@ import 'package:drift_flutter/drift_flutter.dart';
 import '../models/center.dart';
 import 'g1_drift_schema.dart';
 import 'project_store.dart';
+import 'task_storage_lock.dart';
 import 'arvin_async_trace.dart';
 
 /// Canonical Center persistence over the existing G1 SQLite database.
@@ -18,13 +19,18 @@ class CenterStore {
 
   static QueryExecutor? _sharedDatabase;
   static QueryExecutor? _testDatabase;
+  static final Expando<Future<void>> _readyByExecutor =
+      Expando<Future<void>>('center-store-ready');
 
   final QueryExecutor? _injectedExecutor;
 
   static Future<void> resetTestDatabase() async {
     final executor = _testDatabase;
     _testDatabase = null;
-    if (executor != null) await executor.close();
+    if (executor != null) {
+      await TaskStorageLock.synchronized<void>(() => executor.close());
+      _readyByExecutor[executor] = null;
+    }
   }
 
   QueryExecutor get _database {
@@ -36,43 +42,48 @@ class CenterStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
-  Future<void>? _readyFuture;
-
   Future<void> _ensureReady() {
-    final pending = _readyFuture;
+    final executor = _database;
+    final pending = _readyByExecutor[executor];
     if (pending != null) return pending;
 
-    // Every Center read/mutation shares one initialization future per store.
-    // In particular, a page loading several Center↔Project edges concurrently
-    // must not fan out repeated schema installs and Project/Task prerequisites
-    // against the same SQLite executor.
-    final initialization = _initialize();
-    _readyFuture = initialization;
-    return initialization.catchError((Object error, StackTrace stackTrace) {
-      // Permit a later operation to retry after a genuine initialization error.
-      if (identical(_readyFuture, initialization)) _readyFuture = null;
+    // Share one initialization Future across every CenterStore instance that
+    // references the same executor, not merely one page/store object.
+    late final Future<void> shared;
+    shared = _initialize(executor).catchError((Object error, StackTrace stackTrace) {
+      if (identical(_readyByExecutor[executor], shared)) {
+        _readyByExecutor[executor] = null;
+      }
       Error.throwWithStackTrace(error, stackTrace);
     });
+    _readyByExecutor[executor] = shared;
+    return shared;
   }
 
-  Future<void> _initialize() async {
-    final executor = _database;
-    await arvinTraceFuture('center.store.schema_install', G1DriftSchema.install(executor));
-    // Reuse the canonical Project/Task initialization path. This ensures
-    // legacy Projects are migrated before Center↔Project foreign keys are used.
-    await arvinTraceFuture('center.store.project_prerequisite', ProjectStore(executor: executor).load());
+  Future<void> _initialize(QueryExecutor executor) async {
+    await TaskStorageLock.synchronized<void>(
+      () => G1DriftSchema.install(executor),
+    );
+    // ProjectStore performs its own serialized prerequisite work after this
+    // lock has been released; do not nest the non-reentrant storage lock.
+    await arvinTraceFuture(
+      'center.store.project_prerequisite',
+      ProjectStore(executor: executor).load(),
+    );
   }
 
   Future<List<Center>> load({bool includeArchived = true}) async {
-    final executor = _database;
     await _ensureReady();
-    final rows = await executor.runSelect(
-      includeArchived
-          ? 'SELECT * FROM centers ORDER BY name COLLATE NOCASE, id'
-          : 'SELECT * FROM centers WHERE is_archived = 0 ORDER BY name COLLATE NOCASE, id',
-      const [],
-    );
-    return List<Center>.unmodifiable(rows.map(_decode));
+    final executor = _database;
+    return TaskStorageLock.synchronized<List<Center>>(() async {
+      final rows = await executor.runSelect(
+        includeArchived
+            ? 'SELECT * FROM centers ORDER BY name COLLATE NOCASE, id'
+            : 'SELECT * FROM centers WHERE is_archived = 0 ORDER BY name COLLATE NOCASE, id',
+        const [],
+      );
+      return List<Center>.unmodifiable(rows.map(_decode));
+    });
   }
 
   /// Searches Center names while preserving the store's canonical sort order.
@@ -90,13 +101,15 @@ class CenterStore {
   }
 
   Future<Center?> findById(String centerId) async {
-    final executor = _database;
     await _ensureReady();
-    final rows = await executor.runSelect(
-      'SELECT * FROM centers WHERE id = ?',
-      <Object?>[centerId],
-    );
-    return rows.isEmpty ? null : _decode(rows.single);
+    final executor = _database;
+    return TaskStorageLock.synchronized<Center?>(() async {
+      final rows = await executor.runSelect(
+        'SELECT * FROM centers WHERE id = ?',
+        <Object?>[centerId],
+      );
+      return rows.isEmpty ? null : _decode(rows.single);
+    });
   }
 
   Future<Center> create({
@@ -116,8 +129,9 @@ class CenterStore {
 
   /// Additive identity-preserving upsert. Existing created_at is immutable.
   Future<void> upsert(Iterable<Center> centers) async {
-    final executor = _database;
     await _ensureReady();
+    await TaskStorageLock.synchronized<void>(() async {
+    final executor = _database;
     final values = List<Center>.of(centers);
     final ids = values.map((center) => center.id).toSet();
     if (ids.length != values.length) {
@@ -166,6 +180,7 @@ class CenterStore {
       } catch (_) {}
       rethrow;
     }
+    });
   }
 
   Future<Center> rename(String centerId, String name) async {
@@ -184,38 +199,40 @@ class CenterStore {
   Future<void> restore(String centerId) => _setArchived(centerId, false);
 
   Future<void> _setArchived(String centerId, bool archived) async {
-    final executor = _database;
     await _ensureReady();
-    final changed = await executor.runUpdate(
-      'UPDATE centers SET is_archived = ?, updated_at = ? WHERE id = ?',
-      <Object?>[
-        archived ? 1 : 0,
-        DateTime.now().toUtc().toIso8601String(),
-        centerId,
-      ],
-    );
-    if (changed != 1) throw StateError('Unknown Center: $centerId');
+    final executor = _database;
+    await TaskStorageLock.synchronized<void>(() async {
+      final changed = await executor.runUpdate(
+        'UPDATE centers SET is_archived = ?, updated_at = ? WHERE id = ?',
+        <Object?>[
+          archived ? 1 : 0,
+          DateTime.now().toUtc().toIso8601String(),
+          centerId,
+        ],
+      );
+      if (changed != 1) throw StateError('Unknown Center: $centerId');
+    });
   }
 
   /// Idempotently creates one edge. Foreign keys reject unknown endpoints.
   Future<void> linkProject(String centerId, String projectId) async {
-    final executor = _database;
     await _ensureReady();
-    await executor.runInsert(
+    final executor = _database;
+    await TaskStorageLock.synchronized<void>(() => executor.runInsert(
       '''INSERT OR IGNORE INTO center_projects (center_id, project_id)
          VALUES (?, ?)''',
       <Object?>[centerId, projectId],
-    );
+    ));
   }
 
   /// Removes only the requested edge; neither endpoint is deleted.
   Future<void> unlinkProject(String centerId, String projectId) async {
-    final executor = _database;
     await _ensureReady();
-    await executor.runDelete(
+    final executor = _database;
+    await TaskStorageLock.synchronized<void>(() => executor.runDelete(
       'DELETE FROM center_projects WHERE center_id = ? AND project_id = ?',
       <Object?>[centerId, projectId],
-    );
+    ));
   }
 
   /// Explicitly replaces this Center's Project edges in one transaction.
@@ -224,8 +241,9 @@ class CenterStore {
     String centerId,
     Iterable<String> projectIds,
   ) async {
-    final executor = _database;
     await _ensureReady();
+    await TaskStorageLock.synchronized<void>(() async {
+    final executor = _database;
     final values = List<String>.of(projectIds);
     if (values.toSet().length != values.length) {
       throw ArgumentError('Duplicate Project id in Center link replacement.');
@@ -254,36 +272,42 @@ class CenterStore {
       } catch (_) {}
       rethrow;
     }
+    });
   }
 
   Future<List<String>> projectIdsForCenter(String centerId) async {
-    final executor = _database;
     await _ensureReady();
-    final rows = await executor.runSelect(
-      'SELECT project_id FROM center_projects WHERE center_id = ? ORDER BY project_id',
-      <Object?>[centerId],
-    );
-    return List<String>.unmodifiable(
-      rows.map((row) => row['project_id'] as String),
-    );
+    final executor = _database;
+    return TaskStorageLock.synchronized<List<String>>(() async {
+      final rows = await executor.runSelect(
+        'SELECT project_id FROM center_projects WHERE center_id = ? ORDER BY project_id',
+        <Object?>[centerId],
+      );
+      return List<String>.unmodifiable(
+        rows.map((row) => row['project_id'] as String),
+      );
+    });
   }
 
   Future<List<String>> centerIdsForProject(String projectId) async {
-    final executor = _database;
     await _ensureReady();
-    final rows = await executor.runSelect(
-      'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
-      <Object?>[projectId],
-    );
-    return List<String>.unmodifiable(
-      rows.map((row) => row['center_id'] as String),
-    );
+    final executor = _database;
+    return TaskStorageLock.synchronized<List<String>>(() async {
+      final rows = await executor.runSelect(
+        'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
+        <Object?>[projectId],
+      );
+      return List<String>.unmodifiable(
+        rows.map((row) => row['center_id'] as String),
+      );
+    });
   }
 
   /// Deletion is allowed only after all graph edges and direct Task links end.
   Future<void> delete(String centerId) async {
-    final executor = _database;
     await _ensureReady();
+    await TaskStorageLock.synchronized<void>(() async {
+    final executor = _database;
     await executor.runCustom('BEGIN');
     try {
       final center = await executor.runSelect(
@@ -319,6 +343,7 @@ class CenterStore {
       } catch (_) {}
       rethrow;
     }
+    });
   }
 
   Center _decode(Map<String, Object?> row) {
