@@ -92,6 +92,7 @@ class ProjectStore {
   Future<void> _initialize(QueryExecutor executor) async {
     await TaskStorageLock.synchronized<void>(
       () => G1DriftSchema.install(executor),
+      operationName: 'project_store.schema_install',
     );
     // Tasks own the referenced identity. Initialize them in their own lock
     // operation before the Project migration lock is acquired.
