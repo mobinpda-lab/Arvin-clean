@@ -87,7 +87,7 @@ class TaskStorageLock {
             if (!completer.isCompleted) {
               if (operationError != null) {
                 completer.completeError(
-                  operationError!,
+                  operationError,
                   operationStackTrace ?? StackTrace.current,
                 );
               } else if (actionStarted) {
