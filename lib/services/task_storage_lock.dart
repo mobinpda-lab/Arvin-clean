@@ -197,21 +197,21 @@ class TaskStorageLock {
             }
             if (traceStartError != null && runnerError != null) {
               throw TaskStorageLockDualFailure(
-                operationError: traceStartError!,
+                operationError: traceStartError,
                 operationStackTrace: traceStartStackTrace ?? StackTrace.current,
-                runnerError: runnerError!,
+                runnerError: runnerError,
                 runnerStackTrace: runnerStackTrace ?? StackTrace.current,
               );
             }
             if (traceStartError != null) {
               Error.throwWithStackTrace(
-                traceStartError!,
+                traceStartError,
                 traceStartStackTrace ?? StackTrace.current,
               );
             }
             if (runnerError != null) {
               Error.throwWithStackTrace(
-                runnerError!,
+                runnerError,
                 runnerStackTrace ?? StackTrace.current,
               );
             }
