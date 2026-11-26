@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -9,6 +10,7 @@ import 'package:arvin/models/task.dart';
 import 'package:arvin/models/person_reference.dart';
 import 'package:arvin/models/recurrence.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/g1_drift_schema.dart';
 
 void main() {
@@ -163,6 +165,50 @@ void main() {
     final loaded = await store.load();
     expect(loaded.single.title, 'Renamed');
     expect(loaded.single.tags, <String>['important']);
+  });
+
+  test('concurrent TaskStore initialization shares one ready executor', () async {
+    await TaskStore.resetTestDatabase();
+    final first = TaskStore();
+    final second = TaskStore();
+
+    final results = await Future.wait<List<Task>>([
+      first.load(),
+      second.load(),
+    ]);
+
+    expect(results, hasLength(2));
+    expect(results.every((tasks) => tasks.isEmpty), isTrue);
+    await first.save(<Task>[Task(id: 'shared-init', title: 'Ready')]);
+    expect((await second.load()).single.id, 'shared-init');
+  });
+
+  test('TaskStore reset waits for accepted work before closing its database',
+      () async {
+    await TaskStore.resetTestDatabase();
+    await TaskStore().load();
+
+    final workStarted = Completer<void>();
+    final releaseWork = Completer<void>();
+    final acceptedWork = TaskStorageLock.synchronized<void>(() async {
+      workStarted.complete();
+      await releaseWork.future;
+    });
+    await workStarted.future;
+
+    var resetCompleted = false;
+    final reset = TaskStore.resetTestDatabase().then((_) {
+      resetCompleted = true;
+    });
+    await Future<void>.delayed(Duration.zero);
+    expect(resetCompleted, isFalse);
+
+    releaseWork.complete();
+    await Future.wait<void>([acceptedWork, reset]);
+    expect(resetCompleted, isTrue);
+
+    // A later operation receives a fresh executor, not the closed instance.
+    expect(await TaskStore().load(), isEmpty);
   });
 
   test('a fresh TaskStore instance sees the canonical write', () async {
