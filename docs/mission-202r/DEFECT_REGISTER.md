@@ -65,3 +65,12 @@ Build run 45441699404 / Trace job 138614289192 failed at TWA-01 because Bash par
 | BUILD-02 | Quality shard cancellations/failures | NO | Prior evidence retained | Pending cause review | NO |
 
 **Next:** inspect Build run 45762850359 and the TaskStorageLock, Center, Home, and Backup test logs independently. If any remain blocked, trace the first incomplete Future; do not raise timeouts or weaken assertions.
+
+
+## REV12.24 — targeted storage diagnostics
+| ID | Defect / scope | IMPLEMENTED | TESTED | VERIFIED | ACCEPTED |
+|---|---|---|---|---|---|
+| R202-LOCK-ZONE-01 | Caller-Zone microtask did not reliably observe Flutter runAsync cleanup in its real async Zone; sequential native cleanup could be rejected as reentrant | Candidate fix: root-Zone release barrier in `TaskStorageLock` | Existing NativeDatabase cleanup regression retained; exact-SHA rerun pending | Pending | NO |
+| R202-TRACE-NAME-01 | TaskStorageLock discarded the supplied operationName and emitted a hard-coded owner label | YES — forwards operationName to trace | New operation-name regression added | Pending | NO |
+
+**Acceptance boundary:** no Runner lifecycle defect is accepted until the NativeDatabase regression, runner failure boundaries, FIFO-after-exception, duplicate callback, and trace START/END/ERROR tests pass on one exact SHA. No acceptance inferred from Analyze/APK success.

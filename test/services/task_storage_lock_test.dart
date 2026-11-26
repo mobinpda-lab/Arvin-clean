@@ -9,6 +9,23 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  test('uses the requested operation name in storage trace events', () async {
+    final writer = _FailingTraceWriter(
+      failEvent: 'NEVER',
+      error: StateError('unused trace failure'),
+      stackTrace: StackTrace.current,
+    );
+    TaskStorageLock.setTraceForTesting(ArvinAsyncTrace(writer: writer));
+    addTearDown(TaskStorageLock.resetTraceForTesting);
+
+    await TaskStorageLock.synchronized<void>(
+      () async {},
+      operationName: 'center_store.load',
+    );
+
+    expect(writer.operationNames, ['center_store.load', 'center_store.load']);
+  });
+
   test('serializes queued actions in FIFO order', () async {
     final order = <int>[];
     final firstStarted = Completer<void>();
@@ -319,12 +336,14 @@ class _FailingTraceWriter implements ArvinJsonlTraceWriter {
   final Object error;
   final StackTrace stackTrace;
   final List<String> events = [];
+  final List<String> operationNames = [];
 
   @override
   Future<void> writeLine(String line) async {
     final event = jsonDecode(line) as Map<String, dynamic>;
     final type = event['event'] as String;
     events.add(type);
+    operationNames.add(event['operation_name'] as String);
     if (type == failEvent) {
       Error.throwWithStackTrace(error, stackTrace);
     }

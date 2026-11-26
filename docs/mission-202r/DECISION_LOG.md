@@ -113,3 +113,13 @@ The Future returned by `TaskStorageLock.synchronized` must preserve the action's
 - No test is marked PASS until the corresponding exact-SHA job is complete and its log confirms the result.
 
 **Disposition:** IMPLEMENTED; hosted verification pending; product acceptance NO-GO.
+
+
+## REV12.24 — D-11: Release TaskStorageLock runner ownership across Zones
+**Date:** 2026-11-26 (1405-09-05)
+**Baseline SHA:** `aaef60ea16b6e38892c401d48c99b26c81ca6d8d`
+**Evidence:** Build run `45847858441`, shard job `140009083647`, failed `TaskStorageLock isolates native I/O and preserves trace context` at test line 305 when cleanup called `tester.runAsync` again. Flutter 3.47.0 source shows `runAsync` schedules its pending-task cleanup through the real async Zone; a caller-Zone microtask is not a reliable release barrier across that Zone boundary.
+**Decision:** Schedule the injected-runner release barrier in `Zone.root`, so the runAsync cleanup microtask is ordered before the storage queue hands control to the next caller. Keep the barrier limited to custom test runners; production execution remains unchanged. No timers or timeout increases.
+**Related independent trace correction:** forward the caller-supplied `operationName` into `ArvinAsyncTrace.run`; the prior hard-coded label erased operation-level attribution.
+**Verification:** dedicated operation-name regression added. Native I/O / second-runAsync cleanup regression remains the acceptance test for the Zone barrier. Exact-SHA hosted verification pending.
+**Status:** IMPLEMENTED CANDIDATE; TEST/CI PENDING; NOT ACCEPTED.

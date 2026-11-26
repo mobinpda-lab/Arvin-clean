@@ -104,7 +104,7 @@ class TaskStorageLock {
           Future<void> runTracedAction() async {
             try {
               await trace.run<void>(
-                operationName: 'task.storage_lock.owner',
+                operationName: operationName,
                 parentOperationId: parentOperationId,
                 correlationId: correlationId,
                 operation: executeAction,
@@ -168,7 +168,7 @@ class TaskStorageLock {
                 // async ownership after the returned Future settles. Yield one
                 // caller-zone microtask before queue handoff; this does not
                 // introduce a timer or delay in production.
-                await Future<void>.microtask(() {});
+                await Zone.root.run(() => Future<void>.microtask(() {}));
               }
             }
 

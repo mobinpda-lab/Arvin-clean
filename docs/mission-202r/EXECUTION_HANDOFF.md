@@ -102,3 +102,35 @@ All are attached to candidate `b12409a8f446e664ccace087b621de6ce5a8ad61`:
 6. Keep PR #3495 open and draft. Do not merge, release, or deploy.
 
 **Status:** code repair IMPLEMENTED; exact-SHA CI pending; product acceptance NO-GO.
+
+
+## REV12.24 — live execution checkpoint
+**Date:** 2026-11-26 (1405-09-05)
+**Repository:** `mobinpda-lab/Arvin-clean`
+**PR:** #3495 — OPEN / DRAFT / UNMERGED
+**Authorized branch:** `recovery-02/main-based-integration`
+**Initial SHA:** `aaef60ea16b6e38892c401d48c99b26c81ca6d8d`
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — READ-ONLY
+
+### Exact-SHA evidence inspected
+- Build `45847858441`: Analyze SUCCESS; Debug APK SUCCESS; Release APK SUCCESS; Trace suite exit 1; quality shards test-0 through test-5 all FAILURE.
+- Device Smoke `45847858427`: six scenario jobs SUCCESS; Calendar scenario FAILURE at `integration_test/calendar_card_interaction_test.dart:169`.
+- Follow-up File Persistence `45847858368`: SUCCESS.
+- Governance `45847858307`: SUCCESS.
+- COMMAND 20-E `45847858400`: storage-persistence job SUCCESS; complete-evidence job FAILURE; overall NO-GO.
+- Device Smoke calendar failure evidence: projection diagnostics show the canonical reminder ID in the projected output, while the expected card key is absent. The first incomplete boundary is downstream of projection; date filtering and widget construction remain under investigation.
+- Backup evidence: encrypted restore and multiple Backup page operations time out; memory-only passphrase assertion observed expected value but actual null. These remain separate investigations.
+
+### REV12.24 implementation candidate
+- `lib/services/task_storage_lock.dart`: root-Zone release barrier for injected test runners; pass caller operationName to Trace.
+- `test/services/task_storage_lock_test.dart`: dedicated trace operation-name assertion; existing NativeDatabase regression is retained unchanged.
+- `docs/mission-202r/DECISION_LOG.md`, `DEFECT_REGISTER.md`, and `EXECUTION_HANDOFF.md`: this checkpoint and pending verification recorded.
+
+### Verification queue
+1. Exact-SHA TaskStorageLock regression and Trace operation attribution.
+2. Full six-shard suite and Center/Home/Backup logs.
+3. Backup password lifetime and transactional restore independently.
+4. Calendar date filtering, duplicate identity merge, and card construction without changing original interaction assertions.
+5. Reconcile and complete all acceptance evidence on one final SHA.
+
+**No test result is claimed for this candidate until hosted runs complete. Main is unchanged; PR remains unmerged; Release NO-GO.**
