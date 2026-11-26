@@ -83,6 +83,22 @@ void main() {
     expect(actionCount, 1);
   });
 
+  test('executes an Action at most once if a Runner invokes its callback twice', () async {
+    var actionCount = 0;
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      await work();
+      await work();
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    final operation = TaskStorageLock.synchronized<void>(() async {
+      actionCount += 1;
+    });
+
+    await expectLater(operation, throwsA(isA<StateError>()));
+    expect(actionCount, 1);
+  });
+
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
