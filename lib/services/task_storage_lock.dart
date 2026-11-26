@@ -7,6 +7,25 @@ typedef TaskStorageWorkRunner = Future<void> Function(
   Future<void> Function() work,
 );
 
+/// Retains a storage/trace operation failure and a distinct Runner failure.
+class TaskStorageLockDualFailure implements Exception {
+  const TaskStorageLockDualFailure({
+    required this.operationError,
+    required this.operationStackTrace,
+    required this.runnerError,
+    required this.runnerStackTrace,
+  });
+
+  final Object operationError;
+  final StackTrace operationStackTrace;
+  final Object runnerError;
+  final StackTrace runnerStackTrace;
+
+  @override
+  String toString() =>
+      'Storage operation failed: $operationError; Runner failed: $runnerError';
+}
+
 /// Process-local serialization boundary for canonical TaskStore operations.
 class TaskStorageLock {
   TaskStorageLock._();
@@ -15,6 +34,7 @@ class TaskStorageLock {
       Queue<_TaskStorageLockEntry>();
   static bool _running = false;
   static TaskStorageWorkRunner _workRunner = _runInCallerZone;
+  static ArvinAsyncTrace _trace = arvinAsyncTrace;
 
   static Future<void> _runInCallerZone(Future<void> Function() work) => work();
 
@@ -29,12 +49,23 @@ class TaskStorageLock {
     _workRunner = _runInCallerZone;
   }
 
+  /// Injects a trace instance so START/END writer failures can be tested
+  /// without mutating the process-wide production trace writer.
+  static void setTraceForTesting(ArvinAsyncTrace trace) {
+    _trace = trace;
+  }
+
+  static void resetTraceForTesting() {
+    _trace = arvinAsyncTrace;
+  }
+
   static Future<T> synchronized<T>(Future<T> Function() action) {
     final completer = Completer<T>();
     final zone = Zone.current;
     final runner = _workRunner;
-    final parentOperationId = arvinAsyncTrace.currentOperationId;
-    final correlationId = arvinAsyncTrace.currentCorrelationId;
+    final trace = _trace;
+    final parentOperationId = trace.currentOperationId;
+    final correlationId = trace.currentCorrelationId;
 
     _queue.add(
       _TaskStorageLockEntry(
@@ -42,8 +73,16 @@ class TaskStorageLock {
         run: () async {
           var actionStarted = false;
           late T actionResult;
-          Object? operationError;
-          StackTrace? operationStackTrace;
+          Object? traceStartError;
+          StackTrace? traceStartStackTrace;
+          Object? callbackError;
+          StackTrace? callbackStackTrace;
+          Object? runnerError;
+          StackTrace? runnerStackTrace;
+          Object? duplicateInvocationError;
+          StackTrace? duplicateInvocationStackTrace;
+          Future<void>? callbackFuture;
+          var runnerSettled = false;
 
           Future<void> executeAction() async {
             if (actionStarted) {
@@ -53,51 +92,142 @@ class TaskStorageLock {
             actionResult = await action();
           }
 
-          try {
+          Future<void> runTracedAction() async {
             try {
-              await runner(() async {
-                await arvinAsyncTrace.run<void>(
-                  operationName: 'task.storage_lock.owner',
-                  parentOperationId: parentOperationId,
-                  correlationId: correlationId,
-                  operation: executeAction,
+              await trace.run<void>(
+                operationName: 'task.storage_lock.owner',
+                parentOperationId: parentOperationId,
+                correlationId: correlationId,
+                operation: executeAction,
+              );
+            } catch (error, stackTrace) {
+              if (actionStarted) {
+                // Action, trace END, and trace ERROR failures are terminal.
+                // Never execute an action again after it has started.
+                Error.throwWithStackTrace(error, stackTrace);
+              }
+
+              // Only a failure before Action start can be a trace START
+              // failure. Run the fallback inside this same Runner callback;
+              // starting a second runAsync here can re-enter the test binding.
+              traceStartError = error;
+              traceStartStackTrace = stackTrace;
+              try {
+                await executeAction();
+              } catch (actionError, actionStackTrace) {
+                Error.throwWithStackTrace(
+                  ArvinTraceDualFailure(
+                    productError: actionError,
+                    productStackTrace: actionStackTrace,
+                    writerError: error,
+                    writerStackTrace: stackTrace,
+                  ),
+                  actionStackTrace,
                 );
-              });
-            } catch (traceOrRunnerError, traceOrRunnerStack) {
-              if (!actionStarted) {
-                // A failed trace START must not strand the queue. Retry the
-                // Action once without tracing, still under the same Runner.
-                try {
-                  await runner(executeAction);
-                } catch (fallbackError, fallbackStack) {
-                  operationError = fallbackError;
-                  operationStackTrace = fallbackStack;
-                }
-              } else {
-                // Includes Action, trace END, and Runner-release failures.
-                // Do not hide failures merely because product work returned.
-                operationError = traceOrRunnerError;
-                operationStackTrace = traceOrRunnerStack;
               }
             }
-          } finally {
-            // Publish the result only after the Runner has actually returned.
-            // Thus completion also propagates failures from trace END and from
-            // the Runner's post-work release path.
-            if (!completer.isCompleted) {
-              if (operationError != null) {
-                completer.completeError(
-                  operationError,
-                  operationStackTrace ?? StackTrace.current,
-                );
-              } else if (actionStarted) {
-                completer.complete(actionResult);
-              } else {
-                completer.completeError(
-                  StateError('Storage Runner completed without executing Action'),
-                  StackTrace.current,
-                );
+          }
+
+          Future<void> invokeWork() {
+            if (runnerSettled || callbackFuture != null) {
+              final error = StateError(
+                runnerSettled
+                    ? 'Storage Runner invoked Action after completing'
+                    : 'Storage Runner invoked one Action more than once',
+              );
+              duplicateInvocationError ??= error;
+              duplicateInvocationStackTrace ??= StackTrace.current;
+              return Future<void>.error(error, StackTrace.current);
+            }
+            callbackFuture = runTracedAction();
+            return callbackFuture!;
+          }
+
+          try {
+            try {
+              await runner(invokeWork);
+            } catch (error, stackTrace) {
+              runnerError = error;
+              runnerStackTrace = stackTrace;
+            } finally {
+              runnerSettled = true;
+            }
+
+            // Some injected runners return before awaiting the callback they
+            // were given. The callback Future is part of the lock contract and
+            // must settle before the caller can observe completion.
+            final work = callbackFuture;
+            if (work != null) {
+              try {
+                await work;
+              } catch (error, stackTrace) {
+                callbackError = error;
+                callbackStackTrace = stackTrace;
               }
+            }
+
+            if (duplicateInvocationError != null && callbackError == null) {
+              callbackError = duplicateInvocationError;
+              callbackStackTrace = duplicateInvocationStackTrace;
+            }
+
+            if (work == null && runnerError == null) {
+              callbackError = StateError(
+                'Storage Runner completed without invoking Action',
+              );
+              callbackStackTrace = StackTrace.current;
+            }
+
+            if (callbackError != null && runnerError != null &&
+                !identical(callbackError, runnerError)) {
+              throw TaskStorageLockDualFailure(
+                operationError: callbackError,
+                operationStackTrace: callbackStackTrace ?? StackTrace.current,
+                runnerError: runnerError,
+                runnerStackTrace: runnerStackTrace ?? StackTrace.current,
+              );
+            }
+            if (callbackError != null) {
+              Error.throwWithStackTrace(
+                callbackError,
+                callbackStackTrace ?? StackTrace.current,
+              );
+            }
+            if (traceStartError != null && runnerError != null) {
+              throw TaskStorageLockDualFailure(
+                operationError: traceStartError!,
+                operationStackTrace: traceStartStackTrace ?? StackTrace.current,
+                runnerError: runnerError!,
+                runnerStackTrace: runnerStackTrace ?? StackTrace.current,
+              );
+            }
+            if (traceStartError != null) {
+              Error.throwWithStackTrace(
+                traceStartError!,
+                traceStartStackTrace ?? StackTrace.current,
+              );
+            }
+            if (runnerError != null) {
+              Error.throwWithStackTrace(
+                runnerError!,
+                runnerStackTrace ?? StackTrace.current,
+              );
+            }
+          } catch (error, stackTrace) {
+            if (!completer.isCompleted) {
+              completer.completeError(error, stackTrace);
+            }
+            return;
+          }
+
+          if (!completer.isCompleted) {
+            if (actionStarted) {
+              completer.complete(actionResult);
+            } else {
+              completer.completeError(
+                StateError('Storage Runner completed without executing Action'),
+                StackTrace.current,
+              );
             }
           }
         },
