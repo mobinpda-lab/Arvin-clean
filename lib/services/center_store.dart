@@ -107,7 +107,7 @@ class CenterStore {
         const [],
       );
       return List<Center>.unmodifiable(rows.map(_decode));
-    });
+    }, operationName: 'center_store.load');
   }
 
   /// Searches Center names while preserving the store's canonical sort order.
