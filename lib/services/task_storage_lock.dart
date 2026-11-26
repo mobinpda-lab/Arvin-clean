@@ -163,9 +163,9 @@ class TaskStorageLock {
               if (runnerNeedsReleaseBarrier) {
                 // Host runners such as WidgetTester.runAsync release their
                 // async ownership after the returned Future settles. Yield one
-                // zero-duration turn before queue handoff; FakeAsync tests can
-                // advance it with their normal pump. Production has no delay.
-                await Future<void>.delayed(Duration.zero);
+                // caller-zone microtask before queue handoff; this does not
+                // introduce a timer or delay in production.
+                await Future<void>.microtask(() {});
               }
             }
 
