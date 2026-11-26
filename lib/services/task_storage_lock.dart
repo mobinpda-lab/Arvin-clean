@@ -62,6 +62,10 @@ class TaskStorageLock {
   static Future<T> synchronized<T>(Future<T> Function() action) {
     final completer = Completer<T>();
     final zone = Zone.current;
+    Object? completionError;
+    StackTrace? completionStackTrace;
+    late T actionResult;
+    var actionStarted = false;
     final runner = _workRunner;
     final trace = _trace;
     final parentOperationId = trace.currentOperationId;
@@ -71,8 +75,6 @@ class TaskStorageLock {
       _TaskStorageLockEntry(
         zone: zone,
         run: () async {
-          var actionStarted = false;
-          late T actionResult;
           Object? traceStartError;
           StackTrace? traceStartStackTrace;
           Object? callbackError;
@@ -214,22 +216,29 @@ class TaskStorageLock {
               );
             }
           } catch (error, stackTrace) {
-            if (!completer.isCompleted) {
-              completer.completeError(error, stackTrace);
-            }
-            return;
+            completionError = error;
+            completionStackTrace = stackTrace;
           }
-
-          if (!completer.isCompleted) {
-            if (actionStarted) {
-              completer.complete(actionResult);
-            } else {
-              completer.completeError(
-                StateError('Storage Runner completed without executing Action'),
-                StackTrace.current,
-              );
-            }
+        },
+        complete: () {
+          if (completer.isCompleted) return;
+          if (completionError != null) {
+            completer.completeError(
+              completionError!,
+              completionStackTrace ?? StackTrace.current,
+            );
+          } else if (actionStarted) {
+            completer.complete(actionResult);
+          } else {
+            completer.completeError(
+              StateError('Storage Runner completed without executing Action'),
+              StackTrace.current,
+            );
           }
+        },
+        fail: (Object error, StackTrace stackTrace) {
+          completionError = error;
+          completionStackTrace = stackTrace;
         },
       ),
     );
@@ -244,11 +253,17 @@ class TaskStorageLock {
     final entry = _queue.removeFirst();
     entry.zone.run(entry.run).then<void>(
       (_) {
+        // Publish caller completion only after the Runner Future and this
+        // queue entry have both fully settled. This prevents cleanup from
+        // re-entering a still-owned native async runner.
         _running = false;
+        entry.complete();
         _drain();
       },
-      onError: (Object _, StackTrace __) {
+      onError: (Object error, StackTrace stackTrace) {
         _running = false;
+        entry.fail(error, stackTrace);
+        entry.complete();
         _drain();
       },
     );
@@ -259,8 +274,12 @@ class _TaskStorageLockEntry {
   const _TaskStorageLockEntry({
     required this.zone,
     required this.run,
+    required this.complete,
+    required this.fail,
   });
 
   final Zone zone;
   final Future<void> Function() run;
+  final void Function() complete;
+  final void Function(Object error, StackTrace stackTrace) fail;
 }
