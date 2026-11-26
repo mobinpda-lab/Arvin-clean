@@ -21,16 +21,28 @@ class CenterStore {
   static QueryExecutor? _testDatabase;
   static final Expando<Future<void>> _readyByExecutor =
       Expando<Future<void>>('center-store-ready');
+  static final Expando<bool> _closingByExecutor =
+      Expando<bool>('center-store-closing');
 
   final QueryExecutor? _injectedExecutor;
 
   static Future<void> resetTestDatabase() async {
     final executor = _testDatabase;
-    _testDatabase = null;
-    if (executor != null) {
-      await TaskStorageLock.synchronized<void>(() => executor.close());
-      _readyByExecutor[executor] = null;
+    if (executor == null) return;
+
+    _closingByExecutor[executor] = true;
+    final pending = _readyByExecutor[executor];
+    if (pending != null) {
+      try {
+        await pending;
+      } catch (_) {
+        // A failed initialization still has to be drained before close.
+      }
     }
+    await TaskStorageLock.synchronized<void>(() => executor.close());
+    if (identical(_testDatabase, executor)) _testDatabase = null;
+    _readyByExecutor[executor] = null;
+    _closingByExecutor[executor] = null;
   }
 
   QueryExecutor get _database {
@@ -42,8 +54,15 @@ class CenterStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
+  void _ensureNotClosing(QueryExecutor executor) {
+    if (_closingByExecutor[executor] == true) {
+      throw StateError('CenterStore database shutdown has begun');
+    }
+  }
+
   Future<void> _ensureReady() {
     final executor = _database;
+    _ensureNotClosing(executor);
     final pending = _readyByExecutor[executor];
     if (pending != null) return pending;
 
@@ -75,6 +94,7 @@ class CenterStore {
   Future<List<Center>> load({bool includeArchived = true}) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     return TaskStorageLock.synchronized<List<Center>>(() async {
       final rows = await executor.runSelect(
         includeArchived
@@ -103,6 +123,7 @@ class CenterStore {
   Future<Center?> findById(String centerId) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     return TaskStorageLock.synchronized<Center?>(() async {
       final rows = await executor.runSelect(
         'SELECT * FROM centers WHERE id = ?',
@@ -130,8 +151,9 @@ class CenterStore {
   /// Additive identity-preserving upsert. Existing created_at is immutable.
   Future<void> upsert(Iterable<Center> centers) async {
     await _ensureReady();
-    await TaskStorageLock.synchronized<void>(() async {
     final executor = _database;
+    _ensureNotClosing(executor);
+    await TaskStorageLock.synchronized<void>(() async {
     final values = List<Center>.of(centers);
     final ids = values.map((center) => center.id).toSet();
     if (ids.length != values.length) {
@@ -201,6 +223,7 @@ class CenterStore {
   Future<void> _setArchived(String centerId, bool archived) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     await TaskStorageLock.synchronized<void>(() async {
       final changed = await executor.runUpdate(
         'UPDATE centers SET is_archived = ?, updated_at = ? WHERE id = ?',
@@ -218,6 +241,7 @@ class CenterStore {
   Future<void> linkProject(String centerId, String projectId) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     await TaskStorageLock.synchronized<void>(() => executor.runInsert(
       '''INSERT OR IGNORE INTO center_projects (center_id, project_id)
          VALUES (?, ?)''',
@@ -229,6 +253,7 @@ class CenterStore {
   Future<void> unlinkProject(String centerId, String projectId) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     await TaskStorageLock.synchronized<void>(() => executor.runDelete(
       'DELETE FROM center_projects WHERE center_id = ? AND project_id = ?',
       <Object?>[centerId, projectId],
@@ -242,8 +267,9 @@ class CenterStore {
     Iterable<String> projectIds,
   ) async {
     await _ensureReady();
-    await TaskStorageLock.synchronized<void>(() async {
     final executor = _database;
+    _ensureNotClosing(executor);
+    await TaskStorageLock.synchronized<void>(() async {
     final values = List<String>.of(projectIds);
     if (values.toSet().length != values.length) {
       throw ArgumentError('Duplicate Project id in Center link replacement.');
@@ -278,6 +304,7 @@ class CenterStore {
   Future<List<String>> projectIdsForCenter(String centerId) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     return TaskStorageLock.synchronized<List<String>>(() async {
       final rows = await executor.runSelect(
         'SELECT project_id FROM center_projects WHERE center_id = ? ORDER BY project_id',
@@ -306,8 +333,9 @@ class CenterStore {
   /// Deletion is allowed only after all graph edges and direct Task links end.
   Future<void> delete(String centerId) async {
     await _ensureReady();
-    await TaskStorageLock.synchronized<void>(() async {
     final executor = _database;
+    _ensureNotClosing(executor);
+    await TaskStorageLock.synchronized<void>(() async {
     await executor.runCustom('BEGIN');
     try {
       final center = await executor.runSelect(
