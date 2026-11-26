@@ -29,17 +29,29 @@ class ProjectStore {
   static QueryExecutor? _testDatabase;
   static final Expando<Future<void>> _readyByExecutor =
       Expando<Future<void>>('project-store-ready');
+  static final Expando<bool> _closingByExecutor =
+      Expando<bool>('project-store-closing');
 
   final ProjectPlanCodec codec;
   final QueryExecutor? _injectedExecutor;
 
   static Future<void> resetTestDatabase() async {
     final executor = _testDatabase;
-    _testDatabase = null;
-    if (executor != null) {
-      await TaskStorageLock.synchronized<void>(() => executor.close());
-      _readyByExecutor[executor] = null;
+    if (executor == null) return;
+
+    _closingByExecutor[executor] = true;
+    final pending = _readyByExecutor[executor];
+    if (pending != null) {
+      try {
+        await pending;
+      } catch (_) {
+        // A failed initialization still has to be drained before close.
+      }
     }
+    await TaskStorageLock.synchronized<void>(() => executor.close());
+    if (identical(_testDatabase, executor)) _testDatabase = null;
+    _readyByExecutor[executor] = null;
+    _closingByExecutor[executor] = null;
   }
 
   QueryExecutor get _database {
@@ -51,8 +63,15 @@ class ProjectStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
+  void _ensureNotClosing(QueryExecutor executor) {
+    if (_closingByExecutor[executor] == true) {
+      throw StateError('ProjectStore database shutdown has begun');
+    }
+  }
+
   Future<void> _ensureReady() {
     final executor = _database;
+    _ensureNotClosing(executor);
     final pending = _readyByExecutor[executor];
     if (pending != null) return pending;
 
@@ -111,6 +130,7 @@ class ProjectStore {
   Future<List<ProjectPlan>> load() async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     return TaskStorageLock.synchronized<List<ProjectPlan>>(() async {
       final rows = await executor.runSelect(
         'SELECT * FROM projects ORDER BY id',
@@ -161,8 +181,9 @@ class ProjectStore {
     Iterable<String> deleteProjectIds = const <String>[],
   }) async {
     await _ensureReady();
-    await TaskStorageLock.synchronized<void>(() async {
     final executor = _database;
+    _ensureNotClosing(executor);
+    await TaskStorageLock.synchronized<void>(() async {
     final values = List<ProjectPlan>.of(projects);
     final ids = values.map((project) => project.id).toSet();
     if (ids.length != values.length) {
@@ -205,8 +226,9 @@ class ProjectStore {
   /// Ordinary editing and assignment must use [upsert].
   Future<void> replaceAll(Iterable<ProjectPlan> projects) async {
     await _ensureReady();
-    await TaskStorageLock.synchronized<void>(() async {
     final executor = _database;
+    _ensureNotClosing(executor);
+    await TaskStorageLock.synchronized<void>(() async {
     final values = List<ProjectPlan>.of(projects);
     final ids = values.map((project) => project.id).toSet();
     if (ids.length != values.length) {
