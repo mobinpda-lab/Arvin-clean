@@ -4,8 +4,9 @@ import 'dart:convert';
 import 'package:arvin/services/arvin_async_trace.dart';
 import 'package:arvin/services/task_storage_lock.dart';
 import 'package:drift/native.dart';
-import '../support/flutter_async_cleanup.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../support/flutter_async_cleanup.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -62,6 +63,25 @@ void main() {
     await expectLater(failed, throwsA(isA<StateError>()));
     await next;
     expect(secondActionCompleted, isTrue);
+  });
+
+  test('preserves the original Action error and StackTrace', () async {
+    final actionError = StateError('original action failure');
+    final actionStack = StackTrace.current;
+
+    Object? caught;
+    StackTrace? caughtStack;
+    try {
+      await TaskStorageLock.synchronized<void>(() async {
+        Error.throwWithStackTrace(actionError, actionStack);
+      });
+    } catch (error, stackTrace) {
+      caught = error;
+      caughtStack = stackTrace;
+    }
+
+    expect(identical(caught, actionError), isTrue);
+    expect(identical(caughtStack, actionStack), isTrue);
   });
 
   test('fails when Runner exits before invoking Action', () async {
@@ -308,6 +328,30 @@ void main() {
         expect(storageOperationId, isNot(parentOperationId));
         expect(storageParentOperationId, parentOperationId);
         expect(storageCorrelationId, parentCorrelationId);
+
+        // A second lock operation must enter a fresh runAsync only after
+        // Flutter has released the first runAsync ownership.
+        final sequentialRows = await TaskStorageLock.synchronized(
+          () => database.runSelect('SELECT 2 AS value', const []),
+        );
+        expect(sequentialRows.single['value'], 2);
+
+        // Repeat native open → SQL → close cycles to prove cleanup is stable,
+        // not a one-off success caused by the first executor's lifecycle.
+        for (var cycle = 0; cycle < 3; cycle++) {
+          final repeatedDatabase = NativeDatabase.memory();
+          try {
+            final repeatedRows = await TaskStorageLock.synchronized(
+              () => repeatedDatabase.runSelect(
+                'SELECT ? AS value',
+                <Object?>[cycle],
+              ),
+            );
+            expect(repeatedRows.single['value'], cycle);
+          } finally {
+            await tester.runAsync(() => repeatedDatabase.close());
+          }
+        }
       } finally {
         await tester.runAsync(() => database.close());
       }
