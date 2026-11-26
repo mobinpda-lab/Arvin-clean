@@ -226,6 +226,8 @@ void main() {
           started = true;
           await work();
         });
+        // Let Flutter's runAsync completion cleanup release its pending-task slot.
+        await Zone.root.run(() => Future<void>.delayed(Duration.zero));
         final exception = tester.takeException();
         if (exception != null) {
           Error.throwWithStackTrace(exception, StackTrace.current);
