@@ -49,7 +49,10 @@ class TaskStore {
 
   Future<List<Task>> load() => arvinTraceFuture(
         'task.store.load_and_lock',
-        TaskStorageLock.synchronized<List<Task>>(_loadUnlocked),
+        TaskStorageLock.synchronized<List<Task>>(
+           _loadUnlocked,
+           operationName: 'task_store.load',
+         ),
       );
 
   Future<List<String>> loadCategories() async {
