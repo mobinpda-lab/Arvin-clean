@@ -10,6 +10,39 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
+  test('concurrent Center and Project loads share one file-backed executor safely',
+      () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final directory =
+        await Directory.systemTemp.createTemp('arvin-center-concurrent-init-');
+    final file = File('${directory.path}/center-concurrent.sqlite');
+    final database = NativeDatabase(file);
+
+    try {
+      final centerA = CenterStore(executor: database);
+      final centerB = CenterStore(executor: database);
+      final projectStore = ProjectStore(executor: database);
+
+      final results = await Future.wait<Object>([
+        centerA.load(),
+        centerB.load(),
+        projectStore.load(),
+      ]);
+      expect(results[0], isEmpty);
+      expect(results[1], isEmpty);
+      expect(results[2], isEmpty);
+
+      final created = await centerA.create(
+        id: 'concurrent-center',
+        name: 'مرکز هم‌زمان',
+      );
+      expect((await centerB.findById(created.id))?.name, 'مرکز هم‌زمان');
+    } finally {
+      await database.close();
+      await directory.delete(recursive: true);
+    }
+  });
+
   test('Center CRUD, M2M links and archive state survive SQLite close/reopen',
       () async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
