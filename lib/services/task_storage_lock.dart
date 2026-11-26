@@ -139,7 +139,10 @@ class TaskStorageLock {
               );
               duplicateInvocationError ??= error;
               duplicateInvocationStackTrace ??= StackTrace.current;
-              return Future<void>.error(error, StackTrace.current);
+              // The lock reports the duplicate after Runner settles. Returning
+              // a successful Future here avoids an unobserved async error when
+              // a defective Runner ignores the duplicate callback Future.
+              return Future<void>.value();
             }
             callbackFuture = runTracedAction();
             return callbackFuture!;
