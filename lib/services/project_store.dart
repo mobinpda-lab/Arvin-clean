@@ -10,6 +10,7 @@ import '../models/goal_project.dart';
 import 'g1_drift_schema.dart';
 import 'project_plan_codec.dart';
 import 'task_store.dart';
+import 'task_storage_lock.dart';
 import 'arvin_async_trace.dart';
 
 /// Canonical local persistence for Arvin Projects.
@@ -26,6 +27,8 @@ class ProjectStore {
   static const String key = 'arvin.projects';
   static QueryExecutor? _sharedDatabase;
   static QueryExecutor? _testDatabase;
+  static final Expando<Future<void>> _readyByExecutor =
+      Expando<Future<void>>('project-store-ready');
 
   final ProjectPlanCodec codec;
   final QueryExecutor? _injectedExecutor;
@@ -33,7 +36,10 @@ class ProjectStore {
   static Future<void> resetTestDatabase() async {
     final executor = _testDatabase;
     _testDatabase = null;
-    if (executor != null) await executor.close();
+    if (executor != null) {
+      await TaskStorageLock.synchronized<void>(() => executor.close());
+      _readyByExecutor[executor] = null;
+    }
   }
 
   QueryExecutor get _database {
@@ -45,81 +51,102 @@ class ProjectStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
-  Future<void> _ensureReady() async {
+  Future<void> _ensureReady() {
     final executor = _database;
-    await arvinTraceFuture('project.store.schema_install', G1DriftSchema.install(executor));
-    // Tasks own the referenced identity. Migrate/initialize them first so
-    // legacy Project memberships can satisfy the SQL foreign key without
-    // losing any membership during the one-way cutover.
-    await arvinTraceFuture('project.store.task_prerequisite', TaskStore(executor: executor).load());
-    final marker = await executor.runSelect(
-      "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_projects_migrated'",
-      const [],
-    );
-    if (marker.isNotEmpty && marker.single['value'] == '1') return;
+    final pending = _readyByExecutor[executor];
+    if (pending != null) return pending;
 
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(key);
-    if (raw != null && raw.trim().isNotEmpty) {
-      final projects = codec.decodeList(jsonDecode(raw));
-      await executor.runCustom('BEGIN');
-      try {
-        for (var ordinal = 0; ordinal < projects.length; ordinal++) {
-          final project = projects[ordinal];
-          await _insertProject(executor, project);
-        }
-        await executor.runCustom('COMMIT');
-      } catch (_) {
-        try { await executor.runCustom('ROLLBACK'); } catch (_) {}
-        rethrow;
+    late final Future<void> shared;
+    shared = _initialize(executor).catchError((Object error, StackTrace stackTrace) {
+      if (identical(_readyByExecutor[executor], shared)) {
+        _readyByExecutor[executor] = null;
       }
-    }
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _readyByExecutor[executor] = shared;
+    return shared;
+  }
 
-    await executor.runCustom(
-      "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_projects_migrated', '1') "
-      "ON CONFLICT(key) DO UPDATE SET value = '1'",
+  Future<void> _initialize(QueryExecutor executor) async {
+    await TaskStorageLock.synchronized<void>(
+      () => G1DriftSchema.install(executor),
     );
+    // Tasks own the referenced identity. Initialize them in their own lock
+    // operation before the Project migration lock is acquired.
+    await arvinTraceFuture(
+      'project.store.task_prerequisite',
+      TaskStore(executor: executor).load(),
+    );
+
+    await TaskStorageLock.synchronized<void>(() async {
+      final marker = await executor.runSelect(
+        "SELECT value FROM arvin_storage_meta WHERE key = 'legacy_projects_migrated'",
+        const [],
+      );
+      if (marker.isNotEmpty && marker.single['value'] == '1') return;
+
+      final prefs = await SharedPreferences.getInstance();
+      final raw = prefs.getString(key);
+      if (raw != null && raw.trim().isNotEmpty) {
+        final projects = codec.decodeList(jsonDecode(raw));
+        await executor.runCustom('BEGIN');
+        try {
+          for (var ordinal = 0; ordinal < projects.length; ordinal++) {
+            await _insertProject(executor, projects[ordinal]);
+          }
+          await executor.runCustom('COMMIT');
+        } catch (_) {
+          try { await executor.runCustom('ROLLBACK'); } catch (_) {}
+          rethrow;
+        }
+      }
+
+      await executor.runCustom(
+        "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_projects_migrated', '1') "
+        "ON CONFLICT(key) DO UPDATE SET value = '1'",
+      );
+    });
   }
 
   Future<List<ProjectPlan>> load() async {
-    final executor = _database;
     await _ensureReady();
-    final rows = await executor.runSelect(
-      'SELECT * FROM projects ORDER BY id',
-      const [],
-    );
-    final result = <ProjectPlan>[];
-    for (final row in rows) {
-      final itemRows = await executor.runSelect(
-        'SELECT task_id FROM project_items WHERE project_id = ? ORDER BY ordinal',
-        <Object?>[row['id']],
+    final executor = _database;
+    return TaskStorageLock.synchronized<List<ProjectPlan>>(() async {
+      final rows = await executor.runSelect(
+        'SELECT * FROM projects ORDER BY id',
+        const [],
       );
-      final rawEnvelope = row['legacy_payload_json'];
-      Map<String, dynamic> envelope = <String, dynamic>{};
-      if (rawEnvelope is String && rawEnvelope.trim().isNotEmpty) {
-        final decoded = jsonDecode(rawEnvelope);
-        if (decoded is! Map) {
-          throw FormatException('Project metadata is invalid for ${row['id']}');
+      final result = <ProjectPlan>[];
+      for (final row in rows) {
+        final itemRows = await executor.runSelect(
+          'SELECT task_id FROM project_items WHERE project_id = ? ORDER BY ordinal',
+          <Object?>[row['id']],
+        );
+        final rawEnvelope = row['legacy_payload_json'];
+        Map<String, dynamic> envelope = <String, dynamic>{};
+        if (rawEnvelope is String && rawEnvelope.trim().isNotEmpty) {
+          final decoded = jsonDecode(rawEnvelope);
+          if (decoded is! Map) {
+            throw FormatException('Project metadata is invalid for ${row['id']}');
+          }
+          envelope = Map<String, dynamic>.from(decoded);
         }
-        envelope = Map<String, dynamic>.from(decoded);
+        final projectEnvelope = <String, dynamic>{
+          ...envelope,
+          'id': row['id'],
+          'title': row['name'],
+          'colorValue': row['color_value'],
+          'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
+          'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
+        };
+        final legacyCenterId = row['legacy_center_id'];
+        if (legacyCenterId is String) {
+          projectEnvelope['legacyCenterId'] = legacyCenterId;
+        }
+        result.add(codec.decode(projectEnvelope));
       }
-      final projectEnvelope = <String, dynamic>{
-        ...envelope,
-        'id': row['id'],
-        'title': row['name'],
-        'colorValue': row['color_value'],
-        'isArchived': (row['is_archived'] as num?)?.toInt() == 1,
-        'itemIds': itemRows.map((item) => item['task_id'] as String).toList(),
-      };
-      final legacyCenterId = row['legacy_center_id'];
-      if (legacyCenterId is String) {
-        // The dedicated nullable SQL field is authoritative; mirror it into
-        // the lossless Project envelope so backup/restore carries the ID.
-        projectEnvelope['legacyCenterId'] = legacyCenterId;
-      }
-      result.add(codec.decode(projectEnvelope));
-    }
-    return List<ProjectPlan>.unmodifiable(result);
+      return List<ProjectPlan>.unmodifiable(result);
+    });
   }
 
   /// Backward-compatible entry point; saves are additive upserts, never a
@@ -133,8 +160,9 @@ class ProjectStore {
     Iterable<ProjectPlan> projects, {
     Iterable<String> deleteProjectIds = const <String>[],
   }) async {
-    final executor = _database;
     await _ensureReady();
+    await TaskStorageLock.synchronized<void>(() async {
+    final executor = _database;
     final values = List<ProjectPlan>.of(projects);
     final ids = values.map((project) => project.id).toSet();
     if (ids.length != values.length) {
@@ -170,13 +198,15 @@ class ProjectStore {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
     }
+    });
   }
 
   /// Explicit full-snapshot replacement, reserved for restore/clear flows.
   /// Ordinary editing and assignment must use [upsert].
   Future<void> replaceAll(Iterable<ProjectPlan> projects) async {
-    final executor = _database;
     await _ensureReady();
+    await TaskStorageLock.synchronized<void>(() async {
+    final executor = _database;
     final values = List<ProjectPlan>.of(projects);
     final ids = values.map((project) => project.id).toSet();
     if (ids.length != values.length) {
@@ -194,6 +224,7 @@ class ProjectStore {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
     }
+    });
   }
 
   /// Explicitly removes only unreferenced Projects. If any Project still owns
