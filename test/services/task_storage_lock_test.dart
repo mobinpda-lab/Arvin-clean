@@ -45,6 +45,28 @@ void main() {
     expect(secondActionCompleted, isTrue);
   });
 
+  test('synchronized completes only after the work runner releases', () async {
+    final runnerStarted = Completer<void>();
+    final releaseRunner = Completer<void>();
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      runnerStarted.complete();
+      await work();
+      await releaseRunner.future;
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    final operation = TaskStorageLock.synchronized<int>(() async => 42);
+    await runnerStarted.future;
+
+    var completed = false;
+    operation.then((_) => completed = true);
+    await Future<void>.delayed(Duration.zero);
+    expect(completed, isFalse);
+
+    releaseRunner.complete();
+    expect(await operation, 42);
+  });
+
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
