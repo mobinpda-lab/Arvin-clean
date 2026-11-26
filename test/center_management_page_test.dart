@@ -65,6 +65,7 @@ void main() {
     }
     });
     addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+    addTearDown(TaskStorageLock.resetTraceForTesting);
   }
 
 
@@ -84,6 +85,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     if (!completion.isCompleted) {
+      print('CENTER_STORAGE_TRACE_BEGIN');
+      for (final line in _storageTraceWriter.lines.take(40)) {
+        print(line);
+      }
+      print('CENTER_STORAGE_TRACE_END');
       throw TimeoutException(
         'Center database operation did not complete after 1200 frames',
         const Duration(seconds: 20),
@@ -108,6 +114,11 @@ void main() {
       await tester.pump(const Duration(milliseconds: 16));
     }
     if (!completion.isCompleted) {
+      print('CENTER_STORAGE_TRACE_BEGIN');
+      for (final line in _storageTraceWriter.lines.take(40)) {
+        print(line);
+      }
+      print('CENTER_STORAGE_TRACE_END');
       throw TimeoutException(
         'Center database operation did not complete after 1200 frames',
         const Duration(seconds: 20),
