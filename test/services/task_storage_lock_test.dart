@@ -67,6 +67,22 @@ void main() {
     expect(await operation, 42);
   });
 
+  test('propagates Runner release failure without repeating the Action', () async {
+    var actionCount = 0;
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      await work();
+      throw StateError('runner release failed');
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    final operation = TaskStorageLock.synchronized<void>(() async {
+      actionCount += 1;
+    });
+
+    await expectLater(operation, throwsA(isA<StateError>()));
+    expect(actionCount, 1);
+  });
+
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
