@@ -85,6 +85,7 @@ class CenterStore {
   Future<void> _initialize(QueryExecutor executor) async {
     await TaskStorageLock.synchronized<void>(
       () => G1DriftSchema.install(executor),
+      operationName: 'center_store.schema_install',
     );
     // ProjectStore performs its own serialized prerequisite work after this
     // lock has been released; do not nest the non-reentrant storage lock.
