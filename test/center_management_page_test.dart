@@ -10,6 +10,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+class _RecordingTraceWriter implements ArvinJsonlTraceWriter {
+  final List<String> lines = <String>[];
+
+  @override
+  Future<void> writeLine(String line) async => lines.add(line);
+
+  @override
+  Future<void> flush() async {}
+
+  @override
+  Future<void> close() async {}
+}
+
+final _storageTraceWriter = _RecordingTraceWriter();
+final _storageTrace = ArvinAsyncTrace(writer: _storageTraceWriter);
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -32,6 +48,8 @@ void main() {
   });
 
   void installStorageRunner(WidgetTester tester) {
+    _storageTraceWriter.lines.clear();
+    TaskStorageLock.setTraceForTesting(_storageTrace);
     TaskStorageLock.setWorkRunnerForTesting((work) async {
       var started = false;
       await tester.runAsync(() async {
