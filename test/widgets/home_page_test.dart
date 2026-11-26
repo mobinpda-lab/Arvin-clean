@@ -12,7 +12,25 @@ import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 
+class _RecordingTraceWriter implements ArvinJsonlTraceWriter {
+  final List<String> lines = <String>[];
+
+  @override
+  Future<void> writeLine(String line) async => lines.add(line);
+
+  @override
+  Future<void> flush() async {}
+
+  @override
+  Future<void> close() async {}
+}
+
+final _storageTraceWriter = _RecordingTraceWriter();
+final _storageTrace = ArvinAsyncTrace(writer: _storageTraceWriter);
+
 void _installStorageRunner(WidgetTester tester) {
+  _storageTraceWriter.lines.clear();
+  TaskStorageLock.setTraceForTesting(_storageTrace);
   TaskStorageLock.setWorkRunnerForTesting((work) async {
     var started = false;
     await tester.runAsync(() async {
