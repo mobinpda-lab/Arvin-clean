@@ -26,8 +26,15 @@ class TaskStore {
   static Future<void> resetTestDatabase() async {
     if (Platform.environment['FLUTTER_TEST'] != 'true') return;
     final executor = _testDatabase;
-    _testDatabase = null;
-    if (executor != null) await executor.close();
+    if (executor == null) return;
+
+    // Queue closure behind all already accepted storage operations. New
+    // TaskStore operations resolve the replacement executor only after this
+    // close entry has completed.
+    await TaskStorageLock.synchronized<void>(() async {
+      if (identical(_testDatabase, executor)) _testDatabase = null;
+      await executor.close();
+    });
   }
 
   final QueryExecutor? _injectedExecutor;
