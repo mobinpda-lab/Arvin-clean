@@ -39,8 +39,11 @@ class CenterStore {
         // A failed initialization still has to be drained before close.
       }
     }
-    await TaskStorageLock.synchronized<void>(() => executor.close());
-    if (identical(_testDatabase, executor)) _testDatabase = null;
+    await TaskStorageLock.synchronized<void>(() async {
+      if (!identical(_testDatabase, executor)) return;
+      await executor.close();
+      _testDatabase = null;
+    });
     _readyByExecutor[executor] = null;
     _closingByExecutor[executor] = null;
   }
