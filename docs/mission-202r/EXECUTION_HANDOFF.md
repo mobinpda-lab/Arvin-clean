@@ -158,3 +158,13 @@ All are attached to candidate `b12409a8f446e664ccace087b621de6ce5a8ad61`:
 4. Investigate Quick Capture Gradle failure as environment/build failure unless logs prove an app source defect.
 5. Continue Calendar final widget-tree investigation.
 6. Refresh all acceptance evidence on one exact SHA; retain NO-GO until all required gates pass.
+
+
+## REV12.24 — D-13 Calendar checkpoint
+**Baseline SHA:** `7445245ce03591e20ec43b7e9e2fcc08269216b9`
+**Root cause:** direct primary-navigation Calendar route constructed launcher with stale `_searchSource` and did not await canonical SQL reload. The separate `_openPrimaryCalendar` path already performed the correct refresh. Device diagnostics on SHA `404f369` showed no smoke Task entering projection (`inputContainsSmokeTask=false`); this supersedes the earlier assumption that Projection itself had produced the target reminder on this run.
+**Fix:** primary Calendar selection delegates to `_openPrimaryCalendar()`; no projection, date filter, card key, or interaction assertion weakened.
+**Next:** verify exact SHA through Device Smoke Calendar. Preserve the existing interaction test unchanged.
+
+### D-12 verification dependency
+The zero-duration root event-loop release barrier is committed in the parent SHA `7445245ce03591e20ec43b7e9e2fcc08269216b9`. Exact-SHA test verification remains pending because the normal Build workflow only runs on PR synchronize/pull_request or workflow_dispatch; connector branch commits have so far triggered only Zero Dollar Environment Smoke. The PR recovery dispatcher is scheduled as a backstop.

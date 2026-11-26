@@ -131,3 +131,11 @@ The Future returned by `TaskStorageLock.synchronized` must preserve the action's
 **Evidence:** Build `45862534016`, Job `140056965955`, test `TaskStorageLock isolates native I/O and preserves trace context`, failure at `task_storage_lock_test.dart:322`: a second `tester.runAsync` for NativeDatabase.close was rejected because Flutter still held `_pendingAsyncTasks`. Flutter 3.47.0 source confirms `runAsync` clears that ownership in a `result.future.whenComplete` callback; awaiting the returned Future plus a caller/root microtask did not establish that cleanup had completed.
 **Decision:** Replace the injected-runner microtask yield with a root-zone zero-duration event-loop barrier. Flutter's cleanup microtasks are drained before the zero-duration event can run. This is a lifecycle handoff barrier, not an increased timeout; production runner path is unchanged. Preserve the existing NativeDatabase regression and its close-in-finally assertion.
 **Status:** CANDIDATE IMPLEMENTED; exact-SHA verification pending.
+
+
+## REV12.24 — D-13: Primary navigation must load canonical Tasks before Calendar route
+**Date:** 2026-11-26 (1405-09-05)
+**Baseline SHA:** `7445245ce03591e20ec43b7e9e2fcc08269216b9`
+**Evidence:** Device Smoke `45862534052`, Calendar Job `140057006121`: `CALENDAR_DIAG_B` recorded `inputContainsSmokeTask=false` and empty input IDs. The smoke persisted and reloaded the seeded Task successfully before app startup. The drawer/calendar entry `_openPrimaryCalendar` already awaited `_load()`, but the primary bottom-navigation branch constructed `CanonicalCalendarLauncher(tasks: _searchSource)` directly and bypassed that canonical refresh. `CalendarPage` then correctly projected an empty task snapshot; the expected card key was absent downstream.
+**Decision:** Route the primary Calendar destination through the existing `_openPrimaryCalendar()` flow. This reuses the canonical SQL refresh and the complete callback wiring already present there. Keep the original Device Smoke card-key and interaction assertions unchanged.
+**Status:** PRODUCTION FIX COMMITTED; EXACT-SHA DEVICE/CI VERIFICATION PENDING.

@@ -2371,15 +2371,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).popUntil((route) => route.isFirst);
         return;
       case ArvinPrimaryDestination.calendar:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => CanonicalCalendarLauncher(
-              tasks: _searchSource,
-              onCreateTaskForDate: _addForDate,
-              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-            ),
-          ),
-        );
+        _openPrimaryCalendar();
         return;
       case ArvinPrimaryDestination.notebook:
         Navigator.of(context).pushReplacement<void, void>(

@@ -85,3 +85,11 @@ Build run 45441699404 / Trace job 138614289192 failed at TWA-01 because Bash par
 | R202-BACKUP-01 | Backup and Restore tests time out; passphrase expected memory-only but actual null | Inspect post-barrier trace by individual backup stage | BLOCKED |
 | R202-CALENDAR-01 | Device Smoke calendar still misses card key although unit projection tests pass | Inspect final calendar widget tree / selected date | BLOCKED |
 | R202-QUICKCAPTURE-ENV-01 | Device Smoke Quick Capture job failed at Gradle assembleDebug before app launch | Inspect exact Gradle failure; distinguish infra from product regression | BLOCKED |
+
+
+## REV12.24 — Calendar root cause established
+| ID | Root cause | Production fix | Regression | Status |
+|---|---|---|---|---|
+| R202-CALENDAR-01 | Primary bottom navigation bypassed `_openPrimaryCalendar()` and passed stale Home `_searchSource` into Calendar. Device Smoke confirmed `CALENDAR_DIAG_B inputContainsSmokeTask=false` despite a successful direct SQL reload before app launch. | Route primary Calendar selection through existing `_openPrimaryCalendar()`, which awaits canonical `_load()` and wires the refresh/edit/delete callbacks. | Existing `integration_test/calendar_card_interaction_test.dart` card-key and interaction assertions retained unchanged. | FIXED IN SOURCE; EXACT-SHA VERIFICATION PENDING |
+
+**No Calendar acceptance until Device Smoke passes the original card key, tap, long-press, persistence, and Persian time-picker assertions.**
