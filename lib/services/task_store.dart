@@ -34,7 +34,11 @@ class TaskStore {
     await TaskStorageLock.synchronized<void>(() async {
       if (!identical(_testDatabase, executor)) return;
       _testDatabase = null;
-      await executor.close();
+      try {
+        await executor.close();
+      } finally {
+        _readyByExecutor[executor] = null;
+      }
     });
   }
 
@@ -336,8 +340,26 @@ class TaskStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
-  Future<void> _ensureReady() async {
+  Future<void> _ensureReady() {
     final executor = _database;
+    final pending = _readyByExecutor[executor];
+    if (pending != null) return pending;
+
+    // Every TaskStore instance that owns the same executor observes one
+    // initialization Future. Failed initialization is evicted so a later
+    // operation can retry instead of inheriting a permanently failed Future.
+    late final Future<void> shared;
+    shared = _initialize(executor).catchError((Object error, StackTrace stackTrace) {
+      if (identical(_readyByExecutor[executor], shared)) {
+        _readyByExecutor[executor] = null;
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _readyByExecutor[executor] = shared;
+    return shared;
+  }
+
+  Future<void> _initialize(QueryExecutor executor) async {
     await G1DriftSchema.install(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
       await G1DriftSchema.migrateTaskPeople(executor);
