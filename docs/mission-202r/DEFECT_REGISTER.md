@@ -74,3 +74,14 @@ Build run 45441699404 / Trace job 138614289192 failed at TWA-01 because Bash par
 | R202-TRACE-NAME-01 | TaskStorageLock discarded the supplied operationName and emitted a hard-coded owner label | YES — forwards operationName to trace | New operation-name regression added | Pending | NO |
 
 **Acceptance boundary:** no Runner lifecycle defect is accepted until the NativeDatabase regression, runner failure boundaries, FIFO-after-exception, duplicate callback, and trace START/END/ERROR tests pass on one exact SHA. No acceptance inferred from Analyze/APK success.
+
+
+## REV12.24 — lifecycle evidence update
+| ID | Latest evidence | Candidate action | Status |
+|---|---|---|---|
+| R202-LOCK-ZONE-01 | SHA `404f369`, Job `140056965955`: NativeDatabase query completed but second `tester.runAsync` at test line 322 was rejected while Flutter pending-task cleanup remained active | D-12 changes release barrier from root microtask to root zero-duration event-loop turn | IN PROGRESS; regression pending |
+| R202-TRACE-NAME-01 | SHA `404f369`, Job `140056965801`: operation-name regression passed | Keep forwarding caller operationName | VERIFIED on candidate SHA; not full acceptance |
+| R202-HOME-LOAD-01 | Home load tests in Shards 0/1/2 fail to observe completion; first trace event is `task_store.load START` | Re-run after Runner barrier; do not alter widget completion assertions | BLOCKED / root cause pending |
+| R202-BACKUP-01 | Backup and Restore tests time out; passphrase expected memory-only but actual null | Inspect post-barrier trace by individual backup stage | BLOCKED |
+| R202-CALENDAR-01 | Device Smoke calendar still misses card key although unit projection tests pass | Inspect final calendar widget tree / selected date | BLOCKED |
+| R202-QUICKCAPTURE-ENV-01 | Device Smoke Quick Capture job failed at Gradle assembleDebug before app launch | Inspect exact Gradle failure; distinguish infra from product regression | BLOCKED |

@@ -134,3 +134,27 @@ All are attached to candidate `b12409a8f446e664ccace087b621de6ce5a8ad61`:
 5. Reconcile and complete all acceptance evidence on one final SHA.
 
 **No test result is claimed for this candidate until hosted runs complete. Main is unchanged; PR remains unmerged; Release NO-GO.**
+
+
+## REV12.24 — continuation checkpoint D-12
+**Current pre-change SHA:** `404f369f3c0e0bc3dd2df78b08b89b8afdde5081`
+
+### Verified observations on `404f369f3c0e0bc3dd2df78b08b89b8afdde5081`
+- Analyze PASS; Debug APK PASS; Release APK PASS.
+- Governance `45862534078` PASS; Follow-up Persistence `45862534028` PASS.
+- Trace operationName regression PASS in Job `140056965801`.
+- NativeDatabase I/O regression FAIL in Job `140056965955`: Reentrant runAsync on the cleanup call at test line 322. The query itself ran; binding ownership had not yet cleared.
+- Home load tests in Shards 0, 1, 2 hang after `task_store.load START`; no completion callback. Preserve test assertions.
+- Backup Shards 0/1 contain 10-minute timeouts and memory-only passphrase assertion expected secret / actual null.
+- Restore rollback test in Shard 3 times out.
+- Device Smoke Quick Capture fails at Gradle assembleDebug before app launch; inspect Gradle root failure before attributing to product code.
+- Device Smoke Calendar fails with missing key `calendar-pastel-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder`; first failing stage remains downstream of projection.
+- SQL Migration, SQL Persistence, Home, People and Backup/Restore device smoke jobs passed independently.
+
+### Next steps
+1. Verify D-12 barrier with unchanged NativeDatabase test.
+2. Re-run targeted TaskStore/Home/ProjectStore/CenterStore tests after the barrier fix.
+3. Only then inspect Home/Backup trace stages if hangs remain.
+4. Investigate Quick Capture Gradle failure as environment/build failure unless logs prove an app source defect.
+5. Continue Calendar final widget-tree investigation.
+6. Refresh all acceptance evidence on one exact SHA; retain NO-GO until all required gates pass.

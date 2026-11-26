@@ -164,11 +164,13 @@ class TaskStorageLock {
             } finally {
               runnerSettled = true;
               if (runnerNeedsReleaseBarrier) {
-                // Host runners such as WidgetTester.runAsync release their
-                // async ownership after the returned Future settles. Yield one
-                // caller-zone microtask before queue handoff; this does not
-                // introduce a timer or delay in production.
-                await Zone.root.run(() => Future<void>.microtask(() {}));
+                // Host runners such as WidgetTester.runAsync can complete their returned
+                // Future before the real async Zone's whenComplete callback
+                // clears the binding's pending-task ownership. Drain the
+                // root event loop once: queued cleanup microtasks run before
+                // the zero-duration event. This is a release barrier, not a
+                // timeout or a production execution delay.
+                await Zone.root.run(() => Future<void>.delayed(Duration.zero));
               }
             }
 

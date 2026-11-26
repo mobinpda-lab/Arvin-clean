@@ -123,3 +123,11 @@ The Future returned by `TaskStorageLock.synchronized` must preserve the action's
 **Related independent trace correction:** forward the caller-supplied `operationName` into `ArvinAsyncTrace.run`; the prior hard-coded label erased operation-level attribution.
 **Verification:** dedicated operation-name regression added. Native I/O / second-runAsync cleanup regression remains the acceptance test for the Zone barrier. Exact-SHA hosted verification pending.
 **Status:** IMPLEMENTED CANDIDATE; TEST/CI PENDING; NOT ACCEPTED.
+
+
+## REV12.24 — D-12: Drain Flutter runAsync cleanup before lock handoff
+**Date:** 2026-11-26 (1405-09-05)
+**Baseline SHA:** `404f369f3c0e0bc3dd2df78b08b89b8afdde5081`
+**Evidence:** Build `45862534016`, Job `140056965955`, test `TaskStorageLock isolates native I/O and preserves trace context`, failure at `task_storage_lock_test.dart:322`: a second `tester.runAsync` for NativeDatabase.close was rejected because Flutter still held `_pendingAsyncTasks`. Flutter 3.47.0 source confirms `runAsync` clears that ownership in a `result.future.whenComplete` callback; awaiting the returned Future plus a caller/root microtask did not establish that cleanup had completed.
+**Decision:** Replace the injected-runner microtask yield with a root-zone zero-duration event-loop barrier. Flutter's cleanup microtasks are drained before the zero-duration event can run. This is a lifecycle handoff barrier, not an increased timeout; production runner path is unchanged. Preserve the existing NativeDatabase regression and its close-in-finally assertion.
+**Status:** CANDIDATE IMPLEMENTED; exact-SHA verification pending.
