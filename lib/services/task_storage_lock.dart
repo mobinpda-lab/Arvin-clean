@@ -156,6 +156,11 @@ class TaskStorageLock {
               runnerStackTrace = stackTrace;
             } finally {
               runnerSettled = true;
+              // Host runners such as WidgetTester.runAsync may release their
+              // internal async ownership in a completion microtask after the
+              // returned Future settles. Drain one real microtask before the
+              // queue admits another runner or publishes caller completion.
+              await Zone.root.run(() => Future<void>.microtask(() {}));
             }
 
             // Some injected runners return before awaiting the callback they
