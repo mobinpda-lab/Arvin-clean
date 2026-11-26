@@ -69,15 +69,15 @@ void main() {
 
       final storeA = TaskStore(executor: databaseA);
       final projectStoreA = ProjectStore(executor: databaseA);
+      const taskId = 'independent-backup-task';
       final projectA = ProjectPlan(
         id: 'independent-backup-project',
         title: 'پروژه با شناسه تاریخی مرکز',
+        itemIds: const <String>[taskId],
         legacyFields: const <String, dynamic>{
           'legacyCenterId': 'historical-center-42',
         },
       );
-      await projectStoreA.upsert(<ProjectPlan>[projectA]);
-      const taskId = 'independent-backup-task';
       const personId = 'independent-backup-person';
       const followUpId = 'independent-backup-follow-up';
       final task = Task.fromJson(<String, dynamic>{
@@ -123,6 +123,7 @@ void main() {
       });
 
       await storeA.save(<Task>[task]);
+      await projectStoreA.upsert(<ProjectPlan>[projectA]);
       await storeA.createCategory('دسته مستقل بدون اتکا به UI');
       await storeA.createTag('برچسب مستقل');
       await storeA.savePeopleDirectory(task.people);
@@ -220,6 +221,12 @@ void main() {
         final restoredProjects = await ProjectStore(executor: databaseB).load();
         expect(restoredProjects, hasLength(1));
         expect(restoredProjects.single.id, 'independent-backup-project');
+        expect(restoredProjects.single.itemIds, <String>[taskId]);
+        final projectItems = await databaseB.runSelect(
+          'SELECT task_id FROM project_items WHERE project_id = ? ORDER BY ordinal',
+          const <Object?>['independent-backup-project'],
+        );
+        expect(projectItems.map((row) => row['task_id']), <String>[taskId]);
         expect(
           restoredProjects.single.legacyFields['legacyCenterId'],
           'historical-center-42',
