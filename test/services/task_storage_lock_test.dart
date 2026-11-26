@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:arvin/services/arvin_async_trace.dart';
 import 'package:arvin/services/task_storage_lock.dart';
@@ -45,6 +46,93 @@ void main() {
     expect(secondActionCompleted, isTrue);
   });
 
+  test('fails when Runner exits before invoking Action', () async {
+    final runnerError = StateError('runner failed before callback');
+    final runnerStack = StackTrace.current;
+    var actionCount = 0;
+    TaskStorageLock.setWorkRunnerForTesting((_) async {
+      Error.throwWithStackTrace(runnerError, runnerStack);
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    Object? caught;
+    StackTrace? caughtStack;
+    try {
+      await TaskStorageLock.synchronized<void>(() async {
+        actionCount += 1;
+      });
+    } catch (error, stackTrace) {
+      caught = error;
+      caughtStack = stackTrace;
+    }
+
+    expect(identical(caught, runnerError), isTrue);
+    expect(identical(caughtStack, runnerStack), isTrue);
+    expect(actionCount, 0);
+  });
+
+  test('Trace START fallback succeeds but original writer failure remains visible',
+      () async {
+    final startError = StateError('trace START failed');
+    final startStack = StackTrace.current;
+    final writer = _FailingTraceWriter(
+      failEvent: 'START',
+      error: startError,
+      stackTrace: startStack,
+    );
+    TaskStorageLock.setTraceForTesting(ArvinAsyncTrace(writer: writer));
+    addTearDown(TaskStorageLock.resetTraceForTesting);
+
+    var runnerCount = 0;
+    var actionCount = 0;
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      runnerCount += 1;
+      await work();
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    Object? caught;
+    StackTrace? caughtStack;
+    try {
+      await TaskStorageLock.synchronized<void>(() async {
+        actionCount += 1;
+      });
+    } catch (error, stackTrace) {
+      caught = error;
+      caughtStack = stackTrace;
+    }
+
+    expect(runnerCount, 1);
+    expect(actionCount, 1);
+    expect(identical(caught, startError), isTrue);
+    expect(identical(caughtStack, startStack), isTrue);
+    expect(writer.events, ['START']);
+  });
+
+  test('awaits the callback Future even when Runner does not await it', () async {
+    final actionStarted = Completer<void>();
+    final releaseAction = Completer<void>();
+    TaskStorageLock.setWorkRunnerForTesting((work) async {
+      unawaited(work());
+    });
+    addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+
+    final operation = TaskStorageLock.synchronized<void>(() async {
+      actionStarted.complete();
+      await releaseAction.future;
+    });
+    await actionStarted.future;
+
+    var completed = false;
+    operation.then((_) => completed = true);
+    await Future<void>.delayed(Duration.zero);
+    expect(completed, isFalse);
+
+    releaseAction.complete();
+    await operation;
+    expect(completed, isTrue);
+  });
+
   test('synchronized completes only after the work runner releases', () async {
     final runnerStarted = Completer<void>();
     final releaseRunner = Completer<void>();
@@ -83,7 +171,37 @@ void main() {
     expect(actionCount, 1);
   });
 
-  test('executes an Action at most once if a Runner invokes its callback twice', () async {
+  test('does not repeat Action when Trace END fails', () async {
+    final endError = StateError('trace END failed');
+    final endStack = StackTrace.current;
+    final writer = _FailingTraceWriter(
+      failEvent: 'END',
+      error: endError,
+      stackTrace: endStack,
+    );
+    TaskStorageLock.setTraceForTesting(ArvinAsyncTrace(writer: writer));
+    addTearDown(TaskStorageLock.resetTraceForTesting);
+
+    var actionCount = 0;
+    Object? caught;
+    StackTrace? caughtStack;
+    try {
+      await TaskStorageLock.synchronized<void>(() async {
+        actionCount += 1;
+      });
+    } catch (error, stackTrace) {
+      caught = error;
+      caughtStack = stackTrace;
+    }
+
+    expect(actionCount, 1);
+    expect(identical(caught, endError), isTrue);
+    expect(identical(caughtStack, endStack), isTrue);
+    expect(writer.events, ['START', 'END', 'ERROR']);
+  });
+
+  test('executes an Action at most once if a Runner invokes its callback twice',
+      () async {
     var actionCount = 0;
     TaskStorageLock.setWorkRunnerForTesting((work) async {
       await work();
@@ -102,20 +220,20 @@ void main() {
   testWidgets(
     'TaskStorageLock isolates native I/O and preserves trace context',
     (tester) async {
-        TaskStorageLock.setWorkRunnerForTesting((work) async {
-    var started = false;
-    await tester.runAsync(() async {
-      started = true;
-      await work();
-    });
-    final exception = tester.takeException();
-    if (exception != null) {
-      Error.throwWithStackTrace(exception, StackTrace.current);
-    }
-    if (!started) {
-      throw StateError('WidgetTester.runAsync did not start storage work');
-    }
-  });
+      TaskStorageLock.setWorkRunnerForTesting((work) async {
+        var started = false;
+        await tester.runAsync(() async {
+          started = true;
+          await work();
+        });
+        final exception = tester.takeException();
+        if (exception != null) {
+          Error.throwWithStackTrace(exception, StackTrace.current);
+        }
+        if (!started) {
+          throw StateError('WidgetTester.runAsync did not start storage work');
+        }
+      });
       addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
 
       final database = NativeDatabase.memory();
@@ -188,4 +306,33 @@ void main() {
       }
     },
   );
+}
+
+class _FailingTraceWriter implements ArvinJsonlTraceWriter {
+  _FailingTraceWriter({
+    required this.failEvent,
+    required this.error,
+    required this.stackTrace,
+  });
+
+  final String failEvent;
+  final Object error;
+  final StackTrace stackTrace;
+  final List<String> events = [];
+
+  @override
+  Future<void> writeLine(String line) async {
+    final event = jsonDecode(line) as Map<String, dynamic>;
+    final type = event['event'] as String;
+    events.add(type);
+    if (type == failEvent) {
+      Error.throwWithStackTrace(error, stackTrace);
+    }
+  }
+
+  @override
+  Future<void> flush() async {}
+
+  @override
+  Future<void> close() async {}
 }
