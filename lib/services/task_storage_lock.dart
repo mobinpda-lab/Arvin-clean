@@ -195,24 +195,30 @@ class TaskStorageLock {
                 callbackStackTrace ?? StackTrace.current,
               );
             }
-            if (traceStartError != null && runnerError != null) {
+            // Snapshot closure-mutated nullable fields into final locals so
+            // Dart can promote them without redundant non-null assertions.
+            final startError = traceStartError;
+            final startStack = traceStartStackTrace;
+            final runError = runnerError;
+            final runStack = runnerStackTrace;
+            if (startError != null && runError != null) {
               throw TaskStorageLockDualFailure(
-                operationError: traceStartError,
-                operationStackTrace: traceStartStackTrace ?? StackTrace.current,
-                runnerError: runnerError,
-                runnerStackTrace: runnerStackTrace ?? StackTrace.current,
+                operationError: startError,
+                operationStackTrace: startStack ?? StackTrace.current,
+                runnerError: runError,
+                runnerStackTrace: runStack ?? StackTrace.current,
               );
             }
-            if (traceStartError != null) {
+            if (startError != null) {
               Error.throwWithStackTrace(
-                traceStartError,
-                traceStartStackTrace ?? StackTrace.current,
+                startError,
+                startStack ?? StackTrace.current,
               );
             }
-            if (runnerError != null) {
+            if (runError != null) {
               Error.throwWithStackTrace(
-                runnerError,
-                runnerStackTrace ?? StackTrace.current,
+                runError,
+                runStack ?? StackTrace.current,
               );
             }
           } catch (error, stackTrace) {
