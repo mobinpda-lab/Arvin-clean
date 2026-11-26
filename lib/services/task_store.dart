@@ -20,6 +20,8 @@ class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
   static QueryExecutor? _testDatabase;
+  static final Expando<Future<void>> _readyByExecutor =
+      Expando<Future<void>>('task-store-ready');
 
   /// Clears only the in-memory SQL executor cache used by Flutter tests.
   /// Production databases are never touched.
