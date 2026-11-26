@@ -319,6 +319,7 @@ class CenterStore {
   Future<List<String>> centerIdsForProject(String projectId) async {
     await _ensureReady();
     final executor = _database;
+    _ensureNotClosing(executor);
     return TaskStorageLock.synchronized<List<String>>(() async {
       final rows = await executor.runSelect(
         'SELECT center_id FROM center_projects WHERE project_id = ? ORDER BY center_id',
