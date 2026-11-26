@@ -62,7 +62,10 @@ class TaskStorageLock {
     _trace = arvinAsyncTrace;
   }
 
-  static Future<T> synchronized<T>(Future<T> Function() action) {
+  static Future<T> synchronized<T>(
+    Future<T> Function() action, {
+    String operationName = 'task.storage_lock.owner',
+  }) {
     final completer = Completer<T>();
     final zone = Zone.current;
     Object? completionError;
