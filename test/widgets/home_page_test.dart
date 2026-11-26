@@ -11,6 +11,7 @@ import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/iran_clock.dart';
+import '../support/flutter_async_cleanup.dart';
 
 class _RecordingTraceWriter implements ArvinJsonlTraceWriter {
   final List<String> lines = <String>[];
@@ -31,20 +32,9 @@ final _storageTrace = ArvinAsyncTrace(writer: _storageTraceWriter);
 void _installStorageRunner(WidgetTester tester) {
   _storageTraceWriter.lines.clear();
   TaskStorageLock.setTraceForTesting(_storageTrace);
-  TaskStorageLock.setWorkRunnerForTesting((work) async {
-    var started = false;
-    await tester.runAsync(() async {
-      started = true;
-      await work();
-    });
-    final exception = tester.takeException();
-    if (exception != null) {
-      Error.throwWithStackTrace(exception, StackTrace.current);
-    }
-    if (!started) {
-      throw StateError('WidgetTester.runAsync did not start storage work');
-    }
-  });
+  TaskStorageLock.setWorkRunnerForTesting(
+    (work) => runFlutterAsyncWithCleanupHandshake(tester, work),
+  );
   addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
   addTearDown(TaskStorageLock.resetTraceForTesting);
 }

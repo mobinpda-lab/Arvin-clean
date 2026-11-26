@@ -3,6 +3,9 @@ import 'dart:collection';
 
 import 'arvin_async_trace.dart';
 
+/// A Runner must complete only after its execution ownership is released.
+/// The lock separately awaits the callback Future, including for runners that
+/// return before observing the callback's completion.
 typedef TaskStorageWorkRunner = Future<void> Function(
   Future<void> Function() work,
 );
@@ -34,7 +37,6 @@ class TaskStorageLock {
       Queue<_TaskStorageLockEntry>();
   static bool _running = false;
   static TaskStorageWorkRunner _workRunner = _runInCallerZone;
-  static bool _usesCustomRunnerForTesting = false;
   static ArvinAsyncTrace _trace = arvinAsyncTrace;
 
   static Future<void> _runInCallerZone(Future<void> Function() work) => work();
@@ -44,12 +46,10 @@ class TaskStorageLock {
   /// Production callers keep the default caller-Zone behavior.
   static void setWorkRunnerForTesting(TaskStorageWorkRunner runner) {
     _workRunner = runner;
-    _usesCustomRunnerForTesting = true;
   }
 
   static void resetWorkRunnerForTesting() {
     _workRunner = _runInCallerZone;
-    _usesCustomRunnerForTesting = false;
   }
 
   /// Injects a trace instance so START/END writer failures can be tested
@@ -73,7 +73,6 @@ class TaskStorageLock {
     late T actionResult;
     var actionStarted = false;
     final runner = _workRunner;
-    final runnerNeedsReleaseBarrier = _usesCustomRunnerForTesting;
     final trace = _trace;
     final parentOperationId = trace.currentOperationId;
     final correlationId = trace.currentCorrelationId;
@@ -163,15 +162,6 @@ class TaskStorageLock {
               runnerStackTrace = stackTrace;
             } finally {
               runnerSettled = true;
-              if (runnerNeedsReleaseBarrier) {
-                // Host runners such as WidgetTester.runAsync can complete their returned
-                // Future before the real async Zone's whenComplete callback
-                // clears the binding's pending-task ownership. Drain the
-                // root event loop once: queued cleanup microtasks run before
-                // the zero-duration event. This is a release barrier, not a
-                // timeout or a production execution delay.
-                await Zone.root.run(() => Future<void>.delayed(Duration.zero));
-              }
             }
 
             // Some injected runners return before awaiting the callback they

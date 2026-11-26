@@ -11,6 +11,7 @@ import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/flutter_async_cleanup.dart';
 
 class _FakeBackupService extends ArvinBackupService {
   int writeCount = 0;
@@ -71,20 +72,9 @@ Widget _app({
 }
 
 void _installStorageRunner(WidgetTester tester) {
-  TaskStorageLock.setWorkRunnerForTesting((work) async {
-    var started = false;
-    await tester.runAsync(() async {
-      started = true;
-      await work();
-    });
-    final exception = tester.takeException();
-    if (exception != null) {
-      Error.throwWithStackTrace(exception, StackTrace.current);
-    }
-    if (!started) {
-      throw StateError('WidgetTester.runAsync did not start storage work');
-    }
-  });
+  TaskStorageLock.setWorkRunnerForTesting(
+    (work) => runFlutterAsyncWithCleanupHandshake(tester, work),
+  );
   addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
 }
 
