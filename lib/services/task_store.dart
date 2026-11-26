@@ -32,7 +32,8 @@ class TaskStore {
     // TaskStore operations resolve the replacement executor only after this
     // close entry has completed.
     await TaskStorageLock.synchronized<void>(() async {
-      if (identical(_testDatabase, executor)) _testDatabase = null;
+      if (!identical(_testDatabase, executor)) return;
+      _testDatabase = null;
       await executor.close();
     });
   }
