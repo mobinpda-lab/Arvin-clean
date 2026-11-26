@@ -31,6 +31,7 @@ class TaskStorageLock {
 
   static Future<T> synchronized<T>(Future<T> Function() action) {
     final completer = Completer<T>();
+    final entryFinished = Completer<void>();
     final zone = Zone.current;
     final runner = _workRunner;
     final parentOperationId = arvinAsyncTrace.currentOperationId;
@@ -40,52 +41,76 @@ class TaskStorageLock {
       _TaskStorageLockEntry(
         zone: zone,
         run: () async {
-          var actionStarted = false;
           try {
-            await runner(() async {
-              await arvinAsyncTrace.run<void>(
-                operationName: 'task.storage_lock.owner',
-                parentOperationId: parentOperationId,
-                correlationId: correlationId,
-                operation: () async {
-                  actionStarted = true;
-                  try {
-                    completer.complete(await action());
-                  } catch (error, stackTrace) {
+            var actionStarted = false;
+            try {
+              await runner(() async {
+                await arvinAsyncTrace.run<void>(
+                  operationName: 'task.storage_lock.owner',
+                  parentOperationId: parentOperationId,
+                  correlationId: correlationId,
+                  operation: () async {
+                    actionStarted = true;
+                    try {
+                      completer.complete(await action());
+                    } catch (error, stackTrace) {
+                      completer.completeError(error, stackTrace);
+                      Error.throwWithStackTrace(error, stackTrace);
+                    }
+                  },
+                );
+              });
+            } catch (traceError, traceStack) {
+              if (!actionStarted && !completer.isCompleted) {
+                // A diagnostic START failure must not strand the storage queue.
+                // If product work has not started, run it once without tracing.
+                try {
+                  await runner(() async {
+                    try {
+                      completer.complete(await action());
+                    } catch (error, stackTrace) {
+                      completer.completeError(error, stackTrace);
+                      Error.throwWithStackTrace(error, stackTrace);
+                    }
+                  });
+                } catch (error, stackTrace) {
+                  if (!completer.isCompleted) {
                     completer.completeError(error, stackTrace);
-                    Error.throwWithStackTrace(error, stackTrace);
                   }
-                },
-              );
-            });
-          } catch (traceError, traceStack) {
-            if (!actionStarted && !completer.isCompleted) {
-              // A diagnostic START failure must not strand the storage queue.
-              // If product work has not started, run it once without tracing.
-              try {
-                await runner(() async {
-                  try {
-                    completer.complete(await action());
-                  } catch (error, stackTrace) {
-                    completer.completeError(error, stackTrace);
-                    Error.throwWithStackTrace(error, stackTrace);
-                  }
-                });
-              } catch (error, stackTrace) {
-                if (!completer.isCompleted) {
-                  completer.completeError(error, stackTrace);
                 }
+              } else if (!completer.isCompleted) {
+                completer.completeError(traceError, traceStack);
               }
-            } else if (!completer.isCompleted) {
-              completer.completeError(traceError, traceStack);
             }
+          } finally {
+            // The action result can be ready before the runner has released
+            // its async boundary. Do not report synchronized() complete until
+            // that runner has finished, otherwise a following tester.runAsync
+            // can overlap the still-active storage operation.
+            if (!entryFinished.isCompleted) entryFinished.complete();
           }
         },
       ),
     );
     _drain();
 
-    return completer.future;
+    // Keep the result/error contract, but make completion mean that the
+    // serialized runner has also finished and released its async boundary.
+    return _completeAfterEntry<T>(completer.future, entryFinished.future);
+  }
+
+  static Future<T> _completeAfterEntry<T>(
+    Future<T> result,
+    Future<void> entryFinished,
+  ) async {
+    try {
+      final value = await result;
+      await entryFinished;
+      return value;
+    } catch (error, stackTrace) {
+      await entryFinished;
+      Error.throwWithStackTrace(error, stackTrace);
+    }
   }
 
   static void _drain() {
