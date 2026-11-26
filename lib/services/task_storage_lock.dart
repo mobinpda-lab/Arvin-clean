@@ -34,6 +34,7 @@ class TaskStorageLock {
       Queue<_TaskStorageLockEntry>();
   static bool _running = false;
   static TaskStorageWorkRunner _workRunner = _runInCallerZone;
+  static bool _usesCustomRunnerForTesting = false;
   static ArvinAsyncTrace _trace = arvinAsyncTrace;
 
   static Future<void> _runInCallerZone(Future<void> Function() work) => work();
@@ -43,10 +44,12 @@ class TaskStorageLock {
   /// Production callers keep the default caller-Zone behavior.
   static void setWorkRunnerForTesting(TaskStorageWorkRunner runner) {
     _workRunner = runner;
+    _usesCustomRunnerForTesting = true;
   }
 
   static void resetWorkRunnerForTesting() {
     _workRunner = _runInCallerZone;
+    _usesCustomRunnerForTesting = false;
   }
 
   /// Injects a trace instance so START/END writer failures can be tested
@@ -67,6 +70,7 @@ class TaskStorageLock {
     late T actionResult;
     var actionStarted = false;
     final runner = _workRunner;
+    final runnerNeedsReleaseBarrier = _usesCustomRunnerForTesting;
     final trace = _trace;
     final parentOperationId = trace.currentOperationId;
     final correlationId = trace.currentCorrelationId;
@@ -156,11 +160,13 @@ class TaskStorageLock {
               runnerStackTrace = stackTrace;
             } finally {
               runnerSettled = true;
-              // Host runners such as WidgetTester.runAsync release their
-              // async ownership after the returned Future settles. Yield one
-              // zero-duration turn in the caller's Zone before queue handoff;
-              // FakeAsync tests can advance this turn with their normal pump.
-              await Future<void>.delayed(Duration.zero);
+              if (runnerNeedsReleaseBarrier) {
+                // Host runners such as WidgetTester.runAsync release their
+                // async ownership after the returned Future settles. Yield one
+                // zero-duration turn before queue handoff; FakeAsync tests can
+                // advance it with their normal pump. Production has no delay.
+                await Future<void>.delayed(Duration.zero);
+              }
             }
 
             // Some injected runners return before awaiting the callback they
