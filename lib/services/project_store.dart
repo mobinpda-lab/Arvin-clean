@@ -170,7 +170,7 @@ class ProjectStore {
         result.add(codec.decode(projectEnvelope));
       }
       return List<ProjectPlan>.unmodifiable(result);
-    });
+    }, operationName: 'project_store.load');
   }
 
   /// Backward-compatible entry point; saves are additive upserts, never a
