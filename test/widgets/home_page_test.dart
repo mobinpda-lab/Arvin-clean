@@ -46,6 +46,7 @@ void _installStorageRunner(WidgetTester tester) {
     }
   });
   addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+  addTearDown(TaskStorageLock.resetTraceForTesting);
 }
 
 Future<T> _pumpFuture<T>(
@@ -64,6 +65,11 @@ Future<T> _pumpFuture<T>(
     await tester.pump(const Duration(milliseconds: 16));
   }
   if (!completion.isCompleted) {
+    print('HOME_STORAGE_TRACE_BEGIN');
+    for (final line in _storageTraceWriter.lines.take(40)) {
+      print(line);
+    }
+    print('HOME_STORAGE_TRACE_END');
     throw TimeoutException(
       'Home database operation did not complete after 1200 frames',
       const Duration(seconds: 20),
@@ -83,6 +89,11 @@ Future<void> _pumpArvinApp(WidgetTester tester) async {
     await tester.pump(const Duration(milliseconds: 16));
   }
   if (!loaded.isCompleted) {
+    print('HOME_STORAGE_TRACE_BEGIN');
+    for (final line in _storageTraceWriter.lines.take(40)) {
+      print(line);
+    }
+    print('HOME_STORAGE_TRACE_END');
     throw TimeoutException(
       'Home did not report load completion after 1200 frames',
       const Duration(seconds: 20),
