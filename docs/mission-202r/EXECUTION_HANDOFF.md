@@ -69,3 +69,36 @@ Phase 1/2 implementation and local tests are complete; exact-SHA GitHub verifica
 
 ## REV11.34.1 corrective checkpoint
 The first hosted Build run on bf7a60f6ee0b1095b14c7362564ac809f2396483 failed at TWA-01 because literal escape backslashes prevented Bash parameter expansion. The five product suites did not execute. Trace evidence remained MISSING and the always-upload step succeeded (artifact 14944045844; SHA-256 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42). The 18 metadata self-tests passed, but the Build job correctly remained failed. REV11.34.1 corrects the four affected shell scripts. Verify the next exact-SHA Build and COMMAND 20-E runs before acceptance.
+
+## REV12.10 — first verified engineering repair candidate
+**Checkpoint:** 2026-11-26 (1405-09-05)
+**Repository:** `mobinpda-lab/Arvin-clean`
+**PR:** #3495 — OPEN / DRAFT / UNMERGED
+**Branch:** `recovery-02/main-based-integration`
+**Main HEAD:** `45e4202b03a434459e4c021a04efa7e8396359db` — READ-ONLY
+
+### Root cause and repair
+Build run `45686896437`, job `139461937688`, showed that the TaskStorageLock result Future could complete before its injected `tester.runAsync` runner had returned. The regression test then attempted another `tester.runAsync` for NativeDatabase.close and hit the Flutter test binding's reentrancy guard. This is direct evidence of an early completion boundary, not proof of a SQLite or production-page defect.
+
+Commits on the authorized branch:
+- `6a3ea09a0d9d564990604d5a375e1d643ea01cb6` — `fix(storage): await serialized runner release before completing`.
+- `b12409a8f446e664ccace087b621de6ce5a8ad61` — `test(storage): guard synchronized completion against early return`.
+
+The implementation waits for the runner to finish before returning the preserved action result or error. A dedicated regression test guards the early-return behavior. No assertion was removed and no production database/schema change was made.
+
+### Current exact-SHA workflows
+All are attached to candidate `b12409a8f446e664ccace087b621de6ce5a8ad61`:
+- Build `45762850359` — queued/in progress at checkpoint.
+- COMMAND 20-E `45762850353` — in progress.
+- Device Smoke `45762850367` — in progress.
+- Follow-up File Persistence `45762850458` — in progress.
+
+### Required next actions
+1. Read all Build job conclusions and logs, especially TaskStorageLock, Center, Home, Backup and Analyze.
+2. Confirm the new regression passes and determine whether Center/Home/Backup now progress beyond their previous timeout boundary.
+3. If a suite still fails, identify its first incomplete Future and correct only that root cause; preserve all existing assertions.
+4. Continue Encrypted Backup and Trace Writer validation separately.
+5. Update this handoff with actual Run/Job outcomes and artifact digests.
+6. Keep PR #3495 open and draft. Do not merge, release, or deploy.
+
+**Status:** code repair IMPLEMENTED; exact-SHA CI pending; product acceptance NO-GO.

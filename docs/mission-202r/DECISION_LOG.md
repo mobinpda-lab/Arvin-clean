@@ -86,3 +86,30 @@ IMPLEMENTED, TESTED, VERIFIED, and ACCEPTED remain independent states. Local tes
 - Artifact upload still completed: artifact 14944045844, SHA-256 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42.
 - The 18 metadata self-tests passed, but they do not override the failed job.
 - REV11.34.1 removes the literal escape characters from the TWA runner/test and COMMAND 20-E parser/test shell expansions. Exact-SHA GitHub verification is pending the corrective push.
+
+## REV12.10 — TaskStorageLock completion-boundary repair
+**Date:** 2026-11-26 (1405-09-05)
+**PR:** #3495 — OPEN / DRAFT / UNMERGED
+**Branch:** `recovery-02/main-based-integration`
+**Code candidate:** `b12409a8f446e664ccace087b621de6ce5a8ad61`
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` (read-only)
+
+### Verified initiating defect
+Build run `45686896437`, job `139461937688`, exposed a direct lifecycle mismatch in `TaskStorageLock.synchronized`: the caller Future could complete when the storage action produced its result, before the injected async work runner had finished. The regression test `TaskStorageLock isolates native I/O and preserves trace context` then attempted to close its NativeDatabase through `tester.runAsync` and received `Reentrant call to runAsync() denied`. The UI test callbacks had the same early-completion boundary.
+
+### Decision D-10
+The Future returned by `TaskStorageLock.synchronized` must preserve the action's result/error and wait until the runner has completed before reporting completion to the caller. This keeps the lock's async boundary observable and prevents callers from starting a subsequent test-runner operation while the prior runner is still active. FIFO ordering and error/stack preservation remain required.
+
+### Implementation
+- Commit `6a3ea09a0d9d564990604d5a375e1d643ea01cb6`: wait for runner completion before completing the caller Future.
+- Commit `b12409a8f446e664ccace087b621de6ce5a8ad61`: add `synchronized completes only after the work runner releases` regression.
+- The repair does not alter Center, Home, Backup product logic, SQLite schema, or test assertions.
+
+### Exact-SHA verification
+- Build run `45762850359` — pending at documentation checkpoint.
+- COMMAND 20-E run `45762850353` — pending.
+- Device Smoke run `45762850367` — pending.
+- Follow-up Persistence run `45762850458` — pending.
+- No test is marked PASS until the corresponding exact-SHA job is complete and its log confirms the result.
+
+**Disposition:** IMPLEMENTED; hosted verification pending; product acceptance NO-GO.

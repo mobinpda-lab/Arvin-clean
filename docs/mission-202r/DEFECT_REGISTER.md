@@ -51,3 +51,17 @@ TRC-01, TW-01..TW-05, MET-01, JSONL-01..JSONL-04, DEV-01, GOV-01, and PERSIST-01
 
 ## REV11.34.1 hosted-run correction
 Build run 45441699404 / Trace job 138614289192 failed at TWA-01 because Bash parameter expansions were escaped literally in the committed scripts. The five product suites did not run in that job. Trace was correctly marked MISSING, and artifact 14944045844 was uploaded with digest 83801e0bf0c61b00a666d27bed63a620b3a0b091f9916852db0544a42161ad42. The 18 metadata self-tests passed but do not override the job failure. The four affected scripts have been corrected; new exact-SHA runner verification is pending.
+
+## REV12.10 — TaskStorageLock early-completion defect
+**Observed:** Build run `45686896437`, job `139461937688`, exact source SHA `67127f770e7f7c7064b59093dfeab55a392e9882`.
+- The TaskStorageLock native-I/O regression failed with `Reentrant call to runAsync() denied` during the test's database-close step.
+- The caller operation Future could resolve before the async work runner returned. This made the Future completion signal insufficient to guarantee that the runner boundary had ended.
+- The same boundary was implicated in Center/Home/Backup widget synchronization failures; do not classify the remaining product/widget tests as fixed until the new exact-SHA run proves it.
+
+| ID | Defect / scope | IMPLEMENTED | TESTED | VERIFIED | ACCEPTED |
+|---|---|---|---|---|---|
+| BUILD-03 | TaskStorageLock caller Future completes before async runner release | YES — `6a3ea09a0d9d564990604d5a375e1d643ea01cb6` | Regression added — `b12409a8f446e664ccace087b621de6ce5a8ad61`; hosted result pending | Pending run `45762850359` | NO |
+| BUILD-01 | Center/Home/Backup UI timeouts | Partial common-boundary correction attempted; individual suite outcomes pending | Pending | Pending | NO |
+| BUILD-02 | Quality shard cancellations/failures | NO | Prior evidence retained | Pending cause review | NO |
+
+**Next:** inspect Build run 45762850359 and the TaskStorageLock, Center, Home, and Backup test logs independently. If any remain blocked, trace the first incomplete Future; do not raise timeouts or weaken assertions.

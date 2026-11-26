@@ -41,3 +41,14 @@ The baseline commit 9d58e92203a32a22f7bc67b92552afe19db3ac50 was verified in Bui
 
 ## REV11.34 Trace workflow repair status
 TRACE-AGG-01 and TRACE-AGG-02 are implemented and locally tested by TWA-01 through TWA-06. Exact-SHA GitHub runner verification is pending. Missing Trace JSONL must remain MISSING and NO-GO; artifact upload must still run. No synthetic JSONL is acceptable.
+
+## REV12.10 — artifact and scope checkpoint
+Historical Run `45442396285`, Trace job `138617005431`, artifact `14962712644` was independently downloaded and checked:
+- ZIP SHA-256: `e1d2e2a7c92a416ae4bcab74e4c3a46485a38537e45064dc3e11496f7d181904`
+- JSONL SHA-256: `248c5a307620a6904e793dc6be3e0cde0642cda0501ee94206a37a09b709be14`
+- Events: 29 START / 28 END / 1 ERROR; no operation ID lacked a terminal event.
+- The one ERROR is the expected wrong-passphrase `FormatException` from the negative encrypted-backup scenario.
+- Trace suite exit code: 0. Center, Home and Backup UI suite exit codes: 1; Encrypted Backup integration suite: 0; aggregate: 1.
+- The artifact validates the independent Trace Writer test outcome but does not accept Center/Home/Backup UI behavior.
+
+The later runner-boundary correction is a separate TaskStorageLock concern. It does not modify the Trace Writer acceptance contract above. New exact-SHA verification for the TaskStorageLock repair is pending Build run `45762850359`. Trace Writer acceptance remains separate from overall product acceptance.
