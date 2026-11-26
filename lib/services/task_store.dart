@@ -33,12 +33,11 @@ class TaskStore {
     // close entry has completed.
     await TaskStorageLock.synchronized<void>(() async {
       if (!identical(_testDatabase, executor)) return;
+      // Keep ownership if close fails; only publish a fresh executor after
+      // the old one has actually completed shutdown.
+      await executor.close();
       _testDatabase = null;
-      try {
-        await executor.close();
-      } finally {
-        _readyByExecutor[executor] = null;
-      }
+      _readyByExecutor[executor] = null;
     });
   }
 
