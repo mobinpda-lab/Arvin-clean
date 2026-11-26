@@ -128,7 +128,7 @@ class ProjectStore {
         "INSERT INTO arvin_storage_meta (key, value) VALUES ('legacy_projects_migrated', '1') "
         "ON CONFLICT(key) DO UPDATE SET value = '1'",
       );
-    });
+    }, operationName: 'project_store.legacy_migration');
   }
 
   Future<List<ProjectPlan>> load() async {
