@@ -349,11 +349,11 @@ void main() {
             );
             expect(repeatedRows.single['value'], cycle);
           } finally {
-            await tester.runAsync(() => repeatedDatabase.close());
+            await runFlutterAsyncWithCleanupHandshake(tester, () => repeatedDatabase.close());
           }
         }
       } finally {
-        await tester.runAsync(() => database.close());
+        await runFlutterAsyncWithCleanupHandshake(tester, () => database.close());
       }
     },
   );
