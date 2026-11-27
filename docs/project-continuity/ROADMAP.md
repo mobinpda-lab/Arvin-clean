@@ -558,3 +558,26 @@ Release remains NO-GO. No merge, deployment or production data migration is auth
 - Then Calendar identity/smoke, People/Notebook persistence, typography (300/400/500/600/700), PDF/share/print and seven-scenario Device Smoke.
 - Exact-SHA Arvin Build has not run on a05c744... at last poll; Zero Dollar Environment Smoke run 45915055641 is pending and does not satisfy quality gates.
 - Owner locks: single PR #3495, Main read-only, no parallel Wave/PR, no test weakening, no production-data migration or release.
+
+
+## FINAL-UNIFICATION LIVE SNAPSHOT — 2026-11-27
+
+**Snapshot source SHA:** `c76c9023d3959ec344bfd693e4f3b62685329eee` (before the subsequent audit-document-only commits).  
+**Main:** `45e4202b03a434459e4c021a04efa7e8396359db` — read-only.  
+**Canonical route:** PR #3495, OPEN / DRAFT / UNMERGED; branch `recovery-02/main-based-integration`; audit-document update parent `8f86407272a32a46b252ce8b53c21c3caff6a5f3`. At snapshot source SHA, PR had 698 commits, 356 changed files, 86,650 additions and 2,634 deletions; 698 ahead / 0 behind.
+
+**Product baseline:** REV10 + latest owner directive; Flutter package `1.0.1+2`; Main schema v7; canonical branch schema v9; Primary Blue `#4169A1`; Vazirmatn; Home dimensions Time / Center / Project / Category / Tag; OR within dimension, AND across dimensions; Center↔Project and Project↔Category M2M.
+
+**Exact-SHA evidence on snapshot source SHA only:**
+- Governance Validation `45915411571`: SUCCESS.
+- Flutter Analyze, Debug APK and Release APK jobs: SUCCESS.
+- Device Smoke `45915411489`: SUCCESS, 7/7 lanes.
+- Follow-up File Persistence `45915411504`: SUCCESS.
+- Build `45915411506`: overall IN_PROGRESS at inspection; six test shards FAILED, 1,140 passed / 32 failed; trace JSONL evidence job still running.
+- COMMAND 20-E `45915411562`: IN_PROGRESS; storage-persistence passed, complete-evidence pending.
+
+Shard totals: test-0 272/6 failed; test-1 173/4; test-2 199/5; test-3 128/4; test-4 153/7; test-5 215/6. Observed failure families: Home/Center initialization timeouts, Backup/Restore timeouts, `Reentrant call to runAsync() denied`, RTL swipe `pumpAndSettle timed out`, and passphrase expected `memory-only-secret` but actual null. These failures have not yet been root-cause-resolved; no tests were weakened or removed.
+
+Issue #3646 / COMMAND 97-R remains OPEN / NOT ACCEPTED. Stop, Follow-up, Snooze and Complete semantics are defined in the Issue, but the dedicated four-action UI and device acceptance are not proven.
+
+**Acceptance:** NOT ACCEPTED. **Release:** NO-GO. These results are tied to the stated source SHA and do not transfer to later commits. The following audit-document commits do not constitute a product fix or acceptance. Main remains unchanged; no merge, release, deployment, branch deletion, PR closure, force push or production-data migration was performed.
