@@ -17,11 +17,26 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
   Zone? realAsyncZone;
   var started = false;
 
-  await tester.runAsync(() async {
-    realAsyncZone = Zone.current;
-    started = true;
-    await work();
-  });
+  print('[ARVIN_ASYNC_HANDSHAKE] phase=run_async_enter');
+  try {
+    await tester.runAsync(() async {
+      realAsyncZone = Zone.current;
+      started = true;
+      print('[ARVIN_ASYNC_HANDSHAKE] phase=callback_enter');
+      try {
+        print('[ARVIN_ASYNC_HANDSHAKE] phase=work_enter');
+        await work();
+        print('[ARVIN_ASYNC_HANDSHAKE] phase=work_complete');
+      } catch (error, stackTrace) {
+        print('[ARVIN_ASYNC_HANDSHAKE] phase=work_error error=$error');
+        Error.throwWithStackTrace(error, stackTrace);
+      }
+    });
+    print('[ARVIN_ASYNC_HANDSHAKE] phase=run_async_return');
+  } catch (error, stackTrace) {
+    print('[ARVIN_ASYNC_HANDSHAKE] phase=run_async_error error=$error');
+    Error.throwWithStackTrace(error, stackTrace);
+  }
 
   final zone = realAsyncZone;
   if (zone == null || !started) {
@@ -33,10 +48,13 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
   }
 
   final cleanupDrained = Completer<void>();
+  print('[ARVIN_ASYNC_HANDSHAKE] phase=cleanup_barrier_scheduled');
   zone.createTimer(Duration.zero, () {
+    print('[ARVIN_ASYNC_HANDSHAKE] phase=cleanup_barrier_fired');
     if (!cleanupDrained.isCompleted) cleanupDrained.complete();
   });
   await cleanupDrained.future;
+  print('[ARVIN_ASYNC_HANDSHAKE] phase=cleanup_barrier_complete');
 
   final exception = tester.takeException();
   if (exception != null) {
