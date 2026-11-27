@@ -10,6 +10,7 @@ import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/iran_clock.dart';
 import '../support/flutter_async_cleanup.dart';
 
@@ -98,6 +99,7 @@ void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
@@ -233,20 +235,24 @@ void main() {
   });
 
 
-  testWidgets('Home uses the four cards as combined filters and preserves time grouping',
+  testWidgets('Home uses five combined filters with Center and OR-within dimensions as combined filters and preserves time grouping',
       (tester) async {
     _installStorageRunner(tester);
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-a', name: 'مرکز الف'));
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-b', name: 'مرکز ب'));
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-c', name: 'مرکز ج'));
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
+          '[{"id":"match","title":"کار منطبق","centerId":"center-a","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","centerId":"center-a","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","centerId":"center-b","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"},{"id":"outside","title":"کار خارج","centerId":"center-c","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"}]',
     });
 
     await _pumpArvinApp(tester);
 
     expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
@@ -254,6 +260,15 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('home-filter-card-time')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-center')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('مرکز الف').last);
+    await tester.tap(find.text('مرکز ب').last);
+    await tester.pumpAndSettle();
+    expect(find.text('کار نامرتبط'), findsOneWidget);
+    expect(find.text('کار خارج'), findsNothing);
+    await tester.tap(find.text('اعمال فیلتر'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));

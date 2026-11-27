@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../arvin_colors.dart';
 
-enum HomeFilterDimension { time, project, category, tags }
+enum HomeFilterDimension { time, center, project, category, tags }
 
 class HomeFilterCard extends StatelessWidget {
   const HomeFilterCard({
@@ -30,7 +30,8 @@ class HomeFilterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final selected = value != 'همه';
     final compact = MediaQuery.sizeOf(context).height < 700;
-    return Expanded(
+    return SizedBox(
+      width: 88,
       child: Semantics(
         button: true,
         label: title + ': ' + value,
