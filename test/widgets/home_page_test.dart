@@ -235,7 +235,7 @@ void main() {
   });
 
 
-  testWidgets('Home uses five combined filters with Center and OR-within dimensions as combined filters and preserves time grouping',
+  testWidgets('Home applies five filters with Center OR and cross-dimension AND',
       (tester) async {
     _installStorageRunner(tester);
     await _pumpFuture(tester, () => CenterStore().create(id: 'center-a', name: 'مرکز الف'));
@@ -266,10 +266,10 @@ void main() {
     await tester.tap(find.text('مرکز الف').last);
     await tester.tap(find.text('مرکز ب').last);
     await tester.pumpAndSettle();
-    expect(find.text('کار نامرتبط'), findsOneWidget);
-    expect(find.text('کار خارج'), findsNothing);
     await tester.tap(find.text('اعمال فیلتر'));
     await tester.pumpAndSettle();
+    expect(find.text('کار نامرتبط'), findsOneWidget);
+    expect(find.text('کار خارج'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
     await tester.pumpAndSettle();
