@@ -969,3 +969,13 @@ A test result is valid only for the SHA it actually checked out. The successful 
 - CODEOWNERS now covers the canonical token source, duplicate consumer, contract test and governance workflow.
 - Preserve the failing run `44871858882` as evidence of the detector working. Confirm a fresh pass on the final SHA; do not treat the correction commit itself as verification.
 - Repository Branch Protection and Rulesets still require a direct settings audit; current status is UNVERIFIED.
+
+## 2026-11-27 — final reconciliation handoff
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Canonical route: PR #3495 / recovery-02/main-based-integration, OPEN / DRAFT / UNMERGED. Main read-only.
+- Blockers: v7→v9 sequential migration; file-backed data parity; independent backup/restore; Home five filters; Reminder four-action window #3646; exact-SHA Build/test/Device Smoke; APK/device/PDF acceptance.
+- Owner decisions: REV10 + COMMAND 103-R + final 2026-11-27 directive; Primary #4169A1; Vazirmatn; Home order Time→Center→Project→Category→Tag; schema v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
+- Historical sources: preserve #3052, #3384, #3463, #3470, #3547–#3569 and #3613–#3639 until unique changes and evidence are reconciled. Do not merge stacked PRs.
+- First next step: fetch the resulting live PR head after this documentation commit and its workflow runs. The reviewed base SHA is not the new head; no PASS transfers.
+- Then repair test/root causes, formalize v7→v8→v9, selectively recover data-safety commits, implement Reminder UI, validate Home Center and complete device/PDF acceptance. Do not create parallel feature PRs or perform destructive cleanup.

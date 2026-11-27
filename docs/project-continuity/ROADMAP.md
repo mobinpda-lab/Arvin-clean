@@ -540,3 +540,11 @@ Release remains NO-GO. No merge, deployment or production data migration is auth
 - [ ] Verify governance workflow and full Build on the final exact SHA.
 - [ ] Verify Branch Protection, Rulesets, required checks, bypass actors and sensitive-path review configuration.
 - [ ] Continue the REV10 data architecture, Home, Reminder, entity management, Backup/Restore and device acceptance waves without treating the governance commit as product acceptance.
+
+## Final reconciliation delivery order — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Blockers: explicit v7→v9 migration; file-backed NULL/unknown/M2M/rollback parity; independent A→B backup/restore; Home five-filter UI; Issue #3646 Reminder window; exact-SHA test shards and Device Smoke; PDF/typography/device provenance.
+- Owner decisions: one route PR #3495; Main read-only; Home filter order Time→Center→Project→Category→Tag; Primary Blue #4169A1; Vazirmatn; Schema v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
+- Historical sources: #3384/#3463 are not direct merge candidates; #3613/#3616/#3620/#3625/#3633/#3634/#3639 are selective data-safety sources; #3567 teal is incompatible as Primary; #3622 four filters is superseded.
+- Next sequence: (1) root-cause current CI; (2) explicit v7→v8→v9 and physical DB tests; (3) canonical M2M stores/consumers; (4) Home/Task/Reminder/Follow-up/Repeat/People/Notebook/Calendar; (5) Backup/Restore; (6) typography/PDF; (7) seven-scenario Device Smoke and release provenance. No new Wave/parallel PR.

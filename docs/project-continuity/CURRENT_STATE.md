@@ -1861,3 +1861,16 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Follow-up implementation commits: `5afd55be7363a72107796f88f5c38719148b8d61`, `9060ebc23027bde35b53342fd48a8c84d827baea`, `f9e6fc537df3ef180c71232dfa37e2f37c13d0b5`.
 - The corrected workflow has not yet produced a confirmed run on the latest candidate at the time of this checkpoint. Earlier Governance FAIL remains preserved as valid evidence.
 - Branch Protection / Rulesets / required-check enforcement remain UNVERIFIED because the connected GitHub action set does not expose repository ruleset/protection reads.
+
+## Final reconciliation live snapshot — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc.
+- Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db (read-only).
+- PR #3495: OPEN / DRAFT / UNMERGED; canonical branch recovery-02/main-based-integration. At the reviewed base it had 692 commits and 356 changed files.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Inventory: 1,483 branches; 1,299 PRs (146 open, 629 merged, 524 closed-unmerged); 2,389 Issues. Complete pagination and CSVs are recorded in audit/final-reconciliation/.
+- Prior code SHA d3a82...: Governance and Follow-up File Persistence passed; Build failed (all six shards and trace evidence); Device Smoke failed in Calendar; COMMAND 20-E failed its complete-evidence gate. These results do not transfer to this documentation SHA.
+- Current exact-head workflow runs: no runs returned by the commit-run query at last poll; this is NOT PASS.
+- Blockers: v7→v9 explicit sequential migration and physical file tests; independent backup/restore; Home five-filter UI; Reminder Issue #3646; all required CI and device acceptance; APK provenance.
+- Owner decisions: REV10 + COMMAND 103-R + final 2026-11-27 directive; Primary #4169A1; Vazirmatn; Home order Time→Center→Project→Category→Tag; Schema v7→v9.
+- Historical PRs and commands remain preserved; see the final-reconciliation ledgers.
+- Next: fetch the new head after this documentation commit, trigger/inspect exact-SHA CI, then continue data-safe fixes on PR #3495.

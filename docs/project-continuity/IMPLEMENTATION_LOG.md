@@ -1121,3 +1121,14 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Extended `.github/CODEOWNERS` to cover `lib/arvin_colors.dart`, `lib/home/home_visual_integration.dart`, `test/arvin_primary_blue_contract_test.dart` and `.github/workflows/arvin-governance-validation.yml`, owned by the authenticated GitHub account `mobinpda-lab`.
 - Follow-up commits: `5afd55be7363a72107796f88f5c38719148b8d61`, `9060ebc23027bde35b53342fd48a8c84d827baea`, `f9e6fc537df3ef180c71232dfa37e2f37c13d0b5`.
 - The original failure was not bypassed or weakened. Re-run and full exact-SHA verification are still required.
+
+## 2026-11-27 — final reconciliation discovery and inventory
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Extracted complete paginated inventories: 1,483 branches, 1,299 PRs, 2,389 Issues. Created BRANCH_INVENTORY.csv, PR_INVENTORY.csv and ISSUE_INVENTORY.csv in audit/final-reconciliation/.
+- Created the remaining eleven reconciliation reports: MASTER_INVENTORY, GOVERNANCE_VERSION_LEDGER, COMMAND_WAVE_LEDGER, HISTORICAL_RECOVERY_REGISTER, PRODUCT_IMPLEMENTATION_MATRIX, DATABASE_MIGRATION_AUDIT, APK_FORENSIC_REPORT, TEST_ACCEPTANCE_MATRIX, CONFLICT_REGISTER, RELEASE_READINESS and FINAL_HANDOFF.
+- COMMIT_RECONCILIATION.csv currently includes 250 of the 691 commits reported by PR #3495 metadata; full commit attribution is incomplete.
+- APK forensic result: SHA-256 5ea45b1aaef66532ac8dd39c5c92532d84e8c05e37b4646ed1ef7167cf3bca66; package com.example.arvin.staging; version 1.0-staging+1; not attributable to Canonical SHA.
+- Exact-SHA CI evidence on d3a82...: Governance SUCCESS; Follow-up File Persistence SUCCESS; Build FAILED with all six shards and trace failure; Device Smoke FAILED in Calendar; COMMAND 20-E FAILED. No source code changes were made in this discovery pass.
+- Owner decisions and blockers are recorded in PRODUCT_DECISIONS.md and audit/final-reconciliation/.
+- Next: complete diff/commit reconciliation and repair only source-backed product/data failures on PR #3495; rerun every gate on one exact SHA.

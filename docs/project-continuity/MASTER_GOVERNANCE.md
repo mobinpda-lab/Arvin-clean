@@ -602,3 +602,14 @@ REV10 remains the canonical product baseline. The Primary Blue name and exact HE
 Governance, implementation and test verification remain separate. The decision is approved; implementation changes and the new validation are not accepted until the resulting exact SHA passes its checks. Main remains read-only; PR #3495 remains the sole development route. Merge, release and deployment remain unauthorized.
 
 ---
+
+
+## Final owner directive checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Current authority: REV10, with approved COMMAND 103-R addendum and the newer explicit Product Owner directive ARVIN-FINAL-UNIFICATION-2026-11-27.
+- Only authorized development path: PR #3495 on recovery-02/main-based-integration. Main read-only. PR stays OPEN / DRAFT / UNMERGED.
+- Blockers: v7→v9 data safety proof; exact-SHA CI and Device Smoke; independent backup/restore; P0 Reminder four-action behavior; Home five-filter contract; unresolved historical unique commits.
+- Owner-locked decisions: Primary Blue #4169A1; Vazirmatn; Home filters Time→Center→Project→Category→Tag; M2M Center↔Project and Project↔Category; Task optional links; Schema v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
+- Historical sources REV7/7.1/8/9/12 and older execution commands remain preserved as historical/superseded according to the final reconciliation ledgers.
+- Next: reconcile source PRs selectively and prove exact-SHA behavior. No branch/PR deletion, force push, history rewrite, merge, release, deployment, production DB migration or contract change without separate authority.

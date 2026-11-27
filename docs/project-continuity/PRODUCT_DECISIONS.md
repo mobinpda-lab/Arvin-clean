@@ -615,3 +615,15 @@ The existing Settings font-size preference is retained as-is: it is persisted by
 **Approval boundary:** this is a record of observed implementation plus a proposal for owner review. It must not be cited as Mobin's approval. Until an explicit owner decision is recorded, preserve the current plaintext-default / optional-encryption behavior and its compatibility tests.
 
 **Review criteria:** owner choice of default, threat model and sensitivity warning, passphrase-loss recovery expectations, backward/forward restore compatibility, migration of existing files, and exact-SHA Backup/Restore evidence.
+
+
+## Final owner decision reconciliation — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Binding newest decisions: Home has five dimensions in exact order Time, Center, Project, Category, Tag; OR within each dimension and AND between dimensions. PR #3622's four-filter behavior is superseded.
+- Primary Blue remains #4169A1. PR #3567's #078B91 cannot replace the Primary token.
+- Current database target is v7→v9. Historical v19/v20 branches are evidence only and must not be imported blindly.
+- Reminder is independent of Due Date and must expose Stop, Follow-up, Snooze and Complete. Issue #3646 remains NOT ACCEPTED until all four behaviors and device restrictions are verified.
+- Blockers: migration source-stage proof, unknown/NULL preservation, M2M runtime integration, independent Backup/Restore, Home Center UI, Reminder window, Calendar and PDF acceptance.
+- Historical sources: #3384/#3463 migration chain; #3567/#3569 design and Home proposals; #3622 four-filter proposal; #3613/#3616/#3620/#3625/#3633/#3634/#3639 data safety chain.
+- Next: apply owner contracts to source/tests without guessing unresolved Reminder platform semantics; preserve every legacy field until a safe migration is accepted.

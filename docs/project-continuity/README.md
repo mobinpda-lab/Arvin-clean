@@ -291,3 +291,14 @@ Other documents, ADRs, ledgers, reports and historical PR notes are evidence/arc
 - Exact-SHA verification remains mandatory; implementation is not product acceptance.
 
 - COMMAND 103-R Governance Validation exposed and drove correction of a duplicate hard-coded Home primary token; see `CURRENT_STATE.md` and `IMPLEMENTATION_LOG.md` for exact-SHA evidence.
+
+## Final reconciliation checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran).
+- Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc; Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Live inventory: 1,483 branches, 1,299 PRs, 2,389 Issues; complete paginated CSVs and reconciliation ledgers are under audit/final-reconciliation/.
+- Canonical route remains PR #3495, recovery-02/main-based-integration. Main remains read-only.
+- Blockers: exact-SHA Build/test/Device Smoke; explicit v7→v9 migration; independent backup/restore; Home five filters; Issue #3646 Reminder window; APK provenance and device acceptance.
+- Owner decisions: REV10 + COMMAND 103-R; Primary Blue #4169A1; Vazirmatn; Home filter order Time→Center→Project→Category→Tag; Schema target v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
+- Historical sources: REV7–REV12 records, #3052/#3384/#3463/#3470 and #3547–#3639 remain preserved; see GOVERNANCE_VERSION_LEDGER and HISTORICAL_RECOVERY_REGISTER.
+- Next: continue source-level reconciliation and selective recovery on PR #3495; no merge/release/deletion.

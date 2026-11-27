@@ -619,3 +619,15 @@ Current candidate 26c8d6e449a2204edd95728e739dd07983263eb6: SQLite run 435976891
 - **Issue #3646 — P0:** four-action Task reminder window remains NOT ACCEPTED; see issue for foreground/background/closed-app, reboot and device requirements.
 - **Issue #3619 — P1:** independent SQLite Database A→B restore, repeat restore and rollback proof remains an independent acceptance gate.
 - **Repository rules:** Branch Protection, Rulesets, required checks and bypass restrictions are UNVERIFIED until directly inspected through an authoritative GitHub settings endpoint.
+
+## Final reconciliation blocker update — 2026-11-27
+- Last reviewed: 1405/09/06 — 2026-11-27 (Asia/Tehran). Reviewed base SHA: 5c8530d53632cffad778baf436d0e35c5eed08dc. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- P0: Issue #3646 — independent four-action Reminder window; open and NOT ACCEPTED.
+- P0/data: Main v7 to canonical v9 requires explicit, file-backed v7→v8→v9 migration proof; current v9 migration declares source 8 and target 9, while the preceding installer stage is implicit.
+- P0/data: unknown Task/Follow-up/Reminder fields and explicit NULL must survive SQL save/load and Backup/Restore. PR #3639 documents an observed nested Follow-up field loss.
+- P1: Issue #3619 independent SQLite A→B restore, repeated restore and rollback; distinct second backup file is covered by PR #3634 but exact acceptance remains pending.
+- P0/product: Home must expose all five owner filters in order Time, Center, Project, Category, Tag; PR #3622's four-filter change is superseded.
+- CI: d3a82... Build, all six shards, Calendar Device Smoke and COMMAND 20-E failed. Do not transfer old run results to newer SHA.
+- Historical sources and full status are in audit/final-reconciliation/TEST_ACCEPTANCE_MATRIX.md and CONFLICT_REGISTER.md.
+- Next: source-backed root-cause fixes and exact-SHA reruns on PR #3495; no test weakening or production data operations.
