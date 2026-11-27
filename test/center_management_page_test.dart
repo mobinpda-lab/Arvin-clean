@@ -45,7 +45,7 @@ void main() {
     await database.close();
   });
 
-  Future<void> installStorageRunner(WidgetTester tester) async {
+  void installStorageRunner(WidgetTester tester) {
     _storageTraceWriter.lines.clear();
     TaskStorageLock.setTraceForTesting(_storageTrace);
     TaskStorageLock.setWorkRunnerForTesting(
@@ -53,12 +53,6 @@ void main() {
     );
     addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
     addTearDown(TaskStorageLock.resetTraceForTesting);
-    // Seed the shared Project database only after the native-I/O runner is
-    // installed. Initializing the executor in FakeAsync before runAsync would
-    // cache schema Futures in a different Zone from the later widget actions.
-    await pumpFuture(tester, () => projects.save(<ProjectPlan>[
-      ProjectPlan(id: 'project-a', title: 'پروژه الف'),
-    ]));
   }
 
 
@@ -89,6 +83,14 @@ void main() {
       );
     }
     return completion.future;
+  }
+
+  Future<void> seedProject(WidgetTester tester) async {
+    // Seed only after the native-I/O runner is installed; schema Futures must
+    // not be initialized in the FakeAsync Zone before widget storage begins.
+    await pumpFuture(tester, () => projects.save(<ProjectPlan>[
+      ProjectPlan(id: 'project-a', title: 'پروژه الف'),
+    ]));
   }
 
   Future<void> pumpFutureVoid(
@@ -164,7 +166,8 @@ void main() {
   });
 
   testWidgets('creates, searches, edits and sorts Centers', (tester) async {
-    await installStorageRunner(tester);
+    installStorageRunner(tester);
+    await seedProject(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpFuture(tester, () => centers.create(id: 'center-b', name: 'مرکز ب'));
     await pumpPage(tester);
@@ -196,7 +199,8 @@ void main() {
 
   testWidgets('creates a Center and archives/restores without deleting it',
       (tester) async {
-    await installStorageRunner(tester);
+    installStorageRunner(tester);
+    await seedProject(tester);
     await pumpPage(tester);
 
     await tester.tap(find.byKey(const ValueKey('center-create')));
@@ -238,7 +242,8 @@ void main() {
   });
 
   testWidgets('shows related Project names in Center details', (tester) async {
-    await installStorageRunner(tester);
+    installStorageRunner(tester);
+    await seedProject(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpFutureVoid(tester, () => centers.linkProject('center-a', 'project-a'));
     await pumpPage(tester);
@@ -252,7 +257,8 @@ void main() {
 
   testWidgets('manages Center to Project links through the existing store',
       (tester) async {
-    await installStorageRunner(tester);
+    installStorageRunner(tester);
+    await seedProject(tester);
     await pumpFuture(tester, () => centers.create(id: 'center-a', name: 'مرکز الف'));
     await pumpPage(tester);
 
