@@ -25,3 +25,20 @@ Release remains NO-GO until all product gates pass on one exact SHA, a provenanc
 
 ## 2026-11-27 post-implementation check
 Home Center filter code is now present on PR #3495, but Project/Category remain single-select and no Arvin Build/test-shard evidence exists on the new head. Governance Validation 45915214855 passed; Zero Dollar Environment Smoke 45915214940 is pending. These results do not change NOT ACCEPTED — RELEASE NO-GO. All existing data, Reminder, Backup/Restore, Calendar, APK and device blockers remain.
+
+
+## Exact latest candidate recheck — 2026-11-27
+
+Candidate SHA: `c76c9023d3959ec344bfd693e4f3b62685329eee`; PR #3495 OPEN / DRAFT / UNMERGED; Main unchanged.
+
+- Governance Validation `45915411571`: SUCCESS.
+- Flutter Analyze: SUCCESS (Build job).
+- Debug APK: SUCCESS; Release APK: SUCCESS (Build jobs).
+- Follow-up File Persistence `45915411504`: SUCCESS.
+- Device Smoke `45915411489`: SUCCESS across 7/7 lanes.
+- Build workflow `45915411506`: IN_PROGRESS overall; all six test shards failed (1,140 passed / 32 failed), trace JSONL evidence job was still in progress at inspection.
+- COMMAND 20-E `45915411562`: IN_PROGRESS; storage persistence passed, complete-evidence gate still running.
+
+Failure families observed in shard logs: Center/Home initialization waits and downstream 10-minute timeouts; Backup/Restore timeouts; `Reentrant call to runAsync() denied`; RTL swipe `pumpAndSettle timed out`; passphrase expectation mismatch. These are not yet root-cause-resolved. Do not increase timeouts or alter assertions without isolating whether product, runner or fixture is responsible.
+
+The attached APK SHA-256 is `5ea45b1aaef66532ac8dd39c5c92532d84e8c05e37b4646ed1ef7167cf3bca66`, package `com.example.arvin.staging`, version `1.0-staging+1`; it has no attributable canonical source SHA and was not installed/launched. Release remains NO-GO.

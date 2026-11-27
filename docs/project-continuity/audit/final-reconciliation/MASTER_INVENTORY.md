@@ -71,3 +71,13 @@ Main remains read-only. No branch/PR deletion, force push, history rewrite, merg
 - Home Center filter source/test change is committed at 9aa6d06ff7db974809e2871087f88ddbb577b6a9 and a05c74496f390038afb424e4cf7d53b4427ba648. It adds CenterStore-backed multi-select OR, no-Center and five RTL filter cards. Project and Category are still single-select; full five-dimension OR contract remains incomplete.
 - Exact head e372cfe... has Governance Validation run 45915214855 SUCCESS. Zero Dollar Environment Smoke 45915214940 PENDING. No Arvin Build run was returned for this head.
 - Commit ledger now represents 250 of 696 PR #3495 commits (446 remain unenumerated); the CSV remains partial. The branch/PR/issue inventory files are a paginated snapshot and must not be confused with the current PR head metadata.
+
+
+## Live revalidation — 2026-11-27 00:12–00:40 UTC
+
+- Re-fetched Main and canonical branch directly: Main `45e4202b03a434459e4c021a04efa7e8396359db`; branch HEAD `c76c9023d3959ec344bfd693e4f3b62685329eee`.
+- PR #3495 is OPEN / DRAFT / UNMERGED with 698 commits, 356 changed files, 86,650 additions and 2,634 deletions; exact compare reports 698 ahead / 0 behind.
+- Re-paginated repository endpoints: branches 15 pages (1,483 rows; page 16 empty), PRs 13 pages (1,299 rows; page 14 empty), combined issue-list 37 pages (3,688 rows; page 38 empty). Existing issue inventory separates 1,299 PR records, leaving 2,389 Issues. Existing PR state inventory: 146 OPEN, 629 MERGED, 524 CLOSED without merge. Per-record disposition still does not imply every unique commit has been reconciled.
+- Exact-HEAD runs: Governance `45915411571` SUCCESS; Build `45915411506` IN_PROGRESS overall with Analyze/Debug/Release jobs SUCCESS and six quality shards FAILED; Device Smoke `45915411489` SUCCESS (7/7); Follow-up Persistence `45915411504` SUCCESS; COMMAND 20-E `45915411562` IN_PROGRESS.
+- Shard results: test-0 272 passed / 6 failed; test-1 173 / 4; test-2 199 / 5; test-3 128 / 4; test-4 153 / 7; test-5 215 / 6. Total 1,140 passed / 32 failed. Failure signatures include Home/Center initialization waits, Backup/Restore timeouts, `Reentrant call to runAsync() denied`, RTL swipe settle timeout, and a passphrase expectation mismatch.
+- No historical branch or PR was deleted/closed; no history was rewritten; Main was not modified.
