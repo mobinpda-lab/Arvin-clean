@@ -548,3 +548,13 @@ Release remains NO-GO. No merge, deployment or production data migration is auth
 - Owner decisions: one route PR #3495; Main read-only; Home filter order Time→Center→Project→Category→Tag; Primary Blue #4169A1; Vazirmatn; Schema v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
 - Historical sources: #3384/#3463 are not direct merge candidates; #3613/#3616/#3620/#3625/#3633/#3634/#3639 are selective data-safety sources; #3567 teal is incompatible as Primary; #3622 four filters is superseded.
 - Next sequence: (1) root-cause current CI; (2) explicit v7→v8→v9 and physical DB tests; (3) canonical M2M stores/consumers; (4) Home/Task/Reminder/Follow-up/Repeat/People/Notebook/Calendar; (5) Backup/Restore; (6) typography/PDF; (7) seven-scenario Device Smoke and release provenance. No new Wave/parallel PR.
+
+
+## Home and product acceptance checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06. Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Product: NOT ACCEPTED. Release: NO-GO.
+- Home Center filter implementation is committed on PR #3495. Next: run widget test, verify startup/migration on a physical v7 fixture, then complete Project and Category OR multi-select without changing the owner filter order.
+- Next P0 data lane: formal v7→v8→v9 migration, explicit source markers, NULL/unknown preservation, file-backed close/reopen/idempotency/rollback and independent A→B backup/restore.
+- Next P0 Reminder lane: implement and test Stop/Follow-up/Snooze/Complete for Issue #3646 with real Android behavior.
+- Then Calendar identity/smoke, People/Notebook persistence, typography (300/400/500/600/700), PDF/share/print and seven-scenario Device Smoke.
+- Exact-SHA Arvin Build has not run on a05c744... at last poll; Zero Dollar Environment Smoke run 45915055641 is pending and does not satisfy quality gates.
+- Owner locks: single PR #3495, Main read-only, no parallel Wave/PR, no test weakening, no production-data migration or release.

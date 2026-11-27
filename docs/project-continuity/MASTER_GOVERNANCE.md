@@ -613,3 +613,13 @@ Governance, implementation and test verification remain separate. The decision i
 - Owner-locked decisions: Primary Blue #4169A1; Vazirmatn; Home filters Time→Center→Project→Category→Tag; M2M Center↔Project and Project↔Category; Task optional links; Schema v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
 - Historical sources REV7/7.1/8/9/12 and older execution commands remain preserved as historical/superseded according to the final reconciliation ledgers.
 - Next: reconcile source PRs selectively and prove exact-SHA behavior. No branch/PR deletion, force push, history rewrite, merge, release, deployment, production DB migration or contract change without separate authority.
+
+
+## Product implementation checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06 (2026-11-27). Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO. PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Authorized code work on the existing canonical branch added the Home Center filter and widget coverage. No parallel PR was created; no Main change was made.
+- Home filter order is now Time, Center, Project, Category, Tag. Center supports multi-select OR and is AND-combined with other active dimensions. Project/Category multi-select remains outstanding.
+- No Arvin Build run was returned for the exact head at last poll. Zero Dollar Environment Smoke run 45915055641 is PENDING only; it is not a product test.
+- All owner locks remain unchanged: REV10 + COMMAND 103-R; #4169A1; Vazirmatn; schema v7→v9; independent Reminder and four actions; Main read-only.
+- Blockers: migration and backup acceptance, remaining Home semantics, Reminder #3646, exact-SHA test/device evidence. Historical source PRs remain preserved. No merge/release/deletion or history rewrite.

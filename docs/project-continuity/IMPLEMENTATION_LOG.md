@@ -1132,3 +1132,14 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Exact-SHA CI evidence on d3a82...: Governance SUCCESS; Follow-up File Persistence SUCCESS; Build FAILED with all six shards and trace failure; Device Smoke FAILED in Calendar; COMMAND 20-E FAILED. No source code changes were made in this discovery pass.
 - Owner decisions and blockers are recorded in PRODUCT_DECISIONS.md and audit/final-reconciliation/.
 - Next: complete diff/commit reconciliation and repair only source-backed product/data failures on PR #3495; rerun every gate on one exact SHA.
+
+
+## 2026-11-27 — Home Center filter implementation
+- Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Changed lib/main.dart: Home now loads Center catalog through the existing CenterStore, filters Task.centerId with multi-select OR, handles no-Center, shows active chips and clears the dimension.
+- Changed lib/home/home_filter_ui.dart: added Center dimension and fixed-width cards in a horizontal RTL scroll row.
+- Changed test/widgets/home_page_test.dart: added Center fixtures and a five-filter combined-behavior test covering Center OR and cross-dimension filtering.
+- Commits: 9aa6d06ff7db974809e2871087f88ddbb577b6a9; test assertion correction a05c74496f390038afb424e4cf7d53b4427ba648.
+- Verification: no Arvin Build run associated with a05c744... at last poll. Zero Dollar Environment Smoke run 45915055641 is PENDING only. No local Flutter SDK/adb/emulator was available in this execution environment.
+- Remaining: Project/Category multi-select, migration/device acceptance and full exact-SHA test suite. No tests were removed or weakened.

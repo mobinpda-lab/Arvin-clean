@@ -631,3 +631,14 @@ Current candidate 26c8d6e449a2204edd95728e739dd07983263eb6: SQLite run 435976891
 - CI: d3a82... Build, all six shards, Calendar Device Smoke and COMMAND 20-E failed. Do not transfer old run results to newer SHA.
 - Historical sources and full status are in audit/final-reconciliation/TEST_ACCEPTANCE_MATRIX.md and CONFLICT_REGISTER.md.
 - Next: source-backed root-cause fixes and exact-SHA reruns on PR #3495; no test weakening or production data operations.
+
+
+## 2026-11-27 — implementation and verification update
+- Last reviewed: 1405/09/06. Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Product: NOT ACCEPTED; Release: NO-GO.
+- Home Center filter has been implemented on PR #3495, including multi-select OR, unassigned Center, five cards and a widget test. Verification is PENDING; no Arvin Build run exists for this exact SHA at last poll.
+- Remaining Home gap: Project and Category remain single-select; full OR semantics across all dimensions remain open.
+- P0: v7→v9 explicit migration and file-backed data preservation remain unaccepted.
+- P0: Issue #3646 Reminder four-action window remains unaccepted.
+- P0: independent SQLite A→B backup/restore and unknown-field preservation remain unaccepted.
+- CI: run 45915055641 is Zero Dollar Environment Smoke, PENDING; it is not Analyze/Build/test-shard acceptance. d3a82... failures remain historical.
+- Next: execute the Home widget test on the exact head, verify CenterStore migration on disposable v7 fixtures, then continue root-cause fixes. No production DB access.

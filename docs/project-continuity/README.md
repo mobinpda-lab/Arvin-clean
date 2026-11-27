@@ -302,3 +302,12 @@ Other documents, ADRs, ledgers, reports and historical PR notes are evidence/arc
 - Owner decisions: REV10 + COMMAND 103-R; Primary Blue #4169A1; Vazirmatn; Home filter order Time→Center→Project→Category→Tag; Schema target v7→v9; Reminder actions Stop/Follow-up/Snooze/Complete.
 - Historical sources: REV7–REV12 records, #3052/#3384/#3463/#3470 and #3547–#3639 remain preserved; see GOVERNANCE_VERSION_LEDGER and HISTORICAL_RECOVERY_REGISTER.
 - Next: continue source-level reconciliation and selective recovery on PR #3495; no merge/release/deletion.
+
+
+## Product implementation checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06 (2026-11-27, Asia/Tehran). Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Main SHA: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO. PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Home now has a committed Center filter implementation on the canonical branch: CenterStore load, multi-select OR within Center, no-Center option, Center chips, five horizontal RTL filter cards and a widget test. Commit: 9aa6d06ff7db974809e2871087f88ddbb577b6a9, with test correction a05c74496f390038afb424e4cf7d53b4427ba648.
+- Verification: no Arvin Build run is associated with a05c744... at last poll. Zero Dollar Environment Smoke run 45915055641 is PENDING and is not product acceptance.
+- Remaining Home gap: Project and Category still use single selection; full OR-within-dimension contract is not yet complete. Center migration/device behavior is not accepted.
+- Blockers remain v7→v9 data proof, Backup/Restore, Reminder #3646, all CI shards, Calendar, PDF, typography and device acceptance. See audit/final-reconciliation/ for source evidence.

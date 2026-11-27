@@ -1874,3 +1874,14 @@ This checkpoint does not transfer PASS to a later SHA or declare product accepta
 - Owner decisions: REV10 + COMMAND 103-R + final 2026-11-27 directive; Primary #4169A1; Vazirmatn; Home order Time→Center→Project→Category→Tag; Schema v7→v9.
 - Historical PRs and commands remain preserved; see the final-reconciliation ledgers.
 - Next: fetch the new head after this documentation commit, trigger/inspect exact-SHA CI, then continue data-safe fixes on PR #3495.
+
+
+## Live implementation checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06. Reviewed exact SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Main: 45e4202b03a434459e4c021a04efa7e8396359db.
+- PR #3495: OPEN / DRAFT / UNMERGED; branch recovery-02/main-based-integration; 695 commits, 356 changed files at this snapshot.
+- Product status: NOT ACCEPTED. Release: NO-GO.
+- Home Center filter code is now committed: CenterStore loading, Center multi-select OR, no-Center option, five horizontally scrollable RTL cards in owner order, chips/clear, and widget test changes. Commits 9aa6d06... and a05c744...
+- Remaining Home gap: Project/Category are single-select, so the full OR-within-dimension contract is incomplete.
+- CI: no Arvin Build run was associated with exact SHA a05c744... at last poll. Zero Dollar Environment Smoke run 45915055641 is PENDING only. Earlier d3a82... Build all-six-shards failure and Calendar Device Smoke failure remain historical evidence; they do not transfer.
+- Blockers: v7→v9 physical migration, backup/restore, Center runtime on device, Home remaining semantics, Reminder #3646, full exact-SHA CI, PDF/RTL and release APK provenance.
+- Next: obtain exact-SHA Arvin Build, analyze all shards and fix only evidence-backed failures; do not claim Home PASS before its widget and integration tests pass.

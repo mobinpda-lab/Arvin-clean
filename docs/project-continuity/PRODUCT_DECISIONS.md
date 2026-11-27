@@ -627,3 +627,13 @@ The existing Settings font-size preference is retained as-is: it is persisted by
 - Blockers: migration source-stage proof, unknown/NULL preservation, M2M runtime integration, independent Backup/Restore, Home Center UI, Reminder window, Calendar and PDF acceptance.
 - Historical sources: #3384/#3463 migration chain; #3567/#3569 design and Home proposals; #3622 four-filter proposal; #3613/#3616/#3620/#3625/#3633/#3634/#3639 data safety chain.
 - Next: apply owner contracts to source/tests without guessing unresolved Reminder platform semantics; preserve every legacy field until a safe migration is accepted.
+
+
+## Home implementation checkpoint — 2026-11-27
+- Last reviewed: 1405/09/06 (2026-11-27). Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Product status: NOT ACCEPTED; Release: NO-GO.
+- Implemented on the canonical branch: Home's five filter cards in owner order Time→Center→Project→Category→Tag; horizontal RTL scrolling; CenterStore-backed Center catalog; multi-select Center filter with OR semantics; unassigned Center option; active filter chips and clear behavior.
+- Cross-dimension filtering remains AND-combined in Home.visible. Center is filtered against Task.centerId; this does not create another storage source.
+- Remaining contract gap: Project and Category pickers are still single-select. The full OR-within-each-dimension contract is not yet implemented for all dimensions.
+- Verification pending: widget test added/updated, but no Arvin Build run was associated with exact SHA a05c744... at last poll. Run 45915055641 is only Zero Dollar Environment Smoke and remains PENDING.
+- Blockers: v7→v9 migration and real DB parity; CenterStore startup/device acceptance; Project/Category multi-select; Reminder #3646; full CI and Device Smoke.
+- Historical conflicts remain resolved in favor of owner: #3622 four-filter is superseded; #3567 teal is not Primary. No semantic contract was silently changed.

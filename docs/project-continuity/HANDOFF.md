@@ -979,3 +979,13 @@ A test result is valid only for the SHA it actually checked out. The successful 
 - Historical sources: preserve #3052, #3384, #3463, #3470, #3547–#3569 and #3613–#3639 until unique changes and evidence are reconciled. Do not merge stacked PRs.
 - First next step: fetch the resulting live PR head after this documentation commit and its workflow runs. The reviewed base SHA is not the new head; no PASS transfers.
 - Then repair test/root causes, formalize v7→v8→v9, selectively recover data-safety commits, implement Reminder UI, validate Home Center and complete device/PDF acceptance. Do not create parallel feature PRs or perform destructive cleanup.
+
+
+## 2026-11-27 — Home Center filter handoff
+- Last reviewed: 1405/09/06. Reviewed base SHA: a05c74496f390038afb424e4cf7d53b4427ba648. Main: 45e4202b03a434459e4c021a04efa7e8396359db.
+- Product status: NOT ACCEPTED. Release: NO-GO. PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Home Center filter implementation is committed in lib/main.dart, lib/home/home_filter_ui.dart and test/widgets/home_page_test.dart. Center is multi-select OR; Center is AND-combined with other dimensions. Five cards are horizontally scrollable in RTL.
+- Remaining Home gap: Project and Category are single-select; full OR-within-dimension behavior is not complete. Exact-SHA test has not run.
+- Current exact SHA a05c744... has no Arvin Build run at last poll. Run 45915055641 is Zero Dollar Environment Smoke and pending only.
+- First next action: trigger/obtain Arvin Build on the exact current PR head, inspect every shard and test result. Then complete explicit v7→v8→v9, backup/restore, Reminder #3646 and device acceptance.
+- Keep Main read-only and PR #3495 Draft/unmerged. No parallel PR, destructive cleanup, release or production-data migration.
