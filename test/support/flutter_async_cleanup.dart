@@ -6,11 +6,10 @@ import 'package:flutter_test/flutter_test.dart';
 /// Flutter's own pending-task cleanup callback before releasing the runner.
 ///
 /// AutomatedTestWidgetsFlutterBinding registers its _pendingAsyncTasks cleanup
-/// with result.future.whenComplete(). That cleanup is queued in the real async
-/// Zone. Awaiting runAsync's returned Future alone can resume before that
-/// whenComplete callback has run. Scheduling this sentinel in the captured
-/// real async Zone drains that already-queued cleanup microtask first. This is
-/// a causal microtask handoff; it does not depend on elapsed time or a Timer.
+/// with result.future.whenComplete(). The callback Future can resume the caller
+/// before that cleanup microtask has drained. A zero-duration Timer scheduled
+/// in the captured real async Zone runs after its queued microtasks, providing
+/// an event-loop barrier without sleeping or increasing any test timeout.
 Future<void> runFlutterAsyncWithCleanupHandshake(
   WidgetTester tester,
   Future<void> Function() work,
@@ -34,7 +33,7 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
   }
 
   final cleanupDrained = Completer<void>();
-  zone.scheduleMicrotask(() {
+  zone.createTimer(Duration.zero, () {
     if (!cleanupDrained.isCompleted) cleanupDrained.complete();
   });
   await cleanupDrained.future;
