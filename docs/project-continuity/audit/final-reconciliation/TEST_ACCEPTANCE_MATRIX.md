@@ -36,3 +36,10 @@ After inventory documentation commits, PR #3495 head was observed at 6b125ddb608
 
 ## Required acceptance
 Flutter Analyze, Debug and Release builds, all six test shards, SQLite migration/parity, independent Backup/Restore, Calendar, typography/RTL, PDF and seven Device Smoke scenarios must all pass on one exact candidate SHA. No test was deleted, skipped or weakened in this audit.
+
+## Post-Home-change exact-head evidence — 2026-11-27
+- Code change: 9aa6d06ff7db974809e2871087f88ddbb577b6a9; test correction: a05c74496f390038afb424e4cf7d53b4427ba648.
+- Current PR head: e372cfe99aef6beb59299ec6912ff8c47691ab86 (documentation-only commit after code/test change).
+- Governance Validation run 45915214855: SUCCESS on e372cfe... (governance gate only).
+- Zero Dollar Environment Smoke run 45915214940: PENDING; not a product acceptance workflow.
+- No Arvin Build run or test-shard result was returned for e372cfe... at last poll. Home widget test, Analyze, all six shards and Device Smoke remain VERIFICATION PENDING on the new code.

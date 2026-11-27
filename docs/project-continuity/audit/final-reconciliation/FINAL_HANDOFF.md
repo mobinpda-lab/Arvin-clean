@@ -27,3 +27,9 @@ Main read-only. Keep PR #3495 Draft/unmerged. Do not create a parallel feature P
 - Open P0 Reminder requirement: Issue #3646.
 - Independent backup/restore gate: Issue #3619.
 - Product release readiness: NO-GO.
+
+## Updated handoff — 2026-11-27
+- Current PR #3495 head: e372cfe99aef6beb59299ec6912ff8c47691ab86; 696 commits; 356 files; OPEN / DRAFT / UNMERGED. Main unchanged at 45e4202b03a434459e4c021a04efa7e8396359db.
+- Home Center filter is committed (9aa6d06... plus test correction a05c744...). Center multi-select OR and five horizontal RTL cards exist; Project/Category remain single-select.
+- Governance Validation 45915214855 SUCCESS. Zero Dollar Smoke 45915214940 PENDING. No Arvin Build/test-shard run exists for this exact head at last poll.
+- Product remains NOT ACCEPTED / Release NO-GO. Next action is obtain Arvin Build on exact head, inspect the new Home widget test and all shards, then proceed with the v7→v9 and Reminder P0 work.
