@@ -83,3 +83,14 @@ Product acceptance remains NOT ACCEPTED. Release remains NO-GO. No Main write, m
 - Root cause of Backup timeout: NOT VERIFIED. Do not change Backup internals until a trace artifact identifies the first START without END.
 - Next exact action: obtain Build on the final docs-inclusive head; download `arvin-test-trace-test-0-<run_id>`; inspect operation sequence and correlation; repair only the first proven blocked stage; rerun encrypted Backup, negative-passphrase no-write, exactly-one-write, exception recovery, busy-state release and all six shards.
 - Product acceptance: NOT ACCEPTED. Release: NO-GO. No Main write, merge, release, deployment or production database operation.
+
+
+## Handoff — 2026-11-28 — continue from live HEAD 59c29195
+
+- Use PR #3495 only; branch `recovery-02/main-based-integration`; Main `45e4202b03a434459e4c021a04efa7e8396359db` is read-only.
+- Last verified HEAD: `59c29195e715b4095ed82191ae35891bfe51eafd`.
+- Exact-SHA evidence: Governance `46137910354` PASS; Follow-up persistence `46137910349` PASS; Device Smoke `46137910386` PASS (7 scenarios); Build `46137910356` CANCELLED with shard 5 FAILURE (154 passed / 7 failed) and shards 0–4 cancelled; COMMAND 20-E `46137910377` NO-GO although ProjectStore, Calendar restart and cleanup gates passed.
+- Active P0 remains Issue #3671. Current Build does not emit per-shard JSONL for test-5; restore this diagnostic path first, with no passphrase or user-data logging. Then isolate the FakeAsync/RealAsync completion handoff; handle Home pumpAndSettle failures independently.
+- Do not raise timeouts, weaken assertions, delete tests, alter Backup semantics, or create a parallel trace framework. Do not call product acceptance complete from APK or Device Smoke alone.
+- Next exact action: restore per-shard trace capture on the authorized branch, run the affected shard and full Build, inspect operation START/END/ERROR by correlation ID, then implement only a proven fix and rerun all required gates on the same SHA.
+- No code changes or commits were made in the preceding forensic pass. Release remains NO-GO; no merge, release, deployment or production DB operation is authorized.
