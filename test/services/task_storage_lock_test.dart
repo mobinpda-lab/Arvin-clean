@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:arvin/services/arvin_async_trace.dart';
+import 'package:arvin/services/g1_drift_schema.dart';
 import 'package:arvin/services/task_storage_lock.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -267,24 +268,13 @@ void main() {
       final completed = Completer<void>();
 
       Future<T> pumpStorage<T>(Future<T> Function() operation) async {
-        final result = Completer<T>();
-        operation().then(
-          result.complete,
-          onError: (Object error, StackTrace stackTrace) {
-            result.completeError(error, stackTrace);
-          },
+        final value = await waitForRealAsync(
+          operation(),
+          timeout: const Duration(seconds: 20),
+          operation: 'TaskStorageLock native I/O operation',
         );
-        result.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
-        for (var frame = 0; !result.isCompleted && frame < 1200; frame++) {
-          await tester.pump(const Duration(milliseconds: 16));
-        }
-        if (!result.isCompleted) {
-          throw TimeoutException(
-            'TaskStorageLock follow-up operation did not complete after 1200 frames',
-            const Duration(seconds: 20),
-          );
-        }
-        return result.future;
+        await tester.pump();
+        return value;
       }
 
       Zone? callerZone;
@@ -309,6 +299,7 @@ void main() {
                 arvinAsyncTrace.currentParentOperationId;
             storageCorrelationId = arvinAsyncTrace.currentCorrelationId;
 
+            await database.ensureOpen(G1DriftSchema());
             final rows = await database.runSelect(
               'SELECT 1 AS value',
               const [],
@@ -329,19 +320,12 @@ void main() {
       );
 
       try {
-        for (var frame = 0;
-            !completed.isCompleted && frame < 1200;
-            frame++) {
-          await tester.pump(const Duration(milliseconds: 16));
-        }
-        if (!completed.isCompleted) {
-          throw TimeoutException(
-            'TaskStorageLock did not complete NativeDatabase I/O outside '
-            'the caller Zone',
-            const Duration(seconds: 20),
-          );
-        }
-        await completed.future;
+        await waitForRealAsync(
+          completed.future,
+          timeout: const Duration(seconds: 20),
+          operation: 'TaskStorageLock did not complete NativeDatabase I/O outside the caller Zone',
+        );
+        await tester.pump();
 
         expect(storageZone, isNot(same(callerZone)));
         expect(parentOperationId, isNotNull);
@@ -367,10 +351,13 @@ void main() {
           try {
             final repeatedRows = await pumpStorage(
               () => TaskStorageLock.synchronized(
-                () => repeatedDatabase.runSelect(
-                  'SELECT ? AS value',
-                  <Object?>[cycle],
-                ),
+                () async {
+                  await repeatedDatabase.ensureOpen(G1DriftSchema());
+                  return repeatedDatabase.runSelect(
+                    'SELECT ? AS value',
+                    <Object?>[cycle],
+                  );
+                },
               ),
             );
             expect(repeatedRows.single['value'], cycle);
