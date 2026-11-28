@@ -61,26 +61,26 @@ This is a pointer/status index, not a duplicate requirements ledger. Update it w
 
 | ID | Active item | Canonical owner / source | Status at registry creation | Priority | Dependency / next action |
 |---|---|---|---|---|---|
-| ARC-DATA-001 | Single write owner for Project↔Task membership (`project_items`) | `ProjectStore` / `TaskStore`; source files linked below | BLOCKED — duplicate write responsibility observed | P0 | Inspect all callers and tests; select one canonical writer; remove non-owner mutation without losing edges; test transaction, reopen, rollback and restore |
-| DB-RESTORE-001 | FK-safe Project snapshot/restore across all canonical relationships | Project/Center/Category stores and backup pipeline | NEEDS SOURCE VERIFICATION — current `replaceAll` deletes relation rows and Projects | P0 | Trace actual restore callers and all FK edges; design atomic dependency-aware replacement; preserve destination on failure |
-| ARC-M2M-001 | Canonical Center↔Project and Project↔Category relationship ownership | `center_store.dart`, hierarchy migration, Project/Category management | PARTIAL / NEEDS SOURCE VERIFICATION | P0 | Inventory CRUD/read consumers; ensure one writer per join table and no guessed edges |
+| ARC-DATA-001 | Single write owner for Project↔Task membership (project_items) | ProjectStore / TaskStore | IMPLEMENTED / EXACT-SHA REGRESSION PENDING | P0 | ProjectStore writes membership; TaskStore no longer deletes/inserts it. Verify trigger-guarded TaskStore rewrite, deferred FK rollback and full regression on current candidate SHA |
+| DB-RESTORE-001 | FK-safe Project snapshot/restore across all canonical relationships | Project/Center/Category stores and backup pipeline | IMPLEMENTED / EXACT-SHA REGRESSION PENDING | P0 | replaceAll now upserts matching IDs in place, preserves omitted membership and graph edges, and blocks deletion with any project_items/center_projects/project_categories reference; verify file-backed rollback/reopen and full restore flow |
+| ARC-M2M-001 | Canonical Center↔Project and Project↔Category relationship ownership | CenterStore, hierarchy migration, Project/Category management | PARTIAL — Center↔Project CRUD exists; Project↔Category canonical CRUD/read path not found in inspected branch services | P0 | Complete caller inventory; add one canonical ProjectCategory owner only if no existing implementation is found; preserve legacy taxonomy and do not infer edges |
 | DB-MIG-001 | Sequential migration, parity, exception preservation, rollback/retry | `G1DriftSchema` and versioned migration chain | BLOCKED / NOT ACCEPTED | P0 | Prove every real source→target edge on disposable file-backed fixtures; IDs, null/missing/false/true, metadata, FK and retry checks |
 | DB-DATA-001 | Preserve unknown Task/Project/Follow-up/Reminder metadata and relationships | SQL codecs, stores, migration and backup | UNVERIFIED end-to-end | P0 | Exercise edit→close→reopen→backup→restore→recovery; compare full identity/relationship/history parity |
-| ACC-CI-001 | Required CI and product acceptance on one candidate SHA | PR #3495 and GitHub workflow runs | BLOCKED / diagnostic candidate needs a fresh exact-SHA run | P0 | Trigger/poll existing workflows on current SHA; inspect CI-visible async phase markers; no stale or cancelled run counts as PASS |
-| ACC-DEVICE-001 | Full Device Smoke acceptance | Device Smoke workflow, all required scenarios | PARTIAL / exact-SHA re-poll required | P0 | Complete Home, Quick Capture, Calendar, People, Backup/Restore and SQL scenarios on one candidate SHA |
+| ACC-CI-001 | Required CI and product acceptance on one candidate SHA | PR #3495 and GitHub workflow runs | IN PROGRESS — candidate a420c89f06c598ed17b9def38efebd9108618c90 | P0 | Poll Build 46116776194, COMMAND 20-E 46116776165, Device Smoke 46116776170, Follow-up 46116776176, Governance 46116776167; all evidence must match final docs-inclusive SHA |
+| ACC-DEVICE-001 | Full Device Smoke acceptance | Device Smoke workflow, all required scenarios | PARTIAL — parent fff59f6 passed 7/7; current candidate a420c89 still running | P0 | Re-run/confirm all seven scenarios on final docs-inclusive SHA; parent evidence does not transfer |
 | ACC-PRODUCT-001 | Full product acceptance and owner release gate | REV10 acceptance charter / Product Owner | NOT ACCEPTED | P0 | Complete product matrix and 100-pass evidence; owner approval remains separate |
 
 ### Source pointers for active architecture findings
 
 - `lib/services/project_store.dart`: `upsert`, `replaceAll`, `_upsertProject`.
-- `lib/services/task_store.dart`: `_saveUnlocked`, especially the read/delete/reinsert of `project_items`.
+- `lib/services/task_store.dart`: `_saveUnlocked` now replaces Task rows with deferred FK validation and does not mutate `project_items` (commit fff59f6...).
 - `lib/services/center_store.dart`: Center↔Project link operations and Center deletion.
 - `lib/services/g1_drift_schema.dart`: canonical SQL table declarations and FK definitions.
 - `lib/services/g1_rev10_hierarchy_v9_migration.dart`: M2M schema and historical relationship transfer.
 - `docs/project-continuity/OPEN_ISSUES.md`: existing M2M, migration and backup blockers.
 - `docs/project-continuity/REV10-MASTER-REQUIREMENT-LEDGER.md`: requirement IDs and their detailed implementation/test/acceptance state.
 
-**Important:** the observations above are source-level findings at the registry creation SHA. They are not yet a complete caller audit, runtime reproduction or verified root-cause closure.
+**Important:** source pointers above are branch-current only where a dated checkpoint says so. They do not constitute full product acceptance or prove all consumer parity.
 
 ## 5. Deduplication gate — mandatory before each change
 
@@ -139,3 +139,20 @@ Then continue with `ARC-DATA-001`: complete caller and test inventory before cha
 - Source audit confirms DB-RESTORE-001 risk: `ProjectBackupBridge.restoreProjects` calls `ProjectStore.replaceAll`; that method deletes `project_items` then all `projects`, but does not snapshot/reconcile `center_projects` or `project_categories`. Both M2M tables use `ON DELETE RESTRICT`; current restore candidate carries ProjectPlan values, not the full canonical relationship graph. This is a source-level blocker; no runtime destructive reproduction was performed.
 - CenterStore owns CRUD for `center_projects`, while ProjectStore still omits reads/writes for `center_projects` and `project_categories`. Preserve all legacy columns, IDs, payloads and edges. Do not invent links or clear join tables to make restore pass.
 - Product acceptance remains NOT ACCEPTED; release remains NO-GO.
+
+
+## Live execution checkpoint — 2026-11-28 — candidate a420c89f06c598ed17b9def38efebd9108618c90
+
+- Main: 45e4202b03a434459e4c021a04efa7e8396359db — unchanged/read-only.
+- Branch: recovery-02/main-based-integration, HEAD a420c89f06c598ed17b9def38efebd9108618c90.
+- PR #3495: OPEN / DRAFT / UNMERGED; no merge, release or deployment.
+- Code commits since the prior diagnostic checkpoint:
+  - fff59f6b3c5bad6746e271ef42d2c505cce1b368: TaskStore stopped writing/deleting project_items; ProjectStore is the sole membership writer; deferred FK validation preserves rollback when a still-linked Task is omitted; trigger-guarded file-backed test added.
+  - a48488ff89ec01d880548d267b66389c28c13d00: ProjectStore.replaceAll now updates matching Project IDs in place, preserves Center/Category graph edges, and blocks deletion of linked Projects; file-backed graph-preservation test added.
+  - a420c89f06c598ed17b9def38efebd9108618c90: reuse the canonical insert helper for new Projects and generalize the shared ProjectDeleteBlocked contract.
+- Current exact-SHA workflows: Build 46116776194 (all six test shards, Analyze, Debug/Release APK and trace evidence still in progress at checkpoint); COMMAND 20-E 46116776165 storage-persistence in progress; Device Smoke 46116776170 running; Follow-up File Persistence 46116776176 SUCCESS; Governance 46116776167 owner-locked REV10 contract SUCCESS. Re-poll before relying on any pending result.
+- Previous candidate Device Smoke 46115088811 on fff59f6... completed SUCCESS 7/7. It is historical evidence and does not transfer to a420c89f06c598ed17b9def38efebd9108618c90.
+- Project restore now preserves existing IDs and M2M edges by updating in place. The new file-backed test checks Task membership, Center↔Project and Project↔Category edges, unknown metadata, blocked deletion and FK integrity. It is IMPLEMENTED / NOT VERIFIED until its exact-SHA test job passes.
+- Project↔Category still lacks a verified canonical CRUD/read owner in the inspected branch services. Do not add a duplicate store until all consumers and historical implementations are checked.
+- Async runner diagnostic remains unresolved: earlier parent-SHA logs show callback entry and eventual work completion after the test harness timeout. Do not increase timeouts or weaken tests; inspect exact current-SHA job logs after completion to identify the first blocked phase.
+- Product acceptance: NOT ACCEPTED. Release: NO-GO.

@@ -1175,3 +1175,29 @@ Issue #3646 / COMMAND 97-R remains OPEN / NOT ACCEPTED. Stop, Follow-up, Snooze 
 - Commit: `88dfc7a10b2713c8f5b43c471acb74e82027acd8` (diagnostics only; no production code changed).
 - Parent evidence: Build `46108844083` on `4c3ee249...` had six failing quality shards; the new diagnostic commit has no PR-triggered run returned at checkpoint time.
 - Status: IMPLEMENTED / NOT VERIFIED. Do not classify as a fix until exact-SHA logs prove the failure boundary and regression tests pass.
+
+
+## 2026-11-28 — canonical Project membership and restore graph corrections
+
+### ARC-DATA-001 — Project↔Task membership single writer
+- Commit: fff59f6b3c5bad6746e271ef42d2c505cce1b368.
+- Files: lib/services/task_store.dart, test/project_store_file_persistence_test.dart, test/support/flutter_async_cleanup.dart.
+- TaskStore no longer snapshots, deletes or reinserts project_items; ProjectStore remains the only writer. TaskStore full-row replacement defers FK validation until commit so existing Project edges can survive Task-row replacement; deleting a still-linked Task fails atomically.
+- Regression: SQLite triggers reject any TaskStore INSERT/DELETE against project_items; test also checks preserved edges and rollback. Status IMPLEMENTED / exact-SHA verification pending.
+
+### DB-RESTORE-001 — dependency-safe Project restore
+- Commit: a48488ff89ec01d880548d267b66389c28c13d00; cleanup commit a420c89f06c598ed17b9def38efebd9108618c90.
+- Files: lib/services/project_store.dart, lib/models/goal_project.dart, test/project_store_file_persistence_test.dart.
+- replaceAll now upserts matching Project IDs in place; it no longer deletes all project_items or all projects. Existing membership is retained when incoming itemIds is omitted. Projects absent from the replacement are deleted only when no Task, Center or Category edge references them. Failure rolls back the full transaction.
+- Regression test uses file-backed SQLite, verifies Task membership, Center↔Project and Project↔Category edges, unknown metadata, deletion rejection and FK integrity. Status IMPLEMENTED / exact-SHA verification pending.
+
+### Current exact-SHA gates
+- Candidate: a420c89f06c598ed17b9def38efebd9108618c90.
+- Build 46116776194: in progress (Analyze, APKs, six test shards, trace evidence).
+- COMMAND 20-E 46116776165: storage-persistence in progress.
+- Device Smoke 46116776170: in progress.
+- Follow-up File Persistence 46116776176: SUCCESS.
+- Governance Validation 46116776167: SUCCESS.
+- Parent SHA Device Smoke 46115088811: SUCCESS 7/7 on fff59f6...; historical only.
+
+No production DB writes, no Main changes, no merge/release/deployment. No test weakening. Product acceptance remains NOT ACCEPTED.

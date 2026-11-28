@@ -665,3 +665,18 @@ Shard totals: test-0 272/6 failed; test-1 173/4; test-2 199/5; test-3 128/4; tes
 Issue #3646 / COMMAND 97-R remains OPEN / NOT ACCEPTED. Stop, Follow-up, Snooze and Complete semantics are defined in the Issue, but the dedicated four-action UI and device acceptance are not proven.
 
 **Acceptance:** NOT ACCEPTED. **Release:** NO-GO. These results are tied to the stated source SHA and do not transfer to later commits. The following audit-document commits do not constitute a product fix or acceptance. Main remains unchanged; no merge, release, deployment, branch deletion, PR closure, force push or production-data migration was performed.
+
+
+## 2026-11-28 — live superseding evidence for existing P0 data records (no new defect IDs)
+
+This checkpoint updates the existing ARC-DATA-001, DB-RESTORE-001, ARC-M2M-001 and SQLITE-80D-05 records. It does not create parallel issues.
+
+- Candidate SHA: a420c89f06c598ed17b9def38efebd9108618c90; PR #3495 OPEN / DRAFT / UNMERGED; Main remains read-only at 45e4202b03a434459e4c021a04efa7e8396359db.
+- ARC-DATA-001: commit fff59f6b3c5bad6746e271ef42d2c505cce1b368 removes TaskStore's direct DELETE/INSERT of project_items; ProjectStore is the sole writer. TaskStore now defers FK checks during its transactional full rewrite so unchanged Task identities can be reinserted; omission of a referenced Task must fail COMMIT and roll back. A file-backed trigger-guarded test covers ownership and rollback. Status: IMPLEMENTED / exact-SHA regression pending.
+- DB-RESTORE-001: commits a48488ff89ec01d880548d267b66389c28c13d00 and a420c89f06c598ed17b9def38efebd9108618c90 replace collection-wide Project deletion/recreation with in-place upserts for matching IDs. Omitted itemIds preserves existing Task membership. Projects absent from the incoming snapshot are deleted only after checking project_items, center_projects and project_categories; any edge blocks the operation and transaction rollback preserves the prior graph. File-backed regression test seeds both M2M edges, verifies metadata/membership preservation, then verifies deletion rejection and FK integrity. Status: IMPLEMENTED / exact-SHA regression pending.
+- ARC-M2M-001: CenterStore has CRUD for center_projects. In the inspected branch service inventory, no canonical project_categories CRUD/read service was found; migration creates the table, but that is not a product capability. Keep this item PARTIAL; complete caller inventory before adding an owner.
+- Current-SHA workflow evidence at checkpoint: Build 46116776194 running; COMMAND 20-E 46116776165 running; Device Smoke 46116776170 running; Follow-up File Persistence 46116776176 SUCCESS; Governance 46116776167 SUCCESS. No acceptance inference from pending runs.
+- Previous Device Smoke 46115088811 passed 7/7 on parent SHA fff59f6...; it is not current-candidate proof.
+- No production database was accessed or modified. No tests were removed, disabled, weakened or had timeouts increased. Product acceptance remains NOT ACCEPTED; release remains NO-GO.
+
+Next: poll all current-SHA jobs; inspect the targeted graph restore and TaskStore ownership test results; then continue the existing M2M consumer-parity blocker without adding a duplicate persistence owner.

@@ -1925,3 +1925,20 @@ Shard totals: test-0 272/6 failed; test-1 173/4; test-2 199/5; test-3 128/4; tes
 Issue #3646 / COMMAND 97-R remains OPEN / NOT ACCEPTED. Stop, Follow-up, Snooze and Complete semantics are defined in the Issue, but the dedicated four-action UI and device acceptance are not proven.
 
 **Acceptance:** NOT ACCEPTED. **Release:** NO-GO. These results are tied to the stated source SHA and do not transfer to later commits. The following audit-document commits do not constitute a product fix or acceptance. Main remains unchanged; no merge, release, deployment, branch deletion, PR closure, force push or production-data migration was performed.
+
+
+## Live execution checkpoint — 2026-11-28 — candidate a420c89f06c598ed17b9def38efebd9108618c90
+
+- Main: 45e4202b03a434459e4c021a04efa7e8396359db — unchanged/read-only.
+- Branch: recovery-02/main-based-integration, HEAD a420c89f06c598ed17b9def38efebd9108618c90.
+- PR #3495: OPEN / DRAFT / UNMERGED; no merge, release or deployment.
+- Code commits since the prior diagnostic checkpoint:
+  - fff59f6b3c5bad6746e271ef42d2c505cce1b368: TaskStore stopped writing/deleting project_items; ProjectStore is the sole membership writer; deferred FK validation preserves rollback when a still-linked Task is omitted; trigger-guarded file-backed test added.
+  - a48488ff89ec01d880548d267b66389c28c13d00: ProjectStore.replaceAll now updates matching Project IDs in place, preserves Center/Category graph edges, and blocks deletion of linked Projects; file-backed graph-preservation test added.
+  - a420c89f06c598ed17b9def38efebd9108618c90: reuse the canonical insert helper for new Projects and generalize the shared ProjectDeleteBlocked contract.
+- Current exact-SHA workflows: Build 46116776194 (all six test shards, Analyze, Debug/Release APK and trace evidence still in progress at checkpoint); COMMAND 20-E 46116776165 storage-persistence in progress; Device Smoke 46116776170 running; Follow-up File Persistence 46116776176 SUCCESS; Governance 46116776167 owner-locked REV10 contract SUCCESS. Re-poll before relying on any pending result.
+- Previous candidate Device Smoke 46115088811 on fff59f6... completed SUCCESS 7/7. It is historical evidence and does not transfer to a420c89f06c598ed17b9def38efebd9108618c90.
+- Project restore now preserves existing IDs and M2M edges by updating in place. The new file-backed test checks Task membership, Center↔Project and Project↔Category edges, unknown metadata, blocked deletion and FK integrity. It is IMPLEMENTED / NOT VERIFIED until its exact-SHA test job passes.
+- Project↔Category still lacks a verified canonical CRUD/read owner in the inspected branch services. Do not add a duplicate store until all consumers and historical implementations are checked.
+- Async runner diagnostic remains unresolved: earlier parent-SHA logs show callback entry and eventual work completion after the test harness timeout. Do not increase timeouts or weaken tests; inspect exact current-SHA job logs after completion to identify the first blocked phase.
+- Product acceptance: NOT ACCEPTED. Release: NO-GO.
