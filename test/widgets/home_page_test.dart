@@ -44,29 +44,22 @@ Future<T> _pumpFuture<T>(
   WidgetTester tester,
   Future<T> Function() operation,
 ) async {
-  final completion = Completer<T>();
-  operation().then(
-    completion.complete,
-    onError: (Object error, StackTrace stackTrace) {
-      completion.completeError(error, stackTrace);
-    },
-  );
-  completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
+  try {
+    final value = await waitForRealAsync(
+      operation(),
+      timeout: const Duration(seconds: 20),
+      operation: 'Home database operation',
+    );
+    await tester.pump();
+    return value;
+  } on TimeoutException {
     debugPrint('HOME_STORAGE_TRACE_BEGIN');
     for (final line in _storageTraceWriter.lines.take(40)) {
       debugPrint(line);
     }
     debugPrint('HOME_STORAGE_TRACE_END');
-    throw TimeoutException(
-      'Home database operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
+    rethrow;
   }
-  return completion.future;
 }
 
 Future<void> _pumpArvinApp(WidgetTester tester) async {
@@ -76,22 +69,20 @@ Future<void> _pumpArvinApp(WidgetTester tester) async {
       if (!loaded.isCompleted) loaded.complete();
     }));
   });
-  for (var frame = 0; !loaded.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!loaded.isCompleted) {
+  try {
+    await waitForRealAsync(
+      loaded.future,
+      timeout: const Duration(seconds: 20),
+      operation: 'Home did not report load completion',
+    );
+  } on TimeoutException {
     debugPrint('HOME_STORAGE_TRACE_BEGIN');
     for (final line in _storageTraceWriter.lines.take(40)) {
       debugPrint(line);
     }
     debugPrint('HOME_STORAGE_TRACE_END');
-    throw TimeoutException(
-      'Home did not report load completion after 1200 frames',
-      const Duration(seconds: 20),
-    );
+    rethrow;
   }
-  await loaded.future;
-  await tester.pumpAndSettle();
   await tester.pumpAndSettle();
 }
 
