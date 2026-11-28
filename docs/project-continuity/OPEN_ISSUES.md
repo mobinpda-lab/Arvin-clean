@@ -680,3 +680,14 @@ This checkpoint updates the existing ARC-DATA-001, DB-RESTORE-001, ARC-M2M-001 a
 - No production database was accessed or modified. No tests were removed, disabled, weakened or had timeouts increased. Product acceptance remains NOT ACCEPTED; release remains NO-GO.
 
 Next: poll all current-SHA jobs; inspect the targeted graph restore and TaskStore ownership test results; then continue the existing M2M consumer-parity blocker without adding a duplicate persistence owner.
+
+
+## 2026-11-28 — superseding CI/test-fixture evidence (existing records only)
+
+This entry updates the existing ACC-CI-001, ACC-DEVICE-001, ARC-DATA-001 and DB-RESTORE-001 records; no parallel defect IDs are introduced.
+
+- Current candidate: `c51411fcb2019ad733c6fdcf700d94bfdee17a13`; PR #3495 OPEN / DRAFT / UNMERGED; Main remains read-only.
+- Parent SHA `9a37b282...` Build run `46117138055` failed all six quality shards. The logs establish fixture/runner defects in fake-frame waiting and NativeDatabase setup; they do not establish a production SQLite deadlock. The separate RTL swipe settle failure remains unresolved.
+- Six test-only commits correct the waits, explicit executor open, and Home Restore runner. Status: COMMITTED / NOT VERIFIED pending exact-SHA CI.
+- Device Smoke 7/7, Governance and Follow-up persistence passed on `9a37b282...` only. COMMAND 20-E storage-persistence passed, but complete-evidence remained IN_PROGRESS at last poll. None is current-HEAD evidence.
+- No current-SHA workflow run was returned for `c51411f...`. Do not mark ACC-CI-001 or ACC-DEVICE-001 green. Next: obtain exact-SHA Build, targeted tests and full COMMAND 20-E evidence; then continue existing M2M and D01–D05 blockers.
