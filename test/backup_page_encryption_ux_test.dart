@@ -92,48 +92,25 @@ Future<T> _pumpFuture<T>(
   WidgetTester tester,
   Future<T> Function() operation,
 ) async {
-  final completion = Completer<T>();
-  operation().then(
-    completion.complete,
-    onError: (Object error, StackTrace stackTrace) {
-      completion.completeError(error, stackTrace);
-    },
+  final value = await waitForRealAsync(
+    operation(),
+    timeout: const Duration(seconds: 20),
+    operation: 'Backup database operation',
   );
-  completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
-    throw TimeoutException(
-      'Backup database operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  return completion.future;
+  await tester.pump();
+  return value;
 }
 
 Future<void> _pumpFutureVoid(
   WidgetTester tester,
   Future<void> Function() operation,
 ) async {
-  final completion = Completer<void>();
-  operation().then(
-    (_) => completion.complete(),
-    onError: (Object error, StackTrace stackTrace) {
-      completion.completeError(error, stackTrace);
-    },
+  await waitForRealAsync(
+    operation(),
+    timeout: const Duration(seconds: 20),
+    operation: 'Backup database operation',
   );
-  completion.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
-    throw TimeoutException(
-      'Backup database operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  await completion.future;
+  await tester.pump();
 }
 
 Future<void> _pumpUntilComplete(
@@ -141,16 +118,12 @@ Future<void> _pumpUntilComplete(
   Completer<void> completion, {
   required String operation,
 }) async {
-  for (var frame = 0; !completion.isCompleted && frame < 1200; frame++) {
-    await tester.pump(const Duration(milliseconds: 16));
-  }
-  if (!completion.isCompleted) {
-    throw TimeoutException(
-      '$operation did not complete after 1200 frames',
-      const Duration(seconds: 20),
-    );
-  }
-  await completion.future;
+  await waitForRealAsync(
+    completion.future,
+    timeout: const Duration(seconds: 20),
+    operation: operation,
+  );
+  await tester.pump();
 }
 
 void main() {
