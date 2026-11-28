@@ -72,3 +72,14 @@ Product acceptance remains NOT ACCEPTED. Release remains NO-GO. No Main write, m
 - Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
 - Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
 - This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
+
+## Live continuation — 2026-11-28 — encrypted Backup trace remediation
+
+- Canonical route: PR #3495 / `recovery-02/main-based-integration`; Main remains read-only at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Latest code commit in this batch: `04264807bdbf43e4b92d322b89df8dd6afa1f058`. Trace privacy/test commits immediately before it: `c8a420de7e265c2f5421a6df243a39115688e1a7`, `5612b7942640a7872d0bdd51bd5809756bcaa918`.
+- Existing Issue #3671 is the active P0. Its older candidate `7241842aced02eb6ee24ccaaf89af5c0b6d897fa` failed Build run `45025576717`: encrypted Backup confirmation test timed out after 10 minutes; the shard log reported 198 passed / 1 failed. The run had no per-shard trace artifact (only Debug/Release APK artifacts).
+- Implemented: per-shard JSONL tracing in Build test jobs; exact-SHA/run/lane/outcome metadata; artifact upload with `always()`; exception messages removed from trace events while retaining exception type. No Backup behavior, test assertion, timeout or data path changed.
+- Verification: NOT VERIFIED. No associated workflow run was returned for code SHA `0426480...` at poll time; no local Flutter/Dart SDK or workflow-dispatch action is available here. The older Device Smoke/Governance/Follow-up successes and COMMAND 20-E failure remain scoped to the older candidate.
+- Root cause of Backup timeout: NOT VERIFIED. Do not change Backup internals until a trace artifact identifies the first START without END.
+- Next exact action: obtain Build on the final docs-inclusive head; download `arvin-test-trace-test-0-<run_id>`; inspect operation sequence and correlation; repair only the first proven blocked stage; rerun encrypted Backup, negative-passphrase no-write, exactly-one-write, exception recovery, busy-state release and all six shards.
+- Product acceptance: NOT ACCEPTED. Release: NO-GO. No Main write, merge, release, deployment or production database operation.
