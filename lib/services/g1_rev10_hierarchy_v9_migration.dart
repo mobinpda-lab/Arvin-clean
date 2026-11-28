@@ -14,6 +14,8 @@ class G1Rev10HierarchyV9Migration {
   static const int sourceSchemaVersion = 8;
   static const int targetSchemaVersion = 9;
   static const String markerKey = 'rev10_hierarchy_schema_version';
+  static const String taskCategoryAssignmentRepairMarkerKey =
+      'rev10_task_category_assignment_v1';
 
   final G1HierarchyFailureInjector? failureInjector;
 
@@ -36,7 +38,13 @@ class G1Rev10HierarchyV9Migration {
     );
     if (marker.isNotEmpty) {
       final version = int.tryParse(marker.single['value']?.toString() ?? '');
-      if (version == targetSchemaVersion) return;
+      if (version == targetSchemaVersion) {
+        // v9 databases created before the independent Task→Category repair
+        // may still have a legacy category string but a NULL category_id.
+        // Run the one-time additive backfill before treating v9 as complete.
+        await _repairTaskCategoryAssignments(executor);
+        return;
+      }
       throw StateError('Unexpected REV10 hierarchy marker: $version');
     }
 
@@ -327,12 +335,14 @@ class G1Rev10HierarchyV9Migration {
         final taskProjects = membershipsByTask[taskId] ?? const <String>[];
         final hasUnambiguousProject =
             taskProjects.length == 1 && projectIds.contains(taskProjects.single);
-        if (!hasUnambiguousProject) {
-          await executor.runUpdate(
-            'UPDATE tasks SET category_id = ? WHERE id = ?',
-            <Object?>[categoryId, taskId],
-          );
-        } else {
+        // Task→Category is an independent optional direct assignment. A
+        // Task's Project membership must not suppress this link; it only
+        // prevents us from inferring a separate Project↔Category edge.
+        await executor.runUpdate(
+          'UPDATE tasks SET category_id = ? WHERE id = ?',
+          <Object?>[categoryId, taskId],
+        );
+        if (hasUnambiguousProject) {
           await _recordException(
             executor,
             entityType: 'task',
@@ -370,6 +380,74 @@ class G1Rev10HierarchyV9Migration {
         '''INSERT INTO arvin_storage_meta(key, value) VALUES (?, ?)
            ON CONFLICT(key) DO UPDATE SET value = excluded.value''',
         <Object?>[markerKey, '$targetSchemaVersion'],
+      );
+      await executor.runCustom('COMMIT');
+    } catch (_) {
+      try {
+        await executor.runCustom('ROLLBACK');
+      } catch (_) {}
+      rethrow;
+    }
+    await _repairTaskCategoryAssignments(executor);
+  }
+
+  /// Repairs v9 databases that already committed the hierarchy marker before
+  /// Task→Category was migrated independently of Project membership.
+  /// Only existing Category identities are used; no Project↔Category edge is
+  /// inferred, and non-NULL Task assignments are never overwritten.
+  Future<void> _repairTaskCategoryAssignments(QueryExecutor executor) async {
+    final marker = await executor.runSelect(
+      'SELECT value FROM arvin_storage_meta WHERE key = ?',
+      <Object?>[taskCategoryAssignmentRepairMarkerKey],
+    );
+    if (marker.isNotEmpty) {
+      if (marker.single['value'] != '1') {
+        throw StateError('Unexpected Task Category repair marker.');
+      }
+      return;
+    }
+
+    await executor.runCustom('BEGIN');
+    try {
+      final tasks = await executor.runSelect(
+        '''SELECT id, category FROM tasks
+           WHERE category_id IS NULL AND category IS NOT NULL
+             AND TRIM(category) <> ''
+           ORDER BY id''',
+        const [],
+      );
+      for (final task in tasks) {
+        final taskId = task['id'] as String;
+        final name = (task['category'] as String).trim();
+        final categories = await executor.runSelect(
+          'SELECT id FROM categories WHERE legacy_name = ?',
+          <Object?>[name],
+        );
+        if (categories.isEmpty) {
+          // Preserve the source string and make the missing identity explicit;
+          // never manufacture a Category or guess a relation.
+          await _recordException(
+            executor,
+            entityType: 'task',
+            entityId: taskId,
+            code: 'TASK_CATEGORY_IDENTITY_MISSING',
+            details: <String, Object?>{'legacyCategory': name},
+          );
+          continue;
+        }
+        if (categories.length != 1) {
+          throw StateError('Task Category identity is not unique for $taskId.');
+        }
+        await executor.runUpdate(
+          'UPDATE tasks SET category_id = ? WHERE id = ? AND category_id IS NULL',
+          <Object?>[categories.single['id'], taskId],
+        );
+      }
+      await _inject('after_task_category_assignment_repair');
+      await executor.runInsert(
+        '''INSERT INTO arvin_storage_meta(key, value) VALUES (?, '1')
+           ON CONFLICT(key) DO UPDATE SET value = '1' ''',
+        <Object?>[taskCategoryAssignmentRepairMarkerKey],
       );
       await executor.runCustom('COMMIT');
     } catch (_) {
