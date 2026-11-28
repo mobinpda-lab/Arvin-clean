@@ -88,15 +88,11 @@ jobs:
         if: matrix.lane == 'analyze'
         run: flutter analyze
       - name: Test
-        id: test
         if: startsWith(matrix.lane, 'test-')
         env:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
-          ARVIN_MISSION_ID: 178-R
-          ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/${{ matrix.lane }}.jsonl
         run: |
           set -euo pipefail
-          mkdir -p "$(dirname "$ARVIN_TRACE_OUTPUT")"
           # These harnesses require the pinned historical V19 checkout and dedicated SQLite fixtures.
           mapfile -t test_files < <(
             find test -type f -name '*_test.dart' ! -path 'test/command49_v19_safety_test.dart' ! -path 'test/command50_occurrence_forensic_test.dart' | sort
@@ -104,42 +100,6 @@ jobs:
           test "${#test_files[@]}" -gt 0
           echo "GENERAL_TEST_FILE_COUNT=${#test_files[@]}"
           flutter test --total-shards 6 --shard-index "$SHARD_INDEX" "${test_files[@]}"
-      - name: Record shard trace status
-        if: ${{ always() && startsWith(matrix.lane, 'test-') }}
-        env:
-          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          TRACE_LANE: ${{ matrix.lane }}
-          TEST_OUTCOME: ${{ steps.test.outcome }}
-          ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/${{ matrix.lane }}.jsonl
-        run: |
-          set -euo pipefail
-          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
-          mkdir -p "$trace_dir"
-          if [[ -s "$ARVIN_TRACE_OUTPUT" ]]; then
-            trace_status=PRESENT
-          else
-            trace_status=MISSING
-          fi
-          {
-            echo "Mission ID: 178-R"
-            echo "Repository: $GITHUB_REPOSITORY"
-            echo "Branch: $GITHUB_HEAD_REF"
-            echo "Commit SHA: $TARGET_SHA"
-            echo "GitHub Run ID: $GITHUB_RUN_ID"
-            echo "GitHub Run Attempt: $GITHUB_RUN_ATTEMPT"
-            echo "Test lane: $TRACE_LANE"
-            echo "Test step outcome: $TEST_OUTCOME"
-            echo "Trace evidence status: $trace_status"
-          } > "$trace_dir/metadata.txt"
-          echo "TRACE_EVIDENCE_STATUS=$trace_status"
-      - name: Upload shard JSONL trace artifact
-        if: ${{ always() && startsWith(matrix.lane, 'test-') }}
-        uses: actions/upload-artifact@v5
-        with:
-          name: arvin-test-trace-${{ matrix.lane }}-${{ github.run_id }}
-          path: arvin-trace/
-          if-no-files-found: error
-          compression-level: 6
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:

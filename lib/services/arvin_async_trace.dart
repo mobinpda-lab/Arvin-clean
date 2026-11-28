@@ -158,8 +158,12 @@ class ArvinAsyncTrace {
     }
     // Log only after the independent sink accepted the event. A failed END
     // write must not leave a misleading developer.log success record.
+    final consoleJsonl =
+        writer == null && Platform.environment['ARVIN_TRACE_CONSOLE_JSONL'] == '1';
     developer.log(
-      '[ARVIN_TRACE] ${event['event_type'] ?? event['event']} ${event['operation_name']}',
+      consoleJsonl
+          ? '[ARVIN_TRACE_JSONL] $line'
+          : '[ARVIN_TRACE] ${event['event_type'] ?? event['event']} ${event['operation_name']}',
       name: 'arvin.async_trace',
       level: event['event'] == 'ERROR' ? 1000 : 800,
     );

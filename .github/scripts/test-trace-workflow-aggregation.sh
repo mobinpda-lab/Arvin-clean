@@ -14,12 +14,19 @@ suite="$2"
 printf '%s\n' "$suite" >> "$FAKE_FLUTTER_CALLS"
 case "$suite" in
   test/services/arvin_async_trace_test.dart) rc="${FAKE_TRACE_RC:-0}" ;;
-  test/center_management_page_test.dart) rc="${FAKE_CENTER_RC:-0}" ;;
-  test/widgets/home_page_test.dart) rc="${FAKE_HOME_RC:-0}" ;;
-  test/backup_page_encryption_ux_test.dart) rc="${FAKE_BACKUP_RC:-0}" ;;
-  test/encrypted_backup_service_integration_test.dart) rc="${FAKE_ENCRYPTED_BACKUP_RC:-0}" ;;
+  test/center_management_page_test.dart) rc="${FAKE_CENTER_RC:-0}"; suite_key=center ;;
+  test/widgets/home_page_test.dart) rc="${FAKE_HOME_RC:-0}"; suite_key=home ;;
+  test/backup_page_encryption_ux_test.dart) rc="${FAKE_BACKUP_RC:-0}"; suite_key=backup ;;
+  test/encrypted_backup_service_integration_test.dart) rc="${FAKE_ENCRYPTED_BACKUP_RC:-0}"; suite_key=encrypted_backup ;;
   *) echo "unexpected test path: $suite" >&2; exit 99 ;;
 esac
+if [[ "$suite" != test/services/arvin_async_trace_test.dart ]]; then
+  [[ -z "${ARVIN_TRACE_OUTPUT:-}" ]] || { echo "widget suite received file-backed trace sink" >&2; exit 98; }
+  [[ "${ARVIN_TRACE_CONSOLE_JSONL:-}" == "1" ]] || { echo "widget suite missing console JSONL opt-in" >&2; exit 97; }
+  [[ "${ARVIN_MISSION_ID:-}" == "202-R" ]] || { echo "widget suite missing mission identity" >&2; exit 96; }
+  printf '[ARVIN_TRACE_JSONL] {"mission_id":"202-R","timestamp":"2026-11-28T00:00:00Z","event":"START","event_type":"START","operation_id":"op-%s","parent_id":null,"parent_operation_id":null,"correlation_id":"corr-%s","operation_name":"%s.operation","elapsed_ms":0,"status":"RUNNING","error_type":null,"exception_message":null}\n' "$suite_key" "$suite_key" "$suite_key"
+  printf '[ARVIN_TRACE_JSONL] {"mission_id":"202-R","timestamp":"2026-11-28T00:00:01Z","event":"END","event_type":"END","operation_id":"op-%s","parent_id":null,"parent_operation_id":null,"correlation_id":"corr-%s","operation_name":"%s.operation","elapsed_ms":1,"status":"SUCCESS","error_type":null,"exception_message":null}\n' "$suite_key" "$suite_key" "$suite_key"
+fi
 printf 'FAKE_FLUTTER_SUITE=%s EXIT=%s\n' "$suite" "$rc"
 exit "$rc"
 FAKE
@@ -32,8 +39,13 @@ assert_order() {
 run_case() {
   local case_name="$1" expected_exit="$2" trace_rc="$3" center_rc="$4" home_rc="$5" backup_rc="$6" encrypted_rc="$7"
   local case_dir="$TMP/$case_name" actual_exit
-  mkdir -p "$case_dir"; : > "$case_dir/calls"; : > "$case_dir/github_env"
-  if env PATH="$FAKE_BIN:$PATH" TRACE_EVIDENCE_DIR="$case_dir/evidence" GITHUB_ENV="$case_dir/github_env" FAKE_FLUTTER_CALLS="$case_dir/calls" FAKE_TRACE_RC="$trace_rc" FAKE_CENTER_RC="$center_rc" FAKE_HOME_RC="$home_rc" FAKE_BACKUP_RC="$backup_rc" FAKE_ENCRYPTED_BACKUP_RC="$encrypted_rc" bash "$RUNNER" > "$case_dir/output.log" 2>&1; then actual_exit=0; else actual_exit=$?; fi
+  mkdir -p "$case_dir/evidence"; : > "$case_dir/calls"; : > "$case_dir/github_env"
+  local trace_jsonl="$case_dir/evidence/arvin-async-trace.jsonl"
+  cat > "$trace_jsonl" <<'TRACE'
+{"mission_id":"202-R","timestamp":"2026-11-28T00:00:00Z","event":"START","event_type":"START","operation_id":"op-trace-suite","parent_id":null,"parent_operation_id":null,"correlation_id":"corr-trace-suite","operation_name":"trace-suite.operation","elapsed_ms":0,"status":"RUNNING","error_type":null,"exception_message":null}
+{"mission_id":"202-R","timestamp":"2026-11-28T00:00:01Z","event":"END","event_type":"END","operation_id":"op-trace-suite","parent_id":null,"parent_operation_id":null,"correlation_id":"corr-trace-suite","operation_name":"trace-suite.operation","elapsed_ms":1,"status":"SUCCESS","error_type":null,"exception_message":null}
+TRACE
+  if env PATH="$FAKE_BIN:$PATH" TRACE_EVIDENCE_DIR="$case_dir/evidence" ARVIN_TRACE_OUTPUT="$trace_jsonl" ARVIN_MISSION_ID=202-R GITHUB_ENV="$case_dir/github_env" FAKE_FLUTTER_CALLS="$case_dir/calls" FAKE_TRACE_RC="$trace_rc" FAKE_CENTER_RC="$center_rc" FAKE_HOME_RC="$home_rc" FAKE_BACKUP_RC="$backup_rc" FAKE_ENCRYPTED_BACKUP_RC="$encrypted_rc" bash "$RUNNER" > "$case_dir/output.log" 2>&1; then actual_exit=0; else actual_exit=$?; fi
   assert_eq "$actual_exit" "$expected_exit" "$case_name aggregate exit"
   assert_order "$case_dir/calls" $'test/services/arvin_async_trace_test.dart\ntest/center_management_page_test.dart\ntest/widgets/home_page_test.dart\ntest/backup_page_encryption_ux_test.dart\ntest/encrypted_backup_service_integration_test.dart'
   for suite in trace center home backup encrypted_backup; do test -s "$case_dir/evidence/$suite.log"; test -s "$case_dir/evidence/$suite-exit-code.txt"; done
@@ -44,6 +56,12 @@ run_case() {
   grep -Fqx "ENCRYPTED_BACKUP_TEST_EXIT_CODE=$encrypted_rc" "$case_dir/github_env"
   grep -Fqx "REGRESSION_AGGREGATE_EXIT_CODE=$expected_exit" "$case_dir/github_env"
   assert_eq "$(cat "$case_dir/evidence/test-exit-code.txt")" "$expected_exit" "$case_name aggregate artifact"
+  assert_eq "$(cat "$case_dir/evidence/trace-extraction-exit-code.txt")" "0" "$case_name trace extraction"
+  grep -Fq '"operation_name":"center.operation"' "$trace_jsonl"
+  grep -Fq '"operation_name":"home.operation"' "$trace_jsonl"
+  grep -Fq '"operation_name":"backup.operation"' "$trace_jsonl"
+  grep -Fq '"operation_name":"encrypted_backup.operation"' "$trace_jsonl"
+  grep -Fqx "TRACE_EXTRACTION_EXIT_CODE=0" "$case_dir/github_env"
 }
 run_case TWA-01 0 0 0 0 0 0
 echo TWA-01=PASS
