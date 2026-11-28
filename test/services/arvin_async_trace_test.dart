@@ -91,6 +91,7 @@ void main() {
       expect(writer.events.map((event) => event['event']), ['START', 'ERROR']);
       expect(writer.events.last['status'], 'ERROR');
       expect(writer.events.last['error_type'], 'ArgumentError');
+      expect(writer.events.last['exception_message'], isNull);
       expect(trace.missingEndOperationIds, isEmpty);
       await trace.close();
     });
