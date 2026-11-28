@@ -2,12 +2,13 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-/// Runs native asynchronous work through WidgetTester.runAsync and waits for
-/// Flutter's pending-task cleanup before releasing the storage runner.
+/// Runs native asynchronous work through WidgetTester.runAsync and lets the
+/// real async Zone drain before the test binding's FakeAsync cleanup pump.
 ///
-/// The real-zone event barrier lets the runAsync callback's queued microtasks
-/// drain. A zero-duration WidgetTester pump then drains the test binding's
-/// FakeAsync microtasks before a subsequent operation can call runAsync again.
+/// The real-zone event turn is awaited inside the runAsync callback. Awaiting a
+/// Completer created by FakeAsync after the callback returns can deadlock:
+/// completing it from a real Zone still schedules the awaiting continuation
+/// into FakeAsync, which cannot advance until the test pumps.
 var _cleanupRunSequence = 0;
 
 /// Awaits work completed by a real async Zone while the test body is in
@@ -54,18 +55,20 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
       debugPrintSynchronously('ARVIN_ASYNC_CLEANUP[$runId] $phase');
 
   logPhase('run_async_enter');
-  Zone? realAsyncZone;
   var started = false;
 
   try {
     await tester.runAsync(() async {
-      realAsyncZone = Zone.current;
       started = true;
       logPhase('callback_enter');
       try {
         logPhase('work_enter');
         await work();
         logPhase('work_complete');
+        // Yield on the real event loop before runAsync returns. This drains
+        // work queued by native I/O without awaiting a FakeAsync-owned Future.
+        await Future<void>.delayed(Duration.zero);
+        logPhase('real_async_turn_complete');
       } catch (error, stackTrace) {
         logPhase('work_error type=${error.runtimeType} error=$error');
         Error.throwWithStackTrace(error, stackTrace);
@@ -77,8 +80,7 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
     Error.throwWithStackTrace(error, stackTrace);
   }
 
-  final zone = realAsyncZone;
-  if (zone == null || !started) {
+  if (!started) {
     final exception = tester.takeException();
     if (exception != null) {
       Error.throwWithStackTrace(exception, StackTrace.current);
@@ -86,18 +88,8 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
     throw StateError('WidgetTester.runAsync did not start storage work');
   }
 
-  final cleanupDrained = Completer<void>();
-  logPhase('cleanup_barrier_scheduled');
-  zone.createTimer(Duration.zero, () {
-    logPhase('cleanup_barrier_fired');
-    if (!cleanupDrained.isCompleted) cleanupDrained.complete();
-  });
-  await cleanupDrained.future;
-  logPhase('cleanup_barrier_complete');
-
-  // The runAsync callback runs in a real async Zone, while the test body
-  // resumes in FakeAsync. Pump once so binding cleanup microtasks queued in
-  // FakeAsync are drained before this helper permits another runAsync call.
+  // runAsync has now returned to FakeAsync. Pump its pending cleanup
+  // microtasks before allowing the next native operation to start.
   logPhase('fake_async_pump_start');
   await tester.pump();
   logPhase('fake_async_cleanup_complete');
