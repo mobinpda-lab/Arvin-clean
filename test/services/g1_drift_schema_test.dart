@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:arvin/services/g1_drift_schema.dart';
+import 'package:arvin/services/g1_rev10_hierarchy_v9_migration.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -107,8 +108,20 @@ void main() {
     expect(multi.single['project_id'], isNull);
     final ambiguousCategory = await database.runSelect("SELECT project_id, category_id, category FROM tasks WHERE id = 'task-ambiguous-category'", const []);
     expect(ambiguousCategory.single['project_id'], 'project-a');
-    expect(ambiguousCategory.single['category_id'], isNull);
     expect(ambiguousCategory.single['category'], 'کاری');
+    final legacyCategoryIdentity = await database.runSelect(
+      "SELECT id FROM categories WHERE legacy_name = 'کاری'",
+      const [],
+    );
+    expect(legacyCategoryIdentity, hasLength(1));
+    expect(ambiguousCategory.single['category_id'], legacyCategoryIdentity.single['id']);
+    // The direct Task assignment is preserved without guessing a separate
+    // Project↔Category membership.
+    final inferredProjectCategories = await database.runSelect(
+      'SELECT project_id, category_id FROM project_categories',
+      const [],
+    );
+    expect(inferredProjectCategories, isEmpty);
 
     final standaloneCategory = await database.runSelect("SELECT category_id, category FROM tasks WHERE id = 'task-category'", const []);
     expect(standaloneCategory.single['category_id'], isNotNull);
@@ -123,6 +136,70 @@ void main() {
     expect(sourceMemberships, hasLength(4));
     final categoryCatalog = await database.runSelect('SELECT name FROM taxonomy_categories WHERE name = ?', const ['قدیمی']);
     expect(categoryCatalog, hasLength(1));
+  });
+
+  test('v9 repairs independent Task Category assignments atomically and retries', () async {
+    await G1DriftSchema.install(database);
+    await database.runCustom(
+      "DELETE FROM arvin_storage_meta WHERE key = 'rev10_task_category_assignment_v1'",
+    );
+    await database.runCustom(
+      "INSERT INTO projects (id, name) VALUES ('project-a', 'پروژه الف')",
+    );
+    await database.runCustom('''
+      INSERT INTO categories
+        (id, name, legacy_name, is_archived, created_at, updated_at)
+      VALUES ('category-a', 'کاری', 'کاری', 0,
+        '2026-01-01T00:00:00Z', '2026-01-01T00:00:00Z')
+    ''');
+    await database.runCustom('''
+      INSERT INTO tasks
+        (id, title, description, follow_up_enabled, category, priority,
+         archived, trashed, completed, project_id, category_id)
+      VALUES ('task-a', 'کار دسته‌دار', '', 0, 'کاری', 'none',
+        0, 0, 0, 'project-a', NULL)
+    ''');
+    await database.runCustom('''
+      INSERT INTO project_items (project_id, task_id, ordinal)
+      VALUES ('project-a', 'task-a', 0)
+    ''');
+
+    await G1Rev10HierarchyV9Migration(
+      failureInjector: (stage) {
+        if (stage == 'after_task_category_assignment_repair') {
+          throw StateError('injected Task Category repair failure');
+        }
+      },
+    ).migrate(database).catchError((_) {});
+
+    final rolledBack = await database.runSelect(
+      "SELECT category_id FROM tasks WHERE id = 'task-a'",
+      const [],
+    );
+    expect(rolledBack.single['category_id'], isNull);
+    final missingRepairMarker = await database.runSelect(
+      "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_task_category_assignment_v1'",
+      const [],
+    );
+    expect(missingRepairMarker, isEmpty);
+
+    await G1Rev10HierarchyV9Migration().migrate(database);
+    final repaired = await database.runSelect(
+      "SELECT project_id, category_id FROM tasks WHERE id = 'task-a'",
+      const [],
+    );
+    expect(repaired.single['project_id'], 'project-a');
+    expect(repaired.single['category_id'], 'category-a');
+    final projectCategoryLinks = await database.runSelect(
+      'SELECT project_id, category_id FROM project_categories',
+      const [],
+    );
+    expect(projectCategoryLinks, isEmpty);
+    final repairMarker = await database.runSelect(
+      "SELECT value FROM arvin_storage_meta WHERE key = 'rev10_task_category_assignment_v1'",
+      const [],
+    );
+    expect(repairMarker.single['value'], '1');
   });
 
   test('v8 to v9 migration rolls back atomically and can be retried', () async {
