@@ -1243,3 +1243,30 @@ No production DB writes, no Main changes, no merge/release/deployment. No test w
 
 ### Next dependency
 Run exact-head Build, retrieve `arvin-test-trace-test-0-<run_id>`, inspect START/END/ERROR by operation ID and correlation ID, then apply the smallest evidence-backed repair and retain all existing acceptance assertions.
+
+
+## 2026-11-28 — MASTER EXECUTION 178-R — exact-SHA forensic pass
+
+### Source and execution evidence
+- PR #3495 live HEAD: `59c29195e715b4095ed82191ae35891bfe51eafd`; branch `recovery-02/main-based-integration`; Main unchanged at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Governance run `46137910354`: SUCCESS. Follow-up persistence run `46137910349`: SUCCESS. Device Smoke run `46137910386`: SUCCESS for home, quick-capture, SQL persistence, SQL migration, backup-restore, people and calendar.
+- Build run `46137910356`: Analyze SUCCESS; Debug and Release APK jobs SUCCESS; shard 5 FAILURE; shards 0–4 CANCELLED; trace evidence job CANCELLED. Shard 5 reported 154 passed / 7 failed.
+- COMMAND 20-E run `46137910377`: evidence collection COMPLETED, overall NO-GO. ProjectStore file persistence, Calendar process restart, and cleanup gates each PASS; full regression gate not PASS.
+
+### Exact failures
+- Backup legacy Project preservation — 10-minute test timeout.
+- Backup passphrase operation-scoped/non-persistence — 10-minute test timeout.
+- Center management Center↔Project links — 10-minute test timeout.
+- Home RTL swipe and Move-to-Today — `pumpAndSettle` timeout.
+- TaskStorageLock native I/O / trace context — 10-minute test timeout.
+- Home task card layout — 10-minute test timeout.
+
+### Forensic conclusion
+- Failure logs show async cleanup runner phases reaching `work_complete`, `real_async_turn_complete`, `run_async_return`, and `fake_async_cleanup_complete` in affected tests. This narrows investigation toward Future completion/zone handoff and separately persistent Home animations, but does not prove one common root cause.
+- Current `.github/workflows/build.yml` does not configure per-shard `ARVIN_TRACE_OUTPUT` or upload shard JSONL. The current Build artifact list contains Debug/Release APKs and a separate aggregate trace artifact only. The per-shard diagnostic path previously recorded at SHA `0426480...` is not active on current HEAD.
+- No production Backup/Restore behavior or SQLite data path was changed. No test assertion was weakened, no timeout increased, and no data-loss/encryption failure was proven.
+
+### Result / next dependency
+- This pass performed live GitHub recovery, exact-SHA CI/job/log/artifact inspection, downloaded and parsed available trace artifacts, inspected affected test/helper/Backup/TaskStorageLock source, and classified the seven failures.
+- No code fix or commit is claimed. Next: restore per-shard privacy-safe trace collection, reproduce the failing Backup test on the same shard, identify the first incomplete async operation, then repair the proven cause. Investigate Home `pumpAndSettle` failures separately. Preserve all current gates and timeouts.
+- Product acceptance NOT ACCEPTED; Release NO-GO; Main read-only.
