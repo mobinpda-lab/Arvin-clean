@@ -225,7 +225,7 @@ class ArvinAsyncTrace {
           'elapsed_ms': stopwatch.elapsedMilliseconds,
           'result': 'error', 'status': 'ERROR',
           'exception_type': productError.runtimeType.toString(),
-          'exception_message': productError.toString(),
+          'exception_message': null,
           'error_type': productError.runtimeType.toString(),
         });
         _open.remove(operationId);
@@ -268,7 +268,7 @@ class ArvinAsyncTrace {
           'elapsed_ms': stopwatch.elapsedMilliseconds,
           'result': 'error', 'status': 'ERROR',
           'exception_type': writerError.runtimeType.toString(),
-          'exception_message': writerError.toString(),
+          'exception_message': null,
           'error_type': writerError.runtimeType.toString(),
         });
         _open.remove(operationId);
