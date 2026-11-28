@@ -8,9 +8,9 @@
 
 This README is the navigation index. Live GitHub state is authoritative for branch heads, PR status, workflow runs and test evidence. Never reuse a stale SHA or report a PASS from another commit.
 
-## The eight authoritative documents
+## The nine active continuity authorities
 
-Only these eight files are active project authority:
+These nine files are the active continuity authorities. The Master Execution Registry is the anti-forgetting index; it points to the domain-specific canonical homes below and does not duplicate their contents.
 
 1. [MASTER_GOVERNANCE.md](MASTER_GOVERNANCE.md) — governance, permissions and safety.
 2. [PRODUCT_DECISIONS.md](PRODUCT_DECISIONS.md) — current approved product and architecture decisions.
@@ -19,9 +19,9 @@ Only these eight files are active project authority:
 5. [OPEN_ISSUES.md](OPEN_ISSUES.md) — verified blockers and unresolved work.
 6. [IMPLEMENTATION_LOG.md](IMPLEMENTATION_LOG.md) — dated implementation and evidence record.
 7. [HANDOFF.md](HANDOFF.md) — next safe actions.
-8. [README.md](README.md) — this navigation index.
+8. [MASTER_EXECUTION_REGISTRY.md](MASTER_EXECUTION_REGISTRY.md) — stable execution IDs, canonical-source pointers, deduplication gates and append-only checkpoints.\n9. [README.md](README.md) — this navigation index.
 
-All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. Historical PR #3448 continuity documents are preserved under `archive/pr-3448-source-2026-11-13/`; the REV9 governance archive is under `archive/`. These copies preserve evidence and do not create additional active documents. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
+All other specifications, ADRs, audit files, ledgers, root agent files and historical snapshots are supporting references only. Detailed requirements remain in REV10-MASTER-REQUIREMENT-LEDGER.md; the new Master Execution Registry indexes active work and must not become a competing requirements or defect database. Historical PR #3448 continuity documents are preserved under `archive/pr-3448-source-2026-11-13/`; the REV9 governance archive is under `archive/`. These copies preserve evidence and do not create additional active documents. They cannot create a competing policy or override these eight documents. If a decision remains active, its current form must be recorded in PRODUCT_DECISIONS.md.
 
 ## REV10 architecture packet — MASTER EXECUTION 162-R
 The mission-specific architecture packet is maintained under [docs/rev10](../rev10/CONSTITUTION.md): [Constitution](../rev10/CONSTITUTION.md), [Agent Card](../rev10/AGENT_CARD.md), [State snapshot](../rev10/STATE.md), [Specification index](../rev10/SPEC/README.md), [Wave dependency DAG](../rev10/REV10-WAVE-DEPENDENCY-DAG.md) and [Open Decisions](../rev10/REV10-OPEN-DECISIONS.md). These are supporting, traceable architecture artifacts only; they do not override the eight continuity authorities, approved Product Decisions or permanent Requirement Ledger. Technical registrations are appended to the canonical [REV10 Requirement Ledger](REV10-MASTER-REQUIREMENT-LEDGER.md).
