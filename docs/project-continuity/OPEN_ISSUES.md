@@ -713,3 +713,14 @@ This entry updates the existing ACC-CI-001, ACC-DEVICE-001, ARC-DATA-001 and DB-
 - No Backup product behavior, encryption, persistence, assertions, test selection or timeout was changed. No tests were executed in this environment; no Flutter/Dart SDK or workflow-dispatch action is available. Commit workflow lookup for `0426480...` returned no associated run at poll time.
 - Status: TRACE COLLECTION IMPLEMENTED / NOT VERIFIED; ROOT CAUSE NOT VERIFIED; encrypted Backup acceptance NOT ACCEPTED.
 - Next: obtain exact-head Build on the final docs-inclusive SHA; download `arvin-test-trace-test-0-<run_id>`; find the first START without END; only then repair the actual blocked stage. Preserve invalid-password no-write, exactly-one-write success, exception recovery and busy-state release tests.
+
+
+## Issue #3671 — live evidence addendum (2026-11-28, SHA 59c29195)
+
+- Current canonical HEAD: `59c29195e715b4095ed82191ae35891bfe51eafd`; PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Build `46137910356`: Analyze PASS; Debug/Release APK verification PASS; shard 5 FAILURE (154 passed / 7 failed); shards 0–4 CANCELLED; trace JSONL job CANCELLED. Device Smoke `46137910386` and Follow-up Persistence `46137910349` PASS. COMMAND 20-E `46137910377` collected evidence but returned NO-GO.
+- Two Backup UX tests timed out: legacy backup preserves local Projects; passphrase remains operation-scoped. The Center↔Project store test and TaskStorageLock native-I/O test also timed out. Two Home RTL swipe tests failed at `pumpAndSettle`; Home card layout test timed out.
+- The logs show cleanup runner phases reaching completion, but do not identify the first blocked product/queue stage. Root cause remains NOT VERIFIED. Do not infer an encryption defect or change production Backup semantics from these timeouts.
+- Current HEAD does not configure per-shard `ARVIN_TRACE_OUTPUT` or always-upload a test-5 trace artifact; the Build artifact list contains only APKs and the separate aggregate trace artifact. The earlier per-shard trace implementation at `0426480...` is not active in current `build.yml`.
+- Next evidence action: restore privacy-safe per-shard trace output/upload on the same Build test shard, reproduce test-5, then repair the first proven incomplete operation. Keep existing assertions, six-shard selection, 10-minute test timeout and 20-second operation watchdog unchanged.
+- Status: ROOT CAUSE NOT VERIFIED; BACKUP ACCEPTANCE NOT ACCEPTED; NO-GO.
