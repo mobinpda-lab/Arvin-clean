@@ -691,3 +691,12 @@ This entry updates the existing ACC-CI-001, ACC-DEVICE-001, ARC-DATA-001 and DB-
 - Six test-only commits correct the waits, explicit executor open, and Home Restore runner. Status: COMMITTED / NOT VERIFIED pending exact-SHA CI.
 - Device Smoke 7/7, Governance and Follow-up persistence passed on `9a37b282...` only. COMMAND 20-E storage-persistence passed, but complete-evidence remained IN_PROGRESS at last poll. None is current-HEAD evidence.
 - No current-SHA workflow run was returned for `c51411f...`. Do not mark ACC-CI-001 or ACC-DEVICE-001 green. Next: obtain exact-SHA Build, targeted tests and full COMMAND 20-E evidence; then continue existing M2M and D01–D05 blockers.
+
+
+## Superseding evidence poll — 2026-11-28 — prior code SHA 9a37b282bf2b2ef8218357c357b4927606efd349
+
+- COMMAND 20-E run `46117137975` is now COMPLETED / FAILURE. Evidence collection itself is COMPLETED; overall verdict is NO-GO because the exact-SHA Build gate is not successful.
+- COMMAND 20-E storage-persistence job `140893371704` SUCCESS. Its ProjectStore file-persistence, Calendar process-restart parity, and cleanup verification gates all report PASS.
+- Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
+- Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
+- This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
