@@ -298,6 +298,10 @@ class ProjectStore {
       'SELECT legacy_payload_json, legacy_center_id FROM projects WHERE id = ?',
       <Object?>[project.id],
     );
+    if (existing.isEmpty) {
+      await _insertProject(executor, project);
+      return;
+    }
     Map<String, dynamic> previousEnvelope = <String, dynamic>{};
     if (existing.isNotEmpty) {
       final raw = existing.single['legacy_payload_json'];

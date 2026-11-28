@@ -82,7 +82,7 @@ class ProjectDeleteBlocked implements Exception {
 
   @override
   String toString() =>
-      'ProjectDeleteBlocked: project $projectId still contains canonical items';
+      'ProjectDeleteBlocked: project $projectId still has dependent records or relationships';
 }
 
 /// Pure lifecycle operations for Arvin's first-class Project menu.
