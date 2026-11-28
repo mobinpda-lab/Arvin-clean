@@ -1220,3 +1220,26 @@ No production DB writes, no Main changes, no merge/release/deployment. No test w
 - Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
 - Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
 - This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
+
+## 2026-11-28 — MASTER EXECUTION 178-R: encrypted Backup diagnostic evidence
+
+### Deduplication / source findings
+- Reused existing Issue #3671 and `ArvinAsyncTrace`; no new defect ID, trace framework, Backup service, Store or repository was introduced.
+- Existing `BackupPage._backupTraced` already traces password request, confirmation, busy state, each canonical store load, manager write, busy reset and completion callback. The process-wide writer is configured only by `ARVIN_TRACE_OUTPUT`.
+- The previous Build quality shards did not set `ARVIN_TRACE_OUTPUT`; the separate trace-evidence job ran trace contract tests rather than the encrypted Backup UX test. On failing run `45025576717`, artifact inventory contained Debug/Release APKs only and no shard trace artifact.
+
+### Changes committed to `recovery-02/main-based-integration`
+- `c8a420de7e265c2f5421a6df243a39115688e1a7` — `lib/services/arvin_async_trace.dart`: retain error type and structured event identity but set exception message to null in error events. This prevents arbitrary exception text from being serialized.
+- `5612b7942640a7872d0bdd51bd5809756bcaa918` — `test/services/arvin_async_trace_test.dart`: assert error messages are omitted from JSONL.
+- `04264807bdbf43e4b92d322b89df8dd6afa1f058` — `.github/workflows/build.yml`: each quality test shard receives a separate `ARVIN_TRACE_OUTPUT`; an `always()` metadata step records exact SHA, run, lane, test outcome and PRESENT/MISSING status; an `always()` upload step publishes the trace directory, including metadata when JSONL is absent.
+
+### Safety and verification
+- No application Backup behavior, encryption, data transformation, write count, timeout, test selection or assertion was changed.
+- No JSONL is fabricated when no events were emitted. Per-shard files are isolated; trace content excludes exception messages.
+- No tests were run locally: Flutter/Dart SDK and workflow-dispatch capability are unavailable in this environment.
+- Exact commit workflow lookup for `04264807bdbf43e4b92d322b89df8dd6afa1f058` returned no associated run at poll time. Implementation is committed, verification is pending.
+- Historical failure evidence remains attached to SHA `7241842...` only: Build run `45025576717` timed out in the encrypted Backup UX test; only APK artifacts existed. Device Smoke, Governance and Follow-up Persistence succeeded on that older SHA; COMMAND 20-E complete-evidence failed. None transfers to the new code.
+- Root cause remains NOT VERIFIED. Do not modify Backup product logic until the first unclosed stage is visible in exact-SHA JSONL.
+
+### Next dependency
+Run exact-head Build, retrieve `arvin-test-trace-test-0-<run_id>`, inspect START/END/ERROR by operation ID and correlation ID, then apply the smallest evidence-backed repair and retain all existing acceptance assertions.
