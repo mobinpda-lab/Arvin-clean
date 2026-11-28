@@ -265,6 +265,28 @@ void main() {
 
       final database = NativeDatabase.memory();
       final completed = Completer<void>();
+
+      Future<T> pumpStorage<T>(Future<T> Function() operation) async {
+        final result = Completer<T>();
+        operation().then(
+          result.complete,
+          onError: (Object error, StackTrace stackTrace) {
+            result.completeError(error, stackTrace);
+          },
+        );
+        result.future.then<void>((_) {}, onError: (Object _, StackTrace __) {});
+        for (var frame = 0; !result.isCompleted && frame < 1200; frame++) {
+          await tester.pump(const Duration(milliseconds: 16));
+        }
+        if (!result.isCompleted) {
+          throw TimeoutException(
+            'TaskStorageLock follow-up operation did not complete after 1200 frames',
+            const Duration(seconds: 20),
+          );
+        }
+        return result.future;
+      }
+
       Zone? callerZone;
       Zone? storageZone;
       String? parentOperationId;
@@ -331,8 +353,10 @@ void main() {
 
         // A second lock operation must enter a fresh runAsync only after
         // Flutter has released the first runAsync ownership.
-        final sequentialRows = await TaskStorageLock.synchronized(
-          () => database.runSelect('SELECT 2 AS value', const []),
+        final sequentialRows = await pumpStorage(
+          () => TaskStorageLock.synchronized(
+            () => database.runSelect('SELECT 2 AS value', const []),
+          ),
         );
         expect(sequentialRows.single['value'], 2);
 
@@ -341,24 +365,30 @@ void main() {
         for (var cycle = 0; cycle < 3; cycle++) {
           final repeatedDatabase = NativeDatabase.memory();
           try {
-            final repeatedRows = await TaskStorageLock.synchronized(
-              () => repeatedDatabase.runSelect(
-                'SELECT ? AS value',
-                <Object?>[cycle],
+            final repeatedRows = await pumpStorage(
+              () => TaskStorageLock.synchronized(
+                () => repeatedDatabase.runSelect(
+                  'SELECT ? AS value',
+                  <Object?>[cycle],
+                ),
               ),
             );
             expect(repeatedRows.single['value'], cycle);
           } finally {
-            await TaskStorageLock.synchronized<void>(
-              () => repeatedDatabase.close(),
-              operationName: 'task_storage_lock.test_close_repeated',
+            await pumpStorage(
+              () => TaskStorageLock.synchronized<void>(
+                () => repeatedDatabase.close(),
+                operationName: 'task_storage_lock.test_close_repeated',
+              ),
             );
           }
         }
       } finally {
-        await TaskStorageLock.synchronized<void>(
-          () => database.close(),
-          operationName: 'task_storage_lock.test_close_primary',
+        await pumpStorage(
+          () => TaskStorageLock.synchronized<void>(
+            () => database.close(),
+            operationName: 'task_storage_lock.test_close_primary',
+          ),
         );
       }
     },
