@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/models/task.dart';
 import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/task_store.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/foundation.dart';
@@ -179,6 +180,99 @@ void main() {
       expect(directory.existsSync(), isFalse);
       expect(databaseFile.existsSync(), isFalse);
       debugPrintSynchronously('PROJECT_STORE_TEMP_FILE_AND_DIRECTORY_CLEANUP=PASS');
+    }
+  });
+
+  test('replaceAll preserves existing graph edges and blocks linked Project deletion', () async {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final directory =
+        await Directory.systemTemp.createTemp('arvin-project-restore-graph-');
+    final databaseFile = File('${directory.path}/restore-graph.sqlite');
+    try {
+      final database = NativeDatabase(databaseFile);
+      try {
+        await TaskStore(executor: database).save(<Task>[
+          Task(id: 'restore-graph-task', title: 'کار متصل'),
+        ]);
+        final projects = ProjectStore(executor: database);
+        await projects.save(<ProjectPlan>[
+          ProjectPlan(
+            id: 'restore-graph-project',
+            title: 'عنوان اولیه',
+            itemIds: const <String>['restore-graph-task'],
+            legacyFields: const <String, dynamic>{
+              'opaqueRestoreMetadata': <String, dynamic>{'revision': 9},
+            },
+          ),
+        ]);
+        final centers = CenterStore(executor: database);
+        await centers.create(id: 'restore-graph-center', name: 'مرکز متصل');
+        await centers.linkProject('restore-graph-center', 'restore-graph-project');
+        await database.runInsert(
+          '''INSERT INTO categories
+             (id, name, legacy_name, is_archived, created_at, updated_at)
+             VALUES (?, ?, ?, 0, ?, ?)''',
+          <Object?>[
+            'restore-graph-category',
+            'دسته متصل',
+            'دسته متصل',
+            DateTime.utc(2026).toIso8601String(),
+            DateTime.utc(2026).toIso8601String(),
+          ],
+        );
+        await database.runInsert(
+          'INSERT INTO project_categories (project_id, category_id) VALUES (?, ?)',
+          const <Object?>['restore-graph-project', 'restore-graph-category'],
+        );
+
+        // The backup omits itemIds. Existing Task membership and both
+        // independent graph relations must survive the in-place update.
+        await projects.replaceAll(<ProjectPlan>[
+          ProjectPlan(
+            id: 'restore-graph-project',
+            title: 'عنوان بازیابی‌شده',
+          ),
+        ]);
+
+        final restored = (await projects.load()).single;
+        expect(restored.title, 'عنوان بازیابی‌شده');
+        expect(restored.itemIds, <String>['restore-graph-task']);
+        expect(
+          restored.legacyFields['opaqueRestoreMetadata'],
+          <String, dynamic>{'revision': 9},
+        );
+        expect(
+          await centers.centerIdsForProject('restore-graph-project'),
+          <String>['restore-graph-center'],
+        );
+        final categoryEdges = await database.runSelect(
+          'SELECT category_id FROM project_categories WHERE project_id = ?',
+          const <Object?>['restore-graph-project'],
+        );
+        expect(categoryEdges.map((row) => row['category_id']).toList(),
+            <String>['restore-graph-category']);
+
+        // A snapshot that omits a still-linked Project must fail atomically;
+        // it must never silently discard Center/Category graph edges.
+        await expectLater(
+          projects.replaceAll(const <ProjectPlan>[]),
+          throwsA(isA<ProjectDeleteBlocked>()),
+        );
+        expect((await projects.load()).single.id, 'restore-graph-project');
+        expect(
+          await centers.centerIdsForProject('restore-graph-project'),
+          <String>['restore-graph-center'],
+        );
+        final violations = await database.runSelect(
+          'PRAGMA foreign_key_check',
+          const <Object?>[],
+        );
+        expect(violations, isEmpty);
+      } finally {
+        await database.close();
+      }
+    } finally {
+      await directory.delete(recursive: true);
     }
   });
 }

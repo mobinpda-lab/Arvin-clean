@@ -207,11 +207,7 @@ class ProjectStore {
         await _upsertProject(executor, project);
       }
       for (final projectId in deletes) {
-        final references = await executor.runSelect(
-          'SELECT task_id FROM project_items WHERE project_id = ? LIMIT 1',
-          <Object?>[projectId],
-        );
-        if (references.isNotEmpty) throw ProjectDeleteBlocked(projectId);
+        await _assertProjectCanDelete(executor, projectId);
         final deleted = await executor.runDelete(
           'DELETE FROM projects WHERE id = ?',
           <Object?>[projectId],
@@ -240,10 +236,27 @@ class ProjectStore {
     }
     await executor.runCustom('BEGIN');
     try {
-      await executor.runCustom('DELETE FROM project_items');
-      await executor.runCustom('DELETE FROM projects');
+      // Restore updates matching Project identities in place. Deleting and
+      // reinserting the whole table would break Center↔Project and
+      // Project↔Category foreign-key edges even when the Project IDs are
+      // unchanged. Membership is changed only when the incoming snapshot
+      // explicitly contains itemIds; omitted membership preserves local edges.
+      final existingRows = await executor.runSelect(
+        'SELECT id FROM projects ORDER BY id',
+        const [],
+      );
+      final existingIds = existingRows.map((row) => row['id'] as String).toSet();
+      final incomingIds = values.map((project) => project.id).toSet();
+
       for (final project in values) {
-        await _insertProject(executor, project);
+        await _upsertProject(executor, project);
+      }
+      for (final projectId in existingIds.difference(incomingIds)) {
+        await _assertProjectCanDelete(executor, projectId);
+        await executor.runDelete(
+          'DELETE FROM projects WHERE id = ?',
+          <Object?>[projectId],
+        );
       }
       await executor.runCustom('COMMIT');
     } catch (_) {
@@ -251,6 +264,23 @@ class ProjectStore {
       rethrow;
     }
     });
+  }
+
+  Future<void> _assertProjectCanDelete(
+    QueryExecutor executor,
+    String projectId,
+  ) async {
+    for (final table in const <String>[
+      'project_items',
+      'center_projects',
+      'project_categories',
+    ]) {
+      final references = await executor.runSelect(
+        'SELECT 1 FROM $table WHERE project_id = ? LIMIT 1',
+        <Object?>[projectId],
+      );
+      if (references.isNotEmpty) throw ProjectDeleteBlocked(projectId);
+    }
   }
 
   /// Explicitly removes only unreferenced Projects. If any Project still owns
