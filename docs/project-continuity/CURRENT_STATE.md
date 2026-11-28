@@ -1982,3 +1982,16 @@ Product acceptance remains NOT ACCEPTED. Release remains NO-GO. No Main write, m
 - Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
 - Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
 - This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
+
+## Superseding live execution checkpoint — 2026-11-28 — MASTER EXECUTION 178-R
+
+- Repository: `mobinpda-lab/Arvin-clean`.
+- Canonical branch: `recovery-02/main-based-integration`; only authorized delivery PR #3495.
+- Main SHA remains `45e4202b03a434459e4c021a04efa7e8396359db`; Main was not modified.
+- Code commits in this batch: `c8a420de7e265c2f5421a6df243a39115688e1a7`, `5612b7942640a7872d0bdd51bd5809756bcaa918`, `04264807bdbf43e4b92d322b89df8dd6afa1f058`.
+- Existing Issue #3671 / encrypted Backup UX timeout is the selected P0. The source already traces Backup stages, but Build quality shards did not configure the JSONL sink; the failing run's artifact inventory contained only APKs.
+- Implemented: privacy-safe exception events omit arbitrary exception messages; trace regression asserts this; each test shard writes a distinct JSONL file and uploads its trace/metadata directory under `always()`, including after test failure. No synthetic trace file is generated.
+- Historical run `45025576717` on SHA `7241842...`: Analyze and both APK lanes succeeded; five quality shards failed, including test-0 timeout; test-3 passed. Device Smoke `45025576857`, Governance `45025576757`, Follow-up File Persistence `45025576722` succeeded on that SHA. COMMAND 20-E `45025576789` failed complete-evidence although storage-persistence succeeded. These results are historical and do not transfer.
+- No associated workflow run was returned for `0426480...` at poll time. No local Flutter/Dart SDK or workflow-dispatch action is exposed. Thus current exact-head test/CI result is NOT VERIFIED.
+- Root cause of encrypted Backup timeout remains NOT VERIFIED. Next: obtain exact-head Build, download test-0 JSONL artifact, identify first unmatched START, then fix the proven blocked stage and rerun all required gates.
+- Product acceptance remains NOT ACCEPTED; Release NO-GO. No merge, release, deployment or production DB operation.
