@@ -176,3 +176,13 @@ Then continue with `ARC-DATA-001`: complete caller and test inventory before cha
 - Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
 - Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
 - This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
+
+## 2026-11-28 — active continuation pointer: encrypted Backup trace / Issue #3671
+
+- Existing record: Issue #3671. Do not create a duplicate timeout issue or another tracing framework.
+- Selected action: capture the encrypted Backup UX test's actual asynchronous path on the same Build shard that executes it.
+- Implemented code/workflow commits: `c8a420de7e265c2f5421a6df243a39115688e1a7`, `5612b7942640a7872d0bdd51bd5809756bcaa918`, `04264807bdbf43e4b92d322b89df8dd6afa1f058`.
+- Scope: per-shard JSONL sink + always-uploaded metadata/artifact; omit exception message text for privacy. No Backup product logic or acceptance assertion changed.
+- State: IMPLEMENTED / NOT VERIFIED. Latest code SHA at implementation: `04264807bdbf43e4b92d322b89df8dd6afa1f058`; commit-workflow lookup returned no run at poll time. Exact docs-inclusive SHA must be re-read from GitHub after this registry update.
+- Next dependency: exact-head Build → download test-0 trace artifact → identify first START without END → evidence-backed minimal fix. Root cause remains NOT VERIFIED.
+- Product acceptance NOT ACCEPTED; Release NO-GO; Main read-only; no merge/release/deploy.
