@@ -38,7 +38,7 @@
 
 - Main remains `45e4202b03a434459e4c021a04efa7e8396359db` (read-only).
 - Canonical branch `recovery-02/main-based-integration`; PR #3495 remains OPEN / DRAFT / UNMERGED.
-- Current branch HEAD: `c51411fcb2019ad733c6fdcf700d94bfdee17a13`.
+- Code candidate SHA before the documentation-only continuity commits: `c51411fcb2019ad733c6fdcf700d94bfdee17a13`.
 - Six test-only commits were added on the authorized branch:
   - `f0100e423158e69f59ecb14a76c626300355187a` — real-clock bounded wait helper in `test/support/flutter_async_cleanup.dart`.
   - `39ac4139c1882f83a5a98045e90db1ca8baa2a3f` — Home widget test waits use the shared helper.
