@@ -10,6 +10,41 @@ import 'package:flutter_test/flutter_test.dart';
 /// FakeAsync microtasks before a subsequent operation can call runAsync again.
 var _cleanupRunSequence = 0;
 
+/// Awaits work completed by a real async Zone while the test body is in
+/// FakeAsync. The watchdog uses Zone.root so its duration is wall-clock time,
+/// not simulated frames. This preserves a bounded wait without starving
+/// native I/O by rapidly pumping fake frames.
+Future<T> waitForRealAsync<T>(
+  Future<T> future, {
+  required Duration timeout,
+  required String operation,
+}) async {
+  final completion = Completer<T>();
+  final timer = Zone.root.createTimer(timeout, () {
+    if (!completion.isCompleted) {
+      completion.completeError(TimeoutException(
+        '$operation did not complete within $timeout',
+        timeout,
+      ));
+    }
+  });
+  future.then(
+    (value) {
+      if (!completion.isCompleted) completion.complete(value);
+    },
+    onError: (Object error, StackTrace stackTrace) {
+      if (!completion.isCompleted) {
+        completion.completeError(error, stackTrace);
+      }
+    },
+  );
+  try {
+    return await completion.future;
+  } finally {
+    timer.cancel();
+  }
+}
+
 Future<void> runFlutterAsyncWithCleanupHandshake(
   WidgetTester tester,
   Future<void> Function() work,
