@@ -349,11 +349,17 @@ void main() {
             );
             expect(repeatedRows.single['value'], cycle);
           } finally {
-            await runFlutterAsyncWithCleanupHandshake(tester, () => repeatedDatabase.close());
+            await TaskStorageLock.synchronized<void>(
+              () => repeatedDatabase.close(),
+              operationName: 'task_storage_lock.test_close_repeated',
+            );
           }
         }
       } finally {
-        await runFlutterAsyncWithCleanupHandshake(tester, () => database.close());
+        await TaskStorageLock.synchronized<void>(
+          () => database.close(),
+          operationName: 'task_storage_lock.test_close_primary',
+        );
       }
     },
   );
