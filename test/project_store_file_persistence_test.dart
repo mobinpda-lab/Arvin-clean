@@ -58,6 +58,51 @@ void main() {
         expect(beforeResave.legacyFields['customMetadata'],
             project.legacyFields['customMetadata']);
 
+        // ProjectStore owns this relation table. Guard it so TaskStore cannot
+        // silently become a second writer while replacing canonical Task rows.
+        await firstDatabase.runCustom('''
+          CREATE TRIGGER block_project_items_delete
+          BEFORE DELETE ON project_items
+          BEGIN SELECT RAISE(ABORT, 'ProjectStore owns project_items'); END
+        ''');
+        await firstDatabase.runCustom('''
+          CREATE TRIGGER block_project_items_insert
+          BEFORE INSERT ON project_items
+          BEGIN SELECT RAISE(ABORT, 'ProjectStore owns project_items'); END
+        ''');
+
+        final taskStore = TaskStore(executor: firstDatabase);
+        final existingTasks = await taskStore.load();
+        await taskStore.save(existingTasks);
+        final retainedEdges = await firstDatabase.runSelect(
+          'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
+          const <Object?>[],
+        );
+        expect(
+          retainedEdges.map((row) => row['task_id']).toList(),
+          <String>['command-20e-task-a', 'command-20e-task-b'],
+        );
+
+        // A Task still referenced by a Project cannot be removed implicitly.
+        // Deferred FK validation rejects the transaction and preserves both
+        // the original Task rows and their Project membership edges.
+        await expectLater(
+          taskStore.save(<Task>[]),
+          throwsA(predicate<Object>(
+            (error) => error.toString().contains('FOREIGN KEY constraint failed'),
+          )),
+        );
+        expect(await taskStore.load(), hasLength(2));
+        expect((await firstStore.load()).single.itemIds,
+            <String>['command-20e-task-a', 'command-20e-task-b']);
+
+        await firstDatabase.runCustom(
+          'DROP TRIGGER block_project_items_delete',
+        );
+        await firstDatabase.runCustom(
+          'DROP TRIGGER block_project_items_insert',
+        );
+
         await firstStore.save(<ProjectPlan>[
           beforeResave.copyWith(
             title: 'پروژه پس از ذخیره مجدد',

@@ -564,13 +564,11 @@ class TaskStore {
 
     await executor.runCustom('BEGIN');
     try {
-      // Project membership is canonical SQL data owned by ProjectStore, but
-      // project_items references tasks. Preserve those relationship rows while
-      // this legacy-compatible TaskStore rewrite replaces the task rows.
-      final projectItems = await executor.runSelect(
-        'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
-        const [],
-      );
+      // ProjectStore is the sole writer of project_items. TaskStore replaces
+      // Task rows in this transaction, so defer FK checks until COMMIT:
+      // unchanged IDs can be reinserted without touching the membership table;
+      // omitting a still-linked Task fails the commit and rolls back the rewrite.
+      await executor.runCustom('PRAGMA defer_foreign_keys = ON');
       // Keep unknown legacy fields when an existing SQL Task is rewritten.
       // Read them before deleting the task rows; otherwise _canonicalEnvelope
       // cannot recover the previous envelope after the DELETE.
@@ -589,7 +587,6 @@ class TaskStore {
           }
         }
       }
-      await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM task_people');
       await executor.runCustom('DELETE FROM checklist_items');
@@ -638,13 +635,6 @@ class TaskStore {
         await _writeRelations(executor, task);
       }
       await G1DriftSchema.migrateTaskPeople(executor);
-      for (final row in projectItems) {
-        await executor.runInsert(
-          '''INSERT INTO project_items (project_id, task_id, ordinal)
-             VALUES (?, ?, ?)''',
-          <Object?>[row['project_id'], row['task_id'], row['ordinal']],
-        );
-      }
       // Keep categories used by canonical Tasks visible in the independent catalog.
       for (final task in tasks) {
         final category = task.category?.trim();

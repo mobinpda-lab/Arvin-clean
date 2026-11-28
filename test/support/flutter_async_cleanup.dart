@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Runs native asynchronous work through WidgetTester.runAsync and waits for
@@ -14,7 +15,8 @@ Future<void> runFlutterAsyncWithCleanupHandshake(
   Future<void> Function() work,
 ) async {
   final runId = ++_cleanupRunSequence;
-  void logPhase(String phase) => print('ARVIN_ASYNC_CLEANUP[$runId] $phase');
+  void logPhase(String phase) =>
+      debugPrintSynchronously('ARVIN_ASYNC_CLEANUP[$runId] $phase');
 
   logPhase('run_async_enter');
   Zone? realAsyncZone;
