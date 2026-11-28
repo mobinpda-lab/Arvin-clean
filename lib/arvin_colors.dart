@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 /// Canonical semantic palette used across Arvin. Owner-approved brand, surface,
 /// and text tokens stay aligned with the Home visual style lock.
 abstract final class ArvinColors {
-  static const primary = Color(0xFF4A4CAB);
+  /// Owner-locked REV10 brand token. Do not change without a new owner decision.
+  static const String primaryName = 'Primary Blue';
+  static const primary = Color(0xFF4169A1);
   static const primaryDark = Color(0xFF25286F);
   static const primarySoft = Color(0xFFE9EAFF);
 

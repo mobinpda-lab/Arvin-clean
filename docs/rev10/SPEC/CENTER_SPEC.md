@@ -1,0 +1,2 @@
+# Center Specification
+Center is an optional organizational dimension. Reuse existing CenterStore and canonical SQLite schema; no second database/store. Management supports create, edit, search, sort, archive, restore, related Projects and related Tasks. Center↔Project is M2M with transactional endpoint-preserving writes. Task Editor, Task Detail, Quick Capture and Home consume the same identity. Acceptance: file-backed CRUD, relationship edits, close/reopen, FK checks, failure injection and backup/restore.

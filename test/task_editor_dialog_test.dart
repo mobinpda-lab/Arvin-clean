@@ -209,6 +209,71 @@ void main() {
     expect(result!.category, 'مشتریان');
     expect(result!.checklist, const ['[ ] ارسال قرارداد']);
   });
+  testWidgets('editing preserves Center, Project, Category and unknown metadata', (tester) async {
+    Task? result;
+    final task = Task(
+      id: 'hierarchy-links',
+      title: 'کار دارای ارتباط',
+      centerId: 'center-a',
+      projectId: 'project-a',
+      categoryId: 'category-a',
+      extensionData: const <String, dynamic>{'futureMetadata': 'preserve-me'},
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.id, 'hierarchy-links');
+    expect(result!.centerId, 'center-a');
+    expect(result!.projectId, 'project-a');
+    expect(result!.categoryId, 'category-a');
+    expect(result!.extensionData['futureMetadata'], 'preserve-me');
+  });
+
+  testWidgets('editing preserves explicit NULL hierarchy fields', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'explicit-null-links',
+      'title': 'ارتباط‌های خالی صریح',
+      'centerId': null,
+      'projectId': null,
+      'categoryId': null,
+    });
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    final json = result!.toJson();
+    expect(json.containsKey('centerId'), isTrue);
+    expect(json['centerId'], isNull);
+    expect(json.containsKey('projectId'), isTrue);
+    expect(json['projectId'], isNull);
+    expect(json.containsKey('categoryId'), isTrue);
+    expect(json['categoryId'], isNull);
+  });
+
+  testWidgets('editing preserves absent hierarchy fields as absent', (tester) async {
+    Task? result;
+    final task = Task.fromJson(<String, dynamic>{
+      'id': 'absent-links',
+      'title': 'بدون ارتباط',
+    });
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    final json = result!.toJson();
+    expect(json.containsKey('centerId'), isFalse);
+    expect(json.containsKey('projectId'), isFalse);
+    expect(json.containsKey('categoryId'), isFalse);
+  });
+
   testWidgets('Back-style close prompts and can save Task edits without data loss',
       (tester) async {
     Task? result;
@@ -520,5 +585,129 @@ void main() {
     expect(result!.dueDate, DateTime(2026, 8, 27, 11));
     expect(result!.reminderDate, DateTime(2026, 8, 27, 9));
   });
+  testWidgets('Task Reminder All-Day toggle preserves the original hour and minute',
+      (tester) async {
+    Task? result;
+    final scheduled = DateTime(2026, 11, 18, 14, 35);
+    final task = Task(
+      id: 'all-day-time-preservation',
+      title: 'یادآور زمان‌دار',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-clock-preserve',
+          title: 'یادآور',
+          date: scheduled,
+          sequence: 1,
+        ),
+      ],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-reminder-all-day-reminder-clock-preserve'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isTrue);
+
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isFalse);
+
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders.single.isAllDay, isFalse);
+    expect(result!.taskReminders.single.date, scheduled);
+    expect(result!.taskReminders.single.date.hour, 14);
+    expect(result!.taskReminders.single.date.minute, 35);
+  });
+
+  testWidgets('All-Day Reminder to Timed preserves its stored date and clock',
+      (tester) async {
+    Task? result;
+    final scheduled = DateTime(2026, 11, 18, 7, 12);
+    final task = Task(
+      id: 'all-day-existing-clock',
+      title: 'یادآور تمام‌روز',
+      taskReminders: [
+        TaskReminder(
+          id: 'reminder-existing-clock',
+          title: 'یادآور',
+          date: scheduled,
+          isAllDay: true,
+          sequence: 1,
+        ),
+      ],
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => result = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-reminder-all-day-reminder-existing-clock'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result!.taskReminders.single.isAllDay, isFalse);
+    expect(result!.taskReminders.single.date, scheduled);
+    expect(result!.taskReminders.single.date.hour, 7);
+    expect(result!.taskReminders.single.date.minute, 12);
+  });
+
+  testWidgets('Task due date Timed to All-Day and back preserves time across save and reopen',
+      (tester) async {
+    Task? allDayResult;
+    Task? timedResult;
+    final scheduled = DateTime(2026, 12, 31, 23, 59);
+    final task = Task(
+      id: 'due-all-day-boundary',
+      title: 'موعد مرزی',
+      dueDate: scheduled,
+      allDay: false,
+    );
+
+    await pumpEditor(tester, task: task, onResult: (value) => allDayResult = value);
+    final allDayToggle = find.byKey(
+      const ValueKey('task-editor-due-all-day'),
+    );
+    await tester.ensureVisible(allDayToggle);
+    await tester.tap(allDayToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDayToggle).value, isTrue);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(allDayResult, isNotNull);
+    expect(allDayResult!.allDay, isTrue);
+    expect(allDayResult!.dueDate, scheduled);
+
+    await pumpEditor(
+      tester,
+      task: allDayResult,
+      onResult: (value) => timedResult = value,
+    );
+    final reopenedToggle = find.byKey(
+      const ValueKey('task-editor-due-all-day'),
+    );
+    await tester.ensureVisible(reopenedToggle);
+    await tester.tap(reopenedToggle);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(reopenedToggle).value, isFalse);
+    await tester.tap(find.byKey(const ValueKey('task-editor-header-save')));
+    await tester.pumpAndSettle();
+
+    expect(timedResult, isNotNull);
+    expect(timedResult!.allDay, isFalse);
+    expect(timedResult!.dueDate, scheduled);
+    expect(timedResult!.dueDate!.hour, 23);
+    expect(timedResult!.dueDate!.minute, 59);
+  });
+
 
 }

@@ -36,17 +36,21 @@ void main() {
     final remoteB = task('b', 'B remote');
     final remoteC = task('c', 'C remote');
     await store.save(<Task>[localB, localA]);
+    final persisted = await store.load();
+    final persistedById = <String, Task>{
+      for (final value in persisted) value.id: value,
+    };
 
     final plan = TaskSyncPlan(<TaskSyncPlanItem>[
       item(
         id: 'a',
         decision: SyncMergeDecision.localOnly,
-        local: localA,
+        local: persistedById['a']!,
       ),
       item(
         id: 'b',
         decision: SyncMergeDecision.useRemote,
-        local: localB,
+        local: persistedById['b']!,
         remote: remoteB,
       ),
       item(
@@ -70,11 +74,12 @@ void main() {
     final local = task('a', 'Local');
     final remote = task('a', 'Remote');
     await store.save(<Task>[local]);
+    final persistedLocal = (await store.load()).single;
     final plan = TaskSyncPlan(<TaskSyncPlanItem>[
       item(
         id: 'a',
         decision: SyncMergeDecision.conflict,
-        local: local,
+        local: persistedLocal,
         remote: remote,
       ),
     ]);
@@ -93,11 +98,12 @@ void main() {
     final local = task('a', 'Local');
     final remote = task('a', 'Remote');
     await store.save(<Task>[local]);
+    final persistedLocal = (await store.load()).single;
     final plan = TaskSyncPlan(<TaskSyncPlanItem>[
       item(
         id: 'a',
         decision: SyncMergeDecision.conflict,
-        local: local,
+        local: persistedLocal,
         remote: remote,
       ),
     ]);
@@ -118,11 +124,12 @@ void main() {
     final store = TaskStore();
     final plannedLocal = task('a', 'Before');
     await store.save(<Task>[plannedLocal]);
+    final persistedPlannedLocal = (await store.load()).single;
     final plan = TaskSyncPlan(<TaskSyncPlanItem>[
       item(
         id: 'a',
         decision: SyncMergeDecision.localOnly,
-        local: plannedLocal,
+        local: persistedPlannedLocal,
       ),
     ]);
 
@@ -139,11 +146,12 @@ void main() {
     final store = TaskStore();
     final local = task('a', 'Local');
     await store.save(<Task>[local]);
+    final persistedLocal = (await store.load()).single;
     final plan = TaskSyncPlan(<TaskSyncPlanItem>[
       item(
         id: 'a',
         decision: SyncMergeDecision.localOnly,
-        local: local,
+        local: persistedLocal,
       ),
     ]);
 

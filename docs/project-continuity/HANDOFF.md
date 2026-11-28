@@ -1,0 +1,142 @@
+# HANDOFF — 2026-11-28
+
+- Repository: mobinpda-lab/Arvin-clean
+- Branch: recovery-02/main-based-integration
+- Candidate SHA at checkpoint: c51411fcb2019ad733c6fdcf700d94bfdee17a13
+- Main: 45e4202b03a434459e4c021a04efa7e8396359db (read-only)
+- PR #3495: OPEN / DRAFT / UNMERGED.
+- Product acceptance: NOT ACCEPTED. Release: NO-GO.
+
+## Verified source changes (verification still pending unless stated)
+1. fff59f6b3c5bad6746e271ef42d2c505cce1b368: ProjectStore is sole writer of project_items; TaskStore's full Task rewrite no longer mutates the join table; deferred FK validation protects referenced Task identities. Trigger-guarded file-backed test added.
+2. a48488ff89ec01d880548d267b66389c28c13d00: Project restore upserts matching Project IDs in place and guards deletion against Task/Center/Category edges; file-backed graph test added.
+3. a420c89f06c598ed17b9def38efebd9108618c90: canonical insert helper reused for new Projects; deletion-block message generalized.
+
+## Current exact-SHA workflows
+- Build: 46116776194 — in progress.
+- COMMAND 20-E: 46116776165 — storage-persistence in progress.
+- Device Smoke: 46116776170 — in progress.
+- Follow-up File Persistence: 46116776176 — SUCCESS.
+- Governance Validation: 46116776167 — SUCCESS.
+- Parent fff59f6... Device Smoke 46115088811 completed 7/7, but is not evidence for this SHA.
+
+## Next actions — one lane, no duplication
+1. Poll all current-SHA runs. Inspect exact failed/passed jobs and the two new ProjectStore regression assertions. Do not infer PASS from queued/in-progress or parent-SHA runs.
+2. Resolve the async runner root cause from completed exact-SHA logs; keep timeouts and assertions intact.
+3. Continue ARC-M2M-001: inventory every Project/Category consumer and find the single missing/approved project_categories owner before implementation. CenterStore already owns center_projects; do not create duplicate Center storage.
+4. Continue D01–D05 data preservation and physical backup/restore acceptance on disposable file-backed databases; never experiment destructively on user DBs.
+5. Update this handoff and registry after each meaningful commit; all final gates must match one exact SHA.
+
+## Protected boundaries
+- No writes to Main; no merge/release/deployment.
+- No production database mutation, branch deletion, history rewrite or force push.
+- No duplicate store/repository/registry/test inventory.
+- Preserve IDs, unknown metadata, graph edges, reminders, follow-up history and backups.
+
+
+## Live continuation checkpoint — 2026-11-28 — candidate c51411fcb2019ad733c6fdcf700d94bfdee17a13
+
+- Main remains `45e4202b03a434459e4c021a04efa7e8396359db` (read-only).
+- Canonical branch `recovery-02/main-based-integration`; PR #3495 remains OPEN / DRAFT / UNMERGED.
+- Code candidate SHA before the documentation-only continuity commits: `c51411fcb2019ad733c6fdcf700d94bfdee17a13`.
+- Six test-only commits were added on the authorized branch:
+  - `f0100e423158e69f59ecb14a76c626300355187a` — real-clock bounded wait helper in `test/support/flutter_async_cleanup.dart`.
+  - `39ac4139c1882f83a5a98045e90db1ca8baa2a3f` — Home widget test waits use the shared helper.
+  - `d3ef28f99ca723323a15432cb987f18fdf5e7f86` — Center widget test waits use the shared helper.
+  - `bd53ec261e8d3eb6d65af5f3d04fc2fc3270e48c` — Backup widget test waits use the shared helper.
+  - `d4b4cdf4dc96f2226dc0d171737e478105b6725d` — TaskStorageLock test uses the shared wait and explicitly opens each NativeDatabase executor before SQL.
+  - `c51411fcb2019ad733c6fdcf700d94bfdee17a13` — Home restore widget test installs the native async runner and resets it after DB teardown.
+- No production source, schema, user data, assertions, test selection or timeout limit was changed. The 20-second wait is now based on a Zone.root wall-clock timer rather than 1,200 rapidly simulated frames.
+
+### Evidence and limits
+- Prior exact-SHA Build on `9a37b282bf2b2ef8218357c357b4927606efd349`, run `46117138055`: Analyze and Debug/Release APK jobs SUCCESS; all six quality shards FAILURE; trace JSONL evidence CANCELLED. The failing logs show Home/Center/Backup native work completing after the old FakeAsync frame-loop timeout, a missing `ensureOpen()` in the TaskStorageLock native test, and Home Restore running without the test Runner.
+- One separate RTL swipe `pumpAndSettle` failure remains unclassified and must not be hidden by the helper repair.
+- On the same prior SHA: Device Smoke `46117138005` SUCCESS (7/7); Governance `46117137988` SUCCESS; Follow-up File Persistence `46117138064` SUCCESS. COMMAND 20-E `46117137975`: storage-persistence SUCCESS; complete-evidence was still IN_PROGRESS at the last poll.
+- For current SHA `c51411f...`, the commit-workflow query returned no associated runs. Therefore the new test changes are COMMITTED / NOT VERIFIED; no current-SHA Build, test, lint or device PASS is claimed.
+- No local Flutter/Dart SDK is installed in this execution environment, and no workflow-dispatch action is exposed here. GitHub file writes succeeded, but they do not provide a test result.
+
+### Remaining P0 / next execution
+1. Obtain Build and targeted test evidence on exact SHA `c51411f...`; inspect whether the real-clock helper resolves the six-shard failure family without regressions.
+2. Diagnose the independent RTL swipe `pumpAndSettle` failure.
+3. Re-poll COMMAND 20-E and complete its evidence gate on a single final SHA.
+4. Continue ARC-M2M-001 caller inventory for Project↔Category; do not create a duplicate Store before confirming no existing owner.
+5. Continue D01–D05 migration, backup, restore and rollback acceptance on disposable file-backed databases only.
+
+Product acceptance remains NOT ACCEPTED. Release remains NO-GO. No Main write, merge, release, deployment, destructive production DB operation, branch deletion, history rewrite or force push was performed.
+
+
+## Superseding evidence poll — 2026-11-28 — prior code SHA 9a37b282bf2b2ef8218357c357b4927606efd349
+
+- COMMAND 20-E run `46117137975` is now COMPLETED / FAILURE. Evidence collection itself is COMPLETED; overall verdict is NO-GO because the exact-SHA Build gate is not successful.
+- COMMAND 20-E storage-persistence job `140893371704` SUCCESS. Its ProjectStore file-persistence, Calendar process-restart parity, and cleanup verification gates all report PASS.
+- Device Smoke run `46117138005` SUCCESS across all seven scenarios. Follow-up File Persistence `46117138064` SUCCESS. Governance Validation `46117137988` SUCCESS.
+- Build run `46117138055` has Analyze SUCCESS and Debug/Release APK jobs SUCCESS, but all six quality shards FAILED; its trace JSONL evidence job was CANCELLED and the workflow conclusion is CANCELLED. These are all evidence for SHA `9a37b282...` only.
+- This poll supersedes the earlier note that COMMAND 20-E complete-evidence was still in progress. It does not alter the status of the later test-only candidate `c51411f...` or the current docs-inclusive branch tip; neither has current-SHA workflow evidence.
+
+## Live continuation — 2026-11-28 — encrypted Backup trace remediation
+
+- Canonical route: PR #3495 / `recovery-02/main-based-integration`; Main remains read-only at `45e4202b03a434459e4c021a04efa7e8396359db`.
+- Latest code commit in this batch: `04264807bdbf43e4b92d322b89df8dd6afa1f058`. Trace privacy/test commits immediately before it: `c8a420de7e265c2f5421a6df243a39115688e1a7`, `5612b7942640a7872d0bdd51bd5809756bcaa918`.
+- Existing Issue #3671 is the active P0. Its older candidate `7241842aced02eb6ee24ccaaf89af5c0b6d897fa` failed Build run `45025576717`: encrypted Backup confirmation test timed out after 10 minutes; the shard log reported 198 passed / 1 failed. The run had no per-shard trace artifact (only Debug/Release APK artifacts).
+- Implemented: per-shard JSONL tracing in Build test jobs; exact-SHA/run/lane/outcome metadata; artifact upload with `always()`; exception messages removed from trace events while retaining exception type. No Backup behavior, test assertion, timeout or data path changed.
+- Verification: NOT VERIFIED. No associated workflow run was returned for code SHA `0426480...` at poll time; no local Flutter/Dart SDK or workflow-dispatch action is available here. The older Device Smoke/Governance/Follow-up successes and COMMAND 20-E failure remain scoped to the older candidate.
+- Root cause of Backup timeout: NOT VERIFIED. Do not change Backup internals until a trace artifact identifies the first START without END.
+- Next exact action: obtain Build on the final docs-inclusive head; download `arvin-test-trace-test-0-<run_id>`; inspect operation sequence and correlation; repair only the first proven blocked stage; rerun encrypted Backup, negative-passphrase no-write, exactly-one-write, exception recovery, busy-state release and all six shards.
+- Product acceptance: NOT ACCEPTED. Release: NO-GO. No Main write, merge, release, deployment or production database operation.
+
+
+## Handoff — 2026-11-28 — continue from live HEAD 59c29195
+
+- Use PR #3495 only; branch `recovery-02/main-based-integration`; Main `45e4202b03a434459e4c021a04efa7e8396359db` is read-only.
+- Last verified HEAD: `59c29195e715b4095ed82191ae35891bfe51eafd`.
+- Exact-SHA evidence: Governance `46137910354` PASS; Follow-up persistence `46137910349` PASS; Device Smoke `46137910386` PASS (7 scenarios); Build `46137910356` CANCELLED with shard 5 FAILURE (154 passed / 7 failed) and shards 0–4 cancelled; COMMAND 20-E `46137910377` NO-GO although ProjectStore, Calendar restart and cleanup gates passed.
+- Active P0 remains Issue #3671. Current Build does not emit per-shard JSONL for test-5; restore this diagnostic path first, with no passphrase or user-data logging. Then isolate the FakeAsync/RealAsync completion handoff; handle Home pumpAndSettle failures independently.
+- Do not raise timeouts, weaken assertions, delete tests, alter Backup semantics, or create a parallel trace framework. Do not call product acceptance complete from APK or Device Smoke alone.
+- Next exact action: restore per-shard trace capture on the authorized branch, run the affected shard and full Build, inspect operation START/END/ERROR by correlation ID, then implement only a proven fix and rerun all required gates on the same SHA.
+- No code changes or commits were made in the preceding forensic pass. Release remains NO-GO; no merge, release, deployment or production DB operation is authorized.
+
+
+## Superseding forensic checkpoint — 2026-11-28 — exact SHA 59c29195
+
+- Exact-SHA runs: Build `46137910356` (workflow conclusion CANCELLED; quality shard test-5 FAILED with 154 passed / 7 failed; shards 0–4 cancelled); COMMAND 20-E `46137910377` (NO-GO); Device Smoke `46137910386` SUCCESS (7 scenarios); Governance `46137910354` SUCCESS; Follow-up File Persistence `46137910349` SUCCESS.
+- COMMAND 20-E storage-persistence job succeeded, including ProjectStore file persistence, Calendar SharedPreferences fresh-process restart parity and cleanup. Its complete-evidence gate returned NO-GO because the exact-SHA Build gate was not successful. Do not relabel this as a Calendar persistence failure.
+- Build test-5 has seven failures: two Home RTL interaction tests fail at `pumpAndSettle` (Home test lines 511 and 569); five timeout failures affect Backup legacy-restore preservation, Backup operation-scoped passphrase, Center management, TaskStorageLock native I/O, and Home card text growth. Preserve all assertions and existing timeouts.
+- The trace artifact `arvin-trace-59c29195e715b4095ed82191ae35891bfe51eafd-46137910356` exists and matches this SHA/run. It contains a two-record JSONL trace for `test.file_sink`, a generic trace test log, and `center.log`; it does NOT contain per-operation Backup/Center/Home traces for the failing tests. Thus the older wording “no trace artifact exists” is superseded: an artifact exists, but it does not capture the failing product/test operations.
+- In `center.log`, the TaskStorageLock helper emits every phase through `fake_async_cleanup_complete` before the affected widget tests time out. The cleanup handoff itself is therefore not established as the current root cause for those cases. Do not repeat or broaden the helper repair without new evidence. The exact blocking await after the helper remains NOT VERIFIED.
+- The two RTL failures are independently classified as `pumpAndSettle timed out`; they are not proof of storage failure. Diagnose the live animation/interaction path without replacing assertions or hiding animations.
+- Next safe action: add/restore privacy-safe per-test JSONL trace capture to the existing Build test-shard evidence path (no second trace framework; never log passphrases, user content or database rows), then obtain a new exact-SHA Build. Identify the first unmatched START/END for Backup and Center before changing product code. Diagnose Home RTL interaction separately. Keep test selection and timeout limits unchanged.
+- Product/data blockers remain: one canonical SQLite schema/migration/executor/store path; full Main v7 historical migration and relationship parity; Center↔Project and Project↔Category single-owner integration; independent-file Backup/Restore/rollback; remaining product UI/feature acceptance. These are not cleared by APK or Device Smoke.
+- No product source, schema, user database, assertions or test timeout was changed in this forensic pass. Main remains read-only; PR #3495 remains the only development route and must remain OPEN / DRAFT / UNMERGED. Release remains NO-GO.
+
+
+## Architecture consolidation checkpoint — 2026-11-28
+
+- The approved target is now recorded at the top of `docs/architecture/DATABASE_SCHEMA_DESIGN.md` and `docs/architecture/DATABASE_RELATIONSHIP_CONTRACT.md`; the former conflicting working-draft content is retained below as historical reference.
+- Architecture documentation commits: `544db18b779860d9c8a1b068bbd6528f5b64f4f0` (single owner-approved SQLite target) and `343b0eb4514acfa8683d6419033db4227e3bc6a2` (relationship ownership reconciliation). Both documents were read back from the authorized branch and their new sections verified.
+- Owner-approved semantics carried forward: one local SQLite source of truth; Center↔Project M2M; Project↔Category M2M; Task→Center/Project/Category independently optional 0..1; Task↔Tag M2M; no ProjectExecution aggregate; Task due date, TaskReminder, recurrence and Follow-up remain separate.
+- Exact source gaps established at branch schema v9: CenterStore owns `center_projects`; ProjectStore still reads/writes `project_items`; TaskStore still owns `taxonomy_categories`; `categories` and `project_categories` exist from v8→v9 migration but have no accepted single CategoryStore/runtime owner. Task also stores nullable `project_id` and `category_id`, so `project_items` and `taxonomy_categories` are competing legacy representations that require lossless reconciliation. Do not delete either table or silently choose among conflicting IDs.
+- The canonical target maps `tasks.project_id` as the Task→Project 0..1 assignment, `categories` as the sole Category identity/catalog, and `project_categories` as the sole Project↔Category relation. A single CategoryStore is the intended owner for Category rows and Project↔Category edges; it is not yet implemented/accepted. Existing `project_items` remains migration evidence until every edge is reconciled and independent-file backup/restore, rollback and retry pass.
+- The only explicit hierarchy migration inspected is v8→v9; the complete Main v7→current ordered migration ledger and full historical parity remain NOT ACCEPTED. The design docs do not claim code completion.
+- On exact docs-inclusive SHA `343b0eb4514acfa8683d6419033db4227e3bc6a2`, the following workflows were observed in progress/pending at the last poll: Governance `46142889010`, Follow-up Persistence `46142889041`, Device Smoke `46142889028`, Build `46142889050`, COMMAND 20-E `46142889004`. Poll these exact runs; do not transfer prior SHA results.
+- No product source, schema, production database, test assertion or timeout was changed by these architecture documentation commits. Next implementation lane is the single Category ownership and Project relationship reconciliation, preceded by exact source/consumer inventory and file-backed migration tests. Do not create a second repository or parallel store.
+
+
+## Exact-SHA evidence checkpoint — 2026-11-28 12:14 UTC — SHA `f6f3f7df2f10882e2f99d7d96b737ec000ff219c`
+
+- COMMAND 20-E run `46142938311`: `storage-persistence` SUCCESS; `complete-evidence` FAILURE / `EVIDENCE_COLLECTION_STATUS=INCOMPLETE` / `COMMAND_20E_OVERALL=NO-GO`. Its downloaded phase artifact verifies exact checkout SHA and three scoped gates: ProjectStore file persistence PASS; Calendar SharedPreferences process-restart PASS (8 links × 4 fields = 32 comparisons across independent processes); cleanup PASS. These do not constitute full backup/restore acceptance.
+- Follow-up file-backed SQLite run `46142938331`: SUCCESS.
+- Governance run `46142938335`: SUCCESS.
+- Build run `46142938299`: CANCELLED; Analyze job SUCCESS, but all six test shards and Debug/Release APK jobs CANCELLED. Partial logs show at least one real test failure before cancellation: `test/backup_page_encryption_ux_test.dart` → `cancelling encrypted backup performs no write`, line 240, finder `backup_passphrase_cancel` absent. Three additional observed `pumpAndSettle timed out` failures in shard 3: `follow_up_office_page_test.dart` / legacy Next Follow-up due filter, `g6_swipe_rtl_acceptance_test.dart` / RTL physical left swipe, and `home_settings_integration_test.dart` / Home More opens Settings. Because jobs were cancelled, this is a partial failure inventory, not a complete test result.
+- Device Smoke run `46142938341`: CANCELLED; only scenario preparation succeeded. No device scenario PASS is claimed for this SHA.
+- Trace artifacts exist for test shards 0–5, including shard 1; this supersedes the earlier statement that no per-test artifacts existed. The downloaded shard-1 JSONL shows TaskStore/ProjectStore schema installation and load complete successfully before the later test failure. The test's cancellation dialog key exists in the inspected BackupPage source, but the actual reason it was absent at tap time is not yet proven. Do not add the key again or change the assertion; trace the directory-load / backup-entry decision and widget state first.
+- The trace evidence and build log are partial because the workflow was cancelled. Do not describe all six shards as failed; their final conclusions are CANCELLED. Do not describe the three pumpAndSettle cases as root-caused.
+- Historical migration report `docs/history/command-42-r/MAIN_V7_TO_V20_MIGRATION_REPORT.md` remains BLOCKED: v19 installer not executed against the physical Main-v7 fixture; v20 accepts only v19; no post-migration parity snapshot exists. `docs/history/command-49-r/V19_BACKUP_RESTORE_REPORT.md` remains BLOCKED at non-empty Occurrence parity; controlled failure, physical restore and post-restore reopen were not reached.
+- Owner ADR `ADR-2026-11-14-CENTER-PROJECT-CATEGORY-M2M.md` authorizes the two M2M cardinalities and safety constraints, but does **not** designate which Store class owns Project↔Category. Do not state that a specific CategoryStore is owner-approved. Select exactly one runtime owner only after auditing all current consumers and the existing ProjectStore/TaskStore write paths; document it as an implementation decision, not an owner decision.
+- The schema source inspected at the canonical branch is `G1DriftSchema.version = 9`. The historical v20 migration source exists on another historical PR lineage, but it is not the accepted schema implementation on this branch. Do not call current schema v20.
+- No production source, user database, schema or test was changed by the above evidence review. The architecture addenda remain design/target documentation, not implementation acceptance. Main stays read-only; PR #3495 stays OPEN / DRAFT / UNMERGED; release NO-GO.
+
+### Next single-lane execution order
+1. Use the current exact branch HEAD and trace artifacts to finish first-failure attribution for Backup cancel and the three pumpAndSettle tests. Do not repeat async-runner changes or increase timeouts without proof.
+2. Complete one-source inventory of ProjectStore, TaskStore, CenterStore, all consumers, Backup/Restore and migration paths; designate one owner per relation and remove competing writes only after file-backed compatibility tests exist.
+3. Reconcile the Main-v7→v19 installer dependency closure, then execute exact v7 fixture→v19→v20 using the actual Dart/Flutter migration code on independent physical files. Capture IDs, row/value parity, unknown JSON keys, NULLs, relation pairs, rollback/retry, backup/restore and Android SQLite behavior.
+4. Implement one minimal code slice at a time; keep all assertions and timeouts intact; run full exact-SHA acceptance before advancing to another product slice.

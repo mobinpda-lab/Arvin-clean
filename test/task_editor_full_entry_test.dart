@@ -93,6 +93,30 @@ void main() {
     expect(result!.followUpDate, DateTime(2026, 9, 22, 11, 15));
   });
 
+
+  testWidgets('toggling All-Day off restores the previously selected due time',
+      (tester) async {
+    Task? result;
+    final due = DateTime(2026, 9, 20, 14, 30);
+    final task = Task(id: 'all-day-time-restore', title: 'حفظ ساعت', dueDate: due);
+    await openEditor(tester, task: task, onResult: (value) => result = value);
+    final allDay = find.byKey(const ValueKey('task-editor-due-all-day'));
+    await tester.ensureVisible(allDay);
+    await tester.tap(allDay);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDay).value, isTrue);
+    await tester.tap(allDay);
+    await tester.pumpAndSettle();
+    expect(tester.widget<CheckboxListTile>(allDay).value, isFalse);
+    final save = find.byKey(const ValueKey('task-editor-header-save'));
+    await tester.ensureVisible(save);
+    await tester.tap(save);
+    await tester.pumpAndSettle();
+    expect(result, isNotNull);
+    expect(result!.allDay, isFalse);
+    expect(result!.dueDate, due);
+  });
+
   testWidgets('full-entry controls remain scroll-accessible on short RTL viewport',
       (tester) async {
     await openEditor(

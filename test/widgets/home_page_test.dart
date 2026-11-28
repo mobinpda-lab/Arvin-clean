@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:arvin/services/arvin_async_trace.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -5,17 +8,95 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:arvin/main.dart';
 import 'package:arvin/services/app_settings_service.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
+import 'package:arvin/services/project_store.dart';
+import 'package:arvin/services/center_store.dart';
 import 'package:arvin/services/iran_clock.dart';
+import '../support/flutter_async_cleanup.dart';
+
+class _RecordingTraceWriter implements ArvinJsonlTraceWriter {
+  final List<String> lines = <String>[];
+
+  @override
+  Future<void> writeLine(String line) async => lines.add(line);
+
+  @override
+  Future<void> flush() async {}
+
+  @override
+  Future<void> close() async {}
+}
+
+final _storageTraceWriter = _RecordingTraceWriter();
+final _storageTrace = ArvinAsyncTrace(writer: _storageTraceWriter);
+
+void _installStorageRunner(WidgetTester tester) {
+  _storageTraceWriter.lines.clear();
+  TaskStorageLock.setTraceForTesting(_storageTrace);
+  TaskStorageLock.setWorkRunnerForTesting(
+    (work) => runFlutterAsyncWithCleanupHandshake(tester, work),
+  );
+  addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+  addTearDown(TaskStorageLock.resetTraceForTesting);
+}
+
+Future<T> _pumpFuture<T>(
+  WidgetTester tester,
+  Future<T> Function() operation,
+) async {
+  try {
+    final value = await waitForRealAsync(
+      operation(),
+      timeout: const Duration(seconds: 20),
+      operation: 'Home database operation',
+    );
+    await tester.pump();
+    return value;
+  } on TimeoutException {
+    debugPrint('HOME_STORAGE_TRACE_BEGIN');
+    for (final line in _storageTraceWriter.lines.take(40)) {
+      debugPrint(line);
+    }
+    debugPrint('HOME_STORAGE_TRACE_END');
+    rethrow;
+  }
+}
+
+Future<void> _pumpArvinApp(WidgetTester tester) async {
+  final loaded = Completer<void>();
+  await arvinTraceOperation<void>('home.test_pump', () async {
+    await tester.pumpWidget(ArvinApp(onHomeLoadComplete: () {
+      if (!loaded.isCompleted) loaded.complete();
+    }));
+  });
+  try {
+    await waitForRealAsync(
+      loaded.future,
+      timeout: const Duration(seconds: 20),
+      operation: 'Home did not report load completion',
+    );
+  } on TimeoutException {
+    debugPrint('HOME_STORAGE_TRACE_BEGIN');
+    for (final line in _storageTraceWriter.lines.take(40)) {
+      debugPrint(line);
+    }
+    debugPrint('HOME_STORAGE_TRACE_END');
+    rethrow;
+  }
+  await tester.pumpAndSettle();
+}
 
 void main() {
   setUp(() async {
     await TaskStore.resetTestDatabase();
+    await ProjectStore.resetTestDatabase();
+    await CenterStore.resetTestDatabase();
     SharedPreferences.setMockInitialValues({});
   });
 
   testWidgets('renders the current canonical HomePage shell', (tester) async {
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    _installStorageRunner(tester);
+    await _pumpArvinApp(tester);
 
     expect(find.text('مدیریت کارها و پیگیری آروین'), findsOneWidget);
     expect(find.byType(TextField), findsOneWidget);
@@ -30,26 +111,26 @@ void main() {
   });
 
   testWidgets('loads an existing legacy task from arvin.tasks', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"legacy-ui-1","title":"کار آزمایشی","description":"توضیح"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('کار آزمایشی'), findsOneWidget);
     expect(find.text('توضیح'), findsNothing);
   });
 
   testWidgets('home task card uses compact controls without shrinking readable text', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"compact-home","title":"کار فشرده","dueDate":"2030-09-20T10:00:00.000"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     final toggle = find.byKey(const ValueKey('task-card-toggle-compact-home'));
     expect(toggle, findsOneWidget);
@@ -67,6 +148,7 @@ void main() {
   });
 
   testWidgets('closing overdue warning preserves the Task and its due date', (tester) async {
+    _installStorageRunner(tester);
     final past = IranClock.now().subtract(const Duration(days: 2));
     final dueDate = DateTime(past.year, past.month, past.day, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
@@ -74,8 +156,7 @@ void main() {
           '[{"id":"overdue-preserved","title":"کار عقب‌افتادهٔ مهم","completed":false,"dueDate":"$dueDate"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار عقب‌افتادهٔ مهم'), findsOneWidget);
     expect(find.textContaining('موعد گذشته:'), findsOneWidget);
 
@@ -89,19 +170,19 @@ void main() {
       find.byKey(const ValueKey('task-card-clear-due-overdue-preserved')),
       findsNothing,
     );
-    final saved = (await TaskStore().load()).single;
+    final saved = await _pumpFuture(tester, () async => (await TaskStore().load()).single);
     expect(saved.id, 'overdue-preserved');
     expect(saved.dueDate, isNotNull);
   });
 
   testWidgets('Home hides disabled checklist progress but keeps its saved rows', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"disabled-checklist-home","title":"کار با چک‌لیست خاموش","checklist":["[ ] کیف"],"checklistEnabled":false}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     await tester.scrollUntilVisible(
       find.text('کار با چک‌لیست خاموش'),
       300,
@@ -114,19 +195,19 @@ void main() {
       find.byKey(const ValueKey('task-card-checklist-progress-disabled-checklist-home')),
       findsNothing,
     );
-    final persisted = (await TaskStore().load()).single;
+    final persisted = await _pumpFuture(tester, () async => (await TaskStore().load()).single);
     expect(persisted.checklist, const ['[ ] کیف']);
     expect(persisted.checklistEnabled, isFalse);
   });
 
   testWidgets('completed tasks remain visible in All and Completed filters', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"completed-old","title":"کار انجام‌شده قدیمی","completed":true,"dueDate":"2026-09-20T10:00:00.000"},{"id":"active","title":"کار انجام‌نشده","completed":false}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     // «همه کارها»: a completed task with an old due date must remain visible.
     expect(find.text('کار انجام‌شده قدیمی'), findsOneWidget);
@@ -145,20 +226,24 @@ void main() {
   });
 
 
-  testWidgets('Home uses the four cards as combined filters and preserves time grouping',
+  testWidgets('Home applies five filters with Center OR and cross-dimension AND',
       (tester) async {
+    _installStorageRunner(tester);
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-a', name: 'مرکز الف'));
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-b', name: 'مرکز ب'));
+    await _pumpFuture(tester, () => CenterStore().create(id: 'center-c', name: 'مرکز ج'));
     final today = IranClock.now();
     final isoToday = DateTime(today.year, today.month, today.day, 10).toIso8601String();
     final isoTomorrow = DateTime(today.year, today.month, today.day + 1, 10).toIso8601String();
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
-          '[{"id":"match","title":"کار منطبق","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"}]',
+          '[{"id":"match","title":"کار منطبق","centerId":"center-a","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"},{"id":"tomorrow","title":"کار فردا","centerId":"center-a","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoTomorrow"},{"id":"other","title":"کار نامرتبط","centerId":"center-b","category":"اداری","tags":["نوزاد"],"completed":false,"dueDate":"$isoToday"},{"id":"outside","title":"کار خارج","centerId":"center-c","category":"اتاق","tags":["نوزاد","تعویض"],"completed":false,"dueDate":"$isoToday"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('زمان'), findsOneWidget);
+    expect(find.text('مرکز'), findsOneWidget);
     expect(find.text('پروژه'), findsOneWidget);
     expect(find.text('دسته'), findsOneWidget);
     expect(find.text('برچسب‌ها'), findsOneWidget);
@@ -167,6 +252,15 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('امروز').last);
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('home-filter-card-center')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('مرکز الف').last);
+    await tester.tap(find.text('مرکز ب').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('اعمال فیلتر'));
+    await tester.pumpAndSettle();
+    expect(find.text('کار نامرتبط'), findsOneWidget);
+    expect(find.text('کار خارج'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-filter-card-category')));
     await tester.pumpAndSettle();
@@ -187,13 +281,13 @@ void main() {
   });
 
   testWidgets('search filters the currently loaded legacy tasks', (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"one","title":"تماس فروش"},{"id":"two","title":"جلسه فنی"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('تماس فروش'), findsOneWidget);
     expect(find.text('جلسه فنی'), findsOneWidget);
@@ -207,13 +301,13 @@ void main() {
 
   testWidgets('Home search scopes the active Home task set',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"active","title":"جستجوی مشترک فعال"},{"id":"completed","title":"جستجوی مشترک انجام‌شده","completed":true},{"id":"archived","title":"جستجوی مشترک بایگانی","archived":true},{"id":"trashed","title":"جستجوی مشترک حذف‌شده","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     await tester.enterText(find.byType(TextField), 'جستجوی مشترک');
     await tester.pumpAndSettle();
@@ -226,13 +320,13 @@ void main() {
 
   testWidgets('Home search uses canonical Persian and FollowUp text',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"persian","title":"يادداشت كاری"},{"id":"followup","title":"کار دوم","followUps":[{"id":"f1","dateTime":"2026-08-25T10:00:00.000","note":"تماس با مشتری","result":"موفق"}]},{"id":"other","title":"خرید"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     await tester.enterText(find.byType(TextField), 'یادداشت کاری');
     await tester.pump();
@@ -248,12 +342,12 @@ void main() {
 
   testWidgets('default rightward swipe still moves an active task to trash',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': '[{"id":"active","title":"کار فعال"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     final dismissible = tester.widget<Dismissible>(find.byType(Dismissible));
     expect(dismissible.direction, DismissDirection.horizontal);
@@ -273,13 +367,13 @@ void main() {
 
   testWidgets('permanent delete from trash requires explicit confirmation',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"trashed","title":"حذف آزمایشی","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     await tester.tap(find.byKey(const ValueKey('home-menu')));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(ListTile, 'سطل زباله'));
@@ -313,13 +407,13 @@ void main() {
 
   testWidgets('drawer opens archive and restores archived task to active',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"archived","title":"کار بایگانی","archived":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار بایگانی'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -338,13 +432,13 @@ void main() {
 
   testWidgets('drawer opens trash and restores trashed task to active',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"trashed-restore","title":"کار سطل","trashed":true}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
     expect(find.text('کار سطل'), findsNothing);
 
     await tester.tap(find.byKey(const ValueKey('home-menu')));
@@ -364,13 +458,13 @@ void main() {
 
   testWidgets('unreadable canonical storage is explicit and blocks Home writes',
       (tester) async {
+    _installStorageRunner(tester);
     const corrupt = '{"not":"a-list"}';
     SharedPreferences.setMockInitialValues({
       'arvin.tasks': corrupt,
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     expect(find.text('داده‌های کارها قابل خواندن نیست'), findsOneWidget);
     expect(find.byKey(const ValueKey('home-storage-retry')), findsOneWidget);
@@ -393,6 +487,7 @@ void main() {
 
   testWidgets('RTL swipe directions honor independently configured archive and trash actions',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"right-task","title":"بایگانی راست"},{"id":"left-task","title":"سطل چپ"}]',
@@ -450,6 +545,7 @@ void main() {
 
   testWidgets('RTL Move-to-Today does not dismiss and None is a no-op',
       (tester) async {
+    _installStorageRunner(tester);
     SharedPreferences.setMockInitialValues({
       'arvin.tasks':
           '[{"id":"move","title":"انتقال امروز","dueDate":"2026-09-26T10:00:00.000"},{"id":"none","title":"بدون عمل"}]',
@@ -504,6 +600,7 @@ void main() {
 
   testWidgets('Home task card allows title and description to grow without forced clipping',
       (tester) async {
+    _installStorageRunner(tester);
     const title =
         'عنوان بسیار طولانی برای اطمینان از اینکه متن کامل کار در کارت خانه قابل مشاهده می‌ماند';
     const description =
@@ -513,8 +610,7 @@ void main() {
       'arvin.tasks': '[{"id":"long-card","title":"$title","description":"$description"}]',
     });
 
-    await tester.pumpWidget(const ArvinApp());
-    await tester.pumpAndSettle();
+    await _pumpArvinApp(tester);
 
     // Home is intentionally a scan surface: the long description is
     // progressively disclosed away from the Home card, while the title remains

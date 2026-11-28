@@ -95,6 +95,40 @@ void main() {
       expect(document['tags'], <String>['مهم', 'پیگیری']);
     });
 
+    test('preserves unknown top-level metadata and people directory through codec round-trip', () {
+      final metadata = <String, dynamic>{
+        'futureFeature': <String, dynamic>{
+          'schema': 3,
+          'enabled': true,
+          'labels': <String>['alpha', 'بتا'],
+        },
+        'vendorExtension': <dynamic>[1, 'two', <String, dynamic>{'three': 3}],
+      };
+      final peopleDirectory = <Map<String, dynamic>>[
+        <String, dynamic>{
+          'id': 'person-opaque-1',
+          'displayName': 'شخص آزمایشی',
+          'futurePersonField': <String, dynamic>{'preserve': true},
+        },
+      ];
+      final payload = <String, dynamic>{
+        'tasks': <dynamic>[],
+        ...metadata,
+        'peopleDirectory': peopleDirectory,
+      };
+
+      final encoded = ArvinBackupService.encodeBackupDocument(payload);
+      final decoded = ArvinBackupService.validateBackupDocument(
+        jsonDecode(utf8.decode(encoded)),
+      );
+
+      expect(decoded['futureFeature'], metadata['futureFeature']);
+      expect(decoded['vendorExtension'], metadata['vendorExtension']);
+      expect(decoded['peopleDirectory'], peopleDirectory);
+      expect(decoded['type'], ArvinBackupService.backupType);
+      expect(decoded['formatVersion'], ArvinBackupService.backupFormatVersion);
+    });
+
     test('rejects malformed optional Calendar link and taxonomy containers', () {
       for (final key in ['calendarLinks', 'categories', 'tags']) {
         expect(

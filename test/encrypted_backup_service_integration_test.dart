@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:arvin/backup_service.dart';
@@ -155,6 +156,47 @@ void main() {
         service.prepareBackupBytes(_payload(), passphrase: '   '),
         throwsA(isA<FormatException>()),
       );
+    });
+
+    test('writes a real encrypted file and restores it independently', () async {
+      final directory =
+          await Directory.systemTemp.createTemp('arvin-encrypted-backup-');
+      try {
+        final file = File('${directory.path}/independent-backup.json');
+        final service = ArvinBackupService(
+          encryptedEnvelope: _fastEnvelope(),
+          localWriter: (directoryUri, fileName, mimeType, bytes) async {
+            expect(directoryUri, directory.path);
+            expect(fileName, 'independent-backup.json');
+            expect(mimeType, 'application/json');
+            await file.writeAsBytes(bytes, flush: true);
+          },
+        );
+
+        await service.writeBackup(
+          directoryUri: directory.path,
+          payload: _payload(),
+          fileName: 'independent-backup.json',
+          uploadToCloud: false,
+          encryptionPassphrase: 'independent-file-passphrase',
+        );
+
+        expect(await file.exists(), isTrue);
+        final persistedBytes = await file.readAsBytes();
+        final envelope =
+            jsonDecode(utf8.decode(persistedBytes)) as Map<String, dynamic>;
+        expect(envelope['type'], ArvinEncryptedBackupEnvelope.envelopeType);
+        expect(utf8.decode(persistedBytes), isNot(contains('پیگیری قرارداد')));
+
+        final restored = await service.decodeBackupBytes(
+          persistedBytes,
+          passphrase: 'independent-file-passphrase',
+        );
+        expect(restored['tasks'], hasLength(1));
+        expect((restored['tasks'] as List).single['id'], 'task-1');
+      } finally {
+        await directory.delete(recursive: true);
+      }
     });
   });
 }

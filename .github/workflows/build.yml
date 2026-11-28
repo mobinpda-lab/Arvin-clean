@@ -88,10 +88,58 @@ jobs:
         if: matrix.lane == 'analyze'
         run: flutter analyze
       - name: Test
+        id: test
         if: startsWith(matrix.lane, 'test-')
         env:
           SHARD_INDEX: ${{ fromJSON(matrix.lane == 'test-0' && '0' || matrix.lane == 'test-1' && '1' || matrix.lane == 'test-2' && '2' || matrix.lane == 'test-3' && '3' || matrix.lane == 'test-4' && '4' || '5') }}
-        run: flutter test --total-shards 6 --shard-index $SHARD_INDEX
+          ARVIN_MISSION_ID: 178-R
+          ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/${{ matrix.lane }}.jsonl
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$ARVIN_TRACE_OUTPUT")"
+          # These harnesses require the pinned historical V19 checkout and dedicated SQLite fixtures.
+          mapfile -t test_files < <(
+            find test -type f -name '*_test.dart' ! -path 'test/command49_v19_safety_test.dart' ! -path 'test/command50_occurrence_forensic_test.dart' | sort
+          )
+          test "${#test_files[@]}" -gt 0
+          echo "GENERAL_TEST_FILE_COUNT=${#test_files[@]}"
+          flutter test --total-shards 6 --shard-index "$SHARD_INDEX" "${test_files[@]}"
+      - name: Record shard trace status
+        if: ${{ always() && startsWith(matrix.lane, 'test-') }}
+        env:
+          TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          TRACE_LANE: ${{ matrix.lane }}
+          TEST_OUTCOME: ${{ steps.test.outcome }}
+          ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/${{ matrix.lane }}.jsonl
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          mkdir -p "$trace_dir"
+          if [[ -s "$ARVIN_TRACE_OUTPUT" ]]; then
+            trace_status=PRESENT
+          else
+            trace_status=MISSING
+          fi
+          {
+            echo "Mission ID: 178-R"
+            echo "Repository: $GITHUB_REPOSITORY"
+            echo "Branch: $GITHUB_HEAD_REF"
+            echo "Commit SHA: $TARGET_SHA"
+            echo "GitHub Run ID: $GITHUB_RUN_ID"
+            echo "GitHub Run Attempt: $GITHUB_RUN_ATTEMPT"
+            echo "Test lane: $TRACE_LANE"
+            echo "Test step outcome: $TEST_OUTCOME"
+            echo "Trace evidence status: $trace_status"
+          } > "$trace_dir/metadata.txt"
+          echo "TRACE_EVIDENCE_STATUS=$trace_status"
+      - name: Upload shard JSONL trace artifact
+        if: ${{ always() && startsWith(matrix.lane, 'test-') }}
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-test-trace-${{ matrix.lane }}-${{ github.run_id }}
+          path: arvin-trace/
+          if-no-files-found: error
+          compression-level: 6
 
   # APK builds are independent of Analyze/Test and run in parallel with the quality matrix.
   apk:
@@ -165,3 +213,162 @@ jobs:
           name: arvin-${{ matrix.variant }}-apk
           path: build/app/outputs/flutter-apk/app-${{ matrix.variant }}.apk
           if-no-files-found: error
+
+  # A dedicated trace lane produces a single, independently downloadable JSONL
+  # artifact for this exact source SHA, even when the trace tests fail.
+  trace-evidence:
+    name: trace JSONL evidence
+    runs-on: ubuntu-latest
+    env:
+      FLUTTER_VERSION: '3.47.0'
+      TARGET_SHA: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      ARVIN_MISSION_ID: 202-R
+      ARVIN_TRACE_OUTPUT: ${{ github.workspace }}/arvin-trace/arvin-async-trace.jsonl
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact requested revision
+        run: |
+          set -euo pipefail
+          actual="$(git rev-parse HEAD)"
+          test "$actual" = "$TARGET_SHA"
+          echo "EXACT_TARGET_SHA=$actual"
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+      - name: Resolve locked dependencies
+        run: |
+          set -euo pipefail
+          flutter pub get --enforce-lockfile
+          git diff --exit-code -- pubspec.lock
+      - name: Validate TWA-01 through TWA-06 aggregation contract
+        run: bash .github/scripts/test-trace-workflow-aggregation.sh
+      - name: Run independent JSONL trace tests
+        id: trace_tests
+        run: bash .github/scripts/trace-workflow-aggregate.sh
+      - name: Write artifact metadata without fabricating Trace JSONL
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          mkdir -p "$trace_dir"
+          if [[ -s "$ARVIN_TRACE_OUTPUT" ]]; then
+            trace_status=PRESENT
+            trace_file="$(basename "$ARVIN_TRACE_OUTPUT")"
+          else
+            trace_status=MISSING
+            trace_file=MISSING
+          fi
+          printf '%s\n' "$trace_status" > "$trace_dir/trace-evidence-status.txt"
+          echo "TRACE_EVIDENCE_STATUS=$trace_status" >> "$GITHUB_ENV"
+          if [[ ! -s "$trace_dir/test-exit-code.txt" ]]; then printf '1\n' > "$trace_dir/test-exit-code.txt"; fi
+          {
+            echo "Mission ID: 189-R"
+            echo "Current Mission ID: 202-R"
+            echo "Repository: $GITHUB_REPOSITORY"
+            echo "Branch: $GITHUB_HEAD_REF"
+            echo "Commit SHA: $TARGET_SHA"
+            echo "GitHub Run ID: $GITHUB_RUN_ID"
+            echo "GitHub Run Attempt: $GITHUB_RUN_ATTEMPT"
+            echo "Timestamp UTC: $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+            echo "Trace file: $trace_file"
+            echo "Trace evidence status: $trace_status"
+            echo "Test exit status: $(cat "$trace_dir/test-exit-code.txt")"
+          } > "$trace_dir/metadata.txt"
+          test -s "$trace_dir/metadata.txt"
+          if [[ "$trace_status" != PRESENT ]]; then
+            echo "TRACE_EVIDENCE_STATUS=MISSING; no synthetic JSONL was created." >&2
+            exit 1
+          fi
+      - name: Generate mission 202-R metadata.json from actual execution values
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          if [[ -s "$ARVIN_TRACE_OUTPUT" ]]; then
+            python3 scripts/mission_202r_metadata.py --write --trace-file "$ARVIN_TRACE_OUTPUT" --metadata-file "$trace_dir/metadata.json"
+          else
+            python3 - "$trace_dir/metadata.json" <<'PY'
+          import json, os, pathlib, sys
+          payload = {
+              "mission_id": "202-R",
+              "repository": os.environ.get("GITHUB_REPOSITORY"),
+              "branch": os.environ.get("GITHUB_HEAD_REF") or os.environ.get("GITHUB_REF_NAME"),
+              "commit_sha": os.environ.get("TARGET_SHA"),
+              "workflow_run_id": os.environ.get("GITHUB_RUN_ID"),
+              "run_attempt": int(os.environ.get("GITHUB_RUN_ATTEMPT", "1")),
+              "trace_file": None,
+              "trace_sha256": None,
+              "trace_status": "MISSING"
+          }
+          pathlib.Path(sys.argv[1]).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+          PY
+            echo "TRACE_EVIDENCE_STATUS=MISSING" >&2
+            exit 1
+          fi
+          test -s "$trace_dir/metadata.json"
+      - name: Independently validate mission 202-R metadata and all 18 regression scenarios
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          validation_exit_code=0
+          if [[ -s "$ARVIN_TRACE_OUTPUT" ]]; then
+            if ! python3 scripts/mission_202r_metadata.py --validate --trace-file "$ARVIN_TRACE_OUTPUT" --metadata-file "$trace_dir/metadata.json"; then
+              validation_exit_code=1
+            fi
+          else
+            echo "TRACE_EVIDENCE_STATUS=MISSING; metadata validation is NO-GO." >&2
+            validation_exit_code=1
+          fi
+          python3 scripts/mission_202r_metadata.py --self-test
+          exit "$validation_exit_code"
+      - name: Validate JSONL records and artifact identity
+        if: always()
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          if [[ ! -s "$ARVIN_TRACE_OUTPUT" ]]; then
+            echo "TRACE_EVIDENCE_STATUS=MISSING; no Trace artifact can be accepted." >&2
+            exit 1
+          fi
+          grep -Fqx "Commit SHA: $TARGET_SHA" "$trace_dir/metadata.txt"
+          grep -Fqx "GitHub Run ID: $GITHUB_RUN_ID" "$trace_dir/metadata.txt"
+          grep -Fqx "Mission ID: 189-R" "$trace_dir/metadata.txt"
+          grep -Fqx "Current Mission ID: 202-R" "$trace_dir/metadata.txt"
+          expected_exit_code="$(cat "$trace_dir/test-exit-code.txt")"
+          grep -Fqx "Test exit status: $expected_exit_code" "$trace_dir/metadata.txt"
+          while IFS= read -r line; do
+            test -n "$line"
+            printf '%s\n' "$line" | jq -e '
+              (has("timestamp") and has("event") and has("operation_id") and
+               has("parent_operation_id") and has("correlation_id") and
+               has("operation_name") and has("elapsed_ms") and has("status") and
+               has("error_type")) and
+              (.event == "START" or .event == "END" or .event == "ERROR")
+            ' >/dev/null
+          done < "$ARVIN_TRACE_OUTPUT"
+          echo "TRACE_JSONL_VALID=PASS"
+      - name: Upload JSONL trace artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: arvin-trace-${{ github.event_name == 'workflow_dispatch' && inputs.target_sha != '' && inputs.target_sha || github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}-${{ github.run_id }}
+          path: arvin-trace/
+          if-no-files-found: error
+          compression-level: 6
+      - name: Preserve the trace test exit code
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          trace_dir="$(dirname "$ARVIN_TRACE_OUTPUT")"
+          exit_code="$(cat "$trace_dir/test-exit-code.txt")"
+          echo "PRESERVED_TRACE_TEST_EXIT_CODE=$exit_code"
+          if [[ "$(cat "$trace_dir/trace-evidence-status.txt" 2>/dev/null || echo MISSING)" != PRESENT ]]; then
+            echo "TRACE_EVIDENCE_STATUS=MISSING; preserving NO-GO." >&2
+            exit 1
+          fi
+          exit "$exit_code"

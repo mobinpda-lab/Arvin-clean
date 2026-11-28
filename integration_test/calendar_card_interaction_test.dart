@@ -23,9 +23,11 @@ void main() {
 
       final now = IranClock.now();
       final reminderAt = now.add(const Duration(minutes: 10));
+      final followUpReminderAt = now.add(const Duration(minutes: 15));
       const taskId = 'calendar-smoke-task';
       const reminderId = 'calendar-smoke-reminder';
       const secondReminderId = 'calendar-smoke-reminder-2';
+      const followUpId = 'calendar-smoke-follow-up';
       final seed = Task(
         id: taskId,
         title: 'کار آزمون تعامل تقویم',
@@ -38,6 +40,12 @@ void main() {
             dateTime: now,
             title: 'سابقه تاریخی',
             note: 'این سابقه نباید با ویرایش یادآور تغییر کند',
+          ),
+          FollowUp(
+            id: followUpId,
+            dateTime: now,
+            title: 'پیگیری دارای یادآور',
+            reminderDate: followUpReminderAt,
           ),
         ],
         taskReminders: [
@@ -64,6 +72,13 @@ void main() {
       expect(reloadedTasks, hasLength(1));
       expect(reloadedTasks.single.id, taskId);
       expect(reloadedTasks.single.taskReminders, hasLength(2));
+      final persistedFollowUp = reloadedTasks.single.followUps.singleWhere(
+        (item) => item.id == followUpId,
+      );
+      expect(persistedFollowUp.reminderDate, followUpReminderAt);
+      debugPrint(
+        'CALENDAR_DIAG_A: followUpReminderPresent=${persistedFollowUp.reminderDate == reminderAt}',
+      );
       expect(
         reloadedTasks.single.taskReminders.every(
           (item) => !item.isLegacyTaskReminder,
@@ -104,8 +119,19 @@ void main() {
       }
 
       expect(find.byType(ArvinPrimaryNavigation), findsOneWidget);
-      await tester.tap(find.text('تقویم').last);
-      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const ValueKey('primary-nav-calendar')),
+      );
+      // Route replacement and the official-calendar FutureBuilder can settle
+      // after the first pump; wait for the actual selected-day list surface.
+      for (var attempt = 0; attempt < 40; attempt++) {
+        await tester.pump(const Duration(milliseconds: 100));
+        if (find.byKey(const ValueKey('calendar-selected-day-list')).evaluate().isNotEmpty) {
+          break;
+        }
+      }
+      expect(find.text('تقویم پیگیری'), findsOneWidget);
+      expect(find.byKey(const ValueKey('calendar-selected-day-list')), findsOneWidget);
 
       final cardKey = const ValueKey(
         'reminder-card-task-reminder-item:calendar-smoke-task:calendar-smoke-reminder',
@@ -120,11 +146,25 @@ void main() {
       );
       expect(calendarList, findsOneWidget);
       expect(calendarScrollable, findsOneWidget);
+      // Legacy FollowUp.reminderDate is preserved as historical metadata,
+      // but it is not an independent TaskReminder and must not create a
+      // Calendar event. The canonical independent TaskReminder is the target.
+      final legacyFollowUpCard = find.byKey(
+        ValueKey('reminder-card-followup:$taskId:$followUpId'),
+      );
+      expect(legacyFollowUpCard, findsNothing);
+      expect(find.text('پیگیری دارای یادآور'), findsNothing);
+      // The selected-day ListView is lazy and may contain official calendar
+      // items before the canonical Task reminder. Scroll the actual list until
+      // the target text is built; checking its Key before scrolling incorrectly
+      // treats an off-screen, not-yet-built child as a missing projection.
       await tester.scrollUntilVisible(
-        card,
-        200,
+        find.text('یادآور آزمایشی'),
+        320,
         scrollable: calendarScrollable,
       );
+      expect(card, findsOneWidget);
+      await tester.ensureVisible(card);
       await tester.pumpAndSettle();
       expect(card, findsOneWidget);
       expect(find.text('یادآور آزمایشی'), findsOneWidget);
@@ -169,8 +209,15 @@ void main() {
       expect(afterCancel.taskReminders.singleWhere((item) => item.id == reminderId).date, reminderAt);
       expect(afterCancel.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
       expect(afterCancel.dueDate, now.add(const Duration(hours: 2)));
-      expect(afterCancel.followUps.single.dateTime, now);
-      expect(afterCancel.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      final historicalFollowUp = afterCancel.followUps.singleWhere(
+        (item) => item.id == 'calendar-smoke-history',
+      );
+      expect(historicalFollowUp.dateTime, now);
+      expect(historicalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      expect(
+        afterCancel.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
+        followUpReminderAt,
+      );
 
       // Change the date through the actual Jalali date picker.
       final dateButton = find.byKey(const ValueKey('task-editor-reminder-date-calendar-smoke-reminder'));
@@ -236,8 +283,15 @@ void main() {
       expect(savedReminder.date.minute, 47);
       expect(savedTask.taskReminders.singleWhere((item) => item.id == secondReminderId).date, now.add(const Duration(hours: 1)));
       expect(savedTask.dueDate, now.add(const Duration(hours: 2)));
-      expect(savedTask.followUps.single.dateTime, now);
-      expect(savedTask.followUps.single.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      final savedHistoricalFollowUp = savedTask.followUps.singleWhere(
+        (item) => item.id == 'calendar-smoke-history',
+      );
+      expect(savedHistoricalFollowUp.dateTime, now);
+      expect(savedHistoricalFollowUp.note, 'این سابقه نباید با ویرایش یادآور تغییر کند');
+      expect(
+        savedTask.followUps.singleWhere((item) => item.id == followUpId).reminderDate,
+        followUpReminderAt,
+      );
       expect(tester.takeException(), isNull);
       await tester.pumpAndSettle();
       await binding.takeScreenshot('calendar-card-independent-reminder-edit');

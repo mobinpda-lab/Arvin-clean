@@ -1,0 +1,33 @@
+# Product Owner review for governance, persistence, backup, and release-sensitive changes.
+/docs/project-continuity/MASTER_GOVERNANCE.md @mobinpda-lab
+/docs/project-continuity/PRODUCT_DECISIONS.md @mobinpda-lab
+/assets/fonts/ui/vazirmatn/ @mobinpda-lab
+/pubspec.yaml @mobinpda-lab
+/lib/theme/ @mobinpda-lab
+/lib/core/theme/ @mobinpda-lab
+/lib/services/g1_drift_schema.dart @mobinpda-lab
+/lib/services/task_store.dart @mobinpda-lab
+/lib/services/project_store.dart @mobinpda-lab
+/lib/backup_manager.dart @mobinpda-lab
+/lib/services/task_report_pdf_renderer.dart @mobinpda-lab
+/.github/workflows/release-closure.yml @mobinpda-lab
+/.github/CODEOWNERS @mobinpda-lab
+/lib/arvin_colors.dart @mobinpda-lab
+/lib/home/home_visual_integration.dart @mobinpda-lab
+/test/arvin_primary_blue_contract_test.dart @mobinpda-lab
+/.github/workflows/arvin-governance-validation.yml @mobinpda-lab
+# REV10 product, domain, persistence and migration ownership.
+/lib/models/ @mobinpda-lab
+/lib/services/ @mobinpda-lab
+/lib/home/ @mobinpda-lab
+/lib/widgets/ @mobinpda-lab
+/lib/task_editor_dialog.dart @mobinpda-lab
+/lib/follow_up_reminder_notification_service.dart @mobinpda-lab
+/lib/android_follow_up_reminder_scheduler.dart @mobinpda-lab
+/lib/follow_up_reminder_background_runner.dart @mobinpda-lab
+/android/app/src/main/ @mobinpda-lab
+/test/ @mobinpda-lab
+/integration_test/ @mobinpda-lab
+/docs/ADR/ @mobinpda-lab
+/.github/workflows/ @mobinpda-lab
+/.github/scripts/ @mobinpda-lab

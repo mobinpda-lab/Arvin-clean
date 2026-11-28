@@ -1,10 +1,16 @@
+import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:drift/drift.dart';
 
+import 'g1_rev10_hierarchy_v9_migration.dart';
+import 'g1_person_directory_exclusion_v1_migration.dart';
+import 'arvin_async_trace.dart';
+
 /// G1-DRIFT relational schema foundation.
 class G1DriftSchema implements QueryExecutorUser {
-  static const int version = 7;
+  static const int version = 9;
 
   static const List<String> _statements = <String>[
     '''CREATE TABLE IF NOT EXISTS tasks (
@@ -19,11 +25,12 @@ class G1DriftSchema implements QueryExecutorUser {
   date_time TEXT NOT NULL, title TEXT NULL, note TEXT NOT NULL, result TEXT NULL,
   reminder_date TEXT NULL, next_follow_up TEXT NULL, completed INTEGER NOT NULL,
   waiting_for_response INTEGER NOT NULL DEFAULT 0,
+  extension_json TEXT NULL,
   ordinal INTEGER NOT NULL, UNIQUE (task_id, ordinal))''',
     '''CREATE TABLE IF NOT EXISTS projects (
   id TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL,
   color_value INTEGER NOT NULL DEFAULT 4283059371, is_archived INTEGER NOT NULL DEFAULT 0,
-  legacy_payload_json TEXT NULL)''',
+  legacy_center_id TEXT NULL, legacy_payload_json TEXT NULL)''',
     '''CREATE TABLE IF NOT EXISTS project_items (
   project_id TEXT NOT NULL REFERENCES projects(id), task_id TEXT NOT NULL REFERENCES tasks(id),
   ordinal INTEGER NOT NULL, PRIMARY KEY (project_id, task_id))''',
@@ -56,7 +63,58 @@ class G1DriftSchema implements QueryExecutorUser {
   @override
   Future<void> beforeOpen(QueryExecutor executor, OpeningDetails details) async {}
 
-  static Future<void> install(QueryExecutor executor) async {
+  // Successful installation is shared for the lifetime of one executor.
+  // Multiple Stores use the same executor; rerunning PRAGMA and DDL from each
+  // Store can otherwise overlap with another Store's transaction.
+  static final Expando<Future<void>> _installations =
+      Expando<Future<void>>('G1DriftSchema.installations');
+  static final Map<QueryExecutor, Future<void>> _installTails =
+      HashMap<QueryExecutor, Future<void>>.identity();
+
+  static Future<void> install(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) {
+    // Failure-injection callers must execute the migration path even if this
+    // executor was previously initialized, so they bypass the success cache.
+    if (failureInjector != null) {
+      return arvinTraceFuture('schema.install.failure_injection', _serializeInstall(executor, failureInjector: failureInjector));
+    }
+
+    final existing = _installations[executor];
+    if (existing != null) return existing;
+
+    final installation = arvinTraceFuture('schema.install', _serializeInstall(executor));
+    final tracked = installation.catchError((Object error, StackTrace stackTrace) {
+      _installations[executor] = null;
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _installations[executor] = tracked;
+    return tracked;
+  }
+
+  static Future<void> _serializeInstall(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
+    final previous = _installTails[executor];
+    final turn = Completer<void>();
+    _installTails[executor] = turn.future;
+    try {
+      if (previous != null) await previous;
+      await _installNow(executor, failureInjector: failureInjector);
+    } finally {
+      turn.complete();
+      if (identical(_installTails[executor], turn.future)) {
+        _installTails.remove(executor);
+      }
+    }
+  }
+
+  static Future<void> _installNow(
+    QueryExecutor executor, {
+    G1HierarchyFailureInjector? failureInjector,
+  }) async {
     final schema = G1DriftSchema();
     await executor.ensureOpen(schema);
     await executor.runCustom('PRAGMA foreign_keys = ON');
@@ -86,6 +144,9 @@ class G1DriftSchema implements QueryExecutorUser {
           'ALTER TABLE follow_ups ADD COLUMN waiting_for_response INTEGER NOT NULL DEFAULT 0',
         );
       }
+      if (!followUpColumns.any((row) => row['name'] == 'extension_json')) {
+        await executor.runCustom('ALTER TABLE follow_ups ADD COLUMN extension_json TEXT NULL');
+      }
       final projectColumns = await executor.runSelect("PRAGMA table_info('projects')", const []);
       if (!projectColumns.any((row) => row['name'] == 'color_value')) {
         await executor.runCustom('ALTER TABLE projects ADD COLUMN color_value INTEGER NOT NULL DEFAULT 4283059371');
@@ -108,6 +169,9 @@ class G1DriftSchema implements QueryExecutorUser {
       try { await executor.runCustom('ROLLBACK'); } catch (_) {}
       rethrow;
     }
+    await G1Rev10HierarchyV9Migration(failureInjector: failureInjector)
+        .migrate(executor);
+    await const G1PersonDirectoryExclusionV1Migration().migrate(executor);
   }
 
   /// Copies historical task-person identities into the canonical directory.
@@ -118,11 +182,24 @@ class G1DriftSchema implements QueryExecutorUser {
       'SELECT person_id, person_json FROM task_people ORDER BY task_id, ordinal',
       const [],
     );
+    // Explicit directory removals are distinct from historical Task/Follow-up references.
+    // The exclusion table is created by an additive marker-versioned migration.
+    final exclusionTable = await executor.runSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = 'person_directory_exclusions'",
+      const [],
+    );
+    final excludedIds = exclusionTable.isEmpty
+        ? <String>{}
+        : (await executor.runSelect(
+            'SELECT person_id FROM person_directory_exclusions',
+            const [],
+          )).map((row) => row['person_id'] as String).toSet();
     final now = DateTime.now().toIso8601String();
     for (final row in rows) {
       final id = row['person_id'];
       final raw = row['person_json'];
       if (id is! String || id.trim().isEmpty || raw is! String) continue;
+      if (excludedIds.contains(id.trim())) continue;
       try {
         final decoded = jsonDecode(raw);
         if (decoded is! Map) continue;

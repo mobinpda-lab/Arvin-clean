@@ -50,18 +50,18 @@ void main() {
       ['late-today'],
     );
     expect(
-      groups.singleWhere((group) => group.id == 'future').items
+      groups.singleWhere((group) => group.id == 'tomorrow').items
           .map((item) => item.id),
       ['tomorrow'],
     );
     expect(
-      groups.singleWhere((group) => group.id == 'overdue').items
-          .map((item) => item.id),
-      ['overdue'],
+      groups.singleWhere((group) => group.id == 'future').items,
+      isEmpty,
     );
     expect(
-      groups.singleWhere((group) => group.id == 'overdue').items.map((item) => item.id),
-      isNot(contains('completed-overdue')),
+      groups.singleWhere((group) => group.id == 'overdue').items
+          .map((item) => item.id),
+      ['overdue', 'completed-overdue'],
     );
     expect(
       groups.singleWhere((group) => group.id == 'no_date').items

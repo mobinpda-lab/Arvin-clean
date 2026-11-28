@@ -1,10 +1,12 @@
 name: Arvin Release Closure
 
 on:
-  workflow_run:
-    workflows: ['Arvin Device Smoke']
-    types: [completed]
   workflow_dispatch:
+    inputs:
+      owner_approval:
+        description: Type exactly APPROVE RELEASE to authorize a prerelease
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -22,28 +24,24 @@ env:
 
 jobs:
   release-closure:
-    # Only successful Device Smoke for pushed main may auto-start release closure.
-    # PR smoke and PR workflow_run chains must not create duplicate main release builds.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && github.event.workflow_run.head_branch == 'main') }}
+    # Release creation is manual and owner-approved only. A green CI run never publishes by itself.
+    if: ${{ github.event_name == 'workflow_dispatch' && github.actor == 'mobinpda-lab' && inputs.owner_approval == 'APPROVE RELEASE' }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - name: Checkout exact main
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: main
           fetch-depth: 0
 
-      - name: Fetch pinned VazirHarf
+      - name: Verify approved Vazirmatn assets
         run: |
           set -euo pipefail
-          git clone --no-tags --depth 1 https://github.com/nadalaba/vazirharf.git "$RUNNER_TEMP/vazirharf"
-          git -C "$RUNNER_TEMP/vazirharf" fetch --depth 1 origin 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          git -C "$RUNNER_TEMP/vazirharf" checkout --detach 3cbc943b9fb9107baa77008b3e96b3c3e40e9ed8
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Regular.ttf"
-          test -s "$RUNNER_TEMP/vazirharf/fonts/ttf/Vazirharf-Bold.ttf"
-          mkdir -p assets/fonts
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
+          grep -q "family: Vazirmatn" pubspec.yaml
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Regular.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Medium.ttf
+          test -s assets/fonts/ui/vazirmatn/Vazirmatn-Bold.ttf
 
       - name: Detect pending release
         id: release_state
@@ -67,7 +65,8 @@ jobs:
               const rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
               const assets = await github.rest.repos.listReleaseAssets({owner, repo, release_id: rel.data.id});
               const names = new Set(assets.data.map(a => a.name));
-              complete = [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
+              const approved = (rel.data.body || '').includes('ARVIN_RELEASE_GATE=PASS');
+              complete = approved && [`arvin-${appVersion}-build${buildNumber}.apk`,'artifact.sha256','release-evidence.txt'].every(n => names.has(n));
             } catch (_) {}
             core.setOutput('already_released', complete ? 'true' : 'false');
             core.setOutput('app_version', version);
@@ -76,164 +75,43 @@ jobs:
             core.info(`RELEASE_TAG=${tag}`);
             core.info(`ALREADY_RELEASED=${complete}`);
 
-      - name: Validate candidate and exact main
+      - name: Validate canonical PR #3495 and exact main
         if: steps.release_state.outputs.already_released != 'true'
         id: verify
         uses: actions/github-script@v7
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-
-            const main = await github.rest.repos.getBranch({
-              owner,
-              repo,
-              branch: 'main'
-            });
-
-            const sha = main.data.commit.sha;
-
-            const pulls = await github.paginate(
-              github.rest.pulls.list,
-              {
-                owner,
-                repo,
-                state: 'closed',
-                base: 'main',
-                per_page: 100,
-                sort: 'updated',
-                direction: 'desc'
-              }
-            );
-
-            const candidates = pulls
-              .filter(pr => pr.merged_at)
-              .filter(pr =>
-                (pr.labels || []).some(
-                  label => label.name === 'arvin-auto'
-                )
-              )
-              .sort(
-                (a,b) =>
-                  new Date(b.merged_at) -
-                  new Date(a.merged_at)
-              );
-
-            let selected = null;
-
-            for (const pr of candidates) {
-              if (!pr.merge_commit_sha) continue;
-
-              const comparison =
-                await github.rest.repos.compareCommits({
-                  owner,
-                  repo,
-                  base: pr.merge_commit_sha,
-                  head: sha
-                });
-
-              if (
-                ['ahead','identical']
-                .includes(comparison.data.status)
-              ) {
-                selected = {
-                  pr,
-                  comparison
-                };
-                break;
-              }
-            }
-
-            if (!selected) {
-              core.warning(
-                `No merged arvin-auto PR found. Falling back to exact main SHA ${sha}.`
-              );
-
-              core.setOutput(
-                'candidate_pr',
-                'main'
-              );
-
-              core.setOutput(
-                'main_sha',
-                sha
-              );
-
-              core.setOutput(
-                'commit_sha',
-                sha
-              );
-
-              core.setOutput(
-                'merge_sha',
-                sha
-              );
-
-              core.info(
-                `CANDIDATE_PR=main`
-              );
-
-              core.info(
-                `COMMIT_SHA=${sha}`
-              );
-
-              core.info(
-                `MERGE_SHA=${sha}`
-              );
-
-              core.info(
-                `MAIN_SHA=${sha}`
-              );
-
-              core.info(
-                `CANDIDATE_MAIN_RELATION=identical`
-              );
-
+            const { owner, repo } = context.repo;
+            const pr = (await github.rest.pulls.get({
+              owner, repo, pull_number: 3495
+            })).data;
+            if (pr.state !== 'closed' || !pr.merged_at ||
+                pr.base.ref !== 'main' ||
+                pr.head.ref !== 'recovery-02/main-based-integration' ||
+                !pr.merge_commit_sha) {
+              core.setFailed('RELEASE BLOCKED: canonical PR #3495 must be merged into main before release.');
               return;
             }
-
-            const pr = selected.pr;
-            const comparison = selected.comparison;
-
-            core.setOutput(
-              'candidate_pr',
-              String(pr.number)
-            );
-
-            core.setOutput(
-              'main_sha',
-              sha
-            );
-
-            core.setOutput(
-              'commit_sha',
-              pr.head.sha
-            );
-
-            core.setOutput(
-              'merge_sha',
-              pr.merge_commit_sha
-            );
-
-            core.info(
-              `CANDIDATE_PR=${pr.number}`
-            );
-
-            core.info(
-              `COMMIT_SHA=${pr.head.sha}`
-            );
-
-            core.info(
-              `MERGE_SHA=${pr.merge_commit_sha}`
-            );
-
-            core.info(
-              `MAIN_SHA=${sha}`
-            );
-
-            core.info(
-              `CANDIDATE_MAIN_RELATION=${comparison.data.status}`
-            );
+            const main = await github.rest.repos.getBranch({
+              owner, repo, branch: 'main'
+            });
+            const mainSha = main.data.commit.sha;
+            const comparison = await github.rest.repos.compareCommits({
+              owner, repo, base: pr.merge_commit_sha, head: mainSha
+            });
+            if (!['ahead', 'identical'].includes(comparison.data.status)) {
+              core.setFailed(`RELEASE BLOCKED: PR #3495 merge ${pr.merge_commit_sha} is not an ancestor of current main ${mainSha}.`);
+              return;
+            }
+            core.setOutput('candidate_pr', '3495');
+            core.setOutput('main_sha', mainSha);
+            core.setOutput('commit_sha', pr.head.sha);
+            core.setOutput('merge_sha', pr.merge_commit_sha);
+            core.info('CANONICAL_PR=3495');
+            core.info(`COMMIT_SHA=${pr.head.sha}`);
+            core.info(`MERGE_SHA=${pr.merge_commit_sha}`);
+            core.info(`MAIN_SHA=${mainSha}`);
+            core.info(`CANDIDATE_MAIN_RELATION=${comparison.data.status}`);
       - name: Setup exact Flutter
         if: steps.release_state.outputs.already_released != 'true'
         uses: subosito/flutter-action@v2
@@ -257,16 +135,6 @@ jobs:
           grep -q 'org.jetbrains.kotlin.android.*2.4.0' android/settings.gradle.kts
           grep -q 'VERSION_17' android/app/build.gradle.kts
           grep -q 'desugar_jdk_libs:2.1.5' android/app/build.gradle.kts
-
-      - name: Restore VazirHarf assets
-        if: steps.release_state.outputs.already_released != 'true'
-        run: |
-          set -euo pipefail
-          mkdir -p assets/fonts
-          rm -rf assets/fonts/vazirharf
-          cp -a "$RUNNER_TEMP/vazirharf/." assets/fonts/vazirharf/
-          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Regular.ttf
-          test -s assets/fonts/vazirharf/fonts/ttf/Vazirharf-Bold.ttf
 
       - name: Android V2 audit
         if: steps.release_state.outputs.already_released != 'true'
@@ -341,7 +209,7 @@ jobs:
             .github/release-evidence/release-evidence.txt
           if-no-files-found: error
 
-      - name: Require explicit product release approval
+      - name: Verify product release gates
         if: steps.release_state.outputs.already_released != 'true'
         id: product_gate
         uses: actions/github-script@v7
@@ -349,61 +217,51 @@ jobs:
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
-
-            // A green build is not product acceptance. Publication stays blocked
-            // until the existing release gate and the known regression lane are closed.
-            // Hide already-published Arvin prereleases while blocked; preserve their
-            // tags/assets so this containment is reversible rather than destructive.
-            async function hideUnapprovedPrereleases() {
-              const releases = await github.paginate(github.rest.repos.listReleases, {
-                owner,
-                repo,
-                per_page: 100
-              });
-              for (const release of releases) {
-                if (release.draft || !release.prerelease || !release.tag_name.includes('-arvin-')) {
-                  continue;
-                }
-                try {
-                  await github.rest.repos.updateRelease({
-                    owner,
-                    repo,
-                    release_id: release.id,
-                    draft: true,
-                    body: `${release.body || ''}\n\n**UNAPPROVED — NOT A RELEASE CANDIDATE.** Product release gate #2102 and regression lane #1901 must both be closed after acceptance before publication.`
-                  });
-                  core.warning(`HIDDEN_UNAPPROVED_PRERELEASE=${release.tag_name}`);
-                } catch (error) {
-                  core.warning(`FAILED_TO_HIDE_UNAPPROVED_PRERELEASE=${release.tag_name}: ${error.message}`);
-                }
-              }
-            }
-
-            const gate = await github.rest.issues.get({
-              owner,
-              repo,
-              issue_number: 2102
-            });
+            const gate = await github.rest.issues.get({ owner, repo, issue_number: 2102 });
             if (gate.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
               core.setFailed('RELEASE BLOCKED: issue #2102 must be closed only after exact-main CI, device evidence, and product acceptance are complete.');
               return;
             }
-
-            const regression = await github.rest.pulls.get({
-              owner,
-              repo,
-              pull_number: 1901
-            });
+            const regression = await github.rest.pulls.get({ owner, repo, pull_number: 1901 });
             if (regression.data.state !== 'closed') {
-              await hideUnapprovedPrereleases();
-              core.setFailed('RELEASE BLOCKED: existing P0/P1 regression PR #1901 is still open; reconcile/resolve its findings before publishing.');
+              core.setFailed('RELEASE BLOCKED: P0/P1 regression PR #1901 must be resolved before publishing.');
               return;
             }
-
-            core.info('PRODUCT_RELEASE_GATE=approved');
+            core.info('EXPLICIT_OWNER_RELEASE_APPROVAL=PASS');
             core.info('RELEASE_GATE_ISSUE=2102:closed');
             core.info('REGRESSION_LANE_PR=1901:closed');
+
+      - name: Remove stale Arvin prereleases
+        if: steps.release_state.outputs.already_released != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            async function hideUnapprovedPrereleases() {
+              const { owner, repo } = context.repo;
+              const releases = await github.paginate(
+                github.rest.repos.listReleases,
+                { owner, repo, per_page: 100 }
+              );
+              for (const release of releases) {
+                if (!release.prerelease || release.draft ||
+                    !release.tag_name?.includes('-arvin-')) continue;
+                const assets = await github.rest.repos.listReleaseAssets({
+                  owner, repo, release_id: release.id
+                });
+                const names = new Set(assets.data.map(asset => asset.name));
+                const approved = (release.body || '').includes('ARVIN_RELEASE_GATE=PASS') &&
+                  names.has('artifact.sha256') && names.has('release-evidence.txt');
+                if (approved) {
+                  core.info('PRESERVED_APPROVED_PRERELEASE=' + release.tag_name);
+                  continue;
+                }
+                await github.rest.repos.updateRelease({
+                  owner, repo, release_id: release.id, draft: true
+                });
+                core.info('HIDDEN_UNAPPROVED_PRERELEASE=' + release.tag_name);
+              }
+            }
+            await hideUnapprovedPrereleases();
 
       - name: Create exact-head tag and prerelease
         if: steps.release_state.outputs.already_released != 'true'
@@ -425,8 +283,23 @@ jobs:
             try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
             catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
             let rel;
-            try { rel = await github.rest.repos.getReleaseByTag({owner, repo, tag}); }
-            catch (_) { rel = await github.rest.repos.createRelease({owner, repo, tag_name: tag, target_commitish: sha, name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`, body: `Autonomous release closure for PR #${process.env.PR_NUMBER}; verified main ${sha}.`, draft: false, prerelease: true}); }
+            try { await github.rest.git.getRef({owner, repo, ref: `tags/${tag}`}); }
+            catch (_) { await github.rest.git.createRef({owner, repo, ref: `refs/tags/${tag}`, sha}); }
+            const releaseBody = `Owner-approved release closure for canonical PR #${process.env.PR_NUMBER}; verified main ${sha}.\nARVIN_RELEASE_GATE=PASS`;
+            try {
+              rel = await github.rest.repos.getReleaseByTag({owner, repo, tag});
+              rel = await github.rest.repos.updateRelease({
+                owner, repo, release_id: rel.data.id,
+                name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`,
+                body: releaseBody, draft: true, prerelease: true
+              });
+            } catch (_) {
+              rel = await github.rest.repos.createRelease({
+                owner, repo, tag_name: tag, target_commitish: sha,
+                name: `Arvin ${process.env.APP_VERSION} (build ${process.env.BUILD_NUMBER})`,
+                body: releaseBody, draft: true, prerelease: true
+              });
+            }
             core.setOutput('tag', tag);
             core.setOutput('release_id', String(rel.data.id));
             core.info(`TAG=${tag}`);
@@ -470,33 +343,6 @@ jobs:
           test "$(git rev-list -n 1 '${{ steps.release.outputs.tag }}')" = "${{ steps.verify.outputs.main_sha }}"
           echo "RECOVERY_RESULT=success"
           echo "RESUME_VALIDATION=success"
-
-      - name: Remove stale Arvin prereleases
-        if: steps.release_state.outputs.already_released != 'true'
-        uses: actions/github-script@v7
-        env:
-          KEEP_TAG: ${{ steps.release.outputs.tag }}
-        with:
-          script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const keepTag = process.env.KEEP_TAG;
-            const releases = await github.paginate(
-              github.rest.repos.listReleases,
-              { owner, repo, per_page: 100 }
-            );
-            for (const release of releases) {
-              if (release.draft || !release.prerelease) continue;
-              if (!release.tag_name.startsWith('v') || !release.tag_name.includes('-arvin-')) continue;
-              if (release.tag_name === keepTag) continue;
-              await github.rest.repos.deleteRelease({ owner, repo, release_id: release.id });
-              try {
-                await github.rest.git.deleteRef({ owner, repo, ref: 'tags/' + release.tag_name });
-              } catch (error) {
-                if (error.status !== 422 && error.status !== 404) throw error;
-              }
-              core.info('REMOVED_STALE_RELEASE=' + release.tag_name);
-            }
 
       - name: Publish final evidence
         if: steps.release_state.outputs.already_released != 'true'

@@ -11,6 +11,7 @@ import 'services/external_calendar_link_store.dart';
 import 'services/calendar_sync_plan_service.dart';
 import 'services/project_store.dart';
 import 'services/task_store.dart';
+import 'services/arvin_async_trace.dart';
 
 /// UI for portable Backup/Restore. The page receives the current task data
 /// through callbacks so it does not duplicate TaskRepository logic.
@@ -21,6 +22,8 @@ class BackupPage extends StatefulWidget {
     required this.replaceTasks,
     this.manager,
     this.restoreStageHook,
+    this.onBackupComplete,
+    this.onRestoreComplete,
   });
 
   final Future<List<Map<String, dynamic>>> Function() loadTasks;
@@ -30,6 +33,10 @@ class BackupPage extends StatefulWidget {
   /// Test-only seam for injecting failures at real restore mutation boundaries.
   /// Production callers leave this unset.
   final Future<void> Function(String stage)? restoreStageHook;
+  /// Test synchronization seam for completion of the canonical backup flow.
+  final VoidCallback? onBackupComplete;
+  /// Test synchronization seam for completion of the canonical restore flow.
+  final VoidCallback? onRestoreComplete;
 
   @override
   State<BackupPage> createState() => _BackupPageState();
@@ -132,16 +139,18 @@ class _BackupPageState extends State<BackupPage> {
               ),
               FilledButton(
                 key: const Key('backup_passphrase_confirm'),
-                onPressed: () {
-                  if (passphrase.trim().isEmpty) {
-                    setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
-                    return;
-                  }
-                  if (passphrase != confirmation) {
-                    setDialogState(() => errorText = 'دو رمز یکسان نیستند');
-                    return;
-                  }
-                  Navigator.of(dialogContext).pop(passphrase);
+                onPressed: () async {
+                  await arvinTraceOperation<void>('backup.password_validation', () async {
+                    if (passphrase.trim().isEmpty) {
+                      setDialogState(() => errorText = 'رمز نمی‌تواند خالی باشد');
+                      return;
+                    }
+                    if (passphrase != confirmation) {
+                      setDialogState(() => errorText = 'دو رمز یکسان نیستند');
+                      return;
+                    }
+                    Navigator.of(dialogContext).pop(passphrase);
+                  });
                 },
                 child: const Text('ادامه'),
               ),
@@ -232,7 +241,9 @@ class _BackupPageState extends State<BackupPage> {
     };
   }
 
-  Future<void> _backup() async {
+  Future<void> _backup() => arvinTraceOperation<void>('backup.page', _backupTraced);
+
+  Future<void> _backupTraced() async {
     if (directory == null || directory!.isEmpty) {
       _message('ابتدا پوشه پشتیبان را انتخاب کنید');
       return;
@@ -240,26 +251,33 @@ class _BackupPageState extends State<BackupPage> {
 
     String? passphrase;
     if (encryptBackup) {
-      passphrase = await _requestNewPassphrase();
-      if (passphrase == null || !mounted) return;
+      passphrase = await arvinTraceOperation<String?>('backup.password_request', _requestNewPassphrase);
+      final confirmed = await arvinTraceOperation<bool>('backup.confirmation',
+          () async => passphrase != null && passphrase.isNotEmpty && mounted);
+      if (!confirmed) return;
     }
 
-    setState(() => busy = true);
+    await arvinTraceOperation<void>('backup.busy_start', () async { if (mounted) setState(() => busy = true); });
     try {
-      final tasks = await widget.loadTasks();
-      final fileName = await manager.backupTasks(
-        tasks,
-        settings: await _portableBackupSettings(),
-        calendarLinks: (await ExternalCalendarLinkStore().load())
-            .map((link) => link.toJson())
-            .toList(growable: false),
-        projects: manager.projectCodec.encodeList(await ProjectStore().load()),
-        categories: await TaskStore().loadCategories(),
-        tags: await TaskStore().loadTags(),
-        peopleDirectory: (await TaskStore().loadPeopleDirectory())
-            .map((person) => person.toJson())
-            .toList(growable: false),
-        encryptionPassphrase: passphrase,
+      final tasks = await arvinTraceFutureFactory('backup.load_tasks', widget.loadTasks);
+      final settings = await arvinTraceFutureFactory('backup.load_settings', _portableBackupSettings);
+      final calendarLinks = await arvinTraceFutureFactory('backup.load_calendar_links', () => ExternalCalendarLinkStore().load());
+      final projects = await arvinTraceFutureFactory('backup.load_projects', () => ProjectStore().load());
+      final categories = await arvinTraceFutureFactory('backup.load_categories', () => TaskStore().loadCategories());
+      final tags = await arvinTraceFutureFactory('backup.load_tags', () => TaskStore().loadTags());
+      final people = await arvinTraceFutureFactory('backup.load_people', () => TaskStore().loadPeopleDirectory());
+      final fileName = await arvinTraceFutureFactory(
+        'backup.manager_write',
+        () => manager.backupTasks(
+          tasks,
+          settings: settings,
+          calendarLinks: calendarLinks.map((link) => link.toJson()).toList(growable: false),
+          projects: manager.projectCodec.encodeList(projects),
+          categories: categories,
+          tags: tags,
+          peopleDirectory: people.map((person) => person.toJson()).toList(growable: false),
+          encryptionPassphrase: passphrase,
+        ),
       );
       if (!mounted) return;
       _message(
@@ -277,8 +295,14 @@ class _BackupPageState extends State<BackupPage> {
               : 'پشتیبان‌گیری انجام نشد',
         );
       }
+      rethrow;
     } finally {
-      if (mounted) setState(() => busy = false);
+      try {
+        await arvinTraceOperation<void>('backup.busy_reset', () async { if (mounted) setState(() => busy = false); });
+      } catch (_) {
+        if (mounted) setState(() => busy = false);
+      }
+      await arvinTraceOperation<void>('backup.completion_callback', () async { widget.onBackupComplete?.call(); });
     }
   }
 
@@ -418,7 +442,7 @@ class _BackupPageState extends State<BackupPage> {
           );
           await widget.restoreStageHook?.call('tasks');
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await ProjectStore().replaceAll(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -461,7 +485,7 @@ class _BackupPageState extends State<BackupPage> {
         },
         rollback: () async {
           await widget.replaceTasks(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await ProjectStore().replaceAll(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await settingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
@@ -513,7 +537,10 @@ class _BackupPageState extends State<BackupPage> {
         }
       }
     } finally {
-      if (mounted) setState(() => busy = false);
+      if (mounted) {
+        setState(() => busy = false);
+        widget.onRestoreComplete?.call();
+      }
     }
   }
 

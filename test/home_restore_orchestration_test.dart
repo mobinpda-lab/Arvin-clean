@@ -9,9 +9,11 @@ import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/flutter_async_cleanup.dart';
 
 class _HomeRestoreBackupService extends ArvinBackupService {
   _HomeRestoreBackupService(this.document);
@@ -53,11 +55,15 @@ void main() {
   tearDown(() async {
     await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
+    TaskStorageLock.resetWorkRunnerForTesting();
   });
 
   testWidgets(
     'Home restore rolls back Task, Project, calendar links and settings after a late failure',
     (tester) async {
+      TaskStorageLock.setWorkRunnerForTesting(
+        (work) => runFlutterAsyncWithCleanupHandshake(tester, work),
+      );
       final taskStore = TaskStore();
       await taskStore.save([
         Task.fromJson(<String, dynamic>{

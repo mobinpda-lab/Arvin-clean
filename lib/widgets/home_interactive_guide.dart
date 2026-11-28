@@ -126,7 +126,7 @@ class _HomeInteractiveGuideOverlayState
                                 style: Theme.of(context)
                                     .textTheme
                                     .titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w800),
+                                    ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
                             Text('${index + 1}/${widget.targets.length}'),

@@ -12,6 +12,7 @@ import '../models/task.dart';
 import 'g1_drift_schema.dart';
 import 'sql_task_migration_writer.dart';
 import 'task_storage_lock.dart';
+import 'arvin_async_trace.dart';
 
 typedef TaskMutation<T> = T Function(List<Task> tasks);
 
@@ -19,22 +20,40 @@ class TaskStore {
   static const key = 'arvin.tasks';
   static DatabaseConnection? _sharedDatabase;
   static QueryExecutor? _testDatabase;
+  static final Expando<Future<void>> _readyByExecutor =
+      Expando<Future<void>>('task-store-ready');
 
   /// Clears only the in-memory SQL executor cache used by Flutter tests.
   /// Production databases are never touched.
   static Future<void> resetTestDatabase() async {
     if (Platform.environment['FLUTTER_TEST'] != 'true') return;
     final executor = _testDatabase;
-    _testDatabase = null;
-    if (executor != null) await executor.close();
+    if (executor == null) return;
+
+    // Queue closure behind all already accepted storage operations. New
+    // TaskStore operations resolve the replacement executor only after this
+    // close entry has completed.
+    await TaskStorageLock.synchronized<void>(() async {
+      if (!identical(_testDatabase, executor)) return;
+      // Keep ownership if close fails; only publish a fresh executor after
+      // the old one has actually completed shutdown.
+      await executor.close();
+      _testDatabase = null;
+      _readyByExecutor[executor] = null;
+    });
   }
 
   final QueryExecutor? _injectedExecutor;
 
   TaskStore({QueryExecutor? executor}) : _injectedExecutor = executor;
 
-  Future<List<Task>> load() =>
-      TaskStorageLock.synchronized<List<Task>>(_loadUnlocked);
+  Future<List<Task>> load() => arvinTraceFuture(
+        'task.store.load_and_lock',
+        TaskStorageLock.synchronized<List<Task>>(
+           _loadUnlocked,
+           operationName: 'task_store.load',
+         ),
+      );
 
   Future<List<String>> loadCategories() async {
     return TaskStorageLock.synchronized<List<String>>(() async {
@@ -77,15 +96,36 @@ class TaskStore {
       final oldById = <String, Map<String, Object?>>{
         for (final row in oldRows) row['id'] as String: row,
       };
+      final incomingIds = normalized.keys.toSet();
+      final removedIds = oldById.keys.toSet().difference(incomingIds);
       await executor.runCustom('BEGIN');
       try {
-        await executor.runCustom('DELETE FROM people');
         final now = DateTime.now().toIso8601String();
+        for (final personId in removedIds) {
+          await executor.runInsert(
+            'INSERT OR IGNORE INTO person_directory_exclusions (person_id, excluded_at) VALUES (?, ?)',
+            <Object?>[personId, now],
+          );
+        }
+        for (final personId in incomingIds) {
+          await executor.runDelete(
+            'DELETE FROM person_directory_exclusions WHERE person_id = ?',
+            <Object?>[personId],
+          );
+        }
+        await executor.runCustom('DELETE FROM people');
         for (final person in normalized.values) {
           final old = oldById[person.id];
           await executor.runInsert(
             'INSERT INTO people (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)',
             <Object?>[person.id, person.displayName, old?['created_at'] ?? now, now],
+          );
+          // The Task relation is the historical identity snapshot. Keep its
+          // label synchronized with the canonical Person directory so the
+          // idempotent legacy hydrator cannot restore a stale display name.
+          await executor.runUpdate(
+            'UPDATE task_people SET person_json = ? WHERE person_id = ?',
+            <Object?>[jsonEncode(person.toJson()), person.id],
           );
         }
         await executor.runCustom('COMMIT');
@@ -304,8 +344,26 @@ class TaskStore {
     return _sharedDatabase ??= driftDatabase(name: 'arvin');
   }
 
-  Future<void> _ensureReady() async {
+  Future<void> _ensureReady() {
     final executor = _database;
+    final pending = _readyByExecutor[executor];
+    if (pending != null) return pending;
+
+    // Every TaskStore instance that owns the same executor observes one
+    // initialization Future. Failed initialization is evicted so a later
+    // operation can retry instead of inheriting a permanently failed Future.
+    late final Future<void> shared;
+    shared = _initialize(executor).catchError((Object error, StackTrace stackTrace) {
+      if (identical(_readyByExecutor[executor], shared)) {
+        _readyByExecutor[executor] = null;
+      }
+      Error.throwWithStackTrace(error, stackTrace);
+    });
+    _readyByExecutor[executor] = shared;
+    return shared;
+  }
+
+  Future<void> _initialize(QueryExecutor executor) async {
     await G1DriftSchema.install(executor);
     if (await G1DriftSchema.isLegacyMigrationComplete(executor)) {
       await G1DriftSchema.migrateTaskPeople(executor);
@@ -371,7 +429,7 @@ class TaskStore {
 
   Future<List<Task>> _loadUnlocked() async {
     final executor = _database;
-    await _ensureReady();
+    await arvinTraceFuture('task.store.ensure_ready', _ensureReady());
     final rows = await executor.runSelect(
       'SELECT * FROM tasks ORDER BY storage_ordinal, id',
       const [],
@@ -398,9 +456,21 @@ class TaskStore {
         (row['follow_up_enabled'] as num?)?.toInt() == 1;
     envelope['followUpDate'] = row['follow_up_date'];
     envelope['category'] = row['category'];
-    envelope['notebookKind'] = row['notebook_kind'];
+    final centerId = row['center_id'];
+    if (centerId is String) envelope['centerId'] = centerId;
+    final projectId = row['project_id'];
+    if (projectId is String) envelope['projectId'] = projectId;
+    final categoryId = row['category_id'];
+    if (categoryId is String) envelope['categoryId'] = categoryId;
+    final notebookKind = row['notebook_kind'];
+    if (notebookKind != null) {
+      envelope['notebookKind'] = notebookKind;
+    }
     envelope['reminderDate'] = row['reminder_date'];
-    envelope['priority'] = row['priority'];
+    final priority = row['priority'];
+    if (priority is String && priority != 'none') {
+      envelope['priority'] = priority;
+    }
     envelope['archived'] = (row['archived'] as num?)?.toInt() == 1;
     envelope['trashed'] = (row['trashed'] as num?)?.toInt() == 1;
     envelope['completed'] = (row['completed'] as num?)?.toInt() == 1;
@@ -418,9 +488,9 @@ class TaskStore {
       envelope['recurrence'] = jsonDecode(recurrence);
     } else if (envelope['recurrence'] is Map) {
       envelope['recurrence'] = Map<String, dynamic>.from(envelope['recurrence'] as Map);
-    } else {
-      envelope['recurrence'] = null;
     }
+    // When the dedicated column is NULL, keep the legacy envelope untouched.
+    // It distinguishes an omitted optional field from an explicitly stored NULL.
 
     final followUps = await executor.runSelect(
       'SELECT * FROM follow_ups WHERE task_id = ? ORDER BY ordinal',
@@ -457,8 +527,10 @@ class TaskStore {
       'SELECT person_json FROM task_people WHERE task_id = ? ORDER BY ordinal',
       <Object?>[row['id']],
     );
-    envelope['people'] =
-        people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    if (people.isNotEmpty) {
+      envelope['people'] =
+          people.map((item) => jsonDecode(item['person_json'] as String)).toList();
+    }
 
     return Task.fromJson(envelope);
   }
@@ -474,6 +546,7 @@ class TaskStore {
 
   Map<String, dynamic> _followUpJson(Map<String, Object?> row) =>
       <String, dynamic>{
+        ..._decodeEnvelope(row['extension_json']),
         'id': row['id'],
         'dateTime': row['date_time'],
         'title': row['title'],
@@ -491,13 +564,11 @@ class TaskStore {
 
     await executor.runCustom('BEGIN');
     try {
-      // Project membership is canonical SQL data owned by ProjectStore, but
-      // project_items references tasks. Preserve those relationship rows while
-      // this legacy-compatible TaskStore rewrite replaces the task rows.
-      final projectItems = await executor.runSelect(
-        'SELECT project_id, task_id, ordinal FROM project_items ORDER BY project_id, ordinal',
-        const [],
-      );
+      // ProjectStore is the sole writer of project_items. TaskStore replaces
+      // Task rows in this transaction, so defer FK checks until COMMIT:
+      // unchanged IDs can be reinserted without touching the membership table;
+      // omitting a still-linked Task fails the commit and rolls back the rewrite.
+      await executor.runCustom('PRAGMA defer_foreign_keys = ON');
       // Keep unknown legacy fields when an existing SQL Task is rewritten.
       // Read them before deleting the task rows; otherwise _canonicalEnvelope
       // cannot recover the previous envelope after the DELETE.
@@ -516,7 +587,6 @@ class TaskStore {
           }
         }
       }
-      await executor.runCustom('DELETE FROM project_items');
       await executor.runCustom('DELETE FROM task_tags');
       await executor.runCustom('DELETE FROM task_people');
       await executor.runCustom('DELETE FROM checklist_items');
@@ -533,9 +603,10 @@ class TaskStore {
         await executor.runInsert(
           '''INSERT INTO tasks (
             id, storage_ordinal, title, description, created_at, updated_at, due_date,
-            follow_up_enabled, follow_up_date, category, notebook_kind, reminder_date,
-            priority, archived, trashed, completed, completed_at, recurrence_json, legacy_payload_json
-          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+            follow_up_enabled, follow_up_date, category, center_id, project_id, category_id,
+            notebook_kind, reminder_date, priority, archived, trashed, completed,
+            completed_at, recurrence_json, legacy_payload_json
+          ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
           <Object?>[
             task.id,
             ordinal,
@@ -547,6 +618,9 @@ class TaskStore {
             task.followUpEnabled ? 1 : 0,
             task.followUpDate?.toIso8601String(),
             task.category,
+            task.centerId,
+            task.projectId,
+            task.categoryId,
             task.notebookKind?.name,
             task.reminderDate?.toIso8601String(),
             task.priority.name,
@@ -561,13 +635,6 @@ class TaskStore {
         await _writeRelations(executor, task);
       }
       await G1DriftSchema.migrateTaskPeople(executor);
-      for (final row in projectItems) {
-        await executor.runInsert(
-          '''INSERT INTO project_items (project_id, task_id, ordinal)
-             VALUES (?, ?, ?)''',
-          <Object?>[row['project_id'], row['task_id'], row['ordinal']],
-        );
-      }
       // Keep categories used by canonical Tasks visible in the independent catalog.
       for (final task in tasks) {
         final category = task.category?.trim();
@@ -592,13 +659,7 @@ class TaskStore {
     Task task, {
     Map<String, dynamic>? previousPayload,
   }) {
-    final knownKeys = <String>{
-      'id', 'title', 'description', 'createdAt', 'updatedAt', 'dueDate',
-      'followUpEnabled', 'followUpDate', 'tags', 'category', 'checklist',
-      'checklistOccurrences', 'occurrenceHistory', 'notebookKind', 'reminderDate', 'priority', 'archived', 'trashed',
-      'completed', 'completedAt', 'followUps', 'recurrence', 'people',
-      'taskReminders',
-    };
+    final knownKeys = Task.jsonFieldNames;
     final preserved = <String, dynamic>{};
     final previous = previousPayload;
     if (previous != null) {
@@ -616,13 +677,15 @@ class TaskStore {
       final followUp = task.followUps[ordinal];
       await executor.runInsert(
         '''INSERT INTO follow_ups
-           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, ordinal)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+           (id, task_id, date_time, title, note, result, reminder_date, next_follow_up, completed, waiting_for_response, extension_json, ordinal)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
         <Object?>[
           followUp.id, task.id, followUp.dateTime.toIso8601String(), followUp.title,
           followUp.note, followUp.result, followUp.reminderDate?.toIso8601String(),
           followUp.nextFollowUp?.toIso8601String(), followUp.completed ? 1 : 0,
-          followUp.waitingForResponse ? 1 : 0, ordinal,
+          followUp.waitingForResponse ? 1 : 0,
+          followUp.extensionData.isEmpty ? null : jsonEncode(followUp.extensionData),
+          ordinal,
         ],
       );
       for (var personOrdinal = 0; personOrdinal < followUp.personIds.length; personOrdinal++) {

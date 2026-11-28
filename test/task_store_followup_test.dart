@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -76,4 +79,39 @@ void main() {
     }
   });
 
+  test('unknown Follow-up metadata survives file-backed SQL close and reopen', () async {
+    SharedPreferences.setMockInitialValues({'arvin.tasks': '[]'});
+    final directory = await Directory.systemTemp.createTemp('arvin-followup-extension-');
+    final file = File('${directory.path}/arvin.sqlite');
+    final firstDatabase = NativeDatabase(file);
+    final firstStore = TaskStore(executor: firstDatabase);
+    await firstStore.save([
+      Task(
+        id: 'extension-task',
+        title: 'حفظ داده آینده',
+        followUps: [
+          FollowUp(
+            id: 'extension-followup',
+            dateTime: DateTime(2026, 11, 18, 10),
+            extensionData: const <String, dynamic>{
+              'futureFollowUpField': {'retained': true, 'revision': 3},
+            },
+          ),
+        ],
+      ),
+    ]);
+    await firstDatabase.close();
+
+    final reopenedDatabase = NativeDatabase(file);
+    try {
+      final loaded = (await TaskStore(executor: reopenedDatabase).load()).single;
+      expect(loaded.followUps.single.extensionData['futureFollowUpField'], {
+        'retained': true,
+        'revision': 3,
+      });
+    } finally {
+      await reopenedDatabase.close();
+      await directory.delete(recursive: true);
+    }
+  });
 }

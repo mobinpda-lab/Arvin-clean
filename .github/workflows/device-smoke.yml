@@ -134,9 +134,16 @@ jobs:
       max-parallel: 2
       matrix: ${{ fromJSON(needs.prepare-matrix.outputs.matrix) }}
     steps:
+      # Pull requests must validate the exact contributor head, not the synthetic merge ref.
       - uses: actions/checkout@v5
+        if: github.event_name == 'pull_request'
         with:
           ref: ${{ env.TARGET_SHA }}
+      # Keep the documented Fast Lane target contract for manual and push runs.
+      - uses: actions/checkout@v5
+        if: github.event_name != 'pull_request'
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.target_sha || github.sha }}
       - name: Record and verify checkout revision
         env:
           TARGET_SHA: ${{ env.TARGET_SHA }}
@@ -150,6 +157,7 @@ jobs:
           git cat-file -e "$TARGET_SHA^{commit}"
           actual="$(git rev-parse HEAD)"
           echo "EXPECTED_TARGET_SHA=$TARGET_SHA"
+          echo "CHECKOUT_SHA=$actual"
           echo "CHECKED_OUT_SHA=$actual"
           if [ "$actual" != "$TARGET_SHA" ]; then
             echo "CHECKOUT SHA mismatch: expected $TARGET_SHA, got $actual" >&2

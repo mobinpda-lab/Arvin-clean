@@ -1,8 +1,10 @@
+import 'dart:async';
 // ignore_for_file: curly_braces_in_flow_control_structures, deprecated_member_use, unused_field
 
 import 'package:flutter/material.dart';
 
 import 'arvin_colors.dart';
+import 'services/arvin_async_trace.dart';
 
 import 'android_follow_up_reminder_scheduler.dart';
 import 'backup_manager.dart';
@@ -10,11 +12,13 @@ import 'backup_schedule_page.dart';
 import 'backup_schedule.dart';
 import 'calendar_page.dart';
 import 'calendar_integration_settings_page.dart';
+import 'models/center.dart' as arvin_center;
 import 'models/goal_project.dart';
 import 'models/person_reference.dart';
 import 'models/task.dart';
 import 'home/grouping/home_group.dart';
 import 'home/home_filter_ui.dart';
+import 'home/home_filter_membership.dart';
 import 'services/iran_clock.dart';
 import 'notebook_page.dart';
 import 'quick_capture_dialog.dart';
@@ -37,6 +41,7 @@ import 'services/task_list_scope_service.dart';
 import 'services/task_list_sort_service.dart';
 import 'services/task_move_to_today_service.dart';
 import 'services/persian_date_formatter.dart';
+import 'services/center_store.dart';
 import 'services/project_store.dart';
 import 'services/arvin_route_observer.dart';
 import 'services/task_edit_apply_service.dart';
@@ -60,6 +65,8 @@ import 'widgets/canonical_calendar_launcher.dart';
 import 'widgets/home_my_tasks_sheet.dart';
 import 'widgets/task_bulk_selection_bar.dart';
 import 'widgets/taxonomy_icon_row.dart';
+
+const String _noCenterFilter = '__no_center__';
 
 class _SettingsTextScaler extends TextScaler {
   const _SettingsTextScaler({
@@ -104,7 +111,10 @@ class _SettingsTextScaler extends TextScaler {
 void main() => runApp(const ArvinApp());
 
 class ArvinApp extends StatefulWidget {
-  const ArvinApp({super.key});
+  const ArvinApp({super.key, this.onHomeLoadComplete});
+
+  /// Test synchronization seam for the canonical Home SQLite initialization.
+  final VoidCallback? onHomeLoadComplete;
 
   @override
   State<ArvinApp> createState() => _ArvinAppState();
@@ -284,6 +294,7 @@ class _ArvinAppState extends State<ArvinApp> {
         child: HomePage(
           settings: settings,
           onSettingsChanged: _updateSettings,
+          onLoadComplete: widget.onHomeLoadComplete,
         ),
       ),
     );
@@ -298,6 +309,7 @@ class HomePage extends StatefulWidget {
       usePersianDate: true,
       ),
     this.onSettingsChanged,
+    this.onLoadComplete,
     this.enableFirstRunGuide = false,
     this.backupManager,
     this.restoreStageHook,
@@ -305,6 +317,8 @@ class HomePage extends StatefulWidget {
 
   final AppSettings settings;
   final ValueChanged<AppSettings>? onSettingsChanged;
+  /// Signals completion of the page's single canonical Store load.
+  final VoidCallback? onLoadComplete;
   final bool enableFirstRunGuide;
 
   /// Optional seam for exercising the existing Home restore flow in tests.
@@ -320,6 +334,7 @@ class _HomePageState extends State<HomePage> {
   final TaskEditApplyService taskEditApplyService = TaskEditApplyService();
   final TaskStore taskStore = TaskStore();
   final ProjectStore projectStore = ProjectStore();
+  final CenterStore centerStore = CenterStore();
   final Wave2ProductFastTrack wave2ProductFastTrack = Wave2ProductFastTrack();
   late final ArvinBackupManager backupManager =
       widget.backupManager ?? ArvinBackupManager();
@@ -345,6 +360,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Task> tasks = [];
   List<ProjectPlan> projects = [];
+  List<arvin_center.Center> centers = [];
   final Set<String> selected = <String>{};
   bool loading = true;
   Object? loadFailure;
@@ -353,8 +369,9 @@ class _HomePageState extends State<HomePage> {
   String filter = 'کل';
   TaskListScope _listScope = TaskListScope.all;
   TaskDueScope? _dueScope;
-  String? _categoryFilter;
-  String? _projectFilter;
+  final Set<String> _categoryFilters = <String>{};
+  final Set<String> _projectFilters = <String>{};
+  final Set<String> _centerFilters = <String>{};
   final Set<String> _tagFilters = <String>{};
   String _timeFilter = 'all';
   DateTime? _specificDateFilter;
@@ -375,11 +392,11 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    widgetTaskBridge.listen(_openWidgetTask);
-    _load();
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _consumeInitialWidgetTask();
-    });
+    unawaited(arvinTraceOperation<void>('home.init', () async {
+      widgetTaskBridge.listen(_openWidgetTask);
+      _load();
+      WidgetsBinding.instance.addPostFrameCallback((_) async { await _consumeInitialWidgetTask(); });
+    }));
   }
 
   @override
@@ -408,25 +425,30 @@ class _HomePageState extends State<HomePage> {
     await _openTaskDetail(task);
   }
 
-  Future<void> _load() async {
-    try {
-      final value = await taskStore.load();
-      final loadedProjects = await projectStore.load();
-      if (!mounted) return;
-      setState(() {
-        tasks = List<Task>.of(value);
-        projects = List<ProjectPlan>.of(loadedProjects);
-        loadFailure = null;
-        loading = false;
+  Future<void> _load() => arvinTraceOperation<void>('home.load', () async {
+        try {
+          final value = await arvinTraceFutureFactory('home.task_store_load', () => taskStore.load());
+          final loadedProjects = await arvinTraceFutureFactory('home.project_store_load', () => projectStore.load());
+          final loadedCenters = await arvinTraceFutureFactory('home.center_store_load', () => centerStore.load(includeArchived: false));
+          if (!mounted) return;
+          await arvinTraceOperation<void>('home.state_update', () async {
+            if (!mounted) return;
+            setState(() { tasks = List<Task>.of(value); projects = List<ProjectPlan>.of(loadedProjects); centers = List<arvin_center.Center>.of(loadedCenters); loadFailure = null; loading = false; });
+          });
+          await _notifyHomeLoadComplete();
+        } catch (error) {
+          if (!mounted) return;
+          await arvinTraceOperation<void>('home.state_update', () async {
+            if (!mounted) return;
+            setState(() { loadFailure = error; loading = false; });
+          });
+          await _notifyHomeLoadComplete();
+        }
       });
-    } catch (error) {
-      if (!mounted) return;
-      setState(() {
-        loadFailure = error;
-        loading = false;
+
+  Future<void> _notifyHomeLoadComplete() => arvinTraceOperation<void>('home.on_load_complete', () async {
+        if (mounted) widget.onLoadComplete?.call();
       });
-    }
-  }
 
   List<Task> get _searchSource => List<Task>.of(tasks);
 
@@ -550,8 +572,9 @@ class _HomePageState extends State<HomePage> {
   bool get _homeFilterActive =>
       query.trim().isNotEmpty ||
       _timeFilter != 'all' ||
-      _projectFilter != null ||
-      _categoryFilter != null ||
+      _centerFilters.isNotEmpty ||
+      _projectFilters.isNotEmpty ||
+      _categoryFilters.isNotEmpty ||
       _tagFilters.isNotEmpty;
 
   String get _timeFilterLabel {
@@ -577,6 +600,14 @@ class _HomePageState extends State<HomePage> {
       if (project.id == id) return project.title.trim();
     }
     return null;
+  }
+
+  String _centerTitle(String id) {
+    if (id == _noCenterFilter) return 'بدون مرکز';
+    for (final center in centers) {
+      if (center.id == id) return center.name;
+    }
+    return 'مرکز حذف‌شده';
   }
 
   bool _matchesTimeFilter(Task task) {
@@ -637,26 +668,28 @@ class _HomePageState extends State<HomePage> {
 
     if (filter != 'بایگانی' && filter != 'سطل زباله') {
       scoped = scoped.where(_matchesTimeFilter);
-      if (_categoryFilter != null) scoped = scoped.where((task) => task.category?.trim() == _categoryFilter);
-      if (_projectFilter != null) {
-        if (_projectFilter == '__no_project__') {
-          final assigned = projects.expand((item) => item.itemIds).toSet();
-          scoped = scoped.where((task) => !assigned.contains(task.id));
-        } else {
-          ProjectPlan? project;
-          for (final item in projects) {
-            if (item.id == _projectFilter) { project = item; break; }
-          }
-          if (project != null) {
-            final ids = project.itemIds.toSet();
-            scoped = scoped.where((task) => ids.contains(task.id));
-          }
-        }
+      if (_centerFilters.isNotEmpty) {
+        scoped = scoped.where((task) => _centerFilters.contains(task.centerId ?? _noCenterFilter));
+      }
+      if (_categoryFilters.isNotEmpty) {
+        scoped = scoped.where((task) => HomeFilterMembership.matchesCategoryDimension(
+          taskCategory: task.category,
+          selectedCategoryNames: _categoryFilters,
+        ));
+      }
+      if (_projectFilters.isNotEmpty) {
+        scoped = scoped.where((task) => HomeFilterMembership.matchesProjectDimension(
+          taskId: task.id,
+          projects: projects,
+          selectedProjectIds: _projectFilters,
+        ));
       }
       if (_tagFilters.isNotEmpty) {
         scoped = scoped.where((task) {
           final tags = task.tags.map((value) => value.trim()).where((value) => value.isNotEmpty).toSet();
-          return _tagFilters.every(tags.contains);
+          // Tags are one filter dimension: any selected Tag may match.
+          // Different dimensions remain AND-combined by the surrounding projection.
+          return _tagFilters.any(tags.contains);
         });
       }
     }
@@ -681,12 +714,16 @@ class _HomePageState extends State<HomePage> {
         grouped['no_date']!.add(task);
       } else {
         final day = dayOf(due);
-        if (!task.completed && day.isBefore(today)) grouped['overdue']!.add(task);
+        if (day.isBefore(today)) grouped['overdue']!.add(task);
         else if (day == today) grouped['today']!.add(task);
         else if (day == tomorrow) grouped['tomorrow']!.add(task);
         else grouped['future']!.add(task);
       }
     }
+    grouped['overdue']!.sort((a, b) {
+      if (a.completed != b.completed) return a.completed ? 1 : -1;
+      return a.dueDate!.compareTo(b.dueDate!);
+    });
     return [
       HomeGroup<Task>(id: 'overdue', title: 'تاریخ‌گذشته', items: grouped['overdue']!),
       HomeGroup<Task>(id: 'today', title: 'امروز', items: grouped['today']!),
@@ -698,22 +735,28 @@ class _HomePageState extends State<HomePage> {
 
 
   Widget _homeFilterCards() {
-    final projectLabel = _projectFilter == null ? 'همه' : (_projectTitle(_projectFilter) ?? 'بدون پروژه');
-    final categoryLabel = _categoryFilter ?? 'همه';
+    final centerLabel = _centerFilters.isEmpty ? 'همه' : '${_centerFilters.length} مورد';
+    final projectLabel = _projectFilters.isEmpty ? 'همه' : '${_projectFilters.length} مورد';
+    final categoryLabel = _categoryFilters.isEmpty ? 'همه' : '${_categoryFilters.length} مورد';
     final tagLabel = _tagFilters.isEmpty ? 'همه' : '${_tagFilters.length} مورد';
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-      child: Row(
-        textDirection: TextDirection.rtl,
-        children: [
-          HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
-          const SizedBox(width: 8),
-          HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          textDirection: TextDirection.rtl,
+          children: [
+            HomeFilterCard(dimension: HomeFilterDimension.time, title: 'زمان', value: _timeFilterLabel, accent: ArvinColors.time, soft: ArvinColors.timeSoft, icon: Icons.schedule_rounded, onTap: _showTimeFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.center, title: 'مرکز', value: centerLabel, accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.business_outlined, onTap: _showCenterFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.project, title: 'پروژه', value: projectLabel, accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onTap: _showProjectFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.category, title: 'دسته', value: categoryLabel, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onTap: _showCategoryFilterSheet),
+            const SizedBox(width: 8),
+            HomeFilterCard(dimension: HomeFilterDimension.tags, title: 'برچسب‌ها', value: tagLabel, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onTap: _showTagFilterSheet),
+          ],
+        ),
       ),
     );
   }
@@ -733,8 +776,29 @@ class _HomePageState extends State<HomePage> {
         }),
       ));
     }
-    if (_projectFilter != null) chips.add(HomeFilterChip(label: _projectTitle(_projectFilter) ?? 'بدون پروژه', accent: ArvinColors.project, soft: ArvinColors.projectSoft, icon: Icons.folder_rounded, onRemove: () => setState(() => _projectFilter = null)));
-    if (_categoryFilter != null) chips.add(HomeFilterChip(label: _categoryFilter!, accent: ArvinColors.category, soft: ArvinColors.categorySoft, icon: Icons.layers_rounded, onRemove: () => setState(() => _categoryFilter = null)));
+    for (final centerId in _centerFilters) {
+      chips.add(HomeFilterChip(label: _centerTitle(centerId), accent: ArvinColors.primary, soft: ArvinColors.primarySoft, icon: Icons.business_outlined, onRemove: () => setState(() => _centerFilters.remove(centerId))));
+    }
+    for (final projectId in _projectFilters) {
+      chips.add(HomeFilterChip(
+        label: projectId == HomeFilterMembership.noProjectId
+            ? 'بدون پروژه'
+            : (_projectTitle(projectId) ?? 'پروژه حذف‌شده'),
+        accent: ArvinColors.project,
+        soft: ArvinColors.projectSoft,
+        icon: Icons.folder_rounded,
+        onRemove: () => setState(() => _projectFilters.remove(projectId)),
+      ));
+    }
+    for (final category in _categoryFilters) {
+      chips.add(HomeFilterChip(
+        label: category,
+        accent: ArvinColors.category,
+        soft: ArvinColors.categorySoft,
+        icon: Icons.layers_rounded,
+        onRemove: () => setState(() => _categoryFilters.remove(category)),
+      ));
+    }
     for (final tag in _tagFilters) chips.add(HomeFilterChip(label: tag, accent: ArvinColors.tag, soft: ArvinColors.tagSoft, icon: Icons.sell_rounded, onRemove: () => setState(() => _tagFilters.remove(tag))));
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
@@ -756,8 +820,9 @@ class _HomePageState extends State<HomePage> {
       _toDateFilter = null;
       _fromTimeFilter = null;
       _toTimeFilter = null;
-      _projectFilter = null;
-      _categoryFilter = null;
+      _projectFilters.clear();
+      _centerFilters.clear();
+      _categoryFilters.clear();
       _tagFilters.clear();
     });
   }
@@ -925,37 +990,187 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  Future<void> _showCenterFilterSheet() async {
+    final selected = <String>{..._centerFilters};
+    await HomeFilterSheet.show<void>(
+      context,
+      title: 'انتخاب مرکز',
+      accent: ArvinColors.primary,
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .58,
+          child: Column(
+            children: [
+              ListTile(
+                leading: const Icon(Icons.all_inclusive_rounded, color: ArvinColors.primary),
+                title: const Text('همه مراکز'),
+                trailing: Icon(selected.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.primary),
+                onTap: () => setSheetState(selected.clear),
+              ),
+              CheckboxListTile(
+                value: selected.contains(_noCenterFilter),
+                activeColor: ArvinColors.primary,
+                title: const Text('بدون مرکز'),
+                onChanged: (checked) => setSheetState(() {
+                  if (checked == true) selected.add(_noCenterFilter);
+                  else selected.remove(_noCenterFilter);
+                }),
+              ),
+              Expanded(
+                child: ListView(
+                  children: [
+                    for (final center in centers)
+                      CheckboxListTile(
+                        value: selected.contains(center.id),
+                        activeColor: ArvinColors.primary,
+                        title: Text(center.name),
+                        secondary: const Icon(Icons.business_outlined, color: ArvinColors.primary),
+                        onChanged: (checked) => setSheetState(() {
+                          if (checked == true) selected.add(center.id);
+                          else selected.remove(center.id);
+                        }),
+                      ),
+                  ],
+                ),
+              ),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _centerFilters
+                      ..clear()
+                      ..addAll(selected);
+                  });
+                  Navigator.of(sheetContext).pop();
+                },
+                icon: const Icon(Icons.check_rounded),
+                label: const Text('اعمال فیلتر'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showProjectFilterSheet() async {
     String search = '';
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب پروژه', accent: ArvinColors.project, child: StatefulBuilder(
-      builder: (sheetContext, setSheetState) {
-        final values = projects.where((p) => !p.isArchived).toList()..sort((a, b) => a.title.compareTo(b.title));
-        final filtered = values.where((p) => p.title.toLowerCase().contains(search.toLowerCase())).toList();
-        return SizedBox(
-          height: MediaQuery.sizeOf(sheetContext).height * .58,
-          child: Column(children: [
-            TextField(onChanged: (v) => setSheetState(() => search = v), decoration: const InputDecoration(hintText: 'جستجو در پروژه‌ها...', prefixIcon: Icon(Icons.search_rounded))),
-            Expanded(child: ListView(children: [
-              ListTile(leading: const Icon(Icons.folder_open_rounded, color: ArvinColors.project), title: const Text('همه پروژه‌ها'), trailing: Icon(_projectFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.project), onTap: () => Navigator.of(sheetContext).pop('__all__')),
-              for (final project in filtered)
-                RadioListTile<String?>(value: project.id, groupValue: _projectFilter, activeColor: ArvinColors.project, title: Text(project.title), secondary: const Icon(Icons.folder_rounded), onChanged: (value) => Navigator.of(sheetContext).pop(value)),
-            ])),
-          ]),
-        );
-      },
-    ));
-    if (!mounted) return;
-    setState(() => _projectFilter = result == '__all__' ? null : result);
+    final selected = <String>{..._projectFilters};
+    await HomeFilterSheet.show<void>(
+      context,
+      title: 'انتخاب پروژه‌ها',
+      accent: ArvinColors.project,
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          final values = projects.where((p) => !p.isArchived).toList()
+            ..sort((a, b) => a.title.compareTo(b.title));
+          final filtered = values.where((p) =>
+            p.title.toLowerCase().contains(search.toLowerCase())).toList();
+          return SizedBox(
+            height: MediaQuery.sizeOf(sheetContext).height * .58,
+            child: Column(children: [
+              TextField(
+                onChanged: (value) => setSheetState(() => search = value),
+                decoration: const InputDecoration(
+                  hintText: 'جستجو در پروژه‌ها...',
+                  prefixIcon: Icon(Icons.search_rounded),
+                ),
+              ),
+              Expanded(child: ListView(children: [
+                ListTile(
+                  leading: const Icon(Icons.folder_open_rounded, color: ArvinColors.project),
+                  title: const Text('همه پروژه‌ها'),
+                  trailing: Icon(selected.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.project),
+                  onTap: () => setSheetState(selected.clear),
+                ),
+                CheckboxListTile(
+                  value: selected.contains(HomeFilterMembership.noProjectId),
+                  activeColor: ArvinColors.project,
+                  title: const Text('بدون پروژه'),
+                  secondary: const Icon(Icons.folder_off_outlined, color: ArvinColors.project),
+                  onChanged: (checked) => setSheetState(() {
+                    if (checked == true) {
+                      selected.add(HomeFilterMembership.noProjectId);
+                    } else {
+                      selected.remove(HomeFilterMembership.noProjectId);
+                    }
+                  }),
+                ),
+                for (final project in filtered)
+                  CheckboxListTile(
+                    value: selected.contains(project.id),
+                    activeColor: ArvinColors.project,
+                    title: Text(project.title),
+                    secondary: const Icon(Icons.folder_rounded, color: ArvinColors.project),
+                    onChanged: (checked) => setSheetState(() {
+                      if (checked == true) selected.add(project.id);
+                      else selected.remove(project.id);
+                    }),
+                  ),
+              ])),
+              FilledButton.icon(
+                onPressed: () {
+                  setState(() {
+                    _projectFilters
+                      ..clear()
+                      ..addAll(selected);
+                  });
+                  Navigator.of(sheetContext).pop();
+                },
+                icon: const Icon(Icons.check_rounded),
+                label: const Text('اعمال فیلتر'),
+              ),
+            ]),
+          );
+        },
+      ),
+    );
   }
 
   Future<void> _showCategoryFilterSheet() async {
-    final result = await HomeFilterSheet.show<String?>(context, title: 'انتخاب دسته', accent: ArvinColors.category, child: ListView(shrinkWrap: true, children: [
-      ListTile(leading: const Icon(Icons.layers_rounded, color: ArvinColors.category), title: const Text('همه دسته‌ها'), trailing: Icon(_categoryFilter == null ? Icons.radio_button_checked : Icons.radio_button_off, color: ArvinColors.category), onTap: () => Navigator.of(context).pop('__all__')),
-      for (final category in _homeCategories)
-        RadioListTile<String?>(value: category, groupValue: _categoryFilter, activeColor: ArvinColors.category, title: Text(category), secondary: const Icon(Icons.layers_rounded), onChanged: (value) => Navigator.of(context).pop(value)),
-    ]));
-    if (!mounted) return;
-    setState(() => _categoryFilter = result == '__all__' ? null : result);
+    final selected = <String>{..._categoryFilters};
+    await HomeFilterSheet.show<void>(
+      context,
+      title: 'انتخاب دسته‌ها',
+      accent: ArvinColors.category,
+      child: StatefulBuilder(
+        builder: (sheetContext, setSheetState) => SizedBox(
+          height: MediaQuery.sizeOf(sheetContext).height * .58,
+          child: Column(children: [
+            ListTile(
+              leading: const Icon(Icons.layers_rounded, color: ArvinColors.category),
+              title: const Text('همه دسته‌ها'),
+              trailing: Icon(selected.isEmpty ? Icons.check_circle : Icons.circle_outlined, color: ArvinColors.category),
+              onTap: () => setSheetState(selected.clear),
+            ),
+            Expanded(child: ListView(children: [
+              for (final category in _homeCategories)
+                CheckboxListTile(
+                  value: selected.contains(category),
+                  activeColor: ArvinColors.category,
+                  title: Text(category),
+                  secondary: const Icon(Icons.layers_rounded, color: ArvinColors.category),
+                  onChanged: (checked) => setSheetState(() {
+                    if (checked == true) selected.add(category);
+                    else selected.remove(category);
+                  }),
+                ),
+            ])),
+            FilledButton.icon(
+              onPressed: () {
+                setState(() {
+                  _categoryFilters
+                    ..clear()
+                    ..addAll(selected);
+                });
+                Navigator.of(sheetContext).pop();
+              },
+              icon: const Icon(Icons.check_rounded),
+              label: const Text('اعمال فیلتر'),
+            ),
+          ]),
+        ),
+      ),
+    );
   }
 
   Future<void> _showTagFilterSheet() async {
@@ -1074,12 +1289,12 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(width: 5),
                   Icon(_groupIcon(group.id), size: 18, color: accent),
                   const SizedBox(width: 7),
-                  Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w800))),
+                  Expanded(child: Text(group.title, style: TextStyle(color: accent, fontSize: 14, fontWeight: FontWeight.w700))),
                   Container(
                     constraints: const BoxConstraints(minWidth: 28),
                     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                     decoration: BoxDecoration(color: ArvinColors.surface.withAlpha(190), borderRadius: BorderRadius.circular(12)),
-                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w800)),
+                    child: Text(persianDateFormatter.toPersianDigits('${group.items.length}'), textAlign: TextAlign.center, style: TextStyle(color: accent, fontSize: 11.5, fontWeight: FontWeight.w700)),
                   ),
                 ]),
               ),
@@ -1724,7 +1939,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1734,8 +1949,8 @@ class _HomePageState extends State<HomePage> {
   void _selectHomeStat(String nextFilter) {
     setState(() {
       _listScope = TaskListScope.all;
-      _categoryFilter = null;
-      _projectFilter = null;
+      _categoryFilters.clear();
+      _projectFilters.clear();
       _tagFilters.clear();
       _specificDateFilter = null;
       if (nextFilter == 'امروز') {
@@ -1761,7 +1976,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = scope;
       _dueScope = null;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1772,7 +1987,7 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = scope;
-      _categoryFilter = null;
+      _categoryFilters.clear();
       selected.clear();
       selectionMode = false;
     });
@@ -1783,7 +1998,9 @@ class _HomePageState extends State<HomePage> {
       filter = 'کل';
       _listScope = TaskListScope.all;
       _dueScope = null;
-      _categoryFilter = category;
+      _categoryFilters
+        ..clear()
+        ..add(category);
       selected.clear();
       selectionMode = false;
     });
@@ -2030,7 +2247,7 @@ class _HomePageState extends State<HomePage> {
             // can retry on the next lifecycle/scheduler trigger.
           }
           if (candidate.hasProjects) {
-            await ProjectStore().save(reconciledProjects);
+            await ProjectStore().replaceAll(reconciledProjects);
           }
           await widget.restoreStageHook?.call('projects');
           await ExternalCalendarLinkStore().restoreForTasks(
@@ -2075,7 +2292,7 @@ class _HomePageState extends State<HomePage> {
         },
         rollback: () async {
           await taskStore.save(previousTasks!);
-          await ProjectStore().save(previousProjects!);
+          await ProjectStore().replaceAll(previousProjects!);
           await ExternalCalendarLinkStore().save(previousCalendarLinks!);
           await appSettingsService.restorePortableJson(previousSettings!);
           final oldSchedule = previousSettings!['backupSchedule'];
@@ -2352,15 +2569,7 @@ class _HomePageState extends State<HomePage> {
         Navigator.of(context).popUntil((route) => route.isFirst);
         return;
       case ArvinPrimaryDestination.calendar:
-        Navigator.of(context).pushReplacement<void, void>(
-          MaterialPageRoute<void>(
-            builder: (_) => CanonicalCalendarLauncher(
-              tasks: _searchSource,
-              onCreateTaskForDate: _addForDate,
-              onCreateTaskFromCalendarEvent: _addFromCalendarEvent,
-            ),
-          ),
-        );
+        _openPrimaryCalendar();
         return;
       case ArvinPrimaryDestination.notebook:
         Navigator.of(context).pushReplacement<void, void>(
@@ -2924,7 +3133,7 @@ class _HomePageState extends State<HomePage> {
                                 style: TextStyle(
                                   color: late ? ArvinColors.error : ArvinColors.textSecondary,
                                   fontSize: 11,
-                                  fontWeight: late ? FontWeight.w800 : FontWeight.w500,
+                                  fontWeight: late ? FontWeight.w700 : FontWeight.w500,
                                 ),
                               ),
                             ),
@@ -3034,7 +3243,7 @@ class _HomePageState extends State<HomePage> {
             child: Row(children: [
               IconButton(key: const ValueKey('home-notifications'), tooltip: 'اعلان‌ها', onPressed: () => ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اعلان‌ها در بخش اعلان‌های برنامه مدیریت می‌شوند'))), icon: const Icon(Icons.notifications_none_rounded)),
               Expanded(child: Column(children: const [
-                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w800)),
+                Text('بسم الله الرحمن الرحیم', key: ValueKey('home-bismillah'), style: TextStyle(color: ArvinColors.primary, fontSize: 17, fontWeight: FontWeight.w700)),
                 SizedBox(height: 2),
                 Text('مدیریت کارها و پیگیری آروین', key: ValueKey('home-title-block'), textAlign: TextAlign.center, style: TextStyle(color: ArvinColors.textSecondary, fontSize: 11.5, fontWeight: FontWeight.w600)),
               ])),

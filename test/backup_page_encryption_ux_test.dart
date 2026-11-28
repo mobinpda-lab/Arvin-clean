@@ -1,14 +1,17 @@
+import 'dart:async';
 import 'package:arvin/backup_manager.dart';
 import 'package:arvin/backup_page.dart';
 import 'package:arvin/backup_service.dart';
 import 'package:arvin/models/goal_project.dart';
 import 'package:arvin/services/project_store.dart';
 import 'package:arvin/services/task_store.dart';
+import 'package:arvin/services/task_storage_lock.dart';
 import 'package:arvin/services/calendar_sync_plan_service.dart';
 import 'package:arvin/services/external_calendar_link_store.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/flutter_async_cleanup.dart';
 
 class _FakeBackupService extends ArvinBackupService {
   int writeCount = 0;
@@ -50,6 +53,8 @@ Widget _app({
   Future<List<Map<String, dynamic>>> Function()? loadTasks,
   Future<void> Function(List<Map<String, dynamic>> tasks)? replaceTasks,
   Future<void> Function(String stage)? restoreStageHook,
+  VoidCallback? onBackupComplete,
+  VoidCallback? onRestoreComplete,
 }) {
   return MaterialApp(
     home: BackupPage(
@@ -60,8 +65,65 @@ Widget _app({
               ],
       replaceTasks: replaceTasks ?? (_) async {},
       restoreStageHook: restoreStageHook,
+      onBackupComplete: onBackupComplete,
+      onRestoreComplete: onRestoreComplete,
     ),
   );
+}
+
+void _installStorageRunner(WidgetTester tester) {
+  TaskStorageLock.setWorkRunnerForTesting(
+    (work) => runFlutterAsyncWithCleanupHandshake(tester, work),
+  );
+  addTearDown(TaskStorageLock.resetWorkRunnerForTesting);
+}
+
+Future<void> _runAsyncAction(
+  Future<void> Function() action,
+) async {
+  // Native test I/O must use the same serialized Runner owner as stores.
+  // Calling tester.runAsync here can re-enter the runner installed above.
+  await TaskStorageLock.synchronized<void>(
+    () => action().timeout(const Duration(seconds: 30)),
+  );
+}
+
+Future<T> _pumpFuture<T>(
+  WidgetTester tester,
+  Future<T> Function() operation,
+) async {
+  final value = await waitForRealAsync(
+    operation(),
+    timeout: const Duration(seconds: 20),
+    operation: 'Backup database operation',
+  );
+  await tester.pump();
+  return value;
+}
+
+Future<void> _pumpFutureVoid(
+  WidgetTester tester,
+  Future<void> Function() operation,
+) async {
+  await waitForRealAsync(
+    operation(),
+    timeout: const Duration(seconds: 20),
+    operation: 'Backup database operation',
+  );
+  await tester.pump();
+}
+
+Future<void> _pumpUntilComplete(
+  WidgetTester tester,
+  Completer<void> completion, {
+  required String operation,
+}) async {
+  await waitForRealAsync(
+    completion.future,
+    timeout: const Duration(seconds: 20),
+    operation: operation,
+  );
+  await tester.pump();
 }
 
 void main() {
@@ -73,15 +135,22 @@ void main() {
 
   testWidgets('plaintext backup remains default and does not prompt',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
+    final backupComplete = Completer<void>();
     final link = ExternalCalendarEventLink(
       reminderId: 'task-due:task-1',
       calendarId: '42',
       eventId: 'event-1',
       lastSyncedFingerprint: 'fingerprint-1',
     );
-    await ExternalCalendarLinkStore().save([link]);
-    await tester.pumpWidget(_app(service: service));
+    await _runAsyncAction(() => ExternalCalendarLinkStore().save([link]));
+    await tester.pumpWidget(_app(
+      service: service,
+      onBackupComplete: () {
+        if (!backupComplete.isCompleted) backupComplete.complete();
+      },
+    ));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('backup_passphrase_field')), findsNothing);
@@ -93,6 +162,7 @@ void main() {
     );
 
     await tester.tap(find.byKey(const Key('create_backup_button')));
+    await _pumpUntilComplete(tester, backupComplete, operation: 'Plaintext backup');
     await tester.pumpAndSettle();
 
     expect(service.writeCount, 1);
@@ -103,8 +173,12 @@ void main() {
 
   testWidgets('encrypted backup requires matching non-empty confirmation',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
-    await tester.pumpWidget(_app(service: service));
+    final backupComplete = Completer<void>();
+    await tester.pumpWidget(_app(service: service, onBackupComplete: () {
+      if (!backupComplete.isCompleted) backupComplete.complete();
+    }));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
@@ -131,6 +205,12 @@ void main() {
       'secret-123',
     );
     await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await tester.pump();
+    // The UI starts the real async backup pipeline; await its completion
+    // signal rather than settling frames while SQLite Futures are in flight.
+    // The backup action starts in tester.runAsync, so TaskStorageLock captures
+    // a real async zone; wait for its completion signal before settling frames.
+    await _pumpUntilComplete(tester, backupComplete, operation: 'Encrypted backup');
     await tester.pumpAndSettle();
 
     expect(service.writeCount, 1);
@@ -139,6 +219,7 @@ void main() {
   });
 
   testWidgets('cancelling encrypted backup performs no write', (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
     var loadCount = 0;
     await tester.pumpWidget(
@@ -165,6 +246,7 @@ void main() {
 
   testWidgets('restore confirmation cancel never replaces local tasks',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
         'type': ArvinBackupService.backupType,
@@ -200,6 +282,7 @@ void main() {
 
   testWidgets('encrypted restore reconciles backup and local tasks by ID',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readResult = <String, dynamic>{
         'type': ArvinBackupService.backupType,
@@ -210,10 +293,14 @@ void main() {
       };
     var replaceCount = 0;
     List<Map<String, dynamic>>? replaced;
+    final restoreComplete = Completer<void>();
 
     await tester.pumpWidget(
       _app(
         service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
         replaceTasks: (tasks) async {
           replaceCount += 1;
           replaced = tasks;
@@ -238,6 +325,7 @@ void main() {
     expect(replaceCount, 0);
 
     await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+    await _pumpUntilComplete(tester, restoreComplete, operation: 'Encrypted restore');
     await tester.pumpAndSettle();
 
     expect(replaceCount, 1);
@@ -248,6 +336,7 @@ void main() {
 
   testWidgets('wrong encrypted restore passphrase never mutates local tasks',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService()
       ..readError = const FormatException('authentication failed');
     var replaceCount = 0;
@@ -276,6 +365,7 @@ void main() {
   });
 
   testWidgets('Backup page includes canonical Projects in the existing backup', (tester) async {
+    _installStorageRunner(tester);
     await ProjectStore.resetTestDatabase();
     try {
       final project = ProjectPlan(
@@ -283,12 +373,19 @@ void main() {
         title: 'پروژه پشتیبان',
         itemIds: const [],
       );
-      await ProjectStore().save([project]);
+      await _pumpFutureVoid(tester, () => ProjectStore().save([project]));
       final service = _FakeBackupService();
+      final backupComplete = Completer<void>();
 
-      await tester.pumpWidget(_app(service: service));
+      await tester.pumpWidget(_app(
+        service: service,
+        onBackupComplete: () {
+          if (!backupComplete.isCompleted) backupComplete.complete();
+        },
+      ));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('create_backup_button')));
+      await _pumpUntilComplete(tester, backupComplete, operation: 'Project backup');
       await tester.pumpAndSettle();
 
       final projects = service.lastPayload?['projects'] as List<dynamic>?;
@@ -302,6 +399,7 @@ void main() {
   });
 
   testWidgets('Backup page restores Projects and rolls back taxonomy after a late restore failure', (tester) async {
+    _installStorageRunner(tester);
     await TaskStore.resetTestDatabase();
     await ProjectStore.resetTestDatabase();
     try {
@@ -315,9 +413,9 @@ void main() {
         title: 'پروژه جدید',
         itemIds: const [],
       );
-      await ProjectStore().save([oldProject]);
-      await TaskStore().createCategory('دسته محلی');
-      await TaskStore().createTag('برچسب محلی');
+      await _pumpFutureVoid(tester, () => ProjectStore().save([oldProject]));
+      await _pumpFutureVoid(tester, () => TaskStore().createCategory('دسته محلی'));
+      await _pumpFutureVoid(tester, () => TaskStore().createTag('برچسب محلی'));
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -350,10 +448,14 @@ void main() {
       var localTasks = <Map<String, dynamic>>[
         <String, dynamic>{'id': 'old-task', 'title': 'کار قبلی'},
       ];
+      final restoreComplete = Completer<void>();
 
       await tester.pumpWidget(
         _app(
           service: service,
+          onRestoreComplete: () {
+            if (!restoreComplete.isCompleted) restoreComplete.complete();
+          },
           loadTasks: () async => localTasks,
           replaceTasks: (tasks) async {
             localTasks = tasks.map((task) => Map<String, dynamic>.from(task)).toList();
@@ -368,14 +470,17 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Restore rollback');
       await tester.pumpAndSettle();
 
       expect(localTasks.single['id'], 'old-task');
-      expect(await TaskStore().loadCategories(), contains('دسته محلی'));
-      expect(await TaskStore().loadCategories(), isNot(contains('دسته بازیابی‌شده')));
-      expect(await TaskStore().loadTags(), contains('برچسب محلی'));
-      expect(await TaskStore().loadTags(), isNot(contains('برچسب بازیابی‌شده')));
-      final projectsAfterRollback = await ProjectStore().load();
+      final categoriesAfterRollback = await _pumpFuture(tester, () => TaskStore().loadCategories());
+      expect(categoriesAfterRollback, contains('دسته محلی'));
+      expect(categoriesAfterRollback, isNot(contains('دسته بازیابی‌شده')));
+      final tagsAfterRollback = await _pumpFuture(tester, () => TaskStore().loadTags());
+      expect(tagsAfterRollback, contains('برچسب محلی'));
+      expect(tagsAfterRollback, isNot(contains('برچسب بازیابی‌شده')));
+      final projectsAfterRollback = await _pumpFuture(tester, () => ProjectStore().load());
       expect(projectsAfterRollback.map((project) => project.id), ['old-project']);
       expect(
         find.text('بازیابی کامل نشد؛ اطلاعات قبلی به حالت پیشین بازگردانده شد.'),
@@ -389,8 +494,10 @@ void main() {
   });
 
   testWidgets('Backup page applies Projects from a modern backup', (tester) async {
+    _installStorageRunner(tester);
     await ProjectStore.resetTestDatabase();
     try {
+      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -409,15 +516,21 @@ void main() {
           ],
         };
 
-      await tester.pumpWidget(_app(service: service));
+      await tester.pumpWidget(_app(
+        service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
+      ));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Modern Project restore');
       await tester.pumpAndSettle();
 
-      final projects = await ProjectStore().load();
+      final projects = await _pumpFuture(tester, () => ProjectStore().load());
       expect(projects.map((project) => project.id), ['restored-project']);
       expect(projects.single.title, 'پروژه بازیابی‌شده');
     } finally {
@@ -427,6 +540,7 @@ void main() {
   });
 
   testWidgets('Backup page preserves local Projects for a legacy backup without Projects', (tester) async {
+    _installStorageRunner(tester);
     await ProjectStore.resetTestDatabase();
     try {
       final localProject = ProjectPlan(
@@ -434,7 +548,8 @@ void main() {
         title: 'پروژه محلی',
         itemIds: const [],
       );
-      await ProjectStore().save([localProject]);
+      await _pumpFutureVoid(tester, () => ProjectStore().save([localProject]));
+      final restoreComplete = Completer<void>();
       final service = _FakeBackupService()
         ..readResult = <String, dynamic>{
           'type': ArvinBackupService.backupType,
@@ -444,15 +559,21 @@ void main() {
           ],
         };
 
-      await tester.pumpWidget(_app(service: service));
+      await tester.pumpWidget(_app(
+        service: service,
+        onRestoreComplete: () {
+          if (!restoreComplete.isCompleted) restoreComplete.complete();
+        },
+      ));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('restore_plain_backup_button')));
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 250));
       await tester.tap(find.byKey(const Key('restore_confirm_apply')));
+      await _pumpUntilComplete(tester, restoreComplete, operation: 'Legacy Project restore');
       await tester.pumpAndSettle();
 
-      final projects = await ProjectStore().load();
+      final projects = await _pumpFuture(tester, () => ProjectStore().load());
       expect(projects.map((project) => project.id), ['local-project']);
       expect(projects.single.title, 'پروژه محلی');
     } finally {
@@ -463,8 +584,15 @@ void main() {
 
   testWidgets('passphrase is operation scoped and never persisted',
       (tester) async {
+    _installStorageRunner(tester);
     final service = _FakeBackupService();
-    await tester.pumpWidget(_app(service: service));
+    final backupComplete = Completer<void>();
+    await tester.pumpWidget(_app(
+      service: service,
+      onBackupComplete: () {
+        if (!backupComplete.isCompleted) backupComplete.complete();
+      },
+    ));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('backup_encryption_toggle')));
@@ -480,6 +608,7 @@ void main() {
       'memory-only-secret',
     );
     await tester.tap(find.byKey(const Key('backup_passphrase_confirm')));
+    await _pumpUntilComplete(tester, backupComplete, operation: 'Passphrase backup');
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();

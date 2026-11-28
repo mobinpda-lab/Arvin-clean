@@ -34,20 +34,25 @@ class HomeGroupingService {
   List<HomeGroup<Task>> _timeGroups(List<Task> tasks) {
     final now = IranClock.now();
     final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = today.add(const Duration(days: 1));
 
     DateTime dayOf(DateTime value) =>
         DateTime(value.year, value.month, value.day);
 
+    final overdue = tasks.where((task) {
+      final due = task.dueDate;
+      return due != null && dayOf(due).isBefore(today);
+    }).toList()
+      ..sort((a, b) {
+        if (a.completed != b.completed) return a.completed ? 1 : -1;
+        return a.dueDate!.compareTo(b.dueDate!);
+      });
+
     return [
       HomeGroup<Task>(
         id: 'overdue',
-        title: 'عقب‌افتاده',
-        items: tasks.where((task) {
-          final due = task.dueDate;
-          return due != null &&
-              dayOf(due).isBefore(today) &&
-              !task.completed;
-        }).toList(),
+        title: 'تاریخ‌گذشته',
+        items: overdue,
       ),
       HomeGroup<Task>(
         id: 'today',
@@ -58,16 +63,24 @@ class HomeGroupingService {
         }).toList(),
       ),
       HomeGroup<Task>(
+        id: 'tomorrow',
+        title: 'فردا',
+        items: tasks.where((task) {
+          final due = task.dueDate;
+          return due != null && dayOf(due) == tomorrow;
+        }).toList(),
+      ),
+      HomeGroup<Task>(
         id: 'future',
         title: 'آینده',
         items: tasks.where((task) {
           final due = task.dueDate;
-          return due != null && dayOf(due).isAfter(today);
+          return due != null && dayOf(due).isAfter(tomorrow);
         }).toList(),
       ),
       HomeGroup<Task>(
         id: 'no_date',
-        title: 'بدون موعد',
+        title: 'فاقد زمان',
         items: tasks.where((task) => task.dueDate == null).toList(),
       ),
     ];

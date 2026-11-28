@@ -63,6 +63,8 @@ void main() {
     expect(restored.createdAt, original.createdAt);
     expect(restored.updatedAt, original.updatedAt);
     expect(restored.dueDate, original.dueDate);
+    expect(restored.allDay, isFalse);
+    expect(original.toJson().containsKey('allDay'), isTrue);
     expect(restored.followUpEnabled, original.followUpEnabled);
     expect(restored.followUpDate, original.followUpDate);
     expect(restored.tags, original.tags);
@@ -150,6 +152,26 @@ void main() {
 
     expect(task.followUps, isEmpty);
     expect(task.followUpEnabled, isFalse);
+  });
+
+  test('unknown Follow-up metadata survives JSON serialization', () {
+    final original = FollowUp(
+      id: 'future-field-followup',
+      dateTime: DateTime(2026, 11, 18, 10),
+      note: 'سابقه',
+      extensionData: const <String, dynamic>{
+        'futureFollowUpField': {'retained': true, 'revision': 3},
+      },
+    );
+    final decoded = FollowUp.fromJson(original.toJson());
+    expect(decoded.extensionData['futureFollowUpField'], {
+      'retained': true,
+      'revision': 3,
+    });
+    expect(decoded.toJson()['futureFollowUpField'], {
+      'retained': true,
+      'revision': 3,
+    });
   });
 
   test('multiple explicit followUps preserve identity and order', () {
