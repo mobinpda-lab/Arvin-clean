@@ -156,3 +156,14 @@ Then continue with `ARC-DATA-001`: complete caller and test inventory before cha
 - Project↔Category still lacks a verified canonical CRUD/read owner in the inspected branch services. Do not add a duplicate store until all consumers and historical implementations are checked.
 - Async runner diagnostic remains unresolved: earlier parent-SHA logs show callback entry and eventual work completion after the test harness timeout. Do not increase timeouts or weaken tests; inspect exact current-SHA job logs after completion to identify the first blocked phase.
 - Product acceptance: NOT ACCEPTED. Release: NO-GO.
+
+
+## Live checkpoint — 2026-11-28 — HEAD c51411fcb2019ad733c6fdcf700d94bfdee17a13
+
+- Canonical PR #3495: OPEN / DRAFT / UNMERGED. Main `45e4202b03a434459e4c021a04efa7e8396359db` remains read-only.
+- Test-only batch committed on the authorized branch: `f0100e4`, `39ac413`, `d3ef28f`, `bd53ec2`, `d4b4cdf`, `c51411f`. It introduces a real-wall-clock wait helper for native async tests, replaces FakeAsync frame-spin loops in Home/Center/Backup/TaskStorageLock tests, ensures NativeDatabase executors are opened before SQL, and installs the test runner in Home Restore.
+- Root-cause evidence is from Build run `46117138055` on parent SHA `9a37b282...`: six quality shards failed; logs show old wait loops expiring before native work completion, one missing `ensureOpen()`, and a Home Restore test without the native async runner. A distinct RTL swipe `pumpAndSettle` failure remains unresolved.
+- Prior SHA device evidence: Device Smoke `46117138005` SUCCESS 7/7; Governance `46117137988` SUCCESS; Follow-up Persistence `46117138064` SUCCESS; COMMAND 20-E `46117137975` storage-persistence SUCCESS but complete-evidence still IN_PROGRESS at last poll. These results do not transfer to current HEAD.
+- Current HEAD `c51411f...`: no associated workflow runs returned. ACC-CI-001 is BLOCKED / NOT VERIFIED for this SHA. ACC-DEVICE-001 is NOT VERIFIED for this SHA.
+- ARC-DATA-001 and DB-RESTORE-001 remain IMPLEMENTED / exact-SHA regression pending. ARC-M2M-001 remains PARTIAL pending full Project↔Category caller/owner audit.
+- Next: obtain exact-SHA Build and targeted tests for `c51411f...`; inspect the remaining RTL swipe failure; complete COMMAND 20-E evidence; continue disposable-file D01–D05 acceptance. Do not duplicate a Store or alter Main.
