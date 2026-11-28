@@ -1166,3 +1166,12 @@ Shard totals: test-0 272/6 failed; test-1 173/4; test-2 199/5; test-3 128/4; tes
 Issue #3646 / COMMAND 97-R remains OPEN / NOT ACCEPTED. Stop, Follow-up, Snooze and Complete semantics are defined in the Issue, but the dedicated four-action UI and device acceptance are not proven.
 
 **Acceptance:** NOT ACCEPTED. **Release:** NO-GO. These results are tied to the stated source SHA and do not transfer to later commits. The following audit-document commits do not constitute a product fix or acceptance. Main remains unchanged; no merge, release, deployment, branch deletion, PR closure, force push or production-data migration was performed.
+
+
+## 2026-11-28 — async-runner diagnostic instrumentation
+
+- Change: added CI-visible `ARVIN_ASYNC_CLEANUP[n]` phase markers in `test/support/flutter_async_cleanup.dart`.
+- Purpose: locate the first incomplete phase in repeated WidgetTester.runAsync → native work → cleanup barrier → FakeAsync pump; retain all assertions and timeouts.
+- Commit: `88dfc7a10b2713c8f5b43c471acb74e82027acd8` (diagnostics only; no production code changed).
+- Parent evidence: Build `46108844083` on `4c3ee249...` had six failing quality shards; the new diagnostic commit has no PR-triggered run returned at checkpoint time.
+- Status: IMPLEMENTED / NOT VERIFIED. Do not classify as a fix until exact-SHA logs prove the failure boundary and regression tests pass.
